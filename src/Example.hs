@@ -2,7 +2,7 @@ module Example where
 import Datatype
 
 picture1 :: UMLStateDiagram
-picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1]
+picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
   where 
    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
      where d = InnerMostState 1 "NumLockOff" ""
@@ -23,6 +23,7 @@ picture2 = StateDiagram [a,b,c,d,e] 1 "order of management system" [Connection [
       c = InnerMostState 3 "Select normal or special order" ""
       d = InnerMostState 4 "Order confirmation" ""
       e = InnerMostState 5 "Dispatch order" ""
+
       
 slide246 :: UMLStateDiagram
 slide246 = StateDiagram a 1 "" (map (\x -> Connection [x] [x+1]
