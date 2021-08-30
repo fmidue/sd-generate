@@ -4,7 +4,7 @@ import Datatype
 picture1 :: UMLStateDiagram
 picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1]
   where 
-   a = StateDiagram  [d,e] 1 ""  [Connection [1] [4] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
      where d = InnerMostState 1 "NumLockOff" ""
            e = InnerMostState 2 "NumLockOn" ""
    b = StateDiagram  [f,g] 1 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
@@ -16,7 +16,7 @@ picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1]
 
 picture2 :: UMLStateDiagram 
 picture2 = StateDiagram [a,b,c,d,e] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
-   Connection [3] [4] "Confirm order(Event)", Connection [4] [7] ""] [1]
+   Connection [3] [4] "Confirm order(Event)", Connection [4] [5] ""] [1]
     where 
       a = InnerMostState 1 "idle" ""
       b = InnerMostState 2 "Send order request" ""
