@@ -1,6 +1,29 @@
 module Example where
 import Datatype
 
+picture1 :: UMLStateDiagram
+picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1]
+  where 
+   a = StateDiagram  [d,e] 1 ""  [Connection [1] [4] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+     where d = InnerMostState 1 "NumLockOff" ""
+           e = InnerMostState 2 "NumLockOn" ""
+   b = StateDiagram  [f,g] 1 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
+    where f = InnerMostState 1 "CapsLockOff" ""
+          g = InnerMostState 2 "CapsLockOn" ""
+   c = StateDiagram  [h,i] 1 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1]
+    where h = InnerMostState 1 "ScrollLockOff" ""
+          i = InnerMostState 2 "ScrollLockOn" ""
+
+picture2 :: UMLStateDiagram 
+picture2 = StateDiagram [a,b,c,d,e] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
+   Connection [3] [4] "Confirm order(Event)", Connection [4] [7] ""] [1]
+    where 
+      a = InnerMostState 1 "idle" ""
+      b = InnerMostState 2 "Send order request" ""
+      c = InnerMostState 3 "Select normal or special order" ""
+      d = InnerMostState 4 "Order confirmation" ""
+      e = InnerMostState 5 "Dispatch order" ""
+      
 slide246 :: UMLStateDiagram
 slide246 = StateDiagram a 1 "" (map (\x -> Connection [x] [x+1]
            "after(1min)") [1..59] ++ [Connection [60] [1] "after(1min)"]) [1]
