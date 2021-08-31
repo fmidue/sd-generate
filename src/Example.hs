@@ -24,6 +24,27 @@ picture2 = StateDiagram [a,b,c,d,e] 1 "order of management system" [Connection [
       d = InnerMostState 4 "Order confirmation" ""
       e = InnerMostState 5 "Dispatch order" ""
 
+picture3 :: UMLStateDiagram
+picture3 = StateDiagram [a,b,c,d,e,f] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "", Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] ""] [5]
+     where a = InnerMostState  1 "Tasse nehmen" ""
+           b = InnerMostState  2 "Kaffee trinken" ""
+           c = InnerMostState  3 "Tasse absetzen" ""
+           d = InnerMostState  4 "Zeitung lesen" ""
+           e = Joint 5 
+           f = Joint 6 
+
+picture4 :: UMLStateDiagram
+picture4 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
+     where
+      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
+          where 
+           c = InnerMostState  1 "State 1" "" 
+           d = StateDiagram  [f,g] 2 "state 2" [Connection [1] [2] ""] [1]
+            where 
+              f = InnerMostState  1 "State 2a" "" 
+              g = InnerMostState  2 "State 2b" "" 
+           e = History 3 Deep
+      b = InnerMostState  2 "State 3" ""
       
 slide246 :: UMLStateDiagram
 slide246 = StateDiagram a 1 "" (map (\x -> Connection [x] [x+1]
