@@ -2,6 +2,53 @@ module Test where
 import Datatype
 import Layout
 import Data.List
+import Data.Maybe
+
+--check Connection Points
+checkConnection :: UMLStateDiagram -> Maybe String 
+checkConnection a 
+  | not(checkSubC a) = Just ("Error:  Connection Points")
+  | otherwise = Nothing
+
+checkSubC :: UMLStateDiagram -> Bool
+checkSubC  s@StateDiagram {} =  isContained (getConnectionPointFrom (connection s)) (getLayerList (substate s) ) (substate s) && isContained (getConnectionPointTo (connection s)) (getLayerList (substate s)) (substate s) && all checkSubC (substate s)
+checkSubC  _ = True
+
+getConnectionPointFrom :: [Connection] -> [[Int]]
+getConnectionPointFrom [] = []
+getConnectionPointFrom (x:xs) = (getPointFrom x) ++ (getConnectionPointFrom xs)
+
+getPointFrom :: Connection -> [[Int]]
+getPointFrom c@Connection {} = inits (pointFrom c)
+
+getConnectionPointTo :: [Connection] -> [[Int]]
+getConnectionPointTo [] = []
+getConnectionPointTo (x:xs) = (getPointTo x) ++ (getConnectionPointTo xs)
+
+getPointTo :: Connection -> [[Int]]
+getPointTo c@Connection {} = inits (pointTo c)
+
+isContained :: [[Int]] -> [Int] -> [UMLStateDiagram] -> Bool
+isContained [] _ _= True
+isContained (x:xs) a b = isContained1 x a b && isContained xs a b
+
+isContained1 :: [Int] -> [Int] -> [UMLStateDiagram] -> Bool
+isContained1 [] _ _ = True
+isContained1 (x:xs) a b =  (x `elem` a)  &&  isContained1 xs (getLayerList (fromJust(getSubstate x b)))  (fromJust(getSubstate x b))
+
+getSubstate :: Int -> [UMLStateDiagram] -> Maybe [UMLStateDiagram]
+getSubstate _ [] = Just []
+getSubstate a (x:xs) = case (a `elem` (getLabel x))  of 
+                                                        True -> Just (getSubstate1 x)
+                                                        False -> (getSubstate a xs)
+
+getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
+getSubstate1 (StateDiagram a _ _ _ _) = a
+getSubstate1 (CombineDiagram a _) = a
+getSubstate1 (Joint _) = []
+getSubstate1 (History _ _) = []
+getSubstate1 (InnerMostState _ _ _ ) = []
+
 
 -- check local uniqueness 
 checkUniqueness :: UMLStateDiagram -> Maybe String 
