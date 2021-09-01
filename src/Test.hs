@@ -65,12 +65,12 @@ getLayerList :: [UMLStateDiagram] -> [Int]
 getLayerList [] = []
 getLayerList (x:xs) = getLable x ++ getLayerList xs
 
-getLable :: UMLStateDiagram -> [Int]
-getLable (StateDiagram _ a _ _ _) = [a]
-getLable (CombineDiagram _ a) = [a]
-getLable (Joint a) = [a]
-getLable (History a _) = [a]
-getLable (InnerMostState a _ _ ) = [a]
+getLabel :: UMLStateDiagram -> [Int]
+getLabel (StateDiagram _ a _ _ _) = [a]
+getLabel (CombineDiagram _ a) = [a]
+getLabel (Joint a) = [a]
+getLabel (History a _) = [a]
+getLabel (InnerMostState a _ _ ) = [a]
 
 isUnique :: [Int] -> Bool
 isUnique a =((length a) ==  length (nub a))
