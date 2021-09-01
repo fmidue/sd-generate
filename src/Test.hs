@@ -2,6 +2,32 @@ module Test where
 import Datatype
 import Layout
 
+-- check local uniqueness 
+checkUniqueness :: UMLStateDiagram -> Maybe String 
+checkUniqueness a 
+  | not(checkSub a) = Just ("Error: Local Uniqueness ")
+  | otherwise = Nothing
+
+checkSub :: UMLStateDiagram -> Bool
+checkSub  s@StateDiagram {} =  isUnique (getLayerList (substate s)) && all checkSub (substate s)
+checkSub  s@CombineDiagram {} =  isUnique (getLayerList (substate s)) && all checkSub (substate s)
+checkSub  _ = True
+
+getLayerList :: [UMLStateDiagram] -> [Int]
+getLayerList [] = []
+getLayerList (x:xs) = getLable x ++ getLayerList xs
+
+getLable :: UMLStateDiagram -> [Int]
+getLable (StateDiagram _ a _ _ _) = [a]
+getLable (CombineDiagram _ a) = [a]
+getLable (Joint a) = [a]
+getLable (History a _) = [a]
+getLable (InnerMostState a _ _ ) = [a]
+
+isUnique :: [Int] -> Bool
+isUnique a =((length a) ==  length (nub a))
+
+
 checkValidity :: UMLStateDiagram -> Maybe String
 checkValidity a
   | not(checkOuterMostLayer a) = Just ("Error: Outermost layer must be 'StateD"
