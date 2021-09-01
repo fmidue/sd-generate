@@ -9,6 +9,55 @@ import Test.Hspec (Spec, describe, it, shouldBe)
 
 spec :: Spec
 spec = do
+  describe "checkUniqueness" $ do
+    it "isSuccessful for slide246" $
+      checkUniqueness slide246 `shouldBe` Nothing
+    it "isSuccessful for slide253 " $
+      checkUniqueness slide253 `shouldBe` Nothing
+    it "isSuccessful for slide257" $
+      checkUniqueness slide257 `shouldBe` Nothing
+    it "isSuccessful for slide267a" $
+      checkUniqueness slide267a `shouldBe` Nothing
+    it "isSuccessful for slide267b" $
+      checkUniqueness slide267b `shouldBe` Nothing
+    it "isSuccessful for slide271" $
+      checkUniqueness slide271 `shouldBe` Nothing
+    it "isSuccessful for slide273" $
+      checkUniqueness slide273 `shouldBe` Nothing
+    it "isSuccessful for slide275" $
+      checkUniqueness slide275 `shouldBe` Nothing
+    it "isSuccessful for slide277" $
+      checkUniqueness slide277 `shouldBe` Nothing
+    it "isSuccessful for slide278" $
+      checkUniqueness slide278 `shouldBe` Nothing
+    it "isSuccessful for slide279" $
+      checkUniqueness slide279 `shouldBe` Nothing
+    it "isSuccessful for slide280" $
+      checkUniqueness slide280 `shouldBe` Nothing
+    it "isSuccessful for slide281" $
+      checkUniqueness slide281 `shouldBe` Nothing
+    it "isSuccessful for slide283" $
+      checkUniqueness slide283 `shouldBe` Nothing
+    it "isSuccessful for task26a" $
+      checkUniqueness task26a `shouldBe` Nothing
+    it "isSuccessful for task26b" $
+      checkUniqueness task26b `shouldBe` Nothing
+    it "isSuccessful for task27" $
+      checkUniqueness task27 `shouldBe` Nothing
+    it "isSuccessful for task85" $
+      checkUniqueness task85 `shouldBe` Nothing
+    it "isSuccessful for task88" $
+      checkUniqueness task88 `shouldBe` Nothing
+    it "isSuccessful for test4" $
+      checkUniqueness test4 `shouldBe` Nothing
+    it "isSuccessful for picture1" $
+         checkUniqueness  picture1 `shouldBe` Nothing
+    it "isSuccessful for picture2" $
+         checkUniqueness  picture2 `shouldBe` Nothing
+    it "isSuccessful for picture3" $
+         checkUniqueness  picture3 `shouldBe` Nothing
+    it "isSuccessful for picture4" $
+         checkUniqueness  picture4 `shouldBe` Nothing
   describe "checkValidity" $ do
     it "isSuccessful for slide246" $
       checkValidity slide246 `shouldBe` Nothing
