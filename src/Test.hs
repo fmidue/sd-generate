@@ -1,6 +1,7 @@
 module Test where
 import Datatype
 import Layout
+import Data.List
 
 -- check local uniqueness 
 checkUniqueness :: UMLStateDiagram -> Maybe String 
