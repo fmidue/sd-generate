@@ -50,7 +50,7 @@ getSubstate1 (History _ _) = []
 getSubstate1 (InnerMostState _ _ _ ) = []
 
 
--- check local uniqueness 
+--check local uniqueness
 checkUniqueness :: UMLStateDiagram -> Maybe String 
 checkUniqueness a 
   | not(checkSub a) = Just ("Error: Local Uniqueness ")
@@ -63,7 +63,7 @@ checkSub  _ = True
 
 getLayerList :: [UMLStateDiagram] -> [Int]
 getLayerList [] = []
-getLayerList (x:xs) = getLable x ++ getLayerList xs
+getLayerList (x:xs) = getLabel x ++ getLayerList xs
 
 getLabel :: UMLStateDiagram -> [Int]
 getLabel (StateDiagram _ a _ _ _) = [a]
@@ -74,6 +74,7 @@ getLabel (InnerMostState a _ _ ) = [a]
 
 isUnique :: [Int] -> Bool
 isUnique a =((length a) ==  length (nub a))
+
 
 
 checkValidity :: UMLStateDiagram -> Maybe String
