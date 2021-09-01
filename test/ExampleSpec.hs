@@ -9,6 +9,55 @@ import Test.Hspec (Spec, describe, it, shouldBe)
 
 spec :: Spec
 spec = do
+  describe "checkConnection " $ do
+    it "isSuccessful for slide246" $
+      checkConnection  slide246 `shouldBe` Nothing
+    it "isSuccessful for slide253 " $
+      checkConnection  slide253 `shouldBe` Nothing
+    it "isSuccessful for slide257" $
+      checkConnection  slide257 `shouldBe` Nothing
+    it "isSuccessful for slide267a" $
+      checkConnection  slide267a `shouldBe` Nothing
+    it "isSuccessful for slide267b" $
+      checkConnection  slide267b `shouldBe` Nothing
+    it "isSuccessful for slide271" $
+      checkConnection  slide271 `shouldBe` Nothing
+    it "isSuccessful for slide273" $
+      checkConnection  slide273 `shouldBe` Nothing
+    it "isSuccessful for slide275" $
+      checkConnection  slide275 `shouldBe` Nothing
+    it "isSuccessful for slide277" $
+      checkConnection  slide277 `shouldBe` Nothing
+    it "isSuccessful for slide278" $
+      checkConnection  slide278 `shouldBe` Nothing
+    it "isSuccessful for slide279" $
+      checkConnection  slide279 `shouldBe` Nothing
+    it "isSuccessful for slide280" $
+      checkConnection  slide280 `shouldBe` Nothing
+    it "isSuccessful for slide281" $
+      checkConnection  slide281 `shouldBe` Nothing
+    it "isSuccessful for slide283" $
+      checkConnection  slide283 `shouldBe` Nothing
+    it "isSuccessful for task26a" $
+      checkConnection  task26a `shouldBe` Nothing
+    it "isSuccessful for task26b" $
+      checkConnection  task26b `shouldBe` Nothing
+    it "isSuccessful for task27" $
+      checkConnection  task27 `shouldBe` Nothing
+    it "isSuccessful for task85" $
+      checkConnection  task85 `shouldBe` Nothing
+    it "isSuccessful for task88" $
+      checkConnection  task88 `shouldBe` Nothing
+    it "isSuccessful for test4" $
+      checkConnection  test4 `shouldBe` Nothing
+    it "isSuccessful for picture1" $
+         checkConnection   picture1 `shouldBe` Nothing
+    it "isSuccessful for picture2" $
+         checkConnection   picture2 `shouldBe` Nothing
+    it "isSuccessful for picture3" $
+         checkConnection   picture3 `shouldBe` Nothing
+    it "isSuccessful for picture4" $
+         checkConnection   picture4 `shouldBe` Nothing
   describe "checkUniqueness" $ do
     it "isSuccessful for slide246" $
       checkUniqueness slide246 `shouldBe` Nothing
