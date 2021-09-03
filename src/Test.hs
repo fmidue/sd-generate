@@ -1,7 +1,8 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module Test where
 import Datatype
 import Layout
-import Data.List
+import Data.List.Extra
 
 --check Connection Points
 checkConnection :: UMLStateDiagram -> Maybe String
@@ -10,13 +11,13 @@ checkConnection a
   | otherwise = Nothing
 
 checkSubC :: UMLStateDiagram -> Bool
-checkSubC  s@StateDiagram {} =  checkConnFrom && checkConnTo  && all checkSubC (substate s)
+checkSubC  StateDiagram { substate, connection } =  checkConnFrom && checkConnTo  && all checkSubC substate
                               where
-                                checkConnFrom = isContained (map pointFrom (connection s))
-                                              (map label (substate s) ) (substate s)
-                                checkConnTo = isContained (map pointTo (connection s))
-                                              (map label (substate s)) (substate s)
-checkSubC c@CombineDiagram {} = all checkSubC (substate c)
+                                checkConnFrom = isContained (map pointFrom connection) getLayerList  substate
+                                  where getLayerList = map label substate
+                                checkConnTo = isContained (map pointTo connection ) getLayerList substate
+                                  where getLayerList = map label substate
+checkSubC CombineDiagram {substate} = all checkSubC substate
 checkSubC  _ = True
 
 isContained :: [[Int]] -> [Int] -> [UMLStateDiagram] -> Bool
@@ -50,12 +51,12 @@ checkUniqueness a
   | otherwise = Nothing
 
 checkSub :: UMLStateDiagram -> Bool
-checkSub  s@StateDiagram {} =  isUnique (map label (substate s)) && all checkSub (substate s)
-checkSub  s@CombineDiagram {} =  isUnique (map label (substate s)) && all checkSub (substate s)
+checkSub  StateDiagram {substate} =  isUnique (map label substate ) && all checkSub substate
+checkSub  CombineDiagram {substate} =  isUnique (map label substate ) && all checkSub substate
 checkSub  _ = True
 
 isUnique :: [Int] -> Bool
-isUnique a = length a ==  length (nub a)
+isUnique a = not (anySame a)
 
 
 
