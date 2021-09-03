@@ -2,31 +2,22 @@ module Test where
 import Datatype
 import Layout
 import Data.List
-import Data.Maybe
 
 --check Connection Points
-checkConnection :: UMLStateDiagram -> Maybe String 
-checkConnection a 
-  | not(checkSubC a) = Just ("Error:  Connection Points")
+checkConnection :: UMLStateDiagram -> Maybe String
+checkConnection a
+  | not(checkSubC a) = Just "Error:  Connection Points"
   | otherwise = Nothing
 
 checkSubC :: UMLStateDiagram -> Bool
-checkSubC  s@StateDiagram {} =  isContained (getConnectionPointFrom (connection s)) (getLayerList (substate s) ) (substate s) && isContained (getConnectionPointTo (connection s)) (getLayerList (substate s)) (substate s) && all checkSubC (substate s)
+checkSubC  s@StateDiagram {} =  checkConnFrom && checkConnTo  && all checkSubC (substate s)
+                              where
+                                checkConnFrom = isContained (map pointFrom (connection s))
+                                              (map label (substate s) ) (substate s)
+                                checkConnTo = isContained (map pointTo (connection s))
+                                              (map label (substate s)) (substate s)
+checkSubC c@CombineDiagram {} = all checkSubC (substate c)
 checkSubC  _ = True
-
-getConnectionPointFrom :: [Connection] -> [[Int]]
-getConnectionPointFrom [] = []
-getConnectionPointFrom (x:xs) = (getPointFrom x) ++ (getConnectionPointFrom xs)
-
-getPointFrom :: Connection -> [[Int]]
-getPointFrom c@Connection {} = inits (pointFrom c)
-
-getConnectionPointTo :: [Connection] -> [[Int]]
-getConnectionPointTo [] = []
-getConnectionPointTo (x:xs) = (getPointTo x) ++ (getConnectionPointTo xs)
-
-getPointTo :: Connection -> [[Int]]
-getPointTo c@Connection {} = inits (pointTo c)
 
 isContained :: [[Int]] -> [Int] -> [UMLStateDiagram] -> Bool
 isContained [] _ _= True
@@ -34,46 +25,37 @@ isContained (x:xs) a b = isContained1 x a b && isContained xs a b
 
 isContained1 :: [Int] -> [Int] -> [UMLStateDiagram] -> Bool
 isContained1 [] _ _ = True
-isContained1 (x:xs) a b =  (x `elem` a)  &&  isContained1 xs (getLayerList (fromJust(getSubstate x b)))  (fromJust(getSubstate x b))
+isContained1 (x:xs) a b =  (x `elem` a)  &&
+       isContained1 xs (map label (getSubstate x b)) (getSubstate x b)
 
-getSubstate :: Int -> [UMLStateDiagram] -> Maybe [UMLStateDiagram]
-getSubstate _ [] = Just []
-getSubstate a (x:xs) = case (a `elem` (getLabel x))  of 
-                                                        True -> Just (getSubstate1 x)
-                                                        False -> (getSubstate a xs)
+getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
+getSubstate _ [] =  []
+getSubstate a (x:xs) = if a == label x  then
+                                           getSubstate1 x
+                                        else
+                                            getSubstate a xs
 
 getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
 getSubstate1 (StateDiagram a _ _ _ _) = a
 getSubstate1 (CombineDiagram a _) = a
 getSubstate1 (Joint _) = []
 getSubstate1 (History _ _) = []
-getSubstate1 (InnerMostState _ _ _ ) = []
+getSubstate1 InnerMostState {}  = []
 
 
 --check local uniqueness
-checkUniqueness :: UMLStateDiagram -> Maybe String 
-checkUniqueness a 
-  | not(checkSub a) = Just ("Error: Local Uniqueness ")
+checkUniqueness :: UMLStateDiagram -> Maybe String
+checkUniqueness a
+  | not(checkSub a) = Just "Error: Local Uniqueness not fullfilled "
   | otherwise = Nothing
 
 checkSub :: UMLStateDiagram -> Bool
-checkSub  s@StateDiagram {} =  isUnique (getLayerList (substate s)) && all checkSub (substate s)
-checkSub  s@CombineDiagram {} =  isUnique (getLayerList (substate s)) && all checkSub (substate s)
+checkSub  s@StateDiagram {} =  isUnique (map label (substate s)) && all checkSub (substate s)
+checkSub  s@CombineDiagram {} =  isUnique (map label (substate s)) && all checkSub (substate s)
 checkSub  _ = True
 
-getLayerList :: [UMLStateDiagram] -> [Int]
-getLayerList [] = []
-getLayerList (x:xs) = getLabel x ++ getLayerList xs
-
-getLabel :: UMLStateDiagram -> [Int]
-getLabel (StateDiagram _ a _ _ _) = [a]
-getLabel (CombineDiagram _ a) = [a]
-getLabel (Joint a) = [a]
-getLabel (History a _) = [a]
-getLabel (InnerMostState a _ _ ) = [a]
-
 isUnique :: [Int] -> Bool
-isUnique a =((length a) ==  length (nub a))
+isUnique a = length a ==  length (nub a)
 
 
 
@@ -96,8 +78,7 @@ checkOuterMostLayer _ = True
 checkSubstateSD :: UMLStateDiagram -> Bool
 checkSubstateSD (StateDiagram [] _ _ _ _) = False
 checkSubstateSD (CombineDiagram a _) = all checkSubstateSD a
-checkSubstateSD (StateDiagram a _ _ _ _) = any checkListInSD a && all
-  checkSubstateSD a
+checkSubstateSD (StateDiagram a _ _ _ _) = any checkListInSD a && all checkSubstateSD a
 checkSubstateSD _ = True
 
 checkListInSD :: UMLStateDiagram -> Bool
