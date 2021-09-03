@@ -148,6 +148,14 @@ spec = do
       checkValidity task88 `shouldBe` Nothing
     it "isSuccessful for test4" $
       checkValidity test4 `shouldBe` Nothing
+    it "isSuccessful for picture1" $
+      checkValidity  picture1 `shouldBe` Nothing
+    it "isSuccessful for picture2" $
+      checkValidity  picture2 `shouldBe` Nothing
+    it "isSuccessful for picture3" $
+      checkValidity  picture3 `shouldBe` Nothing
+    it "isSuccessful for picture4" $
+      checkValidity picture4 `shouldBe` Nothing
   describe "checkWrapper" $ do
     it "isSuccessful for slide246" $
       checkWrapper slide246 `shouldBe` Nothing
@@ -189,4 +197,11 @@ spec = do
       checkWrapper task88 `shouldBe` Nothing
     it "isSuccessful for test1" $
       checkWrapper test1 `shouldBe` Nothing
-
+    it "isSuccessful for picture1" $
+      checkWrapper  picture1 `shouldBe` Nothing
+    it "isSuccessful for picture2" $
+      checkWrapper  picture2 `shouldBe` Nothing
+    it "isSuccessful for picture3" $
+      checkWrapper picture3 `shouldBe` Nothing
+    it "isSuccessful for picture4" $
+      checkWrapper picture4 `shouldBe` Nothing
