@@ -13,10 +13,10 @@ checkConnection a
 checkSubC :: UMLStateDiagram -> Bool
 checkSubC  StateDiagram { substate, connection } =  checkConnFrom && checkConnTo  && all checkSubC substate
                               where
+                                getLayerList = map label substate
                                 checkConnFrom = isContained (map pointFrom connection) getLayerList  substate
-                                  where getLayerList = map label substate
                                 checkConnTo = isContained (map pointTo connection ) getLayerList substate
-                                  where getLayerList = map label substate
+                                
 checkSubC CombineDiagram {substate} = all checkSubC substate
 checkSubC  _ = True
 
