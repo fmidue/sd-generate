@@ -1,5 +1,3 @@
--- |
-
 module ExampleSpec where
 
 import Example
@@ -32,7 +30,10 @@ spec = do
         , ("task27", task27)
         , ("task85", task85)
         , ("task88", task88)
-        , ("test4", test4)
+        , ("test1", test1)
+        , ("test1", test2)
+        , ("test1", test3)
+        , ("test1", test4)
         , ("picture1", picture1)
         , ("picture2", picture2)
         , ("picture3", picture3)
@@ -61,7 +62,10 @@ spec = do
         , ("task27", task27)
         , ("task85", task85)
         , ("task88", task88)
-        , ("test4", test4)
+        , ("test1", test1)
+        , ("test1", test2)
+        , ("test1", test3)
+        , ("test1", test4)
         , ("picture1", picture1)
         , ("picture2", picture2)
         , ("picture3", picture3)
@@ -90,7 +94,10 @@ spec = do
         , ("task27", task27)
         , ("task85", task85)
         , ("task88", task88)
-        , ("test4", test4)
+        , ("test1", test1)
+        , ("test1", test2)
+        , ("test1", test3)
+        , ("test1", test4)
         , ("picture1", picture1)
         , ("picture2", picture2)
         , ("picture3", picture3)
@@ -120,6 +127,9 @@ spec = do
         , ("task85", task85)
         , ("task88", task88)
         , ("test1", test1)
+        , ("test1", test2)
+        , ("test1", test3)
+        , ("test1", test4)
         , ("picture1", picture1)
         , ("picture2", picture2)
         , ("picture3", picture3)
