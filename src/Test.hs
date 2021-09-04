@@ -15,8 +15,7 @@ checkSubC  StateDiagram { substate, connection } =  checkConnFrom && checkConnTo
                               where
                                 getLayerList = map label substate
                                 checkConnFrom = isContained (map pointFrom connection) getLayerList  substate
-                                checkConnTo = isContained (map pointTo connection ) getLayerList substate
-                                
+                                checkConnTo = isContained (map pointTo connection ) getLayerList substate                                
 checkSubC CombineDiagram {substate} = all checkSubC substate
 checkSubC  _ = True
 
