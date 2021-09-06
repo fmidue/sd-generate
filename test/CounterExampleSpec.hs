@@ -9,7 +9,7 @@ import Control.Monad (void)
 spec :: Spec
 spec = do
   describe "checkConnection" $ void $ sequence
-    [ it ("isSuccessful for " ++ name) $ checkConnection code `shouldBe` Nothing
+    [ it ("isSuccessful for " ++ name) $ checkConnection code `shouldBe` Just "Error:  Connection Points"
     | (name, code) <-
         [ ("outerStateDiagC1", outerStateDiagC1)
          ,("outerStateDiagC2 ", outerStateDiagC2)
@@ -22,7 +22,7 @@ spec = do
         ]
     ]
   describe "checkUniqueness" $ void $ sequence
-    [ it ("isSuccessful for " ++ name) $ checkUniqueness code `shouldBe` Nothing
+    [ it ("isSuccessful for " ++ name) $ checkUniqueness code `shouldBe` Just "Error: Local Uniqueness not fullfilled "
     | (name, code) <-
         [("outerStateDiagL1", outerStateDiagL1)
         ,("outerStateDiagL2", outerStateDiagL2)
