@@ -3,13 +3,14 @@ module CounterExampleSpec where
 import CounterExample
 import Test
 
-import Test.Hspec (Spec, describe, it, shouldBe)
+import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (void)
+import Data.Maybe(isJust)
 
 spec :: Spec
 spec = do
   describe "checkConnection" $ void $ sequence
-    [ it ("isSuccessful for " ++ name) $ checkConnection code `shouldBe` Just "Error:  Connection Points"
+    [ it ("isSuccessful for " ++ name) $ checkConnection code `shouldSatisfy` isJust
     | (name, code) <-
         [ ("outerStateDiagC1", outerStateDiagC1)
          ,("outerStateDiagC2 ", outerStateDiagC2)
@@ -22,7 +23,7 @@ spec = do
         ]
     ]
   describe "checkUniqueness" $ void $ sequence
-    [ it ("isSuccessful for " ++ name) $ checkUniqueness code `shouldBe` Just "Error: Local Uniqueness not fullfilled "
+    [ it ("isSuccessful for " ++ name) $ checkUniqueness code `shouldSatisfy` isJust
     | (name, code) <-
         [("outerStateDiagL1", outerStateDiagL1)
         ,("outerStateDiagL2", outerStateDiagL2)
