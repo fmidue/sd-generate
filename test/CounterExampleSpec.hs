@@ -10,7 +10,7 @@ import Data.Maybe(isJust)
 spec :: Spec
 spec = do
   describe "checkConnection" $ void $ sequence
-    [ it ("isSuccessful for " ++ name) $ checkConnection code `shouldSatisfy` isJust
+    [ it ("rejects " ++ name) $ checkConnection code `shouldSatisfy` isJust
     | (name, code) <-
         [ ("outerStateDiagC1", outerStateDiagC1)
          ,("outerStateDiagC2 ", outerStateDiagC2)
@@ -23,7 +23,7 @@ spec = do
         ]
     ]
   describe "checkUniqueness" $ void $ sequence
-    [ it ("isSuccessful for " ++ name) $ checkUniqueness code `shouldSatisfy` isJust
+    [ it ("rejects " ++ name) $ checkUniqueness code `shouldSatisfy` isJust
     | (name, code) <-
         [("outerStateDiagL1", outerStateDiagL1)
         ,("outerStateDiagL2", outerStateDiagL2)
