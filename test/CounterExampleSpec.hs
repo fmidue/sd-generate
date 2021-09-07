@@ -35,3 +35,15 @@ spec = do
         ,("insideCombineDiagL1", insideCombineDiagL1)
         ]
     ]
+  describe "checkStartState" $ void $ sequence
+    [ it ("rejects " ++ name) $ checkStartState code `shouldSatisfy` isJust
+    | (name, code) <-
+        [ ("nonExist", nonExist)
+          ,("outerStateDiag1 ", outerStateDiag1)
+          ,("outerStateDiag2", outerStateDiag2)
+          ,("innerStateDiag1", innerStateDiag1)
+          ,("innerStateDiag2", innerStateDiag2)
+          ,("innerCombineDiag1", innerCombineDiag1)
+          ,("outerCombineDiag1", outerCombineDiag1)
+        ]
+    ]
