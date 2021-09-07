@@ -20,6 +20,9 @@ spec = do
   describe "checkWrapper" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkWrapper code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
+  describe "checkStartState" $ void $ sequence
+    [ it ("isSuccessful for " ++ name) $ checkStartState code `shouldBe` Nothing
+    | (name, code) <- positiveExamples ]
 
 positiveExamples =
         [ ("slide246", slide246)
