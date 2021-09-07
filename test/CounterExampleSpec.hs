@@ -20,6 +20,7 @@ spec = do
          ,("insideStateDiagC3", insideStateDiagC3)
          ,("outerCombineDiagC1", outerCombineDiagC1)
          ,("insideCombineDiagC1", insideCombineDiagC1)
+         ,("tooDeep", tooDeep)
         ]
     ]
   describe "checkUniqueness" $ void $ sequence
