@@ -1,5 +1,100 @@
 module CounterExample where
 import Datatype
+-- CounterExample for  "Start States checker"
+nonExist :: UMLStateDiagram
+nonExist = StateDiagram [InnerMostState 1 "" "", InnerMostState 2 "" ""] 1 "" [] [1,2]
+
+outerStateDiag1 :: UMLStateDiagram
+outerStateDiag1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,5,2]
+         -- changed this line [1,5,2]
+  where
+   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+     where d = InnerMostState 1 "NumLockOff" ""
+           e = InnerMostState 2 "NumLockOn" ""
+   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
+    where f = InnerMostState 1 "CapsLockOff" ""
+          g = InnerMostState 2 "CapsLockOn" ""
+   c = StateDiagram  [h,i] 3 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1]
+    where h = InnerMostState 1 "ScrollLockOff" ""
+          i = InnerMostState 2 "ScrollLockOn" ""
+
+outerStateDiag2 :: UMLStateDiagram
+outerStateDiag2 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [5]
+        -- changed this line [5]
+  where
+   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+     where d = InnerMostState 1 "NumLockOff" ""
+           e = InnerMostState 2 "NumLockOn" ""
+   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
+    where f = InnerMostState 1 "CapsLockOff" ""
+          g = InnerMostState 2 "CapsLockOn" ""
+   c = StateDiagram  [h,i] 3 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1]
+    where h = InnerMostState 1 "ScrollLockOff" ""
+          i = InnerMostState 2 "ScrollLockOn" ""
+
+innerStateDiag1 :: UMLStateDiagram
+innerStateDiag1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
+     where
+      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [5]
+      -- changed this line [5]
+          where
+           c = InnerMostState  1 "State 1" ""
+           d = StateDiagram  [f,g] 2 "state 2" [Connection [1] [2] ""] [1]
+            where
+              f = InnerMostState  1 "State 2a" ""
+              g = InnerMostState  2 "State 2b" ""
+           e = History 3 Deep
+      b = InnerMostState  2 "State 3" ""
+
+innerStateDiag2 :: UMLStateDiagram
+innerStateDiag2 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
+     where
+      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [2,1,3]
+      -- changed this line [2,1,3]
+          where
+           c = InnerMostState  1 "State 1" ""
+           d = StateDiagram  [f,g] 2 "state 2" [Connection [1] [2] ""] [1]
+            where
+              f = InnerMostState  1 "State 2a" ""
+              g = InnerMostState  2 "State 2b" ""
+           e = History 3 Deep
+      b = InnerMostState  2 "State 3" ""
+
+innerCombineDiag1:: UMLStateDiagram
+innerCombineDiag1= StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
+           [2, 1, 2] [4] "h", Connection [2, 1, 3] [3] "", Connection [2, 2, 2]
+           [3] "", Connection [3] [4] "g"] [1]
+  where
+    a = InnerMostState 1 "A" ""
+    b = CombineDiagram [e, f] 2
+      where
+        e = StateDiagram [g, h, i] 1 "" [Connection [1] [2] "b", Connection
+            [2] [3] "c"] [5]
+            -- changed this line [5]
+          where
+            g = InnerMostState 1 "B" ""
+            h = InnerMostState 2 "C" ""
+            i = InnerMostState 3 "D" ""
+        f = StateDiagram [j, k] 2 "" [Connection [1] [2] "e"] [1]
+          where
+            j = InnerMostState 1 "E" ""
+            k = InnerMostState 2 "F" ""
+    c = Joint 3
+    d = InnerMostState 4 "G" ""
+
+outerCombineDiag1:: UMLStateDiagram
+outerCombineDiag1 = CombineDiagram [a,b,c] 1
+  where
+   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [5]
+            -- changed this line [5]
+     where d = InnerMostState 1 "NumLockOff" ""
+           e = InnerMostState 2 "NumLockOn" ""
+   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
+    where f = InnerMostState 1 "CapsLockOff" ""
+          g = InnerMostState 2 "CapsLockOn" ""
+   c = StateDiagram  [h,i] 3 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1]
+    where h = InnerMostState 1 "ScrollLockOff" ""
+          i = InnerMostState 2 "ScrollLockOn" ""
 
 -- CounterExample for  "Connection Points checker"
 
