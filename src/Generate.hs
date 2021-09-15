@@ -12,7 +12,7 @@ randomSD = do
       n <- elements [2 .. 3]
       subs <- vectorOf n randomSubstateCD
       l <- elements [1 .. 3]
-      if (any checkListInSD subs) && (isUnique (map label subs))
+      if any checkListInSD subs && isUnique (map label subs)
         then
         do
           return (CombineDiagram subs l)
@@ -26,7 +26,7 @@ randomSD = do
       l <- elements [1 .. 3]
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
-      if (any checkListInSD subs) && (isUnique (map label subs))
+      if any checkListInSD subs && isUnique (map label subs)
         then
         do
           return (StateDiagram subs l nm [] [start])
@@ -41,7 +41,7 @@ randomSubstateCD = do
       l <- elements [1 .. 3]
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
-      if (any checkListInSD subs) && (isUnique (map label subs ))
+      if any checkListInSD subs && isUnique (map label subs )
         then
         do
           return (StateDiagram subs l nm [] [start])
@@ -64,7 +64,7 @@ randomInner = do
       l <- elements [1 .. 3]
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
-      if (any checkListInSD subs) && (isUnique (map label subs))
+      if any checkListInSD subs && isUnique (map label subs)
         then
         do
           return (StateDiagram subs l nm [] [start])
