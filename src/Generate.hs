@@ -1,73 +1,50 @@
 module Generate where
 import Datatype
-import Test.QuickCheck hiding(label)
+import Test.QuickCheck hiding(label,labels)
 import Test
 
-randomSD :: Gen UMLStateDiagram
+randomSD ::Gen UMLStateDiagram
 randomSD = do
   bottom <- elements [False, True]
   if bottom
     then
     do
       n <- elements [2 .. 3]
-      subs <- vectorOf n randomSubstateCD
-      l <- elements [1 .. 3]
-      if any checkListInSD subs && isUnique (map label subs)
-        then
-        do
-          return (CombineDiagram subs l)
-        else
-        do
-          randomSD
+      labels <- shuffle [1..n]
+      subs <- mapM randomSubstateCD labels `suchThat` any checkListInSD
+      return (CombineDiagram subs 1)
     else
     do
       n <- elements [1 .. 2]
-      subs <- vectorOf n randomInner
-      l <- elements [1 .. 3]
+      labels <- shuffle [1..n]
+      subs <- mapM randomInner labels `suchThat` any checkListInSD
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
-      if any checkListInSD subs && isUnique (map label subs)
-        then
-        do
-          return (StateDiagram subs l nm [] [start])
-        else
-        do
-          randomSD
+      return (StateDiagram subs 1 nm [] [start])
 
-randomSubstateCD :: Gen UMLStateDiagram
-randomSubstateCD = do
+
+randomSubstateCD ::Int -> Gen UMLStateDiagram
+randomSubstateCD l = do
       n <- elements [1 .. 2]
-      subs <- vectorOf n randomInner
-      l <- elements [1 .. 3]
+      labels <- shuffle [1..n]
+      subs <- mapM randomInner labels `suchThat` any checkListInSD
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
-      if any checkListInSD subs && isUnique (map label subs )
-        then
-        do
-          return (StateDiagram subs l nm [] [start])
-        else
-        do
-          randomSubstateCD
+      return (StateDiagram subs l nm [] [start])
 
-randomInner :: Gen UMLStateDiagram
-randomInner = do
+
+randomInner :: Int -> Gen UMLStateDiagram
+randomInner l = do
   bottom <- elements [False, True]
   if bottom
     then
     do
-      l <- elements [1 .. 4]
-      elements [Joint l, History l Shallow,InnerMostState l "" "",History l Deep]
+      elements [Joint l, History l Shallow,History l Deep,InnerMostState l "" ""]
     else
     do
       n <- elements [1 .. 2]
-      subs <- vectorOf n randomInner
-      l <- elements [1 .. 3]
+      labels <- shuffle [1..n]
+      subs <- mapM randomInner labels `suchThat` any checkListInSD
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
-      if any checkListInSD subs && isUnique (map label subs)
-        then
-        do
-          return (StateDiagram subs l nm [] [start])
-        else
-        do
-          randomInner
+      return (StateDiagram subs l nm [] [start])
