@@ -3,7 +3,7 @@ import Datatype
 
 picture1 :: UMLStateDiagram
 picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
-  where 
+  where
    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
      where d = InnerMostState 1 "NumLockOff" ""
            e = InnerMostState 2 "NumLockOn" ""
@@ -14,38 +14,41 @@ picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
     where h = InnerMostState 1 "ScrollLockOff" ""
           i = InnerMostState 2 "ScrollLockOn" ""
 
-picture2 :: UMLStateDiagram 
-picture2 = StateDiagram [a,b,c,d,e] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
-   Connection [3] [4] "Confirm order(Event)", Connection [4] [5] ""] [1]
-    where 
+picture2 :: UMLStateDiagram
+picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
+   Connection [3] [4] "Confirm order(Event)", Connection [4] [5] "",Connection [2] [6] "exit",Connection [5] [6] "complete"] [1]
+    where
       a = InnerMostState 1 "idle" ""
       b = InnerMostState 2 "Send order request" ""
       c = InnerMostState 3 "Select normal or special order" ""
       d = InnerMostState 4 "Order confirmation" ""
       e = InnerMostState 5 "Dispatch order" ""
+      f = InnerMostState 6 "end state" ""
 
 picture3 :: UMLStateDiagram
-picture3 = StateDiagram [a,b,c,d,e,f] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "", Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] ""] [5]
+picture3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "",
+      Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] ""] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
            c = InnerMostState  3 "Tasse absetzen" ""
            d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5 
-           f = Joint 6 
+           e = Joint 5
+           f = Joint 6
+           g = InnerMostState 7 "end state" ""
 
 picture4 :: UMLStateDiagram
 picture4 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
      where
       a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
-          where 
-           c = InnerMostState  1 "State 1" "" 
+          where
+           c = InnerMostState  1 "State 1" ""
            d = StateDiagram  [f,g] 2 "state 2" [Connection [1] [2] ""] [1]
-            where 
-              f = InnerMostState  1 "State 2a" "" 
-              g = InnerMostState  2 "State 2b" "" 
+            where
+              f = InnerMostState  1 "State 2a" ""
+              g = InnerMostState  2 "State 2b" ""
            e = History 3 Deep
       b = InnerMostState  2 "State 3" ""
-      
+
 slide246 :: UMLStateDiagram
 slide246 = StateDiagram a 1 "" (map (\x -> Connection [x] [x+1]
            "after(1min)") [1..59] ++ [Connection [60] [1] "after(1min)"]) [1]
