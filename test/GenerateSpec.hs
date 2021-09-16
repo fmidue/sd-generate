@@ -1,6 +1,5 @@
 module GenerateSpec where
 
-import Datatype
 import Generate
 import Test
 
