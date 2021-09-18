@@ -3,48 +3,46 @@ import Datatype
 import Test.QuickCheck hiding(label,labels)
 import Test
 
-randomSD ::Gen UMLStateDiagram
+randomSD :: Gen UMLStateDiagram
 randomSD = do
-  bottom <- elements [False, True]
-  if bottom
-    then
-    do
-      n <- elements [2 .. 3]
+      counter <- return 4
+      n <- elements [3 .. 5]
       labels <- shuffle [1..n]
-      subs <- mapM randomSubstateCD labels `suchThat` any checkListInSD
-      return (CombineDiagram subs 1)
-    else
-    do
-      n <- elements [1 .. 2]
-      labels <- shuffle [1..n]
-      subs <- mapM randomInner labels `suchThat` any checkListInSD
+      subs <- mapM (randomInnerSD counter) labels  `suchThat` any checkListInSD
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
       return (StateDiagram subs 1 nm [] [start])
 
+randomInnerSD :: Int -> Int -> Gen UMLStateDiagram
+randomInnerSD c l =
+      if (c > 0)
+        then
+          do
+            counter <- return (c-1)
+            frequency [ (8,randomInnerMost l),(1,randomCD counter l),(2,randomSubstateCD counter l)]
+      else
+          do
+            randomInnerMost l
 
-randomSubstateCD ::Int -> Gen UMLStateDiagram
-randomSubstateCD l = do
-      n <- elements [1 .. 2]
+randomInnerMost :: Int -> Gen UMLStateDiagram
+randomInnerMost l =
+       frequency [(1,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(6,return (InnerMostState l "" ""))]
+
+
+randomCD :: Int -> Int -> Gen UMLStateDiagram
+randomCD c l = do
+      counter <- return (c-1)
+      n <- elements [2 .. 3]
       labels <- shuffle [1..n]
-      subs <- mapM randomInner labels `suchThat` any checkListInSD
-      nm <- elements ["A","B","C"]
-      start <- elements (map label subs)
-      return (StateDiagram subs l nm [] [start])
+      subs <- mapM (randomSubstateCD counter) labels `suchThat` any checkListInSD
+      return (CombineDiagram subs l)
 
-
-randomInner :: Int -> Gen UMLStateDiagram
-randomInner l = do
-  bottom <- elements [False, True]
-  if bottom
-    then
-    do
-      elements [Joint l, History l Shallow,History l Deep,InnerMostState l "" ""]
-    else
-    do
-      n <- elements [1 .. 2]
+randomSubstateCD :: Int -> Int -> Gen UMLStateDiagram
+randomSubstateCD c l = do
+      counter <- return (c-1)
+      n <- elements [1 .. 3]
       labels <- shuffle [1..n]
-      subs <- mapM randomInner labels `suchThat` any checkListInSD
+      subs <- mapM (randomInnerSD counter) labels `suchThat` any checkListInSD
       nm <- elements ["A","B","C"]
       start <- elements (map label subs)
       return (StateDiagram subs l nm [] [start])
