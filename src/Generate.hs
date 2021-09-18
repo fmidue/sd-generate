@@ -5,7 +5,7 @@ import Test
 
 randomSD :: Gen UMLStateDiagram
 randomSD = do
-      counter <- return 4
+      let counter = 4
       n <- elements [3 .. 5]
       labels <- shuffle [1..n]
       subs <- mapM (randomInnerSD counter) labels  `suchThat` any checkListInSD
@@ -15,10 +15,10 @@ randomSD = do
 
 randomInnerSD :: Int -> Int -> Gen UMLStateDiagram
 randomInnerSD c l =
-      if (c > 0)
+      if c > 0
         then
           do
-            counter <- return (c-1)
+            let counter = c-1
             frequency [ (8,randomInnerMost l),(1,randomCD counter l),(2,randomSubstateCD counter l)]
       else
           do
@@ -31,7 +31,7 @@ randomInnerMost l =
 
 randomCD :: Int -> Int -> Gen UMLStateDiagram
 randomCD c l = do
-      counter <- return (c-1)
+      let counter = c-1
       n <- elements [2 .. 3]
       labels <- shuffle [1..n]
       subs <- mapM (randomSubstateCD counter) labels `suchThat` any checkListInSD
@@ -39,7 +39,7 @@ randomCD c l = do
 
 randomSubstateCD :: Int -> Int -> Gen UMLStateDiagram
 randomSubstateCD c l = do
-      counter <- return (c-1)
+      let counter = c-1
       n <- elements [1 .. 3]
       labels <- shuffle [1..n]
       subs <- mapM (randomInnerSD counter) labels `suchThat` any checkListInSD
