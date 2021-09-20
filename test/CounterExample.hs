@@ -342,7 +342,7 @@ outerMostCombineDiag = CombineDiagram [a,b,c] 1
    b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
     where f = InnerMostState 1 "CapsLockOff" ""
           g = InnerMostState 2 "CapsLockOn" ""
-   c = StateDiagram  [h,i] 2 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1] -- changed this line
+   c = StateDiagram  [h,i] 3 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1] 
     where h = InnerMostState 1 "ScrollLockOff" ""
           i = InnerMostState 2 "ScrollLockOn" ""
 
@@ -368,7 +368,7 @@ substateOnlyJH2 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [
 oneSD1 :: UMLStateDiagram
 oneSD1 = StateDiagram [CombineDiagram [a] 1] 1 "active" [] [1]
   where
-    a = StateDiagram  [d,e] 1 ""  [Connection [4] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
       where d = InnerMostState 1 "NumLockOff" ""
             e = InnerMostState 2 "NumLockOn" ""
 
