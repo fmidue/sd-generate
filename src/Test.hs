@@ -59,11 +59,7 @@ isContained1 (x:xs) a b =  (x `elem` a)  &&
        isContained1 xs (map label (getSubstate x b)) (getSubstate x b)
 
 getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
-getSubstate _ [] =  []
-getSubstate a (x:xs) = if a == label x  then
-                                           getSubstate1 x
-                                        else
-                                            getSubstate a xs
+getSubstate a xs = maybe (error "Well, I guess this cannot happen") getSubstate1 (find ((a ==) . label) xs)
 
 getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
 getSubstate1 (StateDiagram a _ _ _ _) = a
