@@ -3,6 +3,22 @@ module Test where
 import Datatype
 import Layout
 import Data.List.Extra
+--check semantics
+checkSemantics :: UMLStateDiagram -> Maybe String
+checkSemantics a
+  | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
+  | otherwise = Nothing
+
+checkOutermostHistory :: UMLStateDiagram -> Bool
+checkOutermostHistory (StateDiagram a _ _ _ _) = all checkHistoryInSD a
+checkOutermostHistory _ = True
+
+checkHistoryInSD :: UMLStateDiagram -> Bool
+checkHistoryInSD Joint {} = True
+checkHistoryInSD History {} = False
+checkHistoryInSD InnerMostState {} = True
+checkHistoryInSD CombineDiagram {} = True
+checkHistoryInSD StateDiagram {} = True
 
 -- check if  start state is valid
 checkStartState :: UMLStateDiagram -> Maybe String
@@ -74,10 +90,10 @@ isUnique a = not (anySame a)
 
 
 
-checkValidity :: UMLStateDiagram -> Maybe String
-checkValidity a
+checkStructure :: UMLStateDiagram -> Maybe String
+checkStructure a
   | not(checkOuterMostLayer a) = Just ("Error: Outermost layer must be 'StateD"
-    ++ "iagram' or 'CombineDiagram' constructor")
+    ++ "iagram")
   | not(checkSubstateSD a) = Just ("Error: Substate of StateDiagram constructo"
     ++ "r cannot be empty or just History/Joint")
   | not(checkSubstateCD a) = Just ("Error: CombineDiagram constructor must con"
@@ -88,6 +104,7 @@ checkOuterMostLayer :: UMLStateDiagram -> Bool
 checkOuterMostLayer Joint {} = False
 checkOuterMostLayer History {} = False
 checkOuterMostLayer InnerMostState {} = False
+checkOuterMostLayer CombineDiagram {} = False
 checkOuterMostLayer _ = True
 
 checkSubstateSD :: UMLStateDiagram -> Bool

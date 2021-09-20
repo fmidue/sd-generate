@@ -20,15 +20,21 @@ randomInnerSD c l =
         then
           do
             let counter = c-1
-            frequency [ (8,randomInnerMost l),(1,randomCD counter l),(2,randomSubstateCD counter l)]
+            frequency [ (8,randomInnerMost counter l),(1,randomCD counter l),(2,randomSubstateCD counter l)]
       else
           do
-            randomInnerMost l
+            randomInnerMost c l
 
-randomInnerMost :: Int -> Gen UMLStateDiagram
-randomInnerMost l = do
-       nm <- return (last (take l ["A","B","C","D","E"]))
-       frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(10,return (InnerMostState l nm ""))]
+randomInnerMost ::Int -> Int -> Gen UMLStateDiagram
+randomInnerMost c l = do
+       let nm = last (take l ["A","B","C","D","E"])
+       if c == 3
+         then
+           do
+             frequency [(2,return (Joint l)),(10,return (InnerMostState l nm ""))]
+       else
+         do
+           frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(10,return (InnerMostState l nm ""))]
 
 randomCD :: Int -> Int -> Gen UMLStateDiagram
 randomCD c l = do
