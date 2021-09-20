@@ -14,14 +14,17 @@ spec = do
   describe "checkUniqueness" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkUniqueness code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
-  describe "checkValidity" $ void $ sequence
-    [ it ("isSuccessful for " ++ name) $ checkValidity code `shouldBe` Nothing
+  describe "checkStructure" $ void $ sequence
+    [ it ("isSuccessful for " ++ name) $ checkStructure code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
   describe "checkWrapper" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkWrapper code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
   describe "checkStartState" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkStartState code `shouldBe` Nothing
+    | (name, code) <- positiveExamples ]
+  describe "checkSemantics" $ void $ sequence
+    [ it ("isSuccessful for " ++ name) $ checkSemantics code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
 
 positiveExamples =
