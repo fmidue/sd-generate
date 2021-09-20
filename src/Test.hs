@@ -51,8 +51,7 @@ checkSubC CombineDiagram {substate} = all checkSubC substate
 checkSubC  _ = True
 
 isContained :: [[Int]] -> [Int] -> [UMLStateDiagram] -> Bool
-isContained [] _ _= True
-isContained (x:xs) a b = isContained1 x a b && isContained xs a b
+isContained xs a b = all (\x -> isContained1 x a b) xs
 
 isContained1 :: [Int] -> [Int] -> [UMLStateDiagram] -> Bool
 isContained1 [] _ _ = True
