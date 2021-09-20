@@ -5,11 +5,13 @@ import Test
 
 randomSD :: Gen UMLStateDiagram
 randomSD = do
-      let counter = 4
-      n <- elements [3 .. 5]
+      let counter = 3
+      n <- elements [3 .. 4]
       labels <- shuffle [1..n]
       subs <- mapM (randomInnerSD counter) labels  `suchThat` any checkListInSD
-      nm <- elements ["A","B","C"]
+      nm <- last (take (counter+1) [
+            elements ["S4.1","S4.2","S4.3","S4.4"],elements ["S3.1","S3.2","S3.3","S3.4"],
+            elements ["S2.1","S2.2","S2.3","S2.4"],elements ["S1.1","S1.2","S1.3","S1.4"] ])
       start <- elements (map label subs)
       conns <- vectorOf n (randomConnection (map label subs))
       return (StateDiagram subs 1 nm conns [start])
@@ -19,7 +21,7 @@ randomInnerSD c l =
       if c > 0
         then
           do
-            let counter = c-1
+            let counter = c
             frequency [ (8,randomInnerMost counter l),(1,randomCD counter l),(2,randomSubstateCD counter l)]
       else
           do
@@ -38,7 +40,7 @@ randomInnerMost c l = do
 
 randomCD :: Int -> Int -> Gen UMLStateDiagram
 randomCD c l = do
-      let counter = c-1
+      let counter = c
       n <- elements [2 .. 3]
       labels <- shuffle [1..n]
       subs <- mapM (randomSubstateCD counter) labels `suchThat` any checkListInSD
@@ -50,7 +52,9 @@ randomSubstateCD c l = do
       n <- elements [2 .. 3]
       labels <- shuffle [1..n]
       subs <- mapM (randomInnerSD counter) labels `suchThat` any checkListInSD
-      nm <- elements ["A","B","C"]
+      nm <- last (take (counter+1) [
+            elements ["S4.1","S4.2","S4.3","S4.4"],elements ["S3.1","S3.2","S3.3","S3.4"],
+            elements ["S2.1","S2.2","S2.3","S2.4"],elements ["S1.1","S1.2","S1.3","S1.4"] ])
       start <- elements (map label subs)
       conns <- vectorOf n (randomConnection (map label subs))
       return (StateDiagram subs l nm conns [start])
