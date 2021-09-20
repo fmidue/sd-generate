@@ -18,7 +18,6 @@ spec = do
          ,("insideStateDiagC1", insideStateDiagC1)
          ,("insideStateDiagC2", insideStateDiagC2)
          ,("insideStateDiagC3", insideStateDiagC3)
-         ,("outerCombineDiagC1", outerCombineDiagC1)
          ,("insideCombineDiagC1", insideCombineDiagC1)
          ,("tooDeep", tooDeep)
         ]
@@ -32,7 +31,6 @@ spec = do
         ,("insideStateDiagL1", insideStateDiagL1)
         ,("insideStateDiagL2", insideStateDiagL2)
         ,("insideStateDiagL3", insideStateDiagL3)
-        ,("outerCombineDiagL1", outerCombineDiagL1)
         ,("insideCombineDiagL1", insideCombineDiagL1)
         ]
     ]
@@ -45,6 +43,21 @@ spec = do
           ,("innerStateDiag1", innerStateDiag1)
           ,("innerStateDiag2", innerStateDiag2)
           ,("innerCombineDiag1", innerCombineDiag1)
-          ,("outerCombineDiag1", outerCombineDiag1)
         ]
+    ]
+  describe "checkStructure" $ void $ sequence
+    [ it ("rejects " ++ name) $ checkStructure code `shouldSatisfy` isJust
+    | (name, code) <-
+       [ ("outerMostCombineDiag", outerMostCombineDiag)
+         ,("substateOnlyJH1", substateOnlyJH1)
+         ,("substateOnlyJH2", substateOnlyJH2)
+         ,("oneSD1", oneSD1)
+         ,("oneSD2", oneSD2)
+       ]
+    ]
+  describe "checkSemantics" $ void $ sequence
+    [ it ("rejects " ++ name) $ checkSemantics code `shouldSatisfy` isJust
+    | (name, code) <-
+       [ ("nonSenseHistory", nonSenseHistory)
+       ]
     ]

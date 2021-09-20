@@ -1,5 +1,18 @@
 module CounterExample where
 import Datatype
+
+-- CounterExample for  checkSemantics
+nonSenseHistory :: UMLStateDiagram
+nonSenseHistory = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
+   Connection [3] [4] "Confirm order(Event)", Connection [4] [5] "",Connection [2] [6] "exit",Connection [5] [6] "complete"] [1]
+    where
+      a = InnerMostState 1 "idle" ""
+      b = InnerMostState 2 "Send order request" ""
+      c = InnerMostState 3 "Select normal or special order" ""
+      d = InnerMostState 4 "Order confirmation" ""
+      e = InnerMostState 5 "Dispatch order" ""
+      f = History 6 Deep
+
 -- CounterExample for  "Start States checker"
 nonExist :: UMLStateDiagram
 nonExist = StateDiagram [InnerMostState 1 "" "", InnerMostState 2 "" ""] 1 "" [] [1,2]
@@ -81,20 +94,6 @@ innerCombineDiag1= StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Conne
             k = InnerMostState 2 "F" ""
     c = Joint 3
     d = InnerMostState 4 "G" ""
-
-outerCombineDiag1:: UMLStateDiagram
-outerCombineDiag1 = CombineDiagram [a,b,c] 1
-  where
-   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [5]
-            -- changed this line [5]
-     where d = InnerMostState 1 "NumLockOff" ""
-           e = InnerMostState 2 "NumLockOn" ""
-   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
-    where f = InnerMostState 1 "CapsLockOff" ""
-          g = InnerMostState 2 "CapsLockOn" ""
-   c = StateDiagram  [h,i] 3 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1]
-    where h = InnerMostState 1 "ScrollLockOff" ""
-          i = InnerMostState 2 "ScrollLockOn" ""
 
 -- CounterExample for  "Connection Points checker"
 
@@ -196,19 +195,6 @@ insideStateDiagC3 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2]
            e = History 3 Deep
       b = InnerMostState  2 "State 3" ""
 
-outerCombineDiagC1 :: UMLStateDiagram
-outerCombineDiagC1 = CombineDiagram [a,b,c] 1
-  where
-   a = StateDiagram  [d,e] 1 ""  [Connection [4] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
-    -- Connection [4] [2] "EvNumLockPressed"
-     where d = InnerMostState 1 "NumLockOff" ""
-           e = InnerMostState 2 "NumLockOn" ""
-   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
-    where f = InnerMostState 1 "CapsLockOff" ""
-          g = InnerMostState 2 "CapsLockOn" ""
-   c = StateDiagram  [h,i] 3 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1]
-    where h = InnerMostState 1 "ScrollLockOff" ""
-          i = InnerMostState 2 "ScrollLockOn" ""
 
 insideCombineDiagC1 :: UMLStateDiagram
 insideCombineDiagC1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
@@ -333,19 +319,6 @@ insideStateDiagL3 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2]
            e = History 3 Deep
       b = InnerMostState  2 "State 3" ""
 
-outerCombineDiagL1 :: UMLStateDiagram
-outerCombineDiagL1 = CombineDiagram [a,b,c] 1
-  where
-   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
-     where d = InnerMostState 1 "NumLockOff" ""
-           e = InnerMostState 2 "NumLockOn" ""
-   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
-    where f = InnerMostState 1 "CapsLockOff" ""
-          g = InnerMostState 2 "CapsLockOn" ""
-   c = StateDiagram  [h,i] 2 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1] -- changed this line
-    where h = InnerMostState 1 "ScrollLockOff" ""
-          i = InnerMostState 2 "ScrollLockOn" ""
-
 insideCombineDiagL1 :: UMLStateDiagram
 insideCombineDiagL1  = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
   where
@@ -358,3 +331,51 @@ insideCombineDiagL1  = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,
     c = StateDiagram  [h,i] 1 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1] -- changed this line
       where h = InnerMostState 1 "ScrollLockOff" ""
             i = InnerMostState 2 "ScrollLockOn" ""
+
+-- CounterExample for checkStructure/checkOuterMostLayer
+outerMostCombineDiag :: UMLStateDiagram
+outerMostCombineDiag = CombineDiagram [a,b,c] 1
+  where
+   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+     where d = InnerMostState 1 "NumLockOff" ""
+           e = InnerMostState 2 "NumLockOn" ""
+   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
+    where f = InnerMostState 1 "CapsLockOff" ""
+          g = InnerMostState 2 "CapsLockOn" ""
+   c = StateDiagram  [h,i] 2 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1] -- changed this line
+    where h = InnerMostState 1 "ScrollLockOff" ""
+          i = InnerMostState 2 "ScrollLockOn" ""
+
+-- CounterExample for checkStructure/checkSubstateSD
+substateOnlyJH1::UMLStateDiagram
+substateOnlyJH1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1] ""] []
+     where
+      a = Joint 1
+      b = Joint 2
+
+substateOnlyJH2::UMLStateDiagram
+substateOnlyJH2 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1] ""] []
+    where
+      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
+          where
+           c = History 1 Deep
+           d = Joint 2
+           e = History 3 Deep
+      b = InnerMostState  2 "State 3" ""
+
+-- CounterExample for checkStructure/checkSubstateCD
+
+oneSD1 :: UMLStateDiagram
+oneSD1 = StateDiagram [CombineDiagram [a] 1] 1 "active" [] [1]
+  where
+    a = StateDiagram  [d,e] 1 ""  [Connection [4] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+      where d = InnerMostState 1 "NumLockOff" ""
+            e = InnerMostState 2 "NumLockOn" ""
+
+oneSD2 :: UMLStateDiagram
+oneSD2 = StateDiagram [CombineDiagram [a,b] 1] 1 "active" [] [1]
+  where
+    a = StateDiagram  [d,e] 1 ""  [Connection [4] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
+      where d = InnerMostState 1 "NumLockOff" ""
+            e = InnerMostState 2 "NumLockOn" ""
+    b = InnerMostState 2 "" ""

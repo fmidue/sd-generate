@@ -102,7 +102,7 @@ slide267a = StateDiagram [a, b] 1 "" [Connection [1] [2] "a"] []
     b = InnerMostState 2 "E" ""
 
 slide267b :: UMLStateDiagram
-slide267b = StateDiagram [a, b] 1 "" [Connection [1, 1] [2] "a", Connection
+slide267b = StateDiagram [a, b] 1 "" [Connection [1,1] [2] "a", Connection
             [1, 2] [2] "a", Connection [1, 3] [2] "a"] []
   where
     a = StateDiagram [c, d, e] 1 "A" [Connection [1] [2] "", Connection [2]
