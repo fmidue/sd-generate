@@ -21,6 +21,12 @@ data Wrapper =
                rightC :: RightConnect,
                outerLayout :: Layout
              }
+  | EndS {
+      key         :: Int,
+      lengthXY    :: Double,
+      rightC      :: RightConnect,
+      outerLayout :: Layout
+      }
   | Fork { key :: Int,
            outerLayout :: Layout,
            lengthXY :: Double,
@@ -82,6 +88,9 @@ data UMLStateDiagram = StateDiagram { substate :: [UMLStateDiagram],
                      | CombineDiagram { substate :: [UMLStateDiagram],
                                         label :: Int
                                       }
+                     | EndState {
+                         label :: Int
+                         }
                      | Joint { label :: Int
                              }
                      | History { label :: Int,

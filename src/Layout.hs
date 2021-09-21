@@ -61,6 +61,9 @@ drawWrapper :: [Int] -> Wrapper -> Diagram B
 drawWrapper a (StartS _ l rightType layouts) = appendEdges (circle 0.1 # fc
   black) l rightType layouts # named (a ++ [-1])
 drawWrapper a (CrossStateDummy b) = square 0.005 # fc black # named (a ++ [b])
+drawWrapper a (EndS k l rightType layouts) =
+  appendEdges (circle 0.16 # lw ultraThin `atop` circle 0.1 # fc black) l rightType layouts
+  # named (a ++ [k])
 drawWrapper a (Leaf b c d l rightType layouts) = if d == "" then appendEdges
   (text' <> roundedRect (width text' + 0.3) (height text' + 0.3) 0.1 # lc black) l
   rightType layouts # named (a ++ [b]) else appendEdges drawing'
@@ -168,6 +171,7 @@ decideAndLayout a = if areaV < areaH then Vertical else Horizontal
     areaH = width (drawWrapper [] h) * height (drawWrapper [] h)
 
 getWrapper :: UMLStateDiagram -> Wrapper
+getWrapper (EndState a ) = EndS a 0 NoConnection Unspecified
 getWrapper (History a b) = Hist a b 0 NoConnection Unspecified
 getWrapper (InnerMostState a b c) = Leaf a b c 0 NoConnection Unspecified
 getWrapper (Joint a) = Fork a Unspecified 0 NoConnection
@@ -419,6 +423,7 @@ changeOrLayout s@AndDecom {} a = AndDecom (component s) (key s) (layout s)
   (lengthXY s) (rightC s) a
 changeOrLayout s@Hist {} a = Hist (key s) (history s) (lengthXY s)
   (rightC s) a
+changeOrLayout s@EndS {} a = EndS (key s) (lengthXY s) (rightC s) a
 changeOrLayout s@Leaf {} a = Leaf (key s) (strings s) (operation s) (lengthXY s
   ) (rightC s) a
 changeOrLayout s@StartS {} a = StartS (key s) (lengthXY s) (rightC s) a
@@ -654,6 +659,7 @@ changeRightConnection s@OrDecom {} a = OrDecom (layered s) (key s) (strings s)
   (outerLayout s)
 changeRightConnection s@AndDecom {} a = AndDecom (component s) (key s) (layout
   s) (lengthXY s) a (outerLayout s)
+changeRightConnection s@EndS {} a = EndS (key s) (lengthXY s) a (outerLayout s)
 changeRightConnection s@Fork {} a = Fork (key s) (outerLayout s) (lengthXY s) a
 changeRightConnection s@Hist {} a = Hist (key s) (history s) (lengthXY s) a
   (outerLayout s)
@@ -726,6 +732,11 @@ changeLength l s = case s of
     | otherwise -> OrDecom (layered s) (key s) (strings s)
         (connections s) (layout s) (maxLabel s) (l - w) (rightC s)
         (outerLayout s)
+  EndS {}
+    | outerLayout s == Vertical ->
+        EndS (key s) (l - h) (rightC s) (outerLayout s)
+    | otherwise ->
+        EndS (key s) (l - w) (rightC s) (outerLayout s)
   AndDecom {}
     | outerLayout s == Vertical -> AndDecom (component s) (key s)
         (layout s) (l - h) (rightC s) (outerLayout s)

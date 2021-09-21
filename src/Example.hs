@@ -23,7 +23,7 @@ picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection
       c = InnerMostState 3 "Select normal or special order" ""
       d = InnerMostState 4 "Order confirmation" ""
       e = InnerMostState 5 "Dispatch order" ""
-      f = InnerMostState 6 "end state" ""
+      f = EndState 6
 
 picture3 :: UMLStateDiagram
 picture3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "",
@@ -34,7 +34,7 @@ picture3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1]
            d = InnerMostState  4 "Zeitung lesen" ""
            e = Joint 5
            f = Joint 6
-           g = InnerMostState 7 "end state" ""
+           g = EndState 7
 
 picture4 :: UMLStateDiagram
 picture4 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
