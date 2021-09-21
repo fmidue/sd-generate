@@ -4,14 +4,13 @@ import CounterExample
 import Test
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
-import Control.Monad (void)
+import Control.Monad (void, forM_)
 import Data.Maybe(isJust)
+import Data.List (partition)
 
 spec :: Spec
 spec = do
-  describe "checkConnection" $ void $ sequence
-    [ it ("rejects " ++ name) $ checkConnection code `shouldSatisfy` isJust
-    | (name, code) <-
+  counterExamplesOnlyFor "checkConnection"
         [ ("outerStateDiagC1", outerStateDiagC1)
          ,("outerStateDiagC2 ", outerStateDiagC2)
          ,("outerStateDiagC3", outerStateDiagC3)
@@ -21,10 +20,7 @@ spec = do
          ,("insideCombineDiagC1", insideCombineDiagC1)
          ,("tooDeep", tooDeep)
         ]
-    ]
-  describe "checkUniqueness" $ void $ sequence
-    [ it ("rejects " ++ name) $ checkUniqueness code `shouldSatisfy` isJust
-    | (name, code) <-
+  counterExamplesOnlyFor "checkUniqueness"
         [("outerStateDiagL1", outerStateDiagL1)
         ,("outerStateDiagL2", outerStateDiagL2)
         ,("outerStateDiagL3", outerStateDiagL3)
@@ -33,10 +29,7 @@ spec = do
         ,("insideStateDiagL3", insideStateDiagL3)
         ,("insideCombineDiagL1", insideCombineDiagL1)
         ]
-    ]
-  describe "checkStartState" $ void $ sequence
-    [ it ("rejects " ++ name) $ checkStartState code `shouldSatisfy` isJust
-    | (name, code) <-
+  counterExamplesOnlyFor "checkStartState"
         [ ("nonExist", nonExist)
           ,("outerStateDiag1 ", outerStateDiag1)
           ,("outerStateDiag2", outerStateDiag2)
@@ -44,20 +37,34 @@ spec = do
           ,("innerStateDiag2", innerStateDiag2)
           ,("innerCombineDiag1", innerCombineDiag1)
         ]
-    ]
-  describe "checkStructure" $ void $ sequence
-    [ it ("rejects " ++ name) $ checkStructure code `shouldSatisfy` isJust
-    | (name, code) <-
+  counterExamplesOnlyFor "checkStructure"
        [ ("outerMostCombineDiag", outerMostCombineDiag)
          ,("substateOnlyJH1", substateOnlyJH1)
          ,("substateOnlyJH2", substateOnlyJH2)
          ,("oneSD1", oneSD1)
          ,("oneSD2", oneSD2)
        ]
-    ]
-  describe "checkSemantics" $ void $ sequence
-    [ it ("rejects " ++ name) $ checkSemantics code `shouldSatisfy` isJust
-    | (name, code) <-
+  counterExamplesOnlyFor "checkSemantics"
        [ ("nonSenseHistory", nonSenseHistory)
        ]
-    ]
+
+counterExamplesOnlyFor theChecker theExamples = do
+  let
+    (negative, positives) = partition ((theChecker ==) . fst) allTheCheckersExceptForWrapper
+  forM_ negative $ \(checkerName, checkerCode) ->
+    describe checkerName $ void $ sequence
+      [ it ("rejects " ++ name) $ checkerCode code `shouldSatisfy` isJust
+      | (name, code) <- theExamples
+      ]
+  forM_ positives $ \(checkerName, checkerCode) ->
+    describe checkerName $ void $ sequence
+      [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
+      | (name, code) <- theExamples ]
+
+allTheCheckersExceptForWrapper =
+  [ ("checkConnection", checkConnection)
+  , ("checkUniqueness", checkUniqueness)
+  , ("checkStartState", checkStartState)
+  , ("checkStructure", checkStructure)
+  , ("checkSemantics", checkSemantics)
+  ]
