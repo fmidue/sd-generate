@@ -201,9 +201,9 @@ slide278 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Connection
     d = InnerMostState 4 "D" ""
 
 slide279 :: UMLStateDiagram
-slide279 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
+slide279 = StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] "a", Connection
            [2, 1, 2] [4] "h", Connection [2, 1, 3] [3] "", Connection [2, 2, 2]
-           [3] "", Connection [3] [4] "g"] [1]
+           [3] "", Connection [3] [4] "g",Connection [4] [5] ""] [1]
   where
     a = InnerMostState 1 "A" ""
     b = CombineDiagram [e, f] 2
@@ -220,6 +220,7 @@ slide279 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
             k = InnerMostState 2 "F" ""
     c = Joint 3
     d = InnerMostState 4 "G" ""
+    l = EndState 5
 
 slide280 :: UMLStateDiagram
 slide280 = StateDiagram [a, b, c, d, e, f, g, h] 1 "" [Connection [1] [2]
