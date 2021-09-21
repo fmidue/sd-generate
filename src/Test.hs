@@ -3,10 +3,13 @@ module Test where
 import Datatype
 import Layout
 import Data.List.Extra
+
 --check semantics
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
   | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
+--  | not(checkHistoryOutEdges a) = Just "Error: Outgoing edges from a history node always have the empty label"
+--  | not(checkSameConnection a) = Just "Error: No two connections are allowed leaving the same source and and having the same label."
   | otherwise = Nothing
 
 checkOutermostHistory :: UMLStateDiagram -> Bool
@@ -19,6 +22,19 @@ checkHistoryInSD History {} = False
 checkHistoryInSD InnerMostState {} = True
 checkHistoryInSD CombineDiagram {} = True
 checkHistoryInSD StateDiagram {} = True
+checkHistoryInSD EndState {} = True
+
+--checkHistoryOutEdges :: UMLStateDiagram -> Bool
+--checkOutermostHistory (StateDiagram a _ _ _ _) = all checkHistoryOutEdges a
+--checkOutermostHistory (CombineDiagram a _ _ _ _) = all checkHistoryOutEdges a
+--checkOutermostHistory _ = True
+
+--getHistory :: UMLStateDiagram -> [Int]
+--getHistory (History a _) = [a]
+--getHistory (StateDiagram a _ _ _ _) = all checkHistoryInSD a
+--getHistory (CombineDiagram a _ _ _ _) = all checkHistoryOutEdges a
+
+
 
 -- check if  start state is valid
 checkStartState :: UMLStateDiagram -> Maybe String
@@ -67,7 +83,7 @@ getSubstate1 (CombineDiagram a _) = a
 getSubstate1 (Joint _) = []
 getSubstate1 (History _ _) = []
 getSubstate1 InnerMostState {}  = []
-
+getSubstate1 EndState {}  = []
 
 --check local uniqueness
 checkUniqueness :: UMLStateDiagram -> Maybe String
@@ -100,6 +116,7 @@ checkOuterMostLayer Joint {} = False
 checkOuterMostLayer History {} = False
 checkOuterMostLayer InnerMostState {} = False
 checkOuterMostLayer CombineDiagram {} = False
+checkOuterMostLayer EndState {} = False
 checkOuterMostLayer _ = True
 
 checkSubstateSD :: UMLStateDiagram -> Bool
@@ -114,6 +131,7 @@ checkListInSD History {} = False
 checkListInSD InnerMostState {} = True
 checkListInSD CombineDiagram {} = True
 checkListInSD StateDiagram {} = True
+checkListInSD EndState{} = True
 
 checkSubstateCD :: UMLStateDiagram -> Bool
 checkSubstateCD (CombineDiagram [] _) = False
@@ -127,6 +145,7 @@ checkListInCD Joint {} = False
 checkListInCD History {} = False
 checkListInCD InnerMostState {} = False
 checkListInCD CombineDiagram {} = False
+checkListInCD EndState{} = False
 checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
 
 checkWrapper :: UMLStateDiagram -> Maybe String
