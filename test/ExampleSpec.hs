@@ -28,7 +28,8 @@ spec = do
     | (name, code) <- positiveExamples ]
 
 positiveExamples =
-        [ ("slide246", slide246)
+        [ ("verySmall", verySmall)
+        , ("slide246", slide246)
         , ("slide253", slide253)
         , ("slide257", slide257)
         , ("slide267a", slide267a)

@@ -1,6 +1,9 @@
 module Example where
 import Datatype
 
+verySmall :: UMLStateDiagram
+verySmall = StateDiagram [EndState 1] 0 "" [] [1]
+
 picture1 :: UMLStateDiagram
 picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
   where
