@@ -22,17 +22,17 @@ isHistoryInSD _ = True
 
        --checkEndOutEdges
 checkEndOutEdges :: UMLStateDiagram -> Bool
-checkEndOutEdges StateDiagram { substate, connection } = all (\x -> isPointFromEnd x substate) (map pointFrom connection) && all checkEndOutEdges substate
+checkEndOutEdges StateDiagram { substate, connection } = all ((`isPointFromEnd` substate) . pointFrom) connection && all checkEndOutEdges substate
 checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
 checkEndOutEdges  _ = True
 
 isPointFromEnd :: [Int] -> [UMLStateDiagram] -> Bool
 isPointFromEnd [] _ = True
-isPointFromEnd (x:xs) a = not ( x `elem` getLayerEndLabel a) && isPointFromEnd xs (getSubstate x a)
+isPointFromEnd (x:xs) a = notElem x (getLayerEndLabel a) && isPointFromEnd xs (getSubstate x a)
 -- more sense way is to iterate to the last element of the first parameter and then check if it is history
 
 getLayerEndLabel :: [UMLStateDiagram] -> [Int]
-getLayerEndLabel a = map getEndLabel a
+getLayerEndLabel = map getEndLabel
 
 getEndLabel :: UMLStateDiagram -> Int
 getEndLabel (EndState a) = a
@@ -103,7 +103,7 @@ isUnique :: [Int] -> Bool
 isUnique a = not (anySame a)
 
 
-
+--checkStructure
 checkStructure :: UMLStateDiagram -> Maybe String
 checkStructure a
   | not(checkOuterMostLayer a) = Just ("Error: Outermost layer must be 'StateD"
@@ -112,8 +112,9 @@ checkStructure a
     ++ "r cannot be empty or just History/Joint")
   | not(checkSubstateCD a) = Just ("Error: CombineDiagram constructor must con"
     ++ "tain at least 2 StateDiagram and no other type of constructor")
+  | not(checkHistoryOutEdges a) = Just "Error: Outgoing edges from a history node always have the empty label"
   | otherwise = Nothing
-
+                --
 checkOuterMostLayer :: UMLStateDiagram -> Bool
 checkOuterMostLayer Joint {} = False
 checkOuterMostLayer History {} = False
@@ -121,7 +122,7 @@ checkOuterMostLayer InnerMostState {} = False
 checkOuterMostLayer CombineDiagram {} = False
 checkOuterMostLayer EndState {} = False
 checkOuterMostLayer _ = True
-
+                --
 checkSubstateSD :: UMLStateDiagram -> Bool
 checkSubstateSD (StateDiagram [] _ _ _ _) = False
 checkSubstateSD (CombineDiagram a _) = all checkSubstateSD a
@@ -135,7 +136,7 @@ checkListInSD InnerMostState {} = True
 checkListInSD CombineDiagram {} = True
 checkListInSD StateDiagram {} = True
 checkListInSD EndState{} = True
-
+                --
 checkSubstateCD :: UMLStateDiagram -> Bool
 checkSubstateCD (CombineDiagram [] _) = False
 checkSubstateCD (CombineDiagram [_] _) = False
@@ -150,6 +151,24 @@ checkListInCD InnerMostState {} = False
 checkListInCD CombineDiagram {} = False
 checkListInCD EndState{} = False
 checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
+
+                 --checkHistoryOutEdges
+checkHistoryOutEdges :: UMLStateDiagram -> Bool
+checkHistoryOutEdges StateDiagram { substate, connection } = all ((`isPointFromEnd` substate) . pointFrom) connection && all checkEndOutEdges substate
+checkHistoryOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
+checkHistoryOutEdges  _ = True
+
+isPointFromHistory :: [Int] -> [UMLStateDiagram] -> Bool
+isPointFromHistory [] _ = True
+isPointFromHistory (x:xs) a = notElem x (getLayerEndLabel a) && isPointFromEnd xs (getSubstate x a)
+-- more sense way is to iterate to the last element of the first parameter and then check if it is history
+
+getLayerHistoryLabel :: [UMLStateDiagram] -> [Int]
+getLayerHistoryLabel = map getEndLabel -- may give another check to limit the same layers history number to one
+
+getHistoryLabel :: UMLStateDiagram -> Int
+getHistoryLabel (History a _) = a
+getHistoryLabel _ = -1  -- unable to define null so  take a non-meaning value as a minor strategy
 
 checkWrapper :: UMLStateDiagram -> Maybe String
 checkWrapper a
