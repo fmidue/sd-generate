@@ -8,32 +8,35 @@ import Data.List.Extra
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
   | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
---  | not(checkHistoryOutEdges a) = Just "Error: Outgoing edges from a history node always have the empty label"
---  | not(checkSameConnection a) = Just "Error: No two connections are allowed leaving the same source and and having the same label."
+  | not(checkEndOutEdges a) = Just "Error: Outgoing edges from a end node always have the empty label"
   | otherwise = Nothing
 
+      --checkOutermostHistory
 checkOutermostHistory :: UMLStateDiagram -> Bool
-checkOutermostHistory (StateDiagram a _ _ _ _) = all checkHistoryInSD a
+checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryInSD a
 checkOutermostHistory _ = True
 
-checkHistoryInSD :: UMLStateDiagram -> Bool
-checkHistoryInSD Joint {} = True
-checkHistoryInSD History {} = False
-checkHistoryInSD InnerMostState {} = True
-checkHistoryInSD CombineDiagram {} = True
-checkHistoryInSD StateDiagram {} = True
-checkHistoryInSD EndState {} = True
+isHistoryInSD :: UMLStateDiagram -> Bool
+isHistoryInSD History {} = False
+isHistoryInSD _ = True
 
---checkHistoryOutEdges :: UMLStateDiagram -> Bool
---checkOutermostHistory (StateDiagram a _ _ _ _) = all checkHistoryOutEdges a
---checkOutermostHistory (CombineDiagram a _ _ _ _) = all checkHistoryOutEdges a
---checkOutermostHistory _ = True
+       --checkEndOutEdges
+checkEndOutEdges :: UMLStateDiagram -> Bool
+checkEndOutEdges StateDiagram { substate, connection } = all (\x -> isPointFromEnd x substate) (map pointFrom connection) && all checkEndOutEdges substate
+checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
+checkEndOutEdges  _ = True
 
---getHistory :: UMLStateDiagram -> [Int]
---getHistory (History a _) = [a]
---getHistory (StateDiagram a _ _ _ _) = all checkHistoryInSD a
---getHistory (CombineDiagram a _ _ _ _) = all checkHistoryOutEdges a
+isPointFromEnd :: [Int] -> [UMLStateDiagram] -> Bool
+isPointFromEnd [] _ = True
+isPointFromEnd (x:xs) a = not ( x `elem` getLayerEndLabel a) && isPointFromEnd xs (getSubstate x a)
+-- more sense way is to iterate to the last element of the first parameter and then check if it is history
 
+getLayerEndLabel :: [UMLStateDiagram] -> [Int]
+getLayerEndLabel a = map getEndLabel a
+
+getEndLabel :: UMLStateDiagram -> Int
+getEndLabel (EndState a) = a
+getEndLabel _ = -1  -- unable to define null so  take a non-meaning value as a minor strategy
 
 
 -- check if  start state is valid
