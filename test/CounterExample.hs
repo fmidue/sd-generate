@@ -152,6 +152,38 @@ outerStateDiagC3 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Conne
           c = Joint 3
           d = InnerMostState 4 "G" ""
 
+smallTestC :: UMLStateDiagram
+smallTestC = StateDiagram [a,b] 1 "" [Connection [1, 4, 3] [2] ""] [1]
+        where
+          a = CombineDiagram [e, f] 1
+            where
+              e = StateDiagram [g, h, i] 1 "" [] [1]
+                where
+                  g = InnerMostState 1 "B" ""
+                  h = InnerMostState 2 "C" ""
+                  i = InnerMostState 3 "D" ""
+              f = StateDiagram [j, k] 2 "" [] [1]
+                where
+                  j = InnerMostState 1 "E" ""
+                  k = InnerMostState 2 "F" ""
+          b = InnerMostState 2 "" ""
+
+smallTestC1 :: UMLStateDiagram
+smallTestC1 = StateDiagram [a,b] 1 "" [Connection [1,1,4] [2] ""] [1]
+        where
+          a = CombineDiagram [e, f] 1
+            where
+              e = StateDiagram [g, h, i] 1 "" [] [1]
+                where
+                  g = InnerMostState 1 "B" ""
+                  h = InnerMostState 2 "C" ""
+                  i = InnerMostState 3 "D" ""
+              f = StateDiagram [j, k] 2 "" [] [1]
+                where
+                  j = InnerMostState 1 "E" ""
+                  k = InnerMostState 2 "F" ""
+          b = InnerMostState 2 "" ""
+
 insideStateDiagC1 :: UMLStateDiagram
 insideStateDiagC1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
       where

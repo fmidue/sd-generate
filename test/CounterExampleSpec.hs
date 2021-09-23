@@ -19,6 +19,8 @@ spec = do
          ,("insideStateDiagC3", insideStateDiagC3)
          ,("insideCombineDiagC1", insideCombineDiagC1)
          ,("tooDeep", tooDeep)
+         ,("smallTestC1",smallTestC1)
+         ,("smallTestC",smallTestC)
         ]
   counterExamplesOnlyFor "checkUniqueness"
         [("outerStateDiagL1", outerStateDiagL1)
