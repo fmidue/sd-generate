@@ -13,12 +13,12 @@ checkSemantics a
 
       --checkOutermostHistory
 checkOutermostHistory :: UMLStateDiagram -> Bool
-checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryInSD a
+checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryNotInSD a
 checkOutermostHistory _ = True
 
-isHistoryInSD :: UMLStateDiagram -> Bool
-isHistoryInSD History {} = False
-isHistoryInSD _ = True
+isHistoryNotInSD :: UMLStateDiagram -> Bool
+isHistoryNotInSD History {} = False
+isHistoryNotInSD _ = True
 
        --checkEndOutEdges
 checkEndOutEdges :: UMLStateDiagram -> Bool
