@@ -8,7 +8,7 @@ import Data.List.Extra
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
   | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
-  | not(checkEndOutEdges a) = Just "Error: Outgoing edges from a end node always have the empty label"
+  | not(checkEndOutEdges a) = Just "Error: no EndState should have outgoing edges"
   | otherwise = Nothing
 
       --checkOutermostHistory
