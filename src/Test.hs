@@ -29,7 +29,7 @@ checkEndOutEdges  _ = True
 isPointFromEnd :: [Int] -> [UMLStateDiagram] -> Bool
 isPointFromEnd [] _ = True
 isPointFromEnd (x:xs) a = notElem x (getLayerEndLabel a) && isPointFromEnd xs (getSubstate x a)
--- more sense way is to iterate to the last element of the first parameter and then check if it is history
+  -- more sense way is to iterate to the last element of the first parameter and then check if it is history
 
 getLayerEndLabel :: [UMLStateDiagram] -> [Int]
 getLayerEndLabel = map getEndLabel
@@ -113,6 +113,7 @@ checkStructure a
   | not(checkSubstateCD a) = Just ("Error: CombineDiagram constructor must con"
     ++ "tain at least 2 StateDiagram and no other type of constructor")
   | not(checkHistoryOutEdges a) = Just "Error: Outgoing edges from a history node always have the empty label"
+  | not(checkSameConnection a) = Just "Error: No two connections are allowed leaving the same source and and having the same label."
   | otherwise = Nothing
                 --
 checkOuterMostLayer :: UMLStateDiagram -> Bool
@@ -161,7 +162,7 @@ checkHistoryOutEdges  _ = True
 isPointFromHistory :: [Int] -> [UMLStateDiagram] -> Bool
 isPointFromHistory [] _ = True
 isPointFromHistory (x:xs) a = notElem x (getLayerEndLabel a) && isPointFromEnd xs (getSubstate x a)
--- more sense way is to iterate to the last element of the first parameter and then check if it is history
+  -- more sense way is to iterate to the last element of the first parameter and then check if it is history
 
 getLayerHistoryLabel :: [UMLStateDiagram] -> [Int]
 getLayerHistoryLabel = map getEndLabel -- may give another check to limit the same layers history number to one
@@ -170,6 +171,32 @@ getHistoryLabel :: UMLStateDiagram -> Int
 getHistoryLabel (History a _) = a
 getHistoryLabel _ = -1  -- unable to define null so  take a non-meaning value as a minor strategy
 
+                --checkSameConnection
+checkSameConnection :: UMLStateDiagram -> Bool
+checkSameConnection a  = not (anySame (getConnectionList a))
+
+getConnectionList :: UMLStateDiagram -> [([Int],[Int])]
+getConnectionList s@StateDiagram {} = getConnectionListSub s []
+getConnectionList c@CombineDiagram {} = getConnectionListSub c []
+getConnectionList  _ = []
+
+getConnectionListSub :: UMLStateDiagram -> [Int] -> [([Int],[Int])]
+getConnectionListSub StateDiagram { substate, connection ,label} a = (map (\x -> getConnection x (a ++ [label])) connection) ++ concat(map (\x -> getConnectionListSub x (a ++ [label])) substate)
+getConnectionListSub CombineDiagram {substate,label} a = concat(map (\x -> getConnectionListSub x (a ++ [label])) substate)
+getConnectionListSub  _ _ =[]
+
+getConnection :: Connection -> [Int] -> ([Int],[Int])
+getConnection Connection{pointFrom,pointTo} a =  (from,to)
+                                              where from = a ++ pointFrom
+                                                    to  = a ++ pointTo
+
+
+
+
+
+
+
+--checkWrapper
 checkWrapper :: UMLStateDiagram -> Maybe String
 checkWrapper a
   | not(checkOuterMostWrapper b) = Just ("Error: Outermost layer must be 'OrDe"
