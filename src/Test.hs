@@ -35,7 +35,6 @@ isNotEnd :: Int -> UMLStateDiagram -> Bool
 isNotEnd a EndState {label}  = a /= label
 isNotEnd _ _ = True
 
-
 -- check if  start state is valid
 checkStartState :: UMLStateDiagram -> Maybe String
 checkStartState a
@@ -109,10 +108,10 @@ checkStructure a
     ++ "r cannot be empty or just History/Joint")
   | not(checkSubstateCD a) = Just ("Error: CombineDiagram constructor must con"
     ++ "tain at least 2 StateDiagram and no other type of constructor")
---  | not(checkHistoryOutEdges a) = Just "Error: Outgoing edges from a history node always have the empty label"
+  | not(checkHistOutTransition a) = Just "Error: Outgoing edges from a history node always have the empty transition"
   | not(checkSameConnection a) = Just "Error: No two connections are allowed leaving the same source and and having the same label."
   | otherwise = Nothing
-                --
+                --checkOuterMostLayer
 checkOuterMostLayer :: UMLStateDiagram -> Bool
 checkOuterMostLayer Joint {} = False
 checkOuterMostLayer History {} = False
@@ -120,7 +119,7 @@ checkOuterMostLayer InnerMostState {} = False
 checkOuterMostLayer CombineDiagram {} = False
 checkOuterMostLayer EndState {} = False
 checkOuterMostLayer _ = True
-                --
+                --checkSubstateSD
 checkSubstateSD :: UMLStateDiagram -> Bool
 checkSubstateSD (StateDiagram [] _ _ _ _) = False
 checkSubstateSD (CombineDiagram a _) = all checkSubstateSD a
@@ -134,7 +133,7 @@ checkListInSD InnerMostState {} = True
 checkListInSD CombineDiagram {} = True
 checkListInSD StateDiagram {} = True
 checkListInSD EndState{} = True
-                --
+                --checkSubstateCD
 checkSubstateCD :: UMLStateDiagram -> Bool
 checkSubstateCD (CombineDiagram [] _) = False
 checkSubstateCD (CombineDiagram [_] _) = False
@@ -150,34 +149,47 @@ checkListInCD CombineDiagram {} = False
 checkListInCD EndState{} = False
 checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
 
-                 --checkHistoryOutEdges
---checkHistoryOutEdges :: UMLStateDiagram -> Bool
---checkHistoryOutEdges StateDiagram { substate, connection } = all ((`isPointFromEnd` substate) . pointFrom) connection && all checkEndOutEdges substate
-----checkHistoryOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
---checkHistoryOutEdges  _ = True
+                 --checkHistOutTransitions
+checkHistOutTransition :: UMLStateDiagram -> Bool
+checkHistOutTransition StateDiagram { substate, connection } = all (\x -> checkHistConnTransition x substate) connection && all checkHistOutTransition substate
+checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition substate
+checkHistOutTransition  _ = True
+
+checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
+checkHistConnTransition Connection { pointFrom,transition } a = if isConnFromNotHistory pointFrom a
+                                                                  then
+                                                                    True
+                                                                 else
+                                                                   strEmpty transition
+
+strEmpty :: String -> Bool
+strEmpty [] = True
+strEmpty _ = False
+
+isConnFromNotHistory :: [Int] -> [UMLStateDiagram] -> Bool
+isConnFromNotHistory [] _ = True
+isConnFromNotHistory [x] a = all (\y -> isNotEnd x y) a
+isConnFromNotHistory (x:xs) a = isConnFromNotEnd xs (getSubstate x a)
+
+isNotHistory :: Int -> UMLStateDiagram -> Bool
+isNotHistory a EndState {label}  = a /= label
+isNotHistory _ _ = True
+
+
 
                 --checkSameConnection
 checkSameConnection :: UMLStateDiagram -> Bool
-checkSameConnection a  = not (anySame (getConnectionList a))
+checkSameConnection a  = not (anySame (getConnectionList a []))
 
-getConnectionList :: UMLStateDiagram -> [([Int],[Int])]
-getConnectionList s@StateDiagram {} = getConnectionListSub s []
-getConnectionList c@CombineDiagram {} = getConnectionListSub c []
-getConnectionList  _ = []
-
-getConnectionListSub :: UMLStateDiagram -> [Int] -> [([Int],[Int])]
-getConnectionListSub StateDiagram { substate, connection ,label} a = (map (\x -> getConnection x (a ++ [label])) connection) ++ concat(map (\x -> getConnectionListSub x (a ++ [label])) substate)
-getConnectionListSub CombineDiagram {substate,label} a = concat(map (\x -> getConnectionListSub x (a ++ [label])) substate)
-getConnectionListSub  _ _ =[]
+getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],[Int])]
+getConnectionList StateDiagram { substate, connection ,label} a = (map (\x -> getConnection x (a ++ [label])) connection) ++ concat(map (\x -> getConnectionList x (a ++ [label])) substate)
+getConnectionList CombineDiagram {substate,label} a = concat(map (\x -> getConnectionList x (a ++ [label])) substate)
+getConnectionList  _ _ =[]
 
 getConnection :: Connection -> [Int] -> ([Int],[Int])
 getConnection Connection{pointFrom,pointTo} a =  (from,to)
                                               where from = a ++ pointFrom
                                                     to  = a ++ pointTo
-
-
-
-
 
 
 
