@@ -110,7 +110,7 @@ checkStructure a
 
                 --checkOuterMostLayer
 checkOuterMostLayer :: UMLStateDiagram -> Bool
-checkOuterMostLayer StateDiagram{}= True
+checkOuterMostLayer StateDiagram{} = True
 checkOuterMostLayer _ = False
 
                 --checkSubstateSD
@@ -152,11 +152,11 @@ strEmpty _ = False
 
 isConnFromNotHistory :: [Int] -> [UMLStateDiagram] -> Bool
 isConnFromNotHistory [] _ = True
-isConnFromNotHistory [x] a = all (isNotEnd x) a
-isConnFromNotHistory (x:xs) a = isConnFromNotEnd xs (getSubstate x a)
+isConnFromNotHistory [x] a = all (isNotHistory x) a
+isConnFromNotHistory (x:xs) a = isConnFromNotHistory xs (getSubstate x a)
 
 isNotHistory :: Int -> UMLStateDiagram -> Bool
-isNotHistory a EndState {label}  = a /= label
+isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
 
                 --checkSameConnection
