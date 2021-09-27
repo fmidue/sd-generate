@@ -78,10 +78,8 @@ getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
 getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
 getSubstate1 (StateDiagram a _ _ _ _) = a
 getSubstate1 (CombineDiagram a _) = a
-getSubstate1 (Joint _) = []
-getSubstate1 (History _ _) = []
-getSubstate1 InnerMostState {}  = []
-getSubstate1 EndState {}  = []
+getSubstate1 _ = []
+
 
 --check local uniqueness
 checkUniqueness :: UMLStateDiagram -> Maybe String
@@ -112,12 +110,8 @@ checkStructure a
 
                 --checkOuterMostLayer
 checkOuterMostLayer :: UMLStateDiagram -> Bool
-checkOuterMostLayer Joint {} = False
-checkOuterMostLayer History {} = False
-checkOuterMostLayer InnerMostState {} = False
-checkOuterMostLayer CombineDiagram {} = False
-checkOuterMostLayer EndState {} = False
-checkOuterMostLayer _ = True
+checkOuterMostLayer StateDiagram{}= True
+checkOuterMostLayer _ = False
 
                 --checkSubstateSD
 checkSubstateSD :: UMLStateDiagram -> Bool
@@ -129,10 +123,8 @@ checkSubstateSD _ = True
 checkListInSD :: UMLStateDiagram -> Bool
 checkListInSD Joint {} = False
 checkListInSD History {} = False
-checkListInSD InnerMostState {} = True
-checkListInSD CombineDiagram {} = True
-checkListInSD StateDiagram {} = True
-checkListInSD EndState{} = True
+checkListInSD _ = True
+
 
                 --checkSubstateCD
 checkSubstateCD :: UMLStateDiagram -> Bool
@@ -143,13 +135,8 @@ checkSubstateCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
 checkSubstateCD _ = True
 
 checkListInCD :: UMLStateDiagram -> Bool
-checkListInCD Joint {} = False
-checkListInCD History {} = False
-checkListInCD InnerMostState {} = False
-checkListInCD CombineDiagram {} = False
-checkListInCD EndState{} = False
 checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
-
+checkListInCD _ = False
                  --checkHistOutTransitions
 checkHistOutTransition :: UMLStateDiagram -> Bool
 checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistConnTransition` substate) connection && all checkHistOutTransition substate
