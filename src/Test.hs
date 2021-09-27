@@ -28,7 +28,7 @@ checkEndOutEdges  _ = True
 
 isConnFromNotEnd :: [Int] -> [UMLStateDiagram] -> Bool
 isConnFromNotEnd [] _ = True
-isConnFromNotEnd [x] a = all (\y -> isNotEnd x y) a
+isConnFromNotEnd [x] a = all (isNotEnd x) a
 isConnFromNotEnd (x:xs) a = isConnFromNotEnd xs (getSubstate x a)
 
 isNotEnd :: Int -> UMLStateDiagram -> Bool
@@ -74,7 +74,7 @@ isContained1 (x:xs) a b =  (x `elem` a)  &&
        isContained1 xs (map label (getSubstate x b)) (getSubstate x b)
 
 getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
-getSubstate a xs = maybe ([]) getSubstate1 (find ((a ==) . label) xs)
+getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
 
 getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
 getSubstate1 (StateDiagram a _ _ _ _) = a
@@ -151,16 +151,12 @@ checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
 
                  --checkHistOutTransitions
 checkHistOutTransition :: UMLStateDiagram -> Bool
-checkHistOutTransition StateDiagram { substate, connection } = all (\x -> checkHistConnTransition x substate) connection && all checkHistOutTransition substate
+checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistConnTransition` substate) connection && all checkHistOutTransition substate
 checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition substate
 checkHistOutTransition  _ = True
 
 checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
-checkHistConnTransition Connection { pointFrom,transition } a = if isConnFromNotHistory pointFrom a
-                                                                  then
-                                                                    True
-                                                                 else
-                                                                   strEmpty transition
+checkHistConnTransition Connection { pointFrom,transition } a = isConnFromNotHistory pointFrom a || strEmpty transition
 
 strEmpty :: String -> Bool
 strEmpty [] = True
@@ -168,7 +164,7 @@ strEmpty _ = False
 
 isConnFromNotHistory :: [Int] -> [UMLStateDiagram] -> Bool
 isConnFromNotHistory [] _ = True
-isConnFromNotHistory [x] a = all (\y -> isNotEnd x y) a
+isConnFromNotHistory [x] a = all (isNotEnd x) a
 isConnFromNotHistory (x:xs) a = isConnFromNotEnd xs (getSubstate x a)
 
 isNotHistory :: Int -> UMLStateDiagram -> Bool
@@ -182,8 +178,8 @@ checkSameConnection :: UMLStateDiagram -> Bool
 checkSameConnection a  = not (anySame (getConnectionList a []))
 
 getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],[Int])]
-getConnectionList StateDiagram { substate, connection ,label} a = (map (\x -> getConnection x (a ++ [label])) connection) ++ concat(map (\x -> getConnectionList x (a ++ [label])) substate)
-getConnectionList CombineDiagram {substate,label} a = concat(map (\x -> getConnectionList x (a ++ [label])) substate)
+getConnectionList StateDiagram { substate, connection ,label} a = map (\x -> getConnection x (a ++ [label])) connection ++ concatMap (\ x -> getConnectionList x (a ++ [label])) substate
+getConnectionList CombineDiagram {substate,label} a =   concatMap (\ x -> getConnectionList x (a ++ [label])) substate
 getConnectionList  _ _ =[]
 
 getConnection :: Connection -> [Int] -> ([Int],[Int])
