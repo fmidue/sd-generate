@@ -45,9 +45,15 @@ spec = do
          ,("substateOnlyJH2", substateOnlyJH2)
          ,("oneSD1", oneSD1)
          ,("oneSD2", oneSD2)
+         ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
+         ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
+         ,("forCheckSameConnection1", forCheckSameConnection1)
+         ,("forCheckSameConnection2", forCheckSameConnection2)
        ]
   counterExamplesOnlyFor "checkSemantics"
        [ ("nonSenseHistory", nonSenseHistory)
+        ,("forCheckEndOutEdges1", forCheckEndOutEdges1)
+        ,("forCheckEndOutEdges2", forCheckEndOutEdges2)
        ]
 
 counterExamplesOnlyFor theChecker theExamples = do
