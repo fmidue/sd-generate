@@ -221,6 +221,7 @@ checkOrDecomList :: Wrapper -> Bool
 checkOrDecomList AndDecom {} = True
 checkOrDecomList OrDecom {} = True
 checkOrDecomList Leaf {} = True
+checkOrDecomList EndS {} = True
 checkOrDecomList _ = False
 
 checkAndDecomSubstate :: Wrapper -> Bool
