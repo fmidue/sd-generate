@@ -11,7 +11,7 @@ checkSemantics a
   | not(checkEndOutEdges a) = Just "Error: no EndState should have outgoing edges"
   | otherwise = Nothing
 
-      --checkOutermostHistory
+                --checkOutermostHistory
 checkOutermostHistory :: UMLStateDiagram -> Bool
 checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryNotInSD a
 checkOutermostHistory _ = True
@@ -20,7 +20,7 @@ isHistoryNotInSD :: UMLStateDiagram -> Bool
 isHistoryNotInSD History {} = False
 isHistoryNotInSD _ = True
 
-       --checkEndOutEdges
+                --checkEndOutEdges
 checkEndOutEdges :: UMLStateDiagram -> Bool
 checkEndOutEdges StateDiagram { substate, connection } = all ((`isConnFromNotEnd` substate) . pointFrom) connection && all checkEndOutEdges substate
 checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
@@ -48,7 +48,6 @@ checkSubS  StateDiagram { substate, startState} = checkStart && all checkSubS su
                                                 checkStart = isContained1 startState getLayerList substate
 checkSubS CombineDiagram {substate} = all checkSubS substate
 checkSubS  _ = True
-
 
 --check Connection Points
 checkConnection :: UMLStateDiagram -> Maybe String
@@ -98,7 +97,6 @@ checkSub  _ = True
 isUnique :: [Int] -> Bool
 isUnique a = not (anySame a)
 
-
 --checkStructure
 checkStructure :: UMLStateDiagram -> Maybe String
 checkStructure a
@@ -111,6 +109,7 @@ checkStructure a
   | not(checkHistOutTransition a) = Just "Error: Outgoing edges from a history node always have the empty transition"
   | not(checkSameConnection a) = Just "Error: No two connections are allowed leaving the same source and and having the same label."
   | otherwise = Nothing
+
                 --checkOuterMostLayer
 checkOuterMostLayer :: UMLStateDiagram -> Bool
 checkOuterMostLayer Joint {} = False
@@ -119,6 +118,7 @@ checkOuterMostLayer InnerMostState {} = False
 checkOuterMostLayer CombineDiagram {} = False
 checkOuterMostLayer EndState {} = False
 checkOuterMostLayer _ = True
+
                 --checkSubstateSD
 checkSubstateSD :: UMLStateDiagram -> Bool
 checkSubstateSD (StateDiagram [] _ _ _ _) = False
@@ -133,6 +133,7 @@ checkListInSD InnerMostState {} = True
 checkListInSD CombineDiagram {} = True
 checkListInSD StateDiagram {} = True
 checkListInSD EndState{} = True
+
                 --checkSubstateCD
 checkSubstateCD :: UMLStateDiagram -> Bool
 checkSubstateCD (CombineDiagram [] _) = False
@@ -171,23 +172,24 @@ isNotHistory :: Int -> UMLStateDiagram -> Bool
 isNotHistory a EndState {label}  = a /= label
 isNotHistory _ _ = True
 
-
-
                 --checkSameConnection
 checkSameConnection :: UMLStateDiagram -> Bool
-checkSameConnection a  = not (anySame (getConnectionList a []))
+checkSameConnection a  = not (anySame (filter tranNotEmpty (getConnectionList a [])))
 
-getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],[Int])]
-getConnectionList StateDiagram { substate, connection ,label} a = map (\x -> getConnection x (a ++ [label])) connection ++ concatMap (\ x -> getConnectionList x (a ++ [label])) substate
-getConnectionList CombineDiagram {substate,label} a =   concatMap (\ x -> getConnectionList x (a ++ [label])) substate
+tranNotEmpty :: ([Int],String) -> Bool
+tranNotEmpty (_,[]) = False
+tranNotEmpty (_,_) = True
+
+getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],String)]
+getConnectionList StateDiagram { substate, connection ,label} a = map (\x -> getConnection x (a ++ [label])) connection
+                                                           ++ concatMap (\ x -> getConnectionList x (a ++ [label])) substate
+getConnectionList CombineDiagram {substate,label} a = concatMap (\ x -> getConnectionList x (a ++ [label])) substate
 getConnectionList  _ _ =[]
 
-getConnection :: Connection -> [Int] -> ([Int],[Int])
-getConnection Connection{pointFrom,pointTo} a =  (from,to)
+getConnection :: Connection -> [Int] -> ([Int],String)
+getConnection Connection{pointFrom,transition} a =  (from,tran)
                                               where from = a ++ pointFrom
-                                                    to  = a ++ pointTo
-
-
+                                                    tran  = transition
 
 --checkWrapper
 checkWrapper :: UMLStateDiagram -> Maybe String
