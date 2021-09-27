@@ -80,6 +80,23 @@ getSubstate1 (StateDiagram a _ _ _ _) = a
 getSubstate1 (CombineDiagram a _) = a
 getSubstate1 _ = []
 
+--check name uniqueness
+checkNameUniqueness :: UMLStateDiagram -> Maybe String
+checkNameUniqueness a
+  | not(checkSubNameUniq a) = Just "Error: same layer name Uniqueness is not fullfilled "
+  | otherwise = Nothing
+
+checkSubNameUniq :: UMLStateDiagram -> Bool
+checkSubNameUniq StateDiagram {substate} =  not (anySame (filter (not . strEmpty) (map getName substate )))
+                                            && all checkSubNameUniq  substate
+checkSubNameUniq  CombineDiagram {substate} = not (anySame (filter (not . strEmpty) (map getName substate )))
+                                            && all checkSubNameUniq  substate
+checkSubNameUniq  _ = True
+
+getName :: UMLStateDiagram -> String
+getName StateDiagram{name} = name
+getName InnerMostState{name} = name
+getName _ = []
 
 --check local uniqueness
 checkUniqueness :: UMLStateDiagram -> Maybe String
@@ -124,7 +141,6 @@ checkListInSD :: UMLStateDiagram -> Bool
 checkListInSD Joint {} = False
 checkListInSD History {} = False
 checkListInSD _ = True
-
 
                 --checkSubstateCD
 checkSubstateCD :: UMLStateDiagram -> Bool
