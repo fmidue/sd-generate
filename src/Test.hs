@@ -132,7 +132,6 @@ checkOuterMostLayer _ = False
 
                 --checkSubstateSD
 checkSubstateSD :: UMLStateDiagram -> Bool
-checkSubstateSD (StateDiagram [] _ _ _ _) = False
 checkSubstateSD (CombineDiagram a _) = all checkSubstateSD a
 checkSubstateSD (StateDiagram a _ _ _ _) = any checkListInSD a && all checkSubstateSD a
 checkSubstateSD _ = True
@@ -144,9 +143,7 @@ checkListInSD _ = True
 
                 --checkSubstateCD
 checkSubstateCD :: UMLStateDiagram -> Bool
-checkSubstateCD (CombineDiagram [] _) = False
-checkSubstateCD (CombineDiagram [_] _) = False
-checkSubstateCD (CombineDiagram a _) = all checkListInCD a
+checkSubstateCD (CombineDiagram a _) = length a > 1 && all checkListInCD a
 checkSubstateCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
 checkSubstateCD _ = True
 
@@ -215,7 +212,6 @@ checkOuterMostWrapper AndDecom {} = True
 checkOuterMostWrapper _ = False
 
 checkOrDecomSubstate :: Wrapper -> Bool
-checkOrDecomSubstate (OrDecom [] _ _ _ _ _ _ _ _) = False
 checkOrDecomSubstate (AndDecom a _ _ _ _ _) = all checkOrDecomSubstate a
 checkOrDecomSubstate (OrDecom a _ _ _ _ _ _ _ _) = any checkOrDecomList (concat a) &&
   all checkOrDecomSubstate (concat a)
@@ -228,9 +224,7 @@ checkOrDecomList Leaf {} = True
 checkOrDecomList _ = False
 
 checkAndDecomSubstate :: Wrapper -> Bool
-checkAndDecomSubstate (AndDecom [] _ _ _ _ _) = False
-checkAndDecomSubstate (AndDecom [_] _ _ _ _ _) = False
-checkAndDecomSubstate (AndDecom a _ _ _ _ _) = all checkAndDecomList a
+checkAndDecomSubstate (AndDecom a _ _ _ _ _) = length a > 1 && all checkAndDecomList a
 checkAndDecomSubstate (OrDecom a _ _ _ _ _ _ _ _) = all checkAndDecomSubstate (concat a)
 checkAndDecomSubstate _ = True
 
