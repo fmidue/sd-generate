@@ -91,14 +91,14 @@ checkNameUniqueness a
   | otherwise = Nothing
 
 checkSDNameUniq :: UMLStateDiagram -> Bool
-checkSDNameUniq StateDiagram {substate,name} = name `notElem` (getLayerNameSD substate)
+checkSDNameUniq StateDiagram {substate,name} = name `notElem` getLayerNameSD substate
                                               && all (checkDeeperUniq name) substate
                                               && all checkSDNameUniq substate
 checkSDNameUniq CombineDiagram {substate} = all checkSDNameUniq substate
 checkSDNameUniq  _ = True
 
 checkDeeperUniq :: String -> UMLStateDiagram -> Bool
-checkDeeperUniq a StateDiagram {substate} = a `notElem` (getLayerNameSD substate)
+checkDeeperUniq a StateDiagram {substate} = a `notElem` getLayerNameSD substate
                                               && all (checkDeeperUniq a) substate
 checkDeeperUniq a CombineDiagram {substate} = all (checkDeeperUniq a) substate
 checkDeeperUniq _ _ = True
