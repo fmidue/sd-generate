@@ -3,6 +3,7 @@ module Test where
 import Datatype
 import Layout
 import Data.List.Extra
+import Data.Maybe
 
 --check semantics
 checkSemantics :: UMLStateDiagram -> Maybe String
@@ -22,7 +23,8 @@ isHistoryNotInSD _ = True
 
                 --checkEndOutEdges
 checkEndOutEdges :: UMLStateDiagram -> Bool
-checkEndOutEdges StateDiagram { substate, connection } = all ((`isConnFromNotEnd` substate) . pointFrom) connection && all checkEndOutEdges substate
+checkEndOutEdges StateDiagram { substate, connection } = all ((`isConnFromNotEnd` substate) . pointFrom) connection
+                                                         && all checkEndOutEdges substate
 checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
 checkEndOutEdges  _ = True
 
@@ -83,20 +85,41 @@ getSubstate1 _ = []
 --check name uniqueness
 checkNameUniqueness :: UMLStateDiagram -> Maybe String
 checkNameUniqueness a
-  | not(checkSubNameUniq a) = Just "Error: same layer name Uniqueness is not fullfilled "
+  | not(checkSubNameUniq a) = Just "Error: At the same layer name Uniqueness is not fullfilled "
+  | not(checkSDNameUniq a) = Just ("Error: In each StateDiagram, the name (if not empty) should be different" 
+    ++"from all names found arbitrarily deep inside the substates.")
   | otherwise = Nothing
 
+checkSDNameUniq :: UMLStateDiagram -> Bool
+checkSDNameUniq StateDiagram {substate,name} = name `notElem` (filter (not . null) (catMaybes(concatMap getNameSD substate)))
+                                              && all (checkDeeperUniq name) substate
+                                              && all checkSubNameUniq substate
+checkSDNameUniq CombineDiagram {substate} = all checkSDNameUniq substate
+checkSDNameUniq  _ = True
+
+checkDeeperUniq :: String -> UMLStateDiagram -> Bool
+checkDeeperUniq a StateDiagram {substate} = a `notElem` (filter (not . null) (catMaybes(concatMap getNameSD substate)))
+                                              && all (checkDeeperUniq a) substate
+checkDeeperUniq a CombineDiagram {substate} = all (checkDeeperUniq a) substate
+checkDeeperUniq _ _ = True
+
 checkSubNameUniq :: UMLStateDiagram -> Bool
-checkSubNameUniq StateDiagram {substate} =  not (anySame (filter (not . strEmpty) (map getName substate )))
+checkSubNameUniq StateDiagram {substate} =  not (anySame (filter (not . null) (catMaybes(concatMap getNameSD substate))))
                                             && all checkSubNameUniq  substate
-checkSubNameUniq  CombineDiagram {substate} = not (anySame (filter (not . strEmpty) (map getName substate )))
-                                            && all checkSubNameUniq  substate
+checkSubNameUniq  CombineDiagram {substate} = not (anySame (filter (not . null) (mapMaybe getName substate)))
+                                              && all checkSubNameUniq  substate
 checkSubNameUniq  _ = True
 
-getName :: UMLStateDiagram -> String
-getName StateDiagram{name} = name
-getName InnerMostState{name} = name
-getName _ = []
+getNameSD :: UMLStateDiagram -> [Maybe String]
+getNameSD StateDiagram{name} = [Just name]
+getNameSD InnerMostState{name} = [Just name]
+getNameSD CombineDiagram{substate} = map getName substate
+getNameSD _ = [Nothing]
+
+getName :: UMLStateDiagram -> Maybe String
+getName StateDiagram{name} = Just name
+getName InnerMostState{name} = Just name
+getName _ = Nothing
 
 --check local uniqueness
 checkUniqueness :: UMLStateDiagram -> Maybe String
@@ -121,8 +144,10 @@ checkStructure a
     ++ "r cannot be empty or just History/Joint")
   | not(checkSubstateCD a) = Just ("Error: CombineDiagram constructor must con"
     ++ "tain at least 2 StateDiagram and no other type of constructor")
-  | not(checkHistOutTransition a) = Just "Error: Outgoing edges from a history node always have the empty transition"
-  | not(checkSameConnection a) = Just "Error: No two connections are allowed leaving the same source and and having the same label."
+  | not(checkHistOutTransition a) = Just ("Error: Outgoing edges from a history"
+    ++ "node always have the empty transition")
+  | not(checkSameConnection a) = Just ("Error: No two connections are allowed leaving"
+    ++ "the same source and and having the same label.")
   | otherwise = Nothing
 
                 --checkOuterMostLayer
@@ -150,18 +175,16 @@ checkSubstateCD _ = True
 checkListInCD :: UMLStateDiagram -> Bool
 checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
 checkListInCD _ = False
+
                  --checkHistOutTransitions
 checkHistOutTransition :: UMLStateDiagram -> Bool
-checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistConnTransition` substate) connection && all checkHistOutTransition substate
+checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistConnTransition` substate) connection
+                                                               && all checkHistOutTransition substate
 checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition substate
 checkHistOutTransition  _ = True
 
 checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
-checkHistConnTransition Connection { pointFrom,transition } a = isConnFromNotHistory pointFrom a || strEmpty transition
-
-strEmpty :: String -> Bool
-strEmpty [] = True
-strEmpty _ = False
+checkHistConnTransition Connection { pointFrom,transition } a = isConnFromNotHistory pointFrom a || null transition
 
 isConnFromNotHistory :: [Int] -> [UMLStateDiagram] -> Bool
 isConnFromNotHistory [] _ = True
@@ -177,12 +200,12 @@ checkSameConnection :: UMLStateDiagram -> Bool
 checkSameConnection a  = not (anySame (filter tranNotEmpty (getConnectionList a [])))
 
 tranNotEmpty :: ([Int],String) -> Bool
-tranNotEmpty (_,[]) = False
-tranNotEmpty (_,_) = True
+tranNotEmpty (_,a) = not $ null a
+
 
 getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],String)]
 getConnectionList StateDiagram { substate, connection ,label} a = map (\x -> getConnection x (a ++ [label])) connection
-                                                           ++ concatMap (\ x -> getConnectionList x (a ++ [label])) substate
+                                                       ++ concatMap (\ x -> getConnectionList x (a ++ [label])) substate
 getConnectionList CombineDiagram {substate,label} a = concatMap (\ x -> getConnectionList x (a ++ [label])) substate
 getConnectionList  _ _ =[]
 
