@@ -26,7 +26,7 @@ spec = do
   describe "checkSemantics" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkSemantics code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
-  describe "checkSemantics" $ void $ sequence
+  describe "checkNameUniqueness" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkNameUniqueness code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
 
