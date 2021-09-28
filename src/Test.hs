@@ -3,7 +3,6 @@ module Test where
 import Datatype
 import Layout
 import Data.List.Extra
-import Data.Maybe
 
 --check semantics
 checkSemantics :: UMLStateDiagram -> Maybe String
@@ -91,38 +90,33 @@ checkNameUniqueness a
   | otherwise = Nothing
 
 checkSDNameUniq :: UMLStateDiagram -> Bool
-checkSDNameUniq StateDiagram {substate,name} = name `notElem` getLayerNameSD substate
+checkSDNameUniq StateDiagram {substate,name} = name `notElem` getLayerName substate
                                               && all (checkDeeperUniq name) substate
                                               && all checkSDNameUniq substate
 checkSDNameUniq CombineDiagram {substate} = all checkSDNameUniq substate
 checkSDNameUniq  _ = True
 
 checkDeeperUniq :: String -> UMLStateDiagram -> Bool
-checkDeeperUniq a StateDiagram {substate} = a `notElem` getLayerNameSD substate
+checkDeeperUniq a StateDiagram {substate} = a `notElem` getLayerName substate
                                               && all (checkDeeperUniq a) substate
 checkDeeperUniq a CombineDiagram {substate} = all (checkDeeperUniq a) substate
 checkDeeperUniq _ _ = True
 
 checkSubNameUniq :: UMLStateDiagram -> Bool
-checkSubNameUniq StateDiagram {substate} =  not (anySame (getLayerNameSD substate))
+checkSubNameUniq StateDiagram {substate} =  not (anySame (getLayerName substate))
                                             && all checkSubNameUniq  substate
-checkSubNameUniq  CombineDiagram {substate} = not (anySame (filter (not . null) (mapMaybe getName substate)))
+checkSubNameUniq  CombineDiagram {substate} = not (anySame (getLayerName substate))
                                               && all checkSubNameUniq  substate
 checkSubNameUniq  _ = True
 
-getLayerNameSD :: [UMLStateDiagram] -> [String]
-getLayerNameSD a = filter (not . null) (catMaybes(concatMap getNameSD a))
+getLayerName :: [UMLStateDiagram] -> [String]
+getLayerName a = filter (not . null) (concatMap getName a)
 
-getNameSD :: UMLStateDiagram -> [Maybe String]
-getNameSD StateDiagram{name} = [Just name]
-getNameSD InnerMostState{name} = [Just name]
-getNameSD CombineDiagram{substate} = map getName substate
-getNameSD _ = [Nothing]
-
-getName :: UMLStateDiagram -> Maybe String
-getName StateDiagram{name} = Just name
-getName InnerMostState{name} = Just name
-getName _ = Nothing
+getName :: UMLStateDiagram -> [String]
+getName StateDiagram{name} = [name]
+getName InnerMostState{name} = [name]
+getName CombineDiagram{substate} = concatMap getName substate
+getName _ = []
 
 --check local uniqueness
 checkUniqueness :: UMLStateDiagram -> Maybe String
