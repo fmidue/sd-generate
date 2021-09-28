@@ -194,11 +194,7 @@ isNotHistory _ _ = True
 
                 --checkSameConnection
 checkSameConnection :: UMLStateDiagram -> Bool
-checkSameConnection a  = not (anySame (filter tranNotEmpty (getConnectionList a [])))
-
-tranNotEmpty :: ([Int],String) -> Bool
-tranNotEmpty (_,a) = not $ null a
-
+checkSameConnection a  = not (anySame (filter (not . null . snd) (getConnectionList a [])))
 
 getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],String)]
 getConnectionList StateDiagram { substate, connection ,label} a = map (\x -> getConnection x (a ++ [label])) connection
