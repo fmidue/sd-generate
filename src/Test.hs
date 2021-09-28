@@ -86,29 +86,32 @@ getSubstate1 _ = []
 checkNameUniqueness :: UMLStateDiagram -> Maybe String
 checkNameUniqueness a
   | not(checkSubNameUniq a) = Just "Error: At the same layer name Uniqueness is not fullfilled "
-  | not(checkSDNameUniq a) = Just ("Error: In each StateDiagram, the name (if not empty) should be different" 
+  | not(checkSDNameUniq a) = Just ("Error: In each StateDiagram, the name (if not empty) should be different"
     ++"from all names found arbitrarily deep inside the substates.")
   | otherwise = Nothing
 
 checkSDNameUniq :: UMLStateDiagram -> Bool
-checkSDNameUniq StateDiagram {substate,name} = name `notElem` (filter (not . null) (catMaybes(concatMap getNameSD substate)))
+checkSDNameUniq StateDiagram {substate,name} = name `notElem` (getLayerNameSD substate)
                                               && all (checkDeeperUniq name) substate
-                                              && all checkSubNameUniq substate
+                                              && all checkSDNameUniq substate
 checkSDNameUniq CombineDiagram {substate} = all checkSDNameUniq substate
 checkSDNameUniq  _ = True
 
 checkDeeperUniq :: String -> UMLStateDiagram -> Bool
-checkDeeperUniq a StateDiagram {substate} = a `notElem` (filter (not . null) (catMaybes(concatMap getNameSD substate)))
+checkDeeperUniq a StateDiagram {substate} = a `notElem` (getLayerNameSD substate)
                                               && all (checkDeeperUniq a) substate
 checkDeeperUniq a CombineDiagram {substate} = all (checkDeeperUniq a) substate
 checkDeeperUniq _ _ = True
 
 checkSubNameUniq :: UMLStateDiagram -> Bool
-checkSubNameUniq StateDiagram {substate} =  not (anySame (filter (not . null) (catMaybes(concatMap getNameSD substate))))
+checkSubNameUniq StateDiagram {substate} =  not (anySame (getLayerNameSD substate))
                                             && all checkSubNameUniq  substate
 checkSubNameUniq  CombineDiagram {substate} = not (anySame (filter (not . null) (mapMaybe getName substate)))
                                               && all checkSubNameUniq  substate
 checkSubNameUniq  _ = True
+
+getLayerNameSD :: [UMLStateDiagram] -> [String]
+getLayerNameSD a = filter (not . null) (catMaybes(concatMap getNameSD a))
 
 getNameSD :: UMLStateDiagram -> [Maybe String]
 getNameSD StateDiagram{name} = [Just name]
