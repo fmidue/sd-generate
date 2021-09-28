@@ -22,6 +22,10 @@ spec = do
          ,("smallTestC1",smallTestC1)
          ,("smallTestC",smallTestC)
         ]
+  counterExamplesOnlyFor "checkNameUniqueness"
+        [("forCheckNameUniqueness1", forCheckNameUniqueness1)
+        ,("forCheckNameUniqueness2", forCheckNameUniqueness2)
+        ]
   counterExamplesOnlyFor "checkUniqueness"
         [("outerStateDiagL1", outerStateDiagL1)
         ,("outerStateDiagL2", outerStateDiagL2)
@@ -71,6 +75,7 @@ counterExamplesOnlyFor theChecker theExamples = do
 
 allTheCheckersExceptForWrapper =
   [ ("checkConnection", checkConnection)
+  , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
   , ("checkStartState", checkStartState)
   , ("checkStructure", checkStructure)

@@ -277,8 +277,33 @@ tooDeep = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
      where h = InnerMostState 1 "ScrollLockOff" ""
            i = InnerMostState 2 "ScrollLockOn" ""
 
--- CounterExample for  "Local Uniqueness checker"
+forCheckNameUniqueness1 :: UMLStateDiagram
+forCheckNameUniqueness1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
+     where
+      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
+          where
+           c = InnerMostState  1 "a" ""
+           d = StateDiagram  [f,g] 2 "a" [Connection [1] [2] ""] [1]
+            where
+              f = InnerMostState  1 "State 2a" ""
+              g = InnerMostState  2 "State 2b" ""
+           e = History 3 Deep
+      b = InnerMostState  2 "State 3" ""
 
+forCheckNameUniqueness2 :: UMLStateDiagram
+forCheckNameUniqueness2 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
+     where
+      a = StateDiagram  [c,d,e] 1 "a" [Connection [1] [2] ""] [1]
+          where
+           c = InnerMostState  1 "a" ""
+           d = StateDiagram  [f,g] 2 "State 2" [Connection [1] [2] ""] [1]
+            where
+              f = InnerMostState  1 "State 2a" ""
+              g = InnerMostState  2 "State 2b" ""
+           e = History 3 Deep
+      b = InnerMostState  2 "State 3" ""
+
+-- CounterExample for  "Local Uniqueness checker"
 outerStateDiagL1 :: UMLStateDiagram
 outerStateDiagL1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Connection
            [1] [1] "f", Connection [1] [4] "b", Connection [3] [4] "c",
