@@ -171,13 +171,16 @@ decideAndLayout a = if areaV < areaH then Vertical else Horizontal
     areaH = width (drawWrapper [] h) * height (drawWrapper [] h)
 
 getWrapper :: UMLStateDiagram -> Wrapper
-getWrapper (EndState a ) = EndS a 0 NoConnection Unspecified
-getWrapper (History a b) = Hist a b 0 NoConnection Unspecified
-getWrapper (InnerMostState a b c) = Leaf a b c 0 NoConnection Unspecified
-getWrapper (Joint a) = Fork a Unspecified 0 NoConnection
-getWrapper s@CombineDiagram {} = AndDecom (fmap getWrapper (substate s)) (label
+getWrapper = toWrapper . localise
+
+toWrapper :: UMLStateDiagram -> Wrapper
+toWrapper (EndState a ) = EndS a 0 NoConnection Unspecified
+toWrapper (History a b) = Hist a b 0 NoConnection Unspecified
+toWrapper (InnerMostState a b c) = Leaf a b c 0 NoConnection Unspecified
+toWrapper (Joint a) = Fork a Unspecified 0 NoConnection
+toWrapper s@CombineDiagram {} = AndDecom (fmap toWrapper (substate s)) (label
   s) Unspecified 0 NoConnection Unspecified
-getWrapper s@StateDiagram {} = OrDecom toWrapper (label s) (name s)
+toWrapper s@StateDiagram {} = OrDecom toWrapper' (label s) (name s)
   convertedConnection Unspecified maxKey 0 NoConnection
   Unspecified
   where
@@ -188,12 +191,12 @@ getWrapper s@StateDiagram {} = OrDecom toWrapper (label s) (name s)
     graph = getFirstFromTuple3 graphWithInfo
     getLayers = layering $ dfs graph vertexOrder
     layers = nodeFromVertex getLayers graphWithInfo []
-    toWrapper = if null (startState s) then convertUMLStateDiagramToWrapper
+    toWrapper' = if null (startState s) then convertUMLStateDiagramToWrapper
       layers [] else placeStartState (convertUMLStateDiagramToWrapper layers
       []) (startState s)
     newConnection = if null (startState s) then connection s
       else Connection [-1] (startState s) "" : connection s
-    convertedConnection = changeConnectionType newConnection toWrapper []
+    convertedConnection = changeConnectionType newConnection toWrapper' []
     maxKey = maximum (Map.keys $ mapWithLabel $ substate s)
 
 createGraph :: Map.Map Int [Int] -> [UMLStateDiagram] -> [(UMLStateDiagram,
