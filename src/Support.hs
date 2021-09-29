@@ -36,6 +36,7 @@ checkOrList' _ = False
 checkOrList :: [Wrapper] -> Bool
 checkOrList = any checkOrList'
 
+{-
 checkTransitionLayer' :: Wrapper -> Bool
 checkTransitionLayer' Transition {} = True
 checkTransitionLayer' Dummy {} = True
@@ -43,6 +44,7 @@ checkTransitionLayer' _ = False
 
 checkTransitionLayer :: [Wrapper] -> Bool
 checkTransitionLayer = all checkTransitionLayer'
+-}
 
 combineWrapper :: [[Wrapper]] -> [[Wrapper]] -> [[Wrapper]] -> [[Wrapper]]
 combineWrapper [a, b] [c] newWrapper = newWrapper ++ [a, c, b]

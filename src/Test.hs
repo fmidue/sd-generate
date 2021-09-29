@@ -249,6 +249,7 @@ checkOrDecomList Leaf {} = True
 checkOrDecomList EndS {} = True
 checkOrDecomList _ = False
 
+{-
 checkAndDecomSubstate :: Wrapper -> Bool
 checkAndDecomSubstate (AndDecom a _ _ _ _ _) = length a > 1 && all checkAndDecomList a
 checkAndDecomSubstate (OrDecom a _ _ _ _ _ _ _ _) = all checkAndDecomSubstate (concat a)
@@ -257,6 +258,7 @@ checkAndDecomSubstate _ = True
 checkAndDecomList :: Wrapper -> Bool
 checkAndDecomList (OrDecom a _ _ _ _ _ _ _ _) = all checkAndDecomSubstate (concat a)
 checkAndDecomList _ = False
+-}
 
 checkLayout :: Wrapper -> Bool
 checkLayout a@(OrDecom [[b@AndDecom {}]] _ _ _ _ _ _ _ _) = layout a == layout b && checkLayout b

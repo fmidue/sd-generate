@@ -159,6 +159,7 @@ drawConnection (a, SelfCL) _ = uncurry selfConnect2 a
 drawConnection (a, SelfCR) Vertical = uncurry selfConnect3 a
 drawConnection (a, SelfCR) _ = uncurry selfConnect1 a
 
+{-
 selectSmallerSize :: Wrapper -> Layout -- for OrDecom
 selectSmallerSize a = if areaH > areaV then Vertical else Horizontal
   where
@@ -176,6 +177,7 @@ decideAndLayout a = if areaV < areaH then Vertical else Horizontal
       Horizontal (lengthXY a) (rightC a) (outerLayout a)
     areaV = width (drawWrapper [] v) * height (drawWrapper [] v)
     areaH = width (drawWrapper [] h) * height (drawWrapper [] h)
+-}
 
 getWrapper :: UMLStateDiagram -> Wrapper
 getWrapper = toWrapper . localise
@@ -415,6 +417,7 @@ rearrangeSubstate s@CombineDiagram {} =
   CombineDiagram (fmap rearrangeSubstate (substate s)) (label s)
 rearrangeSubstate a = a
 
+{-
 changeLayout :: Wrapper -> Layout -> Wrapper
 changeLayout s@OrDecom {} a = OrDecom (layered s) (key s) (strings s)
   (connections s) a (maxLabel s) (lengthXY s) (rightC s)
@@ -474,6 +477,7 @@ assignLayout s@AndDecom {} = AndDecom (fmap (`changeAndLayout` decidedLayout)
     decidedLayout = decideAndLayout (AndDecom newLayered (key s) Unspecified
       (lengthXY s) (rightC s) (outerLayout s))
 assignLayout a = a
+-}
 
 reduceCrossStateCrossing :: Wrapper -> Wrapper
 reduceCrossStateCrossing s@OrDecom {} = if null (fst dummyToAdd) then OrDecom
