@@ -1,5 +1,14 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Test where
+module Test
+  ( checkSemantics
+  , checkStartState
+  , checkConnection
+  , checkNameUniqueness
+  , checkUniqueness
+  , checkStructure
+  , checkWrapper
+  ) where
+
 import Datatype
 import Layout
 import Data.List.Extra

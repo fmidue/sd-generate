@@ -1,4 +1,4 @@
-module GenerateSpec where
+module GenerateSpec (spec) where
 
 import Generate
 import Test
