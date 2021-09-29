@@ -1,4 +1,4 @@
-module ExampleSpec (spec) where
+module ExampleSpec (spec, positiveExamples) where
 
 import Example
 import Test
