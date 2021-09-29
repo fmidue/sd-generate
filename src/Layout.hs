@@ -1,4 +1,11 @@
-module Layout where
+module Layout
+  ( drawWrapper'
+  , getWrapper
+  , addDummy
+  , rearrangeSubstate
+  , orderFunction
+  ) where
+
 import Datatype
 import Diagrams.Prelude
 import Diagrams.Backend.SVG.CmdLine

@@ -1,7 +1,17 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE TypeFamilies              #-}
-module Datatype where
+module Datatype
+  ( Wrapper(..)
+  , ConnectWithType(..)
+  , Connection(..)
+  , ConnectionType(..)
+  , HistoryType(..)
+  , UMLStateDiagram(..)
+  , Layout(..)
+  , RightConnect(..)
+  , localise
+  ) where
 
 import Data.List                        (partition)
 

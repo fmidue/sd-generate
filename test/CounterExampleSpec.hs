@@ -1,4 +1,4 @@
-module CounterExampleSpec where
+module CounterExampleSpec (spec) where
 
 import CounterExample
 import Test

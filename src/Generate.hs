@@ -1,7 +1,6 @@
-module Generate where
+module Generate (randomSD) where
 import Datatype
 import Test.QuickCheck hiding(label,labels)
-import Test
 
 randomSD :: Gen UMLStateDiagram
 randomSD = do
@@ -64,3 +63,8 @@ randomConnection l = do
       from <- elements l
       to <- elements l `suchThat` (from /=)
       return (Connection [from] [to] "" )
+
+checkListInSD :: UMLStateDiagram -> Bool
+checkListInSD Joint {} = False
+checkListInSD History {} = False
+checkListInSD _ = True
