@@ -1,6 +1,8 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE TypeFamilies              #-}
+{-# LANGUAGE NamedFieldPuns            #-}
+
 module Datatype
   ( Wrapper(..)
   , ConnectWithType(..)
@@ -10,6 +12,7 @@ module Datatype
   , UMLStateDiagram(..)
   , Layout(..)
   , RightConnect(..)
+  , globalise
   , localise
   ) where
 
@@ -82,7 +85,8 @@ data Connection =  Connection {
   pointFrom :: [Int],
   pointTo :: [Int],
   transition :: String
-  } deriving Show
+  }
+  deriving (Show, Eq)
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
@@ -111,11 +115,39 @@ data UMLStateDiagram = StateDiagram { substate :: [UMLStateDiagram],
                      | InnerMostState { label :: Int,
                                         name :: String,
                                         operations :: String
-                                      } deriving Show
+                                      }
+                     deriving (Show, Eq)
 
 data Layout = Vertical | Horizontal | Unspecified deriving (Show, Eq)
 
 data RightConnect = WithArrowhead | WithoutArrowhead | NoConnection deriving (Show, Eq)
+
+globalise :: UMLStateDiagram -> UMLStateDiagram
+globalise s@StateDiagram{} = s' { connection = c' }
+  where (s',c') = hoistOutwards s
+globalise c@CombineDiagram{ substate } = c { substate = map globalise substate }
+globalise d = d
+
+hoistOutwards :: UMLStateDiagram -> (UMLStateDiagram, [Connection])
+hoistOutwards s@StateDiagram{ substate, connection }
+  = ( s { substate = map fst recursively
+        , connection = [] }
+    , connection ++ concatMap (uncurry prependLabelOf) recursively )
+  where
+    recursively = map hoistOutwards substate
+hoistOutwards c@CombineDiagram{ substate }
+  = ( c { substate = map fst recursively }
+    , concatMap (uncurry prependLabelOf) recursively )
+  where
+    recursively = map hoistOutwards substate
+hoistOutwards d = (d,[])
+
+prependLabelOf :: UMLStateDiagram -> [Connection] -> [Connection]
+prependLabelOf d =
+  let l = label d
+  in
+    map (\c@Connection{ pointFrom, pointTo }
+          -> c { pointFrom = l : pointFrom, pointTo = l : pointTo })
 
 localiseConnection :: Connection -> ([Int], Connection)
 localiseConnection c = commonPrefix (pointFrom c) (pointTo c)
