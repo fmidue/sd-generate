@@ -1,5 +1,5 @@
 module Generate (randomSD) where
-import Datatype
+import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 import Test.QuickCheck hiding(label,labels)
 
 randomSD :: Gen UMLStateDiagram

@@ -2,6 +2,7 @@ module ExampleSpec (spec, positiveExamples) where
 
 import Example
 import Test
+import Layout (checkWrapper)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Control.Monad (void)

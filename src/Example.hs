@@ -1,5 +1,5 @@
 module Example where
-import Datatype
+import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 
 verySmall :: UMLStateDiagram
 verySmall = StateDiagram [EndState 1] 0 "" [] [1]

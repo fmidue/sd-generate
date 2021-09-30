@@ -1,6 +1,6 @@
 module DatatypeSpec (spec) where
 
-import Datatype
+import Datatype (localise, globalise)
 import ExampleSpec (positiveExamples)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
