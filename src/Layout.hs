@@ -1,8 +1,6 @@
 module Layout
   ( drawDiagram
-  , getWrapper
-  , addDummy
-  , rearrangeSubstate
+  , checkWrapper
   ) where
 
 import Datatype
@@ -922,3 +920,51 @@ addCrossing2' layerBef fixedWrapper (b:xs) connectionList checkType totalCrossin
     getListLayerBef2 = getConnectionWithLayerBefore2 b connectionList []
     crossingNo = sum [higherIndex2 (x, y) layerBef checkType | x <-
       getListLayerBef1, y <- getListLayerBef2]
+
+--checkWrapper
+checkWrapper :: UMLStateDiagram -> Maybe String
+checkWrapper a
+  | not(checkOuterMostWrapper b) = Just ("Error: Outermost layer must be 'OrDe"
+    ++ "com' constructor")
+  | not(checkOrDecomSubstate b) = Just ("Error: Substate of OrDecom constructo"
+    ++ "r cannot be empty or just Hist/Fork/StartS/Dummy/Transition")
+  | not(checkAndDecomSubstate b) = Just ("Error: AndDecom constructor must con"
+    ++ "tain at least 2 OrDecom and no other type of constructor")
+  | not(checkLayout b) = Just ("Error: Horizontal slicing must be followed by "
+    ++ "vertical layering or vise versa")
+  | otherwise = Nothing
+    where
+      b = addDummy $ getWrapper $ rearrangeSubstate a
+
+checkOuterMostWrapper :: Wrapper -> Bool
+checkOuterMostWrapper OrDecom {} = True
+checkOuterMostWrapper AndDecom {} = True
+checkOuterMostWrapper _ = False
+
+checkOrDecomSubstate :: Wrapper -> Bool
+checkOrDecomSubstate (AndDecom a _ _ _ _ _) = all checkOrDecomSubstate a
+checkOrDecomSubstate (OrDecom a _ _ _ _ _ _ _ _) = any checkOrDecomList (concat a) &&
+  all checkOrDecomSubstate (concat a)
+checkOrDecomSubstate _ = True
+
+checkOrDecomList :: Wrapper -> Bool
+checkOrDecomList AndDecom {} = True
+checkOrDecomList OrDecom {} = True
+checkOrDecomList Leaf {} = True
+checkOrDecomList EndS {} = True
+checkOrDecomList _ = False
+
+checkAndDecomSubstate :: Wrapper -> Bool
+checkAndDecomSubstate (AndDecom a _ _ _ _ _) = length a > 1 && all checkAndDecomList a
+checkAndDecomSubstate (OrDecom a _ _ _ _ _ _ _ _) = all checkAndDecomSubstate (concat a)
+checkAndDecomSubstate _ = True
+
+checkAndDecomList :: Wrapper -> Bool
+checkAndDecomList (OrDecom a _ _ _ _ _ _ _ _) = all checkAndDecomSubstate (concat a)
+checkAndDecomList _ = False
+
+checkLayout :: Wrapper -> Bool
+checkLayout a@(OrDecom [[b@AndDecom {}]] _ _ _ _ _ _ _ _) = layout a == layout b && checkLayout b
+checkLayout (OrDecom a _ _ _ _ _ _ _ _) = all checkLayout (concat a)
+checkLayout a@(AndDecom b _ _ _ _ _) = all (== layout a) (fmap layout b) && all checkLayout b
+checkLayout _ = True
