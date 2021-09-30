@@ -1,5 +1,5 @@
 module CounterExample where
-import Datatype
+import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 
 -- CounterExample for  checkSemantics
 nonSenseHistory :: UMLStateDiagram

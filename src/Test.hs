@@ -6,11 +6,9 @@ module Test
   , checkNameUniqueness
   , checkUniqueness
   , checkStructure
-  , checkWrapper
   ) where
 
-import Datatype
-import Layout
+import Datatype (UMLStateDiagram(..), Connection(..))
 import Data.List.Extra
 
 --check semantics

@@ -2,6 +2,7 @@ module GenerateSpec (spec) where
 
 import Generate
 import Test
+import Layout (checkWrapper)
 
 import Test.QuickCheck
 import Data.List.Extra
