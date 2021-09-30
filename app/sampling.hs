@@ -1,6 +1,6 @@
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
-import Layout
+import Layout (drawDiagram)
 
 import Generate
 
@@ -18,5 +18,3 @@ main = do
         putStrLn $ "\n" ++ file ++ ":"
         pPrint sd
         renderSVG file (mkWidth 250) (drawDiagram sd)
-
-drawDiagram sd = drawWrapper' [] (orderFunction sd)
