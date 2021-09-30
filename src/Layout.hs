@@ -1,9 +1,8 @@
 module Layout
-  ( drawWrapper'
+  ( drawDiagram
   , getWrapper
   , addDummy
   , rearrangeSubstate
-  , orderFunction
   ) where
 
 import Datatype
@@ -15,6 +14,9 @@ import Data.Tree
 import Data.List.Index
 import Arrows
 import Support
+
+drawDiagram :: UMLStateDiagram -> Diagram B
+drawDiagram = drawWrapper' [] . orderFunction
 
 textBox :: String -> [String] -> [String]
 textBox a stringList
