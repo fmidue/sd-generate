@@ -43,6 +43,10 @@ spec = do
           ,("innerStateDiag2", innerStateDiag2)
           ,("innerCombineDiag1", innerCombineDiag1)
         ]
+  counterExamplesOnlyFor "checkEndState"
+       [ ("forCheckEndState1", forCheckEndState1 )
+        ,("forCheckEndState2", forCheckEndState2)
+       ]
   counterExamplesOnlyFor "checkStructure"
        [ ("outerMostCombineDiag", outerMostCombineDiag)
          ,("substateOnlyJH1", substateOnlyJH1)
@@ -51,13 +55,10 @@ spec = do
          ,("oneSD2", oneSD2)
          ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
          ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
-         ,("forCheckSameConnection1", forCheckSameConnection1)
-         ,("forCheckSameConnection2", forCheckSameConnection2)
        ]
   counterExamplesOnlyFor "checkSemantics"
-       [ ("nonSenseHistory", nonSenseHistory)
-        ,("forCheckEndOutEdges1", forCheckEndOutEdges1)
-        ,("forCheckEndOutEdges2", forCheckEndOutEdges2)
+       [ ("forCheckSameConnection1", forCheckSameConnection1)
+       ,("forCheckSameConnection2", forCheckSameConnection2)
        ]
 
 counterExamplesOnlyFor theChecker theExamples = do
@@ -78,6 +79,7 @@ allTheCheckersExceptForWrapper =
   , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
   , ("checkStartState", checkStartState)
+  , ("checkEndState", checkEndState)
   , ("checkStructure", checkStructure)
   , ("checkSemantics", checkSemantics)
   ]

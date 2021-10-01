@@ -4,6 +4,17 @@ import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 verySmall :: UMLStateDiagram
 verySmall = StateDiagram [EndState 1] 0 "" [] [1]
 
+forCheckSameConnection :: UMLStateDiagram
+forCheckSameConnection =  StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "",Connection[2] [3] "",
+      Connection[3] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] ""] [5]
+     where a = InnerMostState  1 "Tasse nehmen" ""
+           b = InnerMostState  2 "Kaffee trinken" ""
+           c = InnerMostState  3 "Tasse absetzen" ""
+           d = InnerMostState  4 "Zeitung lesen" ""
+           e = Joint 5
+           f = Joint 6
+           g = EndState 7
+
 picture1 :: UMLStateDiagram
 picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
   where
@@ -29,7 +40,7 @@ picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection
       f = EndState 6
 
 picture3 :: UMLStateDiagram
-picture3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "",
+picture3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
       Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] ""] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
@@ -97,7 +108,7 @@ slide267a :: UMLStateDiagram
 slide267a = StateDiagram [a, b] 1 "" [Connection [1] [2] "a"] []
   where
     a = StateDiagram [c, d, e] 1 "A" [Connection [1] [2] "", Connection [2]
-        [3] "", Connection [3] [2] "", Connection [2] [1] ""] [1]
+        [3] "", Connection [3] [2] "", Connection [2] [1] "a"] [1]
       where
         c = InnerMostState 1 "B" ""
         d = InnerMostState 2 "C" ""
@@ -109,7 +120,7 @@ slide267b = StateDiagram [a, b] 1 "" [Connection [1,1] [2] "a", Connection
             [1, 2] [2] "a", Connection [1, 3] [2] "a"] []
   where
     a = StateDiagram [c, d, e] 1 "A" [Connection [1] [2] "", Connection [2]
-        [3] "", Connection [3] [2] "", Connection [2] [1] ""] [1]
+        [3] "", Connection [3] [2] "", Connection [2] [1] "b"] [1]
       where
         c = InnerMostState 1 "B" ""
         d = InnerMostState 2 "C" ""
@@ -119,7 +130,7 @@ slide267b = StateDiagram [a, b] 1 "" [Connection [1,1] [2] "a", Connection
 slide271 :: UMLStateDiagram
 slide271 = StateDiagram [a, b, c] 1 "" [Connection [3] [1, 0] "a",
            Connection [1] [2] "a", Connection [2] [3, 1, 0] "", Connection [2]
-           [3, 2, 0] ""] [3]
+           [3, 2, 0] "a"] [3]
   where
     a = StateDiagram [d, e, f] 1 "Alarm" [Connection [1] [2] "b", Connection
         [2] [1] "b", Connection [0] [1] ""] [1]
@@ -148,7 +159,7 @@ slide271 = StateDiagram [a, b, c] 1 "" [Connection [3] [1, 0] "a",
 slide273 :: UMLStateDiagram
 slide273 = StateDiagram [a, b, c] 1 "" [Connection [3] [1, 1] "a [al==1]",
            Connection [3] [1, 2] "a [al==0]", Connection [1] [2] "a",
-           Connection [2] [3, 1, 0] "", Connection [2] [3, 2, 0] ""] [3]
+           Connection [2] [3, 1, 0] "a", Connection [2] [3, 2, 0] ""] [3]
   where
     a = StateDiagram [d, e] 1 "Alarm" [Connection [1] [2] "b", Connection
         [2] [1] "b"] [1]
@@ -334,7 +345,7 @@ task27 = StateDiagram [a, b] 1 "" [Connection [1] [2, 0] "F", Connection [2]
 
 task85 :: UMLStateDiagram
 task85 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 1, 1, 1, 1] "",
-         Connection [1] [2, 1, 1, 2, 1] ""] [1]
+         Connection [1] [2, 1, 1, 2, 1] "a"] [1]
   where
     a = StateDiagram [b, c] 2 "A" [Connection [1, 1, 1, 1] [2] "i",
         Connection [1, 3] [2] "c", Connection [1, 2, 2] [2, 2] "h", Connection
@@ -446,7 +457,7 @@ test4 = StateDiagram [a] 1 "" [] [1, 1, 1]
     a = StateDiagram [b, c] 1 "A" [Connection [1, 2, 1, 1] [2] "i", Connection [1, 3] [2] "c",
       Connection [2, 2] [1, 2, 2, 3] "e", Connection [1, 5, 2] [2, 2] "h",
       Connection [2, 1] [1, 4] "f"] []
-    b = StateDiagram [b1, b2, b3, b4, b5] 1 "B" [Connection [4] [5] "", Connection [1] [2, 1, 1] "",
+    b = StateDiagram [b1, b2, b3, b4, b5] 1 "B" [Connection [4] [5] "", Connection [1] [2, 1, 1] "a",
       Connection [1] [2, 2, 3] "", Connection [2, 1, 2] [3] "", Connection [2, 2, 2] [3] ""] []
     c = StateDiagram [c1, c2, c3] 2 "E" [Connection [1] [3] "d", Connection [3] [2] "d",
       Connection [2] [1] "d"] [3]

@@ -2,6 +2,7 @@
 module Test
   ( checkSemantics
   , checkStartState
+  , checkEndState
   , checkConnection
   , checkNameUniqueness
   , checkUniqueness
@@ -11,23 +12,13 @@ module Test
 import Datatype (UMLStateDiagram(..), Connection(..))
 import Data.List.Extra
 
---check semantics
-checkSemantics :: UMLStateDiagram -> Maybe String
-checkSemantics a
-  | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
+
+--checkEndState
+checkEndState :: UMLStateDiagram -> Maybe String
+checkEndState a
   | not(checkEndOutEdges a) = Just "Error: no EndState should have outgoing edges"
   | otherwise = Nothing
 
-                --checkOutermostHistory
-checkOutermostHistory :: UMLStateDiagram -> Bool
-checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryNotInSD a
-checkOutermostHistory _ = True
-
-isHistoryNotInSD :: UMLStateDiagram -> Bool
-isHistoryNotInSD History {} = False
-isHistoryNotInSD _ = True
-
-                --checkEndOutEdges
 checkEndOutEdges :: UMLStateDiagram -> Bool
 checkEndOutEdges StateDiagram { substate, connection } = all ((`isConnFromNotEnd` substate) . pointFrom) connection
                                                          && all checkEndOutEdges substate
@@ -43,7 +34,7 @@ isNotEnd :: Int -> UMLStateDiagram -> Bool
 isNotEnd a EndState {label}  = a /= label
 isNotEnd _ _ = True
 
--- check if  start state is valid
+--checkStartState
 checkStartState :: UMLStateDiagram -> Maybe String
 checkStartState a
   | not(checkSubS a) = Just "Error: invalid start state "
@@ -150,8 +141,6 @@ checkStructure a
     ++ "tain at least 2 StateDiagram and no other type of constructor")
   | not(checkHistOutTransition a) = Just ("Error: Outgoing edges from a history"
     ++ "node always have the empty transition")
-  | not(checkSameConnection a) = Just ("Error: No two connections are allowed leaving"
-    ++ "the same source and and having the same label.")
   | otherwise = Nothing
 
                 --checkOuterMostLayer
@@ -199,17 +188,47 @@ isNotHistory :: Int -> UMLStateDiagram -> Bool
 isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
 
-                --checkSameConnection
+--check semantics
+checkSemantics :: UMLStateDiagram -> Maybe String
+checkSemantics a
+  | not(checkSameConnection a) = Just ("Error: No two connections are allowed leaving"
+    ++ "the same source and and having the same label (except From Joint Node).")
+--  | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
+  | otherwise = Nothing
+
+--checkOutermostHistory :: UMLStateDiagram -> Bool
+--checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryNotInSD a
+--checkOutermostHistory _ = True
+
+--isHistoryNotInSD :: UMLStateDiagram -> Bool
+--isHistoryNotInSD History {} = False
+--isHistoryNotInSD _ = True
+
 checkSameConnection :: UMLStateDiagram -> Bool
-checkSameConnection a  = not (anySame (filter (not . null . snd) (getConnectionList a [])))
+checkSameConnection s@StateDiagram {substate} = not (anySame (filter ((`isFromNotJoint` substate).fst) (getConnectionList s [])))
+checkSameConnection _ = True
 
 getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],String)]
-getConnectionList StateDiagram { substate, connection ,label} a = map (\x -> getConnection x (a ++ [label])) connection
-                                                       ++ concatMap (\ x -> getConnectionList x (a ++ [label])) substate
-getConnectionList CombineDiagram {substate,label} a = concatMap (\ x -> getConnectionList x (a ++ [label])) substate
-getConnectionList  _ _ =[]
+getConnectionList StateDiagram {substate,connection} a = map (\x -> getConnection x a) connection
+                                                       ++ concatMap (\ x -> getConnListSub x a) substate
+getConnectionList  _ _ = []
+
+getConnListSub :: UMLStateDiagram -> [Int] -> [([Int],String)]
+getConnListSub StateDiagram { substate,connection,label} a = map (\x -> getConnection x (a ++ [label])) connection
+                                                       ++ concatMap (\ x -> getConnListSub x (a ++ [label])) substate
+getConnListSub CombineDiagram {substate,label} a = concatMap (\ x -> getConnListSub x (a ++ [label])) substate
+getConnListSub  _ _ = []
 
 getConnection :: Connection -> [Int] -> ([Int],String)
 getConnection Connection{pointFrom,transition} a =  (from,tran)
                                               where from = a ++ pointFrom
                                                     tran  = transition
+
+isFromNotJoint :: [Int] -> [UMLStateDiagram] -> Bool
+isFromNotJoint [] _ = True
+isFromNotJoint [x] a = all (isNotJoint x) a
+isFromNotJoint (x:xs) a = isFromNotJoint xs (getSubstate x a)
+
+isNotJoint :: Int -> UMLStateDiagram -> Bool
+isNotJoint a Joint {label}  = a /= label
+isNotJoint _ _ = True

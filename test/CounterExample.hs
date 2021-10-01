@@ -1,20 +1,9 @@
 module CounterExample where
 import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 
--- CounterExample for  checkSemantics
-nonSenseHistory :: UMLStateDiagram
-nonSenseHistory = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
-   Connection [3] [4] "Confirm order(Event)", Connection [4] [5] "",Connection [2] [6] "exit",Connection [5] [6] "complete"] [1]
-    where
-      a = InnerMostState 1 "idle" ""
-      b = InnerMostState 2 "Send order request" ""
-      c = InnerMostState 3 "Select normal or special order" ""
-      d = InnerMostState 4 "Order confirmation" ""
-      e = InnerMostState 5 "Dispatch order" ""
-      f = History 6 Deep
 
-forCheckEndOutEdges1 :: UMLStateDiagram
-forCheckEndOutEdges1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "",
+forCheckEndState1 :: UMLStateDiagram
+forCheckEndState1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "",Connection[2] [3] "",
       Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[7] [6] ""] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
@@ -24,18 +13,18 @@ forCheckEndOutEdges1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",C
            f = Joint 6
            g = EndState 7
 
-forCheckEndOutEdges2 :: UMLStateDiagram
-forCheckEndOutEdges2 = StateDiagram [a, b] 1 "" [Connection [1,3] [2] "a"] []
+forCheckEndState2 :: UMLStateDiagram
+forCheckEndState2 = StateDiagram [a, b] 1 "" [Connection [1,3] [2] "a"] []
   where
     a = StateDiagram [c, d, e] 1 "A" [Connection [1] [2] "", Connection [2]
-        [3] "", Connection [3] [2] "", Connection [2] [1] ""] [1]
+        [3] "", Connection [3] [2] "", Connection [2] [1] "a"] [1]
       where
         c = InnerMostState 1 "B" ""
         d = InnerMostState 2 "C" ""
         e = EndState 3
     b = InnerMostState 2 "E" ""
 
--- CounterExample for  "Start States checker"
+
 nonExist :: UMLStateDiagram
 nonExist = StateDiagram [InnerMostState 1 "" "", InnerMostState 2 "" ""] 1 "" [] [1,2]
 
@@ -471,7 +460,7 @@ forCheckHistOutTransition1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Conn
 
 forCheckHistOutTransition2 :: UMLStateDiagram
 forCheckHistOutTransition2 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 1, 1, 1, 1] "",
-         Connection [1] [2, 1, 1, 2, 1] ""] [1]
+         Connection [1] [2, 1, 1, 2, 1] "a"] [1]
   where
     a = StateDiagram [b, c] 2 "A" [Connection [1, 1, 1, 1] [2] "i",
         Connection [1, 3] [2] "c", Connection [1, 2, 2] [2, 2] "h", Connection
@@ -503,15 +492,19 @@ forCheckHistOutTransition2 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 
             f = InnerMostState 3 "8" ""
 
 forCheckSameConnection1 :: UMLStateDiagram
-forCheckSameConnection1 =  StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "1",Connection[1] [2] "",Connection[2] [3] "",
-      Connection[3] [6] "",Connection[5] [4] "1",Connection[4] [6] "",Connection[6] [7] ""] [5]
-     where a = InnerMostState  1 "Tasse nehmen" ""
-           b = InnerMostState  2 "Kaffee trinken" ""
-           c = InnerMostState  3 "Tasse absetzen" ""
-           d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5
-           f = Joint 6
-           g = EndState 7
+forCheckSameConnection1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
+           [2] [1] "f", Connection [2] [3, 0] "b", Connection [3] [1] "e",
+           Connection [4] [3] "x"] [4]
+  where
+    a = InnerMostState 1 "A" ""
+    b = InnerMostState 2 "B" ""
+    c = StateDiagram [e, f, g] 3 "" [Connection [1] [2] "c", Connection [2]
+        [1] "", Connection [2] [0] ""] [1]
+      where
+        e = InnerMostState 1 "C" ""
+        f = InnerMostState 2 "D" ""
+        g = History 0 Shallow
+    d = InnerMostState 4 "X" ""
 
 forCheckSameConnection2 :: UMLStateDiagram
 forCheckSameConnection2 = StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] "a", Connection
