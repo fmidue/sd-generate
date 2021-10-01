@@ -191,7 +191,7 @@ isNotHistory _ _ = True
 --check semantics
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
-  | not(checkSameConnection a) = Just ("Error: No two connections are allowed leaving"
+  | not(checkSameConnnection a) = Just ("Error: No two connections are allowed leaving"
     ++ "the same source and and having the same label (except From Joint Node).")
 --  | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
   | otherwise = Nothing
@@ -205,20 +205,15 @@ checkSemantics a
 --isHistoryNotInSD History {} = False
 --isHistoryNotInSD _ = True
 
-checkSameConnection :: UMLStateDiagram -> Bool
-checkSameConnection s@StateDiagram {} = not (anySame (filter ((`isFromNotJoint` substate(globalise s)).fst) (getConnListSub (globalise s))))
-checkSameConnection _ = True
 
-getConnListSub :: UMLStateDiagram -> [([Int],String)]
-getConnListSub StateDiagram{ substate,connection}  = map getConnection connection ++ concatMap getConnListSub substate
-getConnListSub CombineDiagram{substate}  = concatMap getConnListSub substate
-getConnListSub  _  = []
+checkSameConnnection :: UMLStateDiagram -> Bool
+checkSameConnnection s@StateDiagram {} = not (anySame (filter ((`isFromNotJoint` sub).fst) (map getPair conn)))
+                                              where conn = connection (globalise s)
+                                                    sub = substate (globalise s)
+checkSameConnnection _ = True
 
-getConnection :: Connection -> ([Int],String)
-getConnection Connection{pointFrom,transition} = (from,tran)
-                                             where
-                                               from = pointFrom
-                                               tran = transition
+getPair :: Connection -> ([Int],String)
+getPair Connection{pointFrom,transition} = (pointFrom,transition)
 
 isFromNotJoint :: [Int] -> [UMLStateDiagram] -> Bool
 isFromNotJoint [] _ = True
@@ -228,33 +223,3 @@ isFromNotJoint (x:xs) a = isFromNotJoint xs (getSubstate x a)
 isNotJoint :: Int -> UMLStateDiagram -> Bool
 isNotJoint a Joint {label}  = a /= label
 isNotJoint _ _ = True
-
-
---checkSameConnection :: UMLStateDiagram -> Bool
---checkSameConnection s@StateDiagram {substate} = not (anySame (filter ((`isFromNotJoint` substate).fst) (getConnectionList s [])))
---checkSameConnection _ = True
-
---getConnectionList :: UMLStateDiagram -> [Int] -> [([Int],String)]
---getConnectionList StateDiagram {substate,connection} a = map (\x -> getConnection x a) connection
---                                                       ++ concatMap (\ x -> getConnListSub x a) substate
---getConnectionList  _ _ = []
-
---getConnListSub :: UMLStateDiagram -> [Int] -> [([Int],String)]
---getConnListSub StateDiagram { substate,connection,label} a = map (\x -> getConnection x (a ++ [label])) connection
---                                                       ++ concatMap (\ x -> getConnListSub x (a ++ [label])) substate
---getConnListSub CombineDiagram {substate,label} a = concatMap (\ x -> getConnListSub x (a ++ [label])) substate
---getConnListSub  _ _ = []
-
---getConnection :: Connection -> [Int] -> ([Int],String)
---getConnection Connection{pointFrom,transition} a =  (from,tran)
---                                              where from = a ++ pointFrom
---                                                    tran  = transition
-
---isFromNotJoint :: [Int] -> [UMLStateDiagram] -> Bool
---isFromNotJoint [] _ = True
---isFromNotJoint [x] a = all (isNotJoint x) a
---isFromNotJoint (x:xs) a = isFromNotJoint xs (getSubstate x a)
-
---isNotJoint :: Int -> UMLStateDiagram -> Bool
---isNotJoint a Joint {label}  = a /= label
---isNotJoint _ _ = True
