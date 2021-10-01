@@ -24,6 +24,9 @@ spec = do
   describe "checkStartState" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkStartState code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
+  describe "checkEndState" $ void $ sequence
+    [ it ("isSuccessful for " ++ name) $ checkEndState code `shouldBe` Nothing
+    | (name, code) <- positiveExamples ]
   describe "checkSemantics" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkSemantics code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
@@ -60,4 +63,5 @@ positiveExamples =
         , ("picture2", picture2)
         , ("picture3", picture3)
         , ("picture4", picture4)
+        , ("forCheckSameConnection", forCheckSameConnection)
         ]
