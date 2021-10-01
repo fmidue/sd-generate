@@ -9,7 +9,7 @@ module Test
   , checkStructure
   ) where
 
-import Datatype (UMLStateDiagram(..), Connection(..))
+import Datatype (UMLStateDiagram(..), Connection(..),globalise)
 import Data.List.Extra
 
 
@@ -206,7 +206,7 @@ checkSemantics a
 --isHistoryNotInSD _ = True
 
 checkSameConnection :: UMLStateDiagram -> Bool
-checkSameConnection s@StateDiagram {substate} = not (anySame (filter ((`isFromNotJoint` substate).fst) (getConnListSub s)))
+checkSameConnection s@StateDiagram {} = not (anySame (filter ((`isFromNotJoint` substate(globalise s)).fst) (getConnListSub (globalise s))))
 checkSameConnection _ = True
 
 getConnListSub :: UMLStateDiagram -> [([Int],String)]
