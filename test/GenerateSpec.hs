@@ -14,4 +14,4 @@ spec :: Spec
 spec = do
   describe "randomSD" $
     prop ("generates valid diagram expressions") $
-      forAll randomSD $ \code -> firstJust id (map ($ code) [checkStructure, checkSemantics, checkUniqueness, checkStartState, checkEndState, checkConnection, checkWrapper]) `shouldBe` Nothing
+      forAll randomSD $ \code -> firstJust id (map ($ code) [checkStructure, checkSemantics, checkUniqueness,checkJoint, checkStartState, checkEndState, checkConnection, checkWrapper]) `shouldBe` Nothing

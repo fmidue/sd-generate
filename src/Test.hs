@@ -7,6 +7,7 @@ module Test
   , checkNameUniqueness
   , checkUniqueness
   , checkStructure
+  , checkJoint
   ) where
 
 import Datatype (UMLStateDiagram(..), Connection(..),globalise)
@@ -188,10 +189,42 @@ isNotHistory :: Int -> UMLStateDiagram -> Bool
 isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
 
---check semantics
+--checkJoint
+checkJoint :: UMLStateDiagram -> Maybe String
+checkJoint a
+  | not(checkInEdge a) = Just ("Error: No Joint node should be reached by two connections "
+    ++ "with different transition label.")
+  |not(checkOutEdge a) = Just ("Error: No Joint node should be left by two connections "
+    ++ "with different transition labels.")
+  | otherwise = Nothing
+
+checkInEdge :: UMLStateDiagram -> Bool
+checkInEdge s@StateDiagram {} =
+                        all (\x -> checkInSame x pair) (filter (not.(`notJoint` sub).fst) pair)
+                        where
+                             global = globalise s
+                             sub = substate global
+                             conn = connection global
+                             pair = zip (map pointTo conn) (map transition conn)
+checkInEdge _ = True
+
+checkOutEdge :: UMLStateDiagram -> Bool
+checkOutEdge s@StateDiagram {} =
+                        all (\x -> checkInSame x pair) (filter (not.(`notJoint` sub).fst) pair)
+                        where
+                             global = globalise s
+                             sub = substate global
+                             conn = connection global
+                             pair = zip (map pointFrom conn) (map transition conn)
+checkOutEdge _ = True
+
+checkInSame :: ([Int],String) -> [([Int],String)] -> Bool
+checkInSame a b = (length (nub (filter ((fst(a) ==).fst) b))) == 1
+
+--checkSemantics
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
-  | not(checkSameConnnection a) = Just ("Error: No two connections are allowed leaving"
+  | not(checkSameConnection a) = Just ("Error: No two connections are allowed leaving"
     ++ "the same source and and having the same label (except From Joint Node).")
 --  | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
   | otherwise = Nothing
@@ -200,25 +233,24 @@ checkSemantics a
 --checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryNotInSD a
 --checkOutermostHistory _ = True
 
-
 --isHistoryNotInSD :: UMLStateDiagram -> Bool
 --isHistoryNotInSD History {} = False
 --isHistoryNotInSD _ = True
 
+checkSameConnection :: UMLStateDiagram -> Bool
+checkSameConnection s@StateDiagram {} =
+                        not (anySame (filter ((`notJoint ` sub).fst) pair))
+                        where
+                          global = globalise s
+                          sub = substate global
+                          conn = connection global
+                          pair = zip (map pointFrom conn) (map transition conn)
+checkSameConnection _ = True
 
-checkSameConnnection :: UMLStateDiagram -> Bool
-checkSameConnnection s@StateDiagram {} = not (anySame (filter ((`isFromNotJoint` sub).fst) (map getPair conn)))
-                                              where conn = connection (globalise s)
-                                                    sub = substate (globalise s)
-checkSameConnnection _ = True
-
-getPair :: Connection -> ([Int],String)
-getPair Connection{pointFrom,transition} = (pointFrom,transition)
-
-isFromNotJoint :: [Int] -> [UMLStateDiagram] -> Bool
-isFromNotJoint [] _ = True
-isFromNotJoint [x] a = all (isNotJoint x) a
-isFromNotJoint (x:xs) a = isFromNotJoint xs (getSubstate x a)
+notJoint  :: [Int] -> [UMLStateDiagram] -> Bool
+notJoint  [] _ = True
+notJoint  [x] a = all (isNotJoint x) a
+notJoint (x:xs) a = notJoint  xs (getSubstate x a)
 
 isNotJoint :: Int -> UMLStateDiagram -> Bool
 isNotJoint a Joint {label}  = a /= label

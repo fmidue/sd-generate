@@ -1,9 +1,30 @@
 module CounterExample where
 import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 
+forCheckJoint1 :: UMLStateDiagram
+forCheckJoint1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
+      Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] ""] [5]
+     where a = InnerMostState  1 "Tasse nehmen" ""
+           b = InnerMostState  2 "Kaffee trinken" ""
+           c = InnerMostState  3 "Tasse absetzen" ""
+           d = InnerMostState  4 "Zeitung lesen" ""
+           e = Joint 5
+           f = Joint 6
+           g = EndState 7
+
+forCheckJoint2 :: UMLStateDiagram
+forCheckJoint2 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
+      Connection[3] [6] "a",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] ""] [5]
+     where a = InnerMostState  1 "Tasse nehmen" ""
+           b = InnerMostState  2 "Kaffee trinken" ""
+           c = InnerMostState  3 "Tasse absetzen" ""
+           d = InnerMostState  4 "Zeitung lesen" ""
+           e = Joint 5
+           f = Joint 6
+           g = EndState 7
 
 forCheckEndState1 :: UMLStateDiagram
-forCheckEndState1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "",Connection[2] [3] "",
+forCheckEndState1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "",
       Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[7] [6] ""] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
@@ -306,8 +327,8 @@ outerStateDiagL1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Conne
 
 outerStateDiagL2 :: UMLStateDiagram
 outerStateDiagL2 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
-               [2, 1, 2] [4] "h", Connection [2, 1, 3] [4] "", Connection [2, 2, 2]
-               [4] "", Connection [4] [4] "g"] [1]
+               [2, 1, 2] [4] "", Connection [2, 1, 3] [4] "", Connection [2, 2, 2]
+               [4] "", Connection [4] [4] ""] [1]
       where
         a = InnerMostState 1 "A" ""
         b = CombineDiagram [e, f] 2
@@ -460,7 +481,7 @@ forCheckHistOutTransition1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Conn
 
 forCheckHistOutTransition2 :: UMLStateDiagram
 forCheckHistOutTransition2 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 1, 1, 1, 1] "",
-         Connection [1] [2, 1, 1, 2, 1] "a"] [1]
+         Connection [1] [2, 1, 1, 2, 1] ""] [1]
   where
     a = StateDiagram [b, c] 2 "A" [Connection [1, 1, 1, 1] [2] "i",
         Connection [1, 3] [2] "c", Connection [1, 2, 2] [2, 2] "h", Connection
