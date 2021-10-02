@@ -24,6 +24,9 @@ spec = do
   describe "checkStartState" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkStartState code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]
+  describe "checkJoint" $ void $ sequence
+    [ it ("isSuccessful for " ++ name) $ checkJoint code `shouldBe` Nothing
+    | (name, code) <- positiveExamples ]
   describe "checkEndState" $ void $ sequence
     [ it ("isSuccessful for " ++ name) $ checkEndState code `shouldBe` Nothing
     | (name, code) <- positiveExamples ]

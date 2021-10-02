@@ -47,6 +47,10 @@ spec = do
        [ ("forCheckEndState1", forCheckEndState1 )
         ,("forCheckEndState2", forCheckEndState2)
        ]
+  counterExamplesOnlyFor "checkJoint"
+       [ ("forCheckJoint1", forCheckJoint1)
+        ,("forCheckJoint2", forCheckJoint2)
+       ]
   counterExamplesOnlyFor "checkStructure"
        [ ("outerMostCombineDiag", outerMostCombineDiag)
          ,("substateOnlyJH1", substateOnlyJH1)
@@ -78,6 +82,7 @@ allTheCheckersExceptForWrapper =
   [ ("checkConnection", checkConnection)
   , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
+  , ("checkJoint", checkJoint)
   , ("checkStartState", checkStartState)
   , ("checkEndState", checkEndState)
   , ("checkStructure", checkStructure)
