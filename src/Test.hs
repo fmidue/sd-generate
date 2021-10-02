@@ -200,26 +200,30 @@ checkJoint a
 
 checkInEdge :: UMLStateDiagram -> Bool
 checkInEdge s@StateDiagram {} =
-                        all (\x -> checkInSame x pair) (filter (not.(`notJoint` sub).fst) pair)
+                        all (`checkTran` onlyJoint) onlyJoint
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
                              pair = zip (map pointTo conn) (map transition conn)
+                             onlyJoint = filter (not.(`notJoint` sub).fst) pair
 checkInEdge _ = True
 
 checkOutEdge :: UMLStateDiagram -> Bool
 checkOutEdge s@StateDiagram {} =
-                        all (\x -> checkInSame x pair) (filter (not.(`notJoint` sub).fst) pair)
+                        all (`checkTran` onlyJoint) onlyJoint
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
                              pair = zip (map pointFrom conn) (map transition conn)
+                             onlyJoint = filter (not.(`notJoint` sub).fst) pair
 checkOutEdge _ = True
 
-checkInSame :: ([Int],String) -> [([Int],String)] -> Bool
-checkInSame a b = (length (nub (filter ((fst(a) ==).fst) b))) == 1
+checkTran :: ([Int],String) -> [([Int],String)] -> Bool
+checkTran a b = length (nub fstSame) == 1
+                where
+                  fstSame = filter ((fst a ==).fst) b
 
 --checkSemantics
 checkSemantics :: UMLStateDiagram -> Maybe String
