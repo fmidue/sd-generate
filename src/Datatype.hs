@@ -179,5 +179,8 @@ localiseStateDiagram cs s = case s of
   where
     matching = [ (cps, c) | (cp:cps, c) <- cs, label s == cp]
     (local, global) = partition (null . fst)
-      $ matching ++ map localiseConnection (connection s)
+      $ matching ++ map localiseConnection connections
     subs     = map (localiseStateDiagram global) $ substate s
+    connections
+      | StateDiagram {} <- s = connection s
+      | otherwise            = []
