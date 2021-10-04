@@ -10,6 +10,7 @@ import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (void, forM_)
 import Data.Maybe (isJust, isNothing)
 import Data.List (partition)
+import Data.Tuple.Extra ((***))
 
 spec :: Spec
 spec = do
@@ -79,7 +80,11 @@ counterExamplesOnlyFor theChecker theExamples = do
   forM_ positives $ \(checkerName, checkerCode) ->
     describe checkerName $ void $ sequence
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
-      | (name, code) <- theExamples ]
+      | (name, code) <-
+          theExamples
+          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness, checkConnection])
+          ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
+      ]
   describe "localise/globalise" $ void $ sequence
     [ it ("are each others' inverses in a sense, on " ++ name) $ localise (globalise code) `shouldBe` localise code
     | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection] ]

@@ -2,17 +2,23 @@ module ExampleSpec (spec, positiveExamples, allTheCheckers) where
 
 import Example
 import Test
+import Datatype (globalise, localise)
 import Layout (checkWrapper)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Control.Monad (void, forM_)
+import Data.Tuple.Extra ((***))
 
 spec :: Spec
 spec =
   forM_ allTheCheckers $ \(checkerName, checkerCode) ->
     describe checkerName $ void $ sequence
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
-      | (name, code) <- positiveExamples ]
+      | (name, code) <-
+          positiveExamples
+          ++ map (("'localise' of " ++) *** localise) positiveExamples
+          ++ map (("'globalise' of " ++) *** globalise) positiveExamples
+      ]
 
 allTheCheckers =
   [ ("checkConnection", checkConnection)
