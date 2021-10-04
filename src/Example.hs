@@ -1,6 +1,12 @@
 module Example where
 import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 
+bogusExample :: UMLStateDiagram
+bogusExample = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1,3,0] ""] []
+    where
+      a = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
+      b = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
+
 verySmall :: UMLStateDiagram
 verySmall = StateDiagram [EndState 1] 0 "" [] [1]
 
