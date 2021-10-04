@@ -200,30 +200,35 @@ checkJoint a
 
 checkInEdge :: UMLStateDiagram -> Bool
 checkInEdge s@StateDiagram {} =
-                        all (`checkTran` onlyJoint) onlyJoint
+                        all (`checkInTran` onlyJoint) onlyJoint
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
-                             pair = zip (map pointTo conn) (map transition conn)
-                             onlyJoint = filter (not.(`notJoint` sub).fst) pair
+                             onlyJoint = filter (not.(`notJoint` sub).pointTo) conn
 checkInEdge _ = True
+
+checkInTran :: Connection -> [Connection] -> Bool
+checkInTran a b = length tranNotSame == 0
+                where
+                  toSame    = filter ((pointTo a ==).pointTo) b
+                  tranNotSame = filter ((transition a /=).transition) toSame
 
 checkOutEdge :: UMLStateDiagram -> Bool
 checkOutEdge s@StateDiagram {} =
-                        all (`checkTran` onlyJoint) onlyJoint
+                        all (`checkOutTran` onlyJoint) onlyJoint
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
-                             pair = zip (map pointFrom conn) (map transition conn)
-                             onlyJoint = filter (not.(`notJoint` sub).fst) pair
+                             onlyJoint = filter (not.(`notJoint` sub).pointFrom) conn
 checkOutEdge _ = True
 
-checkTran :: ([Int],String) -> [([Int],String)] -> Bool
-checkTran a b = length (nub fstSame) == 1
+checkOutTran :: Connection -> [Connection] -> Bool
+checkOutTran a b = length tranNotSame == 0
                 where
-                  fstSame = filter ((fst a ==).fst) b
+                  fromSame    = filter ((pointFrom a ==).pointFrom) b
+                  tranNotSame = filter ((transition a /=).transition) fromSame
 
 --checkSemantics
 checkSemantics :: UMLStateDiagram -> Maybe String
@@ -243,13 +248,19 @@ checkSemantics a
 
 checkSameConnection :: UMLStateDiagram -> Bool
 checkSameConnection s@StateDiagram {} =
-                        not (anySame (filter ((`notJoint ` sub).fst) pair))
+                        all (`checkSameOutTran` withoutJoint) withoutJoint
                         where
                           global = globalise s
                           sub = substate global
                           conn = connection global
-                          pair = zip (map pointFrom conn) (map transition conn)
+                          withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
 checkSameConnection _ = True
+
+checkSameOutTran :: Connection -> [Connection] -> Bool
+checkSameOutTran a b = length tranSame == 1
+                where
+                  fromSame  = filter ((pointFrom a ==).pointFrom) b
+                  tranSame = filter ((transition a ==).transition) fromSame
 
 notJoint  :: [Int] -> [UMLStateDiagram] -> Bool
 notJoint  [] _ = True
