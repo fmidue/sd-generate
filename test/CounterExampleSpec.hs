@@ -3,10 +3,12 @@ module CounterExampleSpec (spec) where
 import CounterExample
 import Test
 import ExampleSpec (allTheCheckers)
+import Datatype (globalise, localise, UMLStateDiagram(substate))
+import DatatypeSpec (connectionsEmpty)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (void, forM_)
-import Data.Maybe(isJust)
+import Data.Maybe (isJust, isNothing)
 import Data.List (partition)
 
 spec :: Spec
@@ -78,6 +80,17 @@ counterExamplesOnlyFor theChecker theExamples = do
     describe checkerName $ void $ sequence
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <- theExamples ]
+  describe "localise/globalise" $ void $ sequence
+    [ it ("are each others' inverses in a sense, on " ++ name) $ localise (globalise code) `shouldBe` localise code
+    | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection] ]
+  describe "globalise/localise" $ void $ sequence
+    [ it ("are each others' inverses in a sense, on " ++ name) $ globalise (localise code) `shouldBe` globalise code
+    | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection] ]
+  describe "globalise" $ void $ sequence
+    [ it ("doesn't leave any connections inside, on " ++ name) $ all connectionsEmpty (substate (globalise code))
+    | (name, code) <- theExamples `passing` [checkStructure] ]
+  where
+    passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 
 allTheCheckersExceptForWrapper =
   filter (("checkWrapper" /=) . fst) allTheCheckers
