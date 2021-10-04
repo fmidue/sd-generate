@@ -34,6 +34,7 @@ allTheCheckers =
 
 positiveExamples =
         [ ("verySmall", verySmall)
+        , ("bogusExample", bogusExample)
         , ("slide246", slide246)
         , ("slide253", slide253)
         , ("slide257", slide257)
