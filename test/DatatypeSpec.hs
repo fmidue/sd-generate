@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module DatatypeSpec (spec) where
+module DatatypeSpec (spec, connectionsEmpty) where
 
 import Datatype (UMLStateDiagram(..), localise, globalise)
 import ExampleSpec (positiveExamples)
@@ -31,8 +31,9 @@ spec = do
   describe "globalise" $
     prop ("doesn't leave any connections inside") $
       forAll randomSD $ \code -> all connectionsEmpty (substate (globalise code))
-  where
-    connectionsEmpty StateDiagram{connection, substate} = null connection &&
-                                                          all connectionsEmpty substate
-    connectionsEmpty CombineDiagram{substate}           = all connectionsEmpty substate
-    connectionsEmpty _                                  = True
+
+connectionsEmpty :: UMLStateDiagram -> Bool
+connectionsEmpty StateDiagram{connection, substate} = null connection &&
+                                                      all connectionsEmpty substate
+connectionsEmpty CombineDiagram{substate}           = all connectionsEmpty substate
+connectionsEmpty _                                  = True
