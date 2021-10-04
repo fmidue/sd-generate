@@ -2,6 +2,7 @@ module CounterExampleSpec (spec) where
 
 import CounterExample
 import Test
+import ExampleSpec (allTheCheckers)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (void, forM_)
@@ -79,12 +80,4 @@ counterExamplesOnlyFor theChecker theExamples = do
       | (name, code) <- theExamples ]
 
 allTheCheckersExceptForWrapper =
-  [ ("checkConnection", checkConnection)
-  , ("checkNameUniqueness", checkNameUniqueness)
-  , ("checkUniqueness", checkUniqueness)
-  , ("checkJoint", checkJoint)
-  , ("checkStartState", checkStartState)
-  , ("checkEndState", checkEndState)
-  , ("checkStructure", checkStructure)
-  , ("checkSemantics", checkSemantics)
-  ]
+  filter (("checkWrapper" /=) . fst) allTheCheckers
