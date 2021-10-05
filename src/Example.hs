@@ -1,5 +1,10 @@
 module Example where
-import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
+import Datatype (
+  Connection(..),
+  HistoryType(..),
+  StateDiagram(..),
+  UMLStateDiagram,
+  )
 
 {-# ANN module "Hlint: ignore Reduce duplication" #-}
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 module DatatypeSpec (spec, connectionsEmpty) where
 
-import Datatype (UMLStateDiagram(..), localise, globalise)
+import Datatype (StateDiagram(..), UMLStateDiagram, localise, globalise)
 import ExampleSpec (positiveExamples)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
