@@ -14,6 +14,9 @@ import Data.Tuple.Extra ((***))
 
 spec :: Spec
 spec = do
+  counterExamplesOnlyFor "checkCrossings"
+    [ ("bogusExample", bogusExample)
+    ]
   counterExamplesOnlyFor "checkConnection"
         [ ("outerStateDiagC1", outerStateDiagC1)
          ,("outerStateDiagC2 ", outerStateDiagC2)
@@ -90,7 +93,7 @@ counterExamplesOnlyFor theChecker theExamples = do
     | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection] ]
   describe "globalise/localise" $ void $ sequence
     [ it ("are each others' inverses in a sense, on " ++ name) $ globalise (localise code) `shouldBe` globalise code
-    | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection] ]
+    | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection, checkCrossings] ]
   describe "globalise" $ void $ sequence
     [ it ("doesn't leave any connections inside, on " ++ name) $ all connectionsEmpty (substate (globalise code))
     | (name, code) <- theExamples `passing` [checkStructure] ]

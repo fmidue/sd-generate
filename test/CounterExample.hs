@@ -8,6 +8,12 @@ import Datatype (
 
 {-# ANN module "Hlint: ignore Reduce duplication" #-}
 
+bogusExample :: UMLStateDiagram
+bogusExample = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1,3,0] ""] []
+    where
+      a = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
+      b = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
+
 forCheckJoint1 :: UMLStateDiagram
 forCheckJoint1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
       Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] ""] [5]

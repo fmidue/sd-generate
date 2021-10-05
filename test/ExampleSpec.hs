@@ -22,6 +22,7 @@ spec =
 
 allTheCheckers =
   [ ("checkConnection", checkConnection)
+  , ("checkCrossings", checkCrossings)
   , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
   , ("checkJoint", checkJoint)
@@ -34,7 +35,6 @@ allTheCheckers =
 
 positiveExamples =
         [ ("verySmall", verySmall)
-        , ("bogusExample", bogusExample)
         , ("slide246", slide246)
         , ("slide253", slide253)
         , ("slide257", slide257)
