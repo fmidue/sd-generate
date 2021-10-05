@@ -4,6 +4,7 @@ module Test
   , checkStartState
   , checkEndState
   , checkConnection
+  , checkCrossings
   , checkNameUniqueness
   , checkUniqueness
   , checkStructure
@@ -15,6 +16,7 @@ import Datatype (
   StateDiagram(..),
   UMLStateDiagram,
   globalise,
+  localise,
   )
 import Data.List.Extra
 
@@ -84,6 +86,13 @@ getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
 getSubstate1 (StateDiagram a _ _ _ _) = a
 getSubstate1 (CombineDiagram a _) = a
 getSubstate1 _ = []
+
+checkCrossings :: UMLStateDiagram -> Maybe String
+checkCrossings s = case connections s - connections (localise s) of
+  0 -> Nothing
+  n -> Just $ "Has " ++ show n ++ " illegal crossing(s) between regions"
+  where
+    connections = foldr ((+) . length) 0
 
 --check name uniqueness
 checkNameUniqueness :: UMLStateDiagram -> Maybe String
