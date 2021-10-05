@@ -1,8 +1,7 @@
 module GenerateSpec (spec) where
 
 import Generate
-import Test
-import Layout (checkWrapper)
+import ExampleSpec (allTheCheckers)
 
 import Test.QuickCheck
 import Data.List.Extra
@@ -14,4 +13,4 @@ spec :: Spec
 spec = do
   describe "randomSD" $
     prop ("generates valid diagram expressions") $
-      forAll randomSD $ \code -> firstJust id (map ($ code) [checkStructure, checkSemantics, checkUniqueness,checkJoint, checkStartState, checkEndState, checkConnection, checkWrapper]) `shouldBe` Nothing
+      forAll randomSD $ \code -> firstJust id (map (($ code) . snd) allTheCheckers) `shouldBe` Nothing
