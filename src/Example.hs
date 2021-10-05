@@ -1,6 +1,8 @@
 module Example where
 import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 
+{-# ANN module "Hlint: ignore Reduce duplication" #-}
+
 bogusExample :: UMLStateDiagram
 bogusExample = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1,3,0] ""] []
     where

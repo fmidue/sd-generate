@@ -1,6 +1,8 @@
 module CounterExample where
 import Datatype (UMLStateDiagram(..), Connection(..), HistoryType(..))
 
+{-# ANN module "Hlint: ignore Reduce duplication" #-}
+
 forCheckJoint1 :: UMLStateDiagram
 forCheckJoint1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
       Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] ""] [5]
