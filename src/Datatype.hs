@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveTraversable         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE TypeFamilies              #-}
@@ -9,9 +10,10 @@ module Datatype
   , Connection(..)
   , ConnectionType(..)
   , HistoryType(..)
-  , UMLStateDiagram(..)
+  , UMLStateDiagram
   , Layout(..)
   , RightConnect(..)
+  , StateDiagram(..)
   , globalise
   , localise
   ) where
@@ -95,13 +97,15 @@ data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
 data HistoryType = Shallow | Deep
   deriving (Show, Eq)
 
-data UMLStateDiagram = StateDiagram { substate :: [UMLStateDiagram],
+type UMLStateDiagram = StateDiagram [Connection]
+
+data StateDiagram a = StateDiagram { substate :: [StateDiagram a],
                                       label :: Int,
                                       name :: String,
-                                      connection :: [Connection],
+                                      connection :: a,
                                       startState :: [Int]
                                     }
-                     | CombineDiagram { substate :: [UMLStateDiagram],
+                     | CombineDiagram { substate :: [StateDiagram a],
                                         label :: Int
                                       }
                      | EndState {
@@ -116,7 +120,7 @@ data UMLStateDiagram = StateDiagram { substate :: [UMLStateDiagram],
                                         name :: String,
                                         operations :: String
                                       }
-                     deriving (Show, Eq)
+  deriving (Eq, Functor, Foldable, Show, Traversable)
 
 data Layout = Vertical | Horizontal | Unspecified deriving (Show, Eq)
 

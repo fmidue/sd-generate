@@ -10,7 +10,12 @@ module Test
   , checkJoint
   ) where
 
-import Datatype (UMLStateDiagram(..), Connection(..),globalise)
+import Datatype (
+  Connection(..),
+  StateDiagram(..),
+  UMLStateDiagram,
+  globalise,
+  )
 import Data.List.Extra
 
 

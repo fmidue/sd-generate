@@ -3,7 +3,7 @@ module CounterExampleSpec (spec) where
 import CounterExample
 import Test
 import ExampleSpec (allTheCheckers)
-import Datatype (globalise, localise, UMLStateDiagram(substate))
+import Datatype (globalise, localise, StateDiagram(substate))
 import DatatypeSpec (connectionsEmpty)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
