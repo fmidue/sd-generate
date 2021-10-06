@@ -88,7 +88,7 @@ counterExamplesOnlyFor theChecker theExamples = do
     describe checkerName $ void $ sequence
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
-          theExamples
+          theExamples `passing` [checkStructure]
           ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness, checkConnection])
           ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
       ]
