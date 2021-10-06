@@ -525,6 +525,40 @@ forCheckHistOutTransition2 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 
             e = InnerMostState 2 "7" ""
             f = InnerMostState 3 "8" ""
 
+forCheckEmptyConnPoint1 :: UMLStateDiagram
+forCheckEmptyConnPoint1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
+      Connection[] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] ""] [5]
+     where a = InnerMostState  1 "Tasse nehmen" ""
+           b = InnerMostState  2 "Kaffee trinken" ""
+           c = InnerMostState  3 "Tasse absetzen" ""
+           d = InnerMostState  4 "Zeitung lesen" ""
+           e = Joint 5
+           f = Joint 6
+           g = EndState 7 
+
+forCheckEmptyConnPoint2 :: UMLStateDiagram
+forCheckEmptyConnPoint2 =  StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", Connection [2]
+         [3] "k", Connection [3, 2] [2] "h", Connection [2] [1, 2, 2] "h"] [3]
+  where
+    a = CombineDiagram [d, e] 1
+      where
+        d = StateDiagram [h, i] 1 "" [Connection [1] [2] "a", Connection [2]
+            [1] "a"] [1]
+          where
+            h = InnerMostState 1 "A" ""
+            i = InnerMostState 2 "B" ""
+        e = StateDiagram [j, k] 2 "" [Connection [] [2] "b", Connection [2]
+            [1] "b"] [1]
+          where
+            j = InnerMostState 1 "C" ""
+            k = InnerMostState 2 "D" ""
+    b = InnerMostState 2 "E" ""
+    c = StateDiagram [f, g] 3 "" [Connection [1] [2] "a", Connection [2] [1]
+        "a"] [1]
+      where
+        f = InnerMostState 1 "F" ""
+        g = InnerMostState 2 "G" ""
+
 forCheckSameConnection1 :: UMLStateDiagram
 forCheckSameConnection1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
            [2] [1] "f", Connection [2] [3, 0] "b", Connection [3] [1] "e",

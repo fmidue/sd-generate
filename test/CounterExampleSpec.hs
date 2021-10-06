@@ -66,6 +66,8 @@ spec = do
          ,("oneSD2", oneSD2)
          ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
          ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
+         ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
+         ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)
        ]
   counterExamplesOnlyFor "checkSemantics"
        [ ("forCheckSameConnection1", forCheckSameConnection1)
