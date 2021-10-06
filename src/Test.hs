@@ -156,6 +156,8 @@ checkStructure a
     ++ "tain at least 2 StateDiagram and no other type of constructor")
   | not(checkHistOutTransition a) = Just ("Error: Outgoing edges from a history"
     ++ "node always have the empty transition")
+  | not(checkEmptyConnPoint a) = Just ("Error: Neither the pointFrom nor the po" 
+    ++ "intTo of a connection is an empty list")
   | otherwise = Nothing
 
                 --checkOuterMostLayer
@@ -202,6 +204,15 @@ isConnFromNotHistory (x:xs) a = isConnFromNotHistory xs (getSubstate x a)
 isNotHistory :: Int -> UMLStateDiagram -> Bool
 isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
+             
+              --checkEmptyConnPoint a
+checkEmptyConnPoint :: UMLStateDiagram -> Bool
+checkEmptyConnPoint StateDiagram { substate, connection} = (not . any (null . pointFrom)) connection 
+                                                            && (not . any (null . pointTo)) connection
+                                                            && all checkEmptyConnPoint substate
+checkEmptyConnPoint CombineDiagram {substate} = all checkEmptyConnPoint substate
+checkEmptyConnPoint  _ = True
+
 
 --checkJoint
 checkJoint :: UMLStateDiagram -> Maybe String
@@ -223,7 +234,7 @@ checkInEdge s@StateDiagram {} =
 checkInEdge _ = True
 
 checkInTran :: Connection -> [Connection] -> Bool
-checkInTran a b = length tranNotSame == 0
+checkInTran a b = null tranNotSame 
                 where
                   toSame    = filter ((pointTo a ==).pointTo) b
                   tranNotSame = filter ((transition a /=).transition) toSame
@@ -239,7 +250,7 @@ checkOutEdge s@StateDiagram {} =
 checkOutEdge _ = True
 
 checkOutTran :: Connection -> [Connection] -> Bool
-checkOutTran a b = length tranNotSame == 0
+checkOutTran a b = null tranNotSame 
                 where
                   fromSame    = filter ((pointFrom a ==).pointFrom) b
                   tranNotSame = filter ((transition a /=).transition) fromSame
@@ -249,16 +260,8 @@ checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
   | not(checkSameConnection a) = Just ("Error: No two connections are allowed leaving"
     ++ "the same source and and having the same label (except From Joint Node).")
---  | not(checkOutermostHistory a) = Just "Error: History does not make sense in the outermost stateDiagram "
   | otherwise = Nothing
 
---checkOutermostHistory :: UMLStateDiagram -> Bool
---checkOutermostHistory (StateDiagram a _ _ _ _) = all isHistoryNotInSD a
---checkOutermostHistory _ = True
-
---isHistoryNotInSD :: UMLStateDiagram -> Bool
---isHistoryNotInSD History {} = False
---isHistoryNotInSD _ = True
 
 checkSameConnection :: UMLStateDiagram -> Bool
 checkSameConnection s@StateDiagram {} =
