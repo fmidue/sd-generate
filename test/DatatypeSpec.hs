@@ -33,7 +33,4 @@ spec = do
       forAll randomSD $ \code -> all connectionsEmpty (substate (globalise code))
 
 connectionsEmpty :: UMLStateDiagram -> Bool
-connectionsEmpty StateDiagram{connection, substate} = null connection &&
-                                                      all connectionsEmpty substate
-connectionsEmpty CombineDiagram{substate}           = all connectionsEmpty substate
-connectionsEmpty _                                  = True
+connectionsEmpty = all null
