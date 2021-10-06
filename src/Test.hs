@@ -18,6 +18,7 @@ import Datatype (
   globalise,
   localise,
   )
+
 import Data.List.Extra
 
 
@@ -205,7 +206,7 @@ isNotHistory :: Int -> UMLStateDiagram -> Bool
 isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
              
-              --checkEmptyConnPoint a
+               --checkEmptyConnPoint 
 checkEmptyConnPoint :: UMLStateDiagram -> Bool
 checkEmptyConnPoint StateDiagram { substate, connection} = (not . any (null . pointFrom)) connection 
                                                             && (not . any (null . pointTo)) connection
@@ -260,9 +261,10 @@ checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
   | not(checkSameConnection a) = Just ("Error: No two connections are allowed leaving"
     ++ "the same source and and having the same label (except From Joint Node).")
+  | not(checkEmptyTran a) = Just ("Error: The non-Joint state which has more than one outgoing "
+    ++ "connection, must have a non-empty transition label.")
   | otherwise = Nothing
-
-
+    --checkSameConnection
 checkSameConnection :: UMLStateDiagram -> Bool
 checkSameConnection s@StateDiagram {} =
                         all (`checkSameOutTran` withoutJoint) withoutJoint
@@ -287,3 +289,26 @@ notJoint (x:xs) a = notJoint  xs (getSubstate x a)
 isNotJoint :: Int -> UMLStateDiagram -> Bool
 isNotJoint a Joint {label}  = a /= label
 isNotJoint _ _ = True
+    --checkEmptyTran
+checkEmptyTran :: UMLStateDiagram -> Bool
+checkEmptyTran s@StateDiagram {} =                         
+                         all (not.null.transition) filterOneOut
+                        where
+                             global = globalise s
+                             sub = substate global
+                             conn = connection global
+                             onlyJoint = filter (not.(`notJoint` sub).pointFrom) conn
+                             filterOneOut = filter (not.(`onlyOneOut` onlyJoint)) onlyJoint
+checkEmptyTran _ = True
+
+onlyOneOut :: Connection -> [Connection] -> Bool
+onlyOneOut a b = length fromSame == 1 
+            where
+             fromSame  = filter ((pointFrom a ==).pointFrom) b 
+
+
+
+
+
+
+      
