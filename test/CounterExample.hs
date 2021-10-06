@@ -36,6 +36,28 @@ forCheckJoint2 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connec
            f = Joint 6
            g = EndState 7
 
+forCheckJoint3 :: UMLStateDiagram
+forCheckJoint3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
+      Connection[3] [6] "a",Connection[5] [4] "a",Connection[6] [7] ""] [5]
+     where a = InnerMostState  1 "Tasse nehmen" ""
+           b = InnerMostState  2 "Kaffee trinken" ""
+           c = InnerMostState  3 "Tasse absetzen" ""
+           d = InnerMostState  4 "Zeitung lesen" ""
+           e = Joint 5
+           f = Joint 6
+           g = EndState 7
+
+forCheckJoint4 :: UMLStateDiagram
+forCheckJoint4 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[1] [2] "a",Connection[2] [3] "",
+      Connection[3] [6] "a",Connection[5] [4] "a",Connection[4] [6] "a",Connection[6] [7] ""] [5]
+     where a = InnerMostState  1 "Tasse nehmen" ""
+           b = InnerMostState  2 "Kaffee trinken" ""
+           c = InnerMostState  3 "Tasse absetzen" ""
+           d = InnerMostState  4 "Zeitung lesen" ""
+           e = Joint 5
+           f = Joint 6
+           g = EndState 7
+
 forCheckEndState1 :: UMLStateDiagram
 forCheckEndState1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "",
       Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[7] [6] ""] [5]

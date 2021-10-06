@@ -57,6 +57,8 @@ spec = do
   counterExamplesOnlyFor "checkJoint"
        [ ("forCheckJoint1", forCheckJoint1)
         ,("forCheckJoint2", forCheckJoint2)
+        ,("forCheckJoint3", forCheckJoint3)
+        ,("forCheckJoint4", forCheckJoint4)
        ]
   counterExamplesOnlyFor "checkStructure"
        [ ("outerMostCombineDiag", outerMostCombineDiag)

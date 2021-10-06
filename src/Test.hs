@@ -218,7 +218,15 @@ checkJoint a
     ++ "with different transition label.")
   |not(checkOutEdge a) = Just ("Error: No Joint node should be left by two connections "
     ++ "with different transition labels.")
+  | not (all goIntoParallelRegions joints)
+  = Just "at least one Joint has connections to states of the same region"
+  | not (all comeOutOfParallelRegions joints)
+  = Just "states from the same region connect to the same Joint"
   | otherwise = Nothing
+  where
+    joints = addressesOfJoints a
+    goIntoParallelRegions    x = checkParallelRegionConnections True x a
+    comeOutOfParallelRegions x = checkParallelRegionConnections False x a
 
 checkInEdge :: UMLStateDiagram -> Bool
 checkInEdge s@StateDiagram {} =
@@ -251,6 +259,33 @@ checkOutTran a b = null tranNotSame
                 where
                   fromSame    = filter ((pointFrom a ==).pointFrom) b
                   tranNotSame = filter ((transition a /=).transition) fromSame
+
+checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool
+checkParallelRegionConnections into l s = 0 == connections g {
+  connection = [ Connection a b "" | a <- insides, b <- insides, a < b ]
+  }
+  where
+    g = globalise s
+    connections = foldr ((+) . length) 0 . localise
+    insideCandidates = map inside . filter ((== l) . outside) $ connection g
+    insides
+      | xs@(_:_:_) <- insideCandidates = xs
+      | otherwise                      = []
+    (outside, inside)
+      | into      = (pointFrom, pointTo)
+      | otherwise = (pointTo, pointFrom)
+
+addressesOfJoints :: UMLStateDiagram -> [[Int]]
+addressesOfJoints s = case s of
+  StateDiagram {} -> map tail $ addressesOfJoints' s
+  _               -> []
+  where
+    addressesOfJoints' Joint {label} = [[label]]
+    addressesOfJoints' StateDiagram {label, substate} =
+      map (label:) $ concatMap addressesOfJoints' substate
+    addressesOfJoints' CombineDiagram {label, substate} =
+      map (label:) $ concatMap addressesOfJoints' substate
+    addressesOfJoints' _ = []
 
 --checkSemantics
 checkSemantics :: UMLStateDiagram -> Maybe String
