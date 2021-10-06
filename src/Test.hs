@@ -297,8 +297,8 @@ checkEmptyTran s@StateDiagram {} =
                              global = globalise s
                              sub = substate global
                              conn = connection global
-                             onlyJoint = filter (not.(`notJoint` sub).pointFrom) conn
-                             filterOneOut = filter (not.(`onlyOneOut` onlyJoint)) onlyJoint
+                             withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
+                             filterOneOut = filter (not.(`onlyOneOut` withoutJoint)) withoutJoint
 checkEmptyTran _ = True
 
 onlyOneOut :: Connection -> [Connection] -> Bool

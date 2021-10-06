@@ -595,3 +595,38 @@ forCheckSameConnection2 = StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] 
     c = Joint 3
     d = InnerMostState 4 "G" ""
     l = EndState 5
+
+forCheckEmptyTran1 :: UMLStateDiagram
+forCheckEmptyTran1 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
+   Connection [3] [4] "Confirm order(Event)", Connection [4] [5] "",Connection [5] [6] "",Connection [5] [6] "complete"] [1]
+    where
+      a = InnerMostState 1 "idle" ""
+      b = InnerMostState 2 "Send order request" ""
+      c = InnerMostState 3 "Select normal or special order" ""
+      d = InnerMostState 4 "Order confirmation" ""
+      e = InnerMostState 5 "Dispatch order" ""
+      f = EndState 6
+
+forCheckEmptyTran2 :: UMLStateDiagram
+forCheckEmptyTran2 = StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", Connection [2]
+         [3] "k", Connection [3, 2] [2] "h", Connection [2] [1, 2, 2] "h"] [3]
+  where
+    a = CombineDiagram [d, e] 1
+      where
+        d = StateDiagram [h, i] 1 "" [Connection [1] [2] "a", Connection [2]
+            [1] "a"] [1]
+          where
+            h = InnerMostState 1 "A" ""
+            i = InnerMostState 2 "B" ""
+        e = StateDiagram [j, k,m] 2 "" [Connection [1] [2] "b", Connection [1]
+            [3] ""] [1]
+          where
+            j = InnerMostState 1 "C" ""
+            k = InnerMostState 2 "D" ""
+            m = InnerMostState 3 "H" ""
+    b = InnerMostState 2 "E" ""
+    c = StateDiagram [f, g] 3 "" [Connection [1] [2] "a", Connection [2] [1]
+        "a"] [1]
+      where
+        f = InnerMostState 1 "F" ""
+        g = InnerMostState 2 "G" ""
