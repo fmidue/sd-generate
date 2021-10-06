@@ -127,29 +127,20 @@ data Layout = Vertical | Horizontal | Unspecified deriving (Show, Eq)
 data RightConnect = WithArrowhead | WithoutArrowhead | NoConnection deriving (Show, Eq)
 
 globalise :: UMLStateDiagram -> UMLStateDiagram
-globalise s@StateDiagram{} = s' { connection = c' }
-  where (s',c') = hoistOutwards s
+globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
+                                         , substate = map (fmap (const [])) substate }
 globalise c@CombineDiagram{ substate } = c { substate = map globalise substate }
 globalise d = d
 
-hoistOutwards :: UMLStateDiagram -> (UMLStateDiagram, [Connection])
-hoistOutwards s@StateDiagram{ substate, connection }
-  = ( s { substate = map fst recursively
-        , connection = [] }
-    , connection ++ concatMap (uncurry prependLabelOf) recursively )
-  where
-    recursively = map hoistOutwards substate
-hoistOutwards c@CombineDiagram{ substate }
-  = ( c { substate = map fst recursively }
-    , concatMap (uncurry prependLabelOf) recursively )
-  where
-    recursively = map hoistOutwards substate
-hoistOutwards d = (d,[])
+hoistOutwards :: UMLStateDiagram -> [Connection]
+hoistOutwards StateDiagram{ substate, connection }
+  = connection ++ concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
+hoistOutwards CombineDiagram{ substate }
+  = concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
+hoistOutwards _ = []
 
-prependLabelOf :: UMLStateDiagram -> [Connection] -> [Connection]
-prependLabelOf d =
-  let l = label d
-  in
+prependL :: Int -> [Connection] -> [Connection]
+prependL l =
     map (\c@Connection{ pointFrom, pointTo }
           -> c { pointFrom = l : pointFrom, pointTo = l : pointTo })
 
