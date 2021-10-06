@@ -208,9 +208,8 @@ isNotHistory _ _ = True
              
                --checkEmptyConnPoint 
 checkEmptyConnPoint :: UMLStateDiagram -> Bool
-checkEmptyConnPoint a = all ((not . any (null . pointFrom))) a
-                        && all ((not . any (null . pointTo))) a
-                                                                                  
+checkEmptyConnPoint = all (\cs -> not (any (null . pointFrom) cs) && not (any (null . pointTo) cs))
+                                                                                 
 --checkJoint
 checkJoint :: UMLStateDiagram -> Maybe String
 checkJoint a
@@ -323,7 +322,7 @@ isNotJoint _ _ = True
     --checkEmptyTran
 checkEmptyTran :: UMLStateDiagram -> Bool
 checkEmptyTran s@StateDiagram {} =                         
-                         all (not.null.transition) filterOneOut
+                         (not . any (null . transition)) filterOneOut
                         where
                              global = globalise s
                              sub = substate global
