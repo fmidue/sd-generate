@@ -66,12 +66,14 @@ spec = do
          ,("oneSD2", oneSD2)
          ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
          ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
-       --  ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
+        -- ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
         -- ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)
        ]
   counterExamplesOnlyFor "checkSemantics"
        [ ("forCheckSameConnection1", forCheckSameConnection1)
        ,("forCheckSameConnection2", forCheckSameConnection2)
+       ,("forCheckEmptyTran1", forCheckEmptyTran1)
+       ,("forCheckEmptyTran2", forCheckEmptyTran2)
        ]
 
 counterExamplesOnlyFor theChecker theExamples = do
