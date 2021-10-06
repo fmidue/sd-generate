@@ -547,7 +547,7 @@ forCheckEmptyConnPoint2 =  StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", 
           where
             h = InnerMostState 1 "A" ""
             i = InnerMostState 2 "B" ""
-        e = StateDiagram [j, k] 2 "" [Connection [] [2] "b", Connection [2]
+        e = StateDiagram [j, k] 2 "" [Connection [1] [] "b", Connection [2]
             [1] "b"] [1]
           where
             j = InnerMostState 1 "C" ""

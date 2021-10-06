@@ -208,13 +208,9 @@ isNotHistory _ _ = True
              
                --checkEmptyConnPoint 
 checkEmptyConnPoint :: UMLStateDiagram -> Bool
-checkEmptyConnPoint StateDiagram { substate, connection} = (not . any (null . pointFrom)) connection 
-                                                            && (not . any (null . pointTo)) connection
-                                                            && all checkEmptyConnPoint substate
-checkEmptyConnPoint CombineDiagram {substate} = all checkEmptyConnPoint substate
-checkEmptyConnPoint  _ = True
-
-
+checkEmptyConnPoint a = all ((not . any (null . pointFrom))) a
+                        && all ((not . any (null . pointTo))) a
+                                                                                  
 --checkJoint
 checkJoint :: UMLStateDiagram -> Maybe String
 checkJoint a
