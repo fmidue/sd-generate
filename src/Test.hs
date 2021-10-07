@@ -47,6 +47,7 @@ isNotEnd _ _ = True
 checkStartState :: UMLStateDiagram -> Maybe String
 checkStartState a
   | not(checkSubS a) = Just "Error: invalid start state "
+  | not(checkStartToRegion a) = Just "Start to regions themselves"
   | otherwise = Nothing
 
 checkSubS :: UMLStateDiagram -> Bool
@@ -57,11 +58,17 @@ checkSubS  StateDiagram { substate, startState} = checkStart && all checkSubS su
 checkSubS CombineDiagram {substate} = all checkSubS substate
 checkSubS  _ = True
 
+checkStartToRegion :: UMLStateDiagram -> Bool
+checkStartToRegion StateDiagram{substate,startState}  = 
+                                               lastSecCD startState substate 
+                                             && all checkStartToRegion substate
+checkStartToRegion _ = True                                          
+
 --check Connection Points
 checkConnection :: UMLStateDiagram -> Maybe String
 checkConnection a
   | not(checkSubC a) = Just "Error: Connection Points"
-  | not(checkConnFromToRegion a) = Just " "
+  | not(checkConnFromToRegion a) = Just "connections from/to regions themselves "
   | otherwise = Nothing
 
 checkSubC :: UMLStateDiagram -> Bool
@@ -93,7 +100,7 @@ checkConnFromToRegion :: UMLStateDiagram -> Bool
 checkConnFromToRegion a  = 
                       all (\cs ->  all ((`lastSecCD` sub) . pointFrom) cs
                                 && all ((`lastSecCD` sub) . pointTo)   cs ) a
-                      where sub =substate a
+                      where sub = substate a
 
 lastSecCD :: [Int] -> [UMLStateDiagram]-> Bool
 lastSecCD [] _ = True

@@ -158,6 +158,12 @@ forCheckSubS6 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connecti
     c = Joint 3
     d = InnerMostState 4 "G" ""
 
+forCheckStartToRegion ::UMLStateDiagram
+forCheckStartToRegion = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1,3,0] [2] ""] [1,3]
+    where
+      a = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
+      b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
+
 forCheckConnection1 :: UMLStateDiagram
 forCheckConnection1 = StateDiagram [a, b, c, d] 1 "" [Connection [5] [3] "a", Connection
            [1] [2] "f", Connection [2] [4] "b", Connection [3] [4] "c",
