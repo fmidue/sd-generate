@@ -277,6 +277,18 @@ forCheckConnection8 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2
      where h = InnerMostState 1 "ScrollLockOff" ""
            i = InnerMostState 2 "ScrollLockOn" ""
 
+forCheckConnFromToRegion1 ::UMLStateDiagram
+forCheckConnFromToRegion1 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1,3] [2] ""] []
+    where
+      a = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
+      b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
+
+forCheckConnFromToRegion2 ::UMLStateDiagram
+forCheckConnFromToRegion2 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [2] [1,3] ""] []
+    where
+      a = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
+      b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
+
 forCheckNameUniqueness1 :: UMLStateDiagram
 forCheckNameUniqueness1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
      where

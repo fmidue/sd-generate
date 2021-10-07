@@ -60,7 +60,8 @@ checkSubS  _ = True
 --check Connection Points
 checkConnection :: UMLStateDiagram -> Maybe String
 checkConnection a
-  | not(checkSubC a) = Just "Error:  Connection Points"
+  | not(checkSubC a) = Just "Error: Connection Points"
+  | not(checkConnFromToRegion a) = Just " "
   | otherwise = Nothing
 
 checkSubC :: UMLStateDiagram -> Bool
@@ -87,6 +88,21 @@ getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
 getSubstate1 (StateDiagram a _ _ _ _) = a
 getSubstate1 (CombineDiagram a _) = a
 getSubstate1 _ = []
+
+checkConnFromToRegion :: UMLStateDiagram -> Bool
+checkConnFromToRegion a  = 
+                      all (\cs ->  all ((`lastSecCD` sub) . pointFrom) cs
+                                && all ((`lastSecCD` sub) . pointTo)   cs ) a
+                      where sub =substate a
+
+lastSecCD :: [Int] -> [UMLStateDiagram]-> Bool
+lastSecCD [] _ = True
+lastSecCD [x, _] a = all (isNotCD x) a
+lastSecCD (x:xs) a = lastSecCD xs (getSubstate x a) 
+
+isNotCD :: Int -> UMLStateDiagram -> Bool
+isNotCD a CombineDiagram{label} = a /= label
+isNotCD _ _ = True
 
 checkCrossings :: UMLStateDiagram -> Maybe String
 checkCrossings s = case connections s - connections (localise s) of
