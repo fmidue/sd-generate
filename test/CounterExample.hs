@@ -158,12 +158,24 @@ forCheckSubS6 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connecti
     c = Joint 3
     d = InnerMostState 4 "G" ""
 
-forCheckStartToRegion ::UMLStateDiagram
-forCheckStartToRegion = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1,3,0] [2] ""] [1,3]
+forCheckStartToRegion1 ::UMLStateDiagram
+forCheckStartToRegion1 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1,3,0] [2] ""] [1,3]
     where
       a = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
       b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
 
+forCheckStartToRegion2 ::UMLStateDiagram
+forCheckStartToRegion2 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1] [2] ""] []
+    where
+      a = StateDiagram [c,d] 3 "" [] [1,1]
+        where 
+          c = CombineDiagram [e,f] 1
+            where 
+                e = StateDiagram [InnerMostState 0 "" ""] 1 "" [] []
+                f = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
+          d = InnerMostState  2 "" ""
+      b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
+      
 forCheckConnection1 :: UMLStateDiagram
 forCheckConnection1 = StateDiagram [a, b, c, d] 1 "" [Connection [5] [3] "a", Connection
            [1] [2] "f", Connection [2] [4] "b", Connection [3] [4] "c",
@@ -294,6 +306,31 @@ forCheckConnFromToRegion2 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState
     where
       a = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
       b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
+
+forCheckConnFromToRegion3 ::UMLStateDiagram
+forCheckConnFromToRegion3 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [] []
+    where
+      a = StateDiagram [c,d] 3 "" [Connection [1,1] [2] ""] []
+        where 
+          c = CombineDiagram [e,f] 1
+            where 
+                e = StateDiagram [InnerMostState 0 "" ""] 1 "" [] []
+                f = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
+          d = InnerMostState  2 "" ""
+      b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
+
+forCheckConnFromToRegion4 ::UMLStateDiagram
+forCheckConnFromToRegion4 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1,3,1,1] [2] ""] []
+    where
+      a = StateDiagram [c,d] 3 "" [] []
+        where 
+          c = CombineDiagram [e,f] 1
+            where 
+                e = StateDiagram [InnerMostState 0 "" ""] 1 "" [] []
+                f = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
+          d = InnerMostState  2 "" ""
+      b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
+
 
 forCheckNameUniqueness1 :: UMLStateDiagram
 forCheckNameUniqueness1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []

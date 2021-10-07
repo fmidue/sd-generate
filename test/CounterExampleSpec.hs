@@ -49,7 +49,8 @@ spec = do
           ,("forCheckSubS4",forCheckSubS4)
           ,("forCheckSubS5",forCheckSubS5)
           ,("forCheckSubS6",forCheckSubS6)
-          ,("forCheckStartToRegion",forCheckStartToRegion)
+          ,("forCheckStartToRegion1",forCheckStartToRegion1)
+          ,("forCheckStartToRegion2",forCheckStartToRegion2)
         ]
   counterExamplesOnlyFor "checkEndState"
        [ ("forCheckEndState1", forCheckEndState1 )

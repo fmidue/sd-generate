@@ -62,6 +62,7 @@ checkStartToRegion :: UMLStateDiagram -> Bool
 checkStartToRegion StateDiagram{substate,startState}  = 
                                                lastSecCD startState substate 
                                              && all checkStartToRegion substate
+checkStartToRegion CombineDiagram {substate} = all checkStartToRegion substate
 checkStartToRegion _ = True                                          
 
 --check Connection Points
@@ -97,11 +98,13 @@ getSubstate1 (CombineDiagram a _) = a
 getSubstate1 _ = []
 
 checkConnFromToRegion :: UMLStateDiagram -> Bool
-checkConnFromToRegion a  = 
-                      all (\cs ->  all ((`lastSecCD` sub) . pointFrom) cs
-                                && all ((`lastSecCD` sub) . pointTo)   cs ) a
-                      where sub = substate a
-
+checkConnFromToRegion StateDiagram{substate,connection}  = 
+                                all ((`lastSecCD` substate) . pointFrom) connection
+                             && all ((`lastSecCD` substate) . pointTo) connection
+                             && all checkConnFromToRegion substate
+checkConnFromToRegion CombineDiagram {substate} = all checkConnFromToRegion substate
+checkConnFromToRegion _ = True
+                        
 lastSecCD :: [Int] -> [UMLStateDiagram]-> Bool
 lastSecCD [] _ = True
 lastSecCD [x, _] a = all (isNotCD x) a
