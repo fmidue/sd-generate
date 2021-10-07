@@ -18,58 +18,56 @@ spec = do
     [ ("bogusExample", bogusExample)
     ]
   counterExamplesOnlyFor "checkConnection"
-        [ ("outerStateDiagC1", outerStateDiagC1)
-         ,("outerStateDiagC2 ", outerStateDiagC2)
-         ,("outerStateDiagC3", outerStateDiagC3)
-         ,("insideStateDiagC1", insideStateDiagC1)
-         ,("insideStateDiagC2", insideStateDiagC2)
-         ,("insideStateDiagC3", insideStateDiagC3)
-         ,("insideCombineDiagC1", insideCombineDiagC1)
-         ,("tooDeep", tooDeep)
-         ,("smallTestC1",smallTestC1)
-         ,("smallTestC",smallTestC)
+        [ ("forCheckConnection1", forCheckConnection1)
+         ,("forCheckConnection2", forCheckConnection2)
+         ,("forCheckConnection3", forCheckConnection3)
+         ,("forCheckConnection4", forCheckConnection4)
+         ,("forCheckConnection5", forCheckConnection5)
+         ,("forCheckConnection6", forCheckConnection6)
+         ,("forCheckConnection7", forCheckConnection7)
+         ,("forCheckConnection8", forCheckConnection8)
         ]
   counterExamplesOnlyFor "checkNameUniqueness"
         [("forCheckNameUniqueness1", forCheckNameUniqueness1)
         ,("forCheckNameUniqueness2", forCheckNameUniqueness2)
         ]
   counterExamplesOnlyFor "checkUniqueness"
-        [("outerStateDiagL1", outerStateDiagL1)
-        ,("outerStateDiagL2", outerStateDiagL2)
-        ,("outerStateDiagL3", outerStateDiagL3)
-        ,("insideStateDiagL1", insideStateDiagL1)
-        ,("insideStateDiagL2", insideStateDiagL2)
-        ,("insideStateDiagL3", insideStateDiagL3)
-        ,("insideCombineDiagL1", insideCombineDiagL1)
+        [("forCheckUniqueness1", forCheckUniqueness1)
+        ,("forCheckUniqueness2", forCheckUniqueness2)
+        ,("forCheckUniqueness3", forCheckUniqueness3)
+        ,("forCheckUniqueness4", forCheckUniqueness4)
+        ,("forCheckUniqueness5", forCheckUniqueness5)
+        ,("forCheckUniqueness6", forCheckUniqueness6)
+        ,("forCheckUniqueness7", forCheckUniqueness7)
         ]
   counterExamplesOnlyFor "checkStartState"
-        [ ("nonExist", nonExist)
-          ,("outerStateDiag1 ", outerStateDiag1)
-          ,("outerStateDiag2", outerStateDiag2)
-          ,("innerStateDiag1", innerStateDiag1)
-          ,("innerStateDiag2", innerStateDiag2)
-          ,("innerCombineDiag1", innerCombineDiag1)
+        [ ("forCheckSubS1", forCheckSubS1)
+          ,("forCheckSubS2",forCheckSubS2)
+          ,("forCheckSubS3",forCheckSubS3)
+          ,("forCheckSubS4",forCheckSubS4)
+          ,("forCheckSubS5",forCheckSubS5)
+          ,("forCheckSubS6",forCheckSubS6)
         ]
   counterExamplesOnlyFor "checkEndState"
        [ ("forCheckEndState1", forCheckEndState1 )
         ,("forCheckEndState2", forCheckEndState2)
        ]
   counterExamplesOnlyFor "checkJoint"
-       [ ("forCheckJoint1", forCheckJoint1)
-        ,("forCheckJoint2", forCheckJoint2)
+       [ ("forCheckInEdge1", forCheckInEdge1)
+        ,("forCheckOutEdge1", forCheckOutEdge1)
         ,("forCheckJoint3", forCheckJoint3)
         ,("forCheckJoint4", forCheckJoint4)
        ]
   counterExamplesOnlyFor "checkStructure"
-       [ ("outerMostCombineDiag", outerMostCombineDiag)
-         ,("substateOnlyJH1", substateOnlyJH1)
-         ,("substateOnlyJH2", substateOnlyJH2)
-         ,("oneSD1", oneSD1)
-         ,("oneSD2", oneSD2)
+       [ ("forCheckOuterMostLayer", forCheckOuterMostLayer)
+         ,("forCheckSubstateSD1", forCheckSubstateSD1)
+         ,("forCheckSubstateSD2", forCheckSubstateSD2)
+         ,("forCheckSubstateCD1", forCheckSubstateCD1)
+         ,("forCheckSubstateCD2", forCheckSubstateCD2)
          ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
          ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
-        -- ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
-        -- ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)
+         -- ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
+         -- ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)
        ]
   counterExamplesOnlyFor "checkSemantics"
        [ ("forCheckSameConnection1", forCheckSameConnection1)
