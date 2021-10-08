@@ -28,6 +28,8 @@ spec = do
          ,("forCheckConnection8", forCheckConnection8)
          ,("forCheckConnFromToRegion1", forCheckConnFromToRegion1)
          ,("forCheckConnFromToRegion2", forCheckConnFromToRegion2)
+         ,("forCheckConnFromToRegion3", forCheckConnFromToRegion3)
+         ,("forCheckConnFromToRegion4", forCheckConnFromToRegion4)
         ]
   counterExamplesOnlyFor "checkNameUniqueness"
         [("forCheckNameUniqueness1", forCheckNameUniqueness1)
