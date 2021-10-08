@@ -5,7 +5,7 @@ import Datatype (
   StateDiagram(..),
   UMLStateDiagram,
   )
-import Test
+import Test (checkSemantics)
 import Data.Maybe(isNothing)
 import Data.List (deleteFirstsBy)
 import Test.QuickCheck hiding(label,labels)
