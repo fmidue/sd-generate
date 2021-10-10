@@ -30,16 +30,16 @@ randomSD' = do
       return (StateDiagram subs 1 nm conns [start]) 
 
 chooseName :: [Bool] -> [String] -> [[String]]
-chooseName (x:xs) str = if x == True
+chooseName (x:xs) str = if x 
                           then 
-                            [take 3 str] ++ chooseName xs (drop 3 str) 
+                             take 3 str : chooseName xs (drop 3 str) 
                         else 
-                          [take 1 str] ++ chooseName xs (drop 1 str)
+                           take 1 str : chooseName xs (drop 1 str)
 chooseName [] _ = []
 
 randomInnerSD :: Int -> (Bool,Int,[String]) -> [String]-> Gen UMLStateDiagram
 randomInnerSD c (b,l,s) noNm = do
-      if b == True
+      if b 
         then
           do
             if length s == 1 
