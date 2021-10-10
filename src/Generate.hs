@@ -7,75 +7,81 @@ import Datatype (
   )
 import Test (checkSemantics)
 import Data.Maybe(isNothing)
-import Data.List (deleteFirstsBy)
+import Data.List((\\)) 
 import Test.QuickCheck hiding(label,labels)
 
 randomSD :: Gen UMLStateDiagram
-randomSD = do
-      let counter = 3
-      n <- elements [3 .. 4]
-      labels <- shuffle [1..n]
-      nm <- elements ["A","B","C","D","E","F","G","H"]
-      subs <- mapM (\x -> randomInnerSD counter x [nm]) labels  `suchThat` any checkListInSD
-      start <- elements (map label subs)
-      conns <- vectorOf n (randomConnection (map label subs))
-      if isNothing (checkSemantics (StateDiagram subs 1 nm conns [start]))
-        then
-          return (StateDiagram subs 1 nm conns [start]) 
-      else
-        randomSD
+randomSD = randomSD' `suchThat` (isNothing . checkSemantics)
 
-randomInnerSD :: Int -> Int -> [String]-> Gen UMLStateDiagram
-randomInnerSD c l noNm = do
-      let nm = last (take l (deleteFirstsBy (<=) ["A","B","C","D","E","F","G","H","I"] noNm ))
-      if c > 0
+randomSD' :: Gen UMLStateDiagram
+randomSD' = do
+      let counter = 3
+      n       <- elements [3 .. 4]
+      nm      <- elements ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"]
+      labels  <- shuffle  [1..n]
+      subSD   <- vectorOf n arbitrary `suchThat` (True `elem`)
+      nmUniq  <- vectorOf n (choose (False, True))
+      subNms  <- shuffle  (["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"] \\ [nm])
+      let subNm   = chooseName nmUniq  subNms 
+      let cond    = zip3 subSD labels subNm
+      subs    <- mapM (\x -> randomInnerSD counter x [nm]) cond 
+      conns   <- vectorOf n (randomConnection (map label subs))
+      start   <- elements (map label subs)
+      return (StateDiagram subs 1 nm conns [start]) 
+
+chooseName :: [Bool] -> [String] -> [[String]]
+chooseName (x:xs) str = if x == True
+                          then 
+                            [take 3 str] ++ chooseName xs (drop 3 str) 
+                        else 
+                          [take 1 str] ++ chooseName xs (drop 1 str)
+chooseName [] _ = []
+
+randomInnerSD :: Int -> (Bool,Int,[String]) -> [String]-> Gen UMLStateDiagram
+randomInnerSD c (b,l,s) noNm = do
+      if b == True
         then
           do
-            frequency [ (8,randomInnerMost c l nm),(1,randomCD c l noNm),(2,randomSubstateCD c l nm noNm)]                      
+            if length s == 1 
+              then 
+                do 
+                  let nm = head s 
+                  frequency [ (10,return (InnerMostState l nm "")),(2,randomSubstateCD c (l,nm) noNm)]
+            else 
+              do 
+               randomCD c l s noNm             
       else
        do
-         randomInnerMost c l nm
+         frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(1,return (EndState l))]
 
-randomInnerMost ::Int -> Int -> String -> Gen UMLStateDiagram
-randomInnerMost c l nm = 
-       if c == 3
-         then
-           do
-             frequency [(2,return (Joint l)),(10,return (InnerMostState l nm ""))]
-       else
-         do
-           frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(10,return (InnerMostState l nm ""))]
-
-randomCD :: Int -> Int ->[String] -> Gen UMLStateDiagram
-randomCD c l noNm = do
-      n <- elements [2 .. 3]
+randomCD :: Int -> Int -> [String] ->[String] -> Gen UMLStateDiagram
+randomCD c l s noNm = do
+      n      <- elements [2 .. 3]
       labels <- shuffle [1..n]
-      nm <- elements ["Z","Y","U","S","X"]
-      subs <- mapM (\x -> randomSubstateCD c x nm noNm) labels `suchThat` any checkListInSD
+      let cond   = zip labels s
+      subs   <- mapM (\x -> randomSubstateCD c x noNm) cond
       return (CombineDiagram subs l)
 
-randomSubstateCD :: Int -> Int -> String -> [String] -> Gen UMLStateDiagram
-randomSubstateCD c l nm noNm = do
+randomSubstateCD :: Int -> (Int,String)-> [String] -> Gen UMLStateDiagram
+randomSubstateCD c (l,nm) noNm = do
       let counter = c - 1
-      n <- elements [2 .. 3]
-      labels <- shuffle [1..n]
-      let  noNms = noNm ++ [nm]
-      subs <- mapM (\x -> randomInnerSD counter x noNms) labels `suchThat` any checkListInSD
-      start <- elements (map label subs)
-      conns <- vectorOf n (randomConnection (map label subs))
-      if isNothing (checkSemantics (StateDiagram subs l nm conns [start]))
-        then
-          return (StateDiagram subs l nm conns [start])
-      else
-        randomSubstateCD c l nm noNm
+          noNms   = noNm ++ [nm]
+      n       <- elements [2 .. 3]
+      labels  <- shuffle [1..n]
+      subSD   <- vectorOf n arbitrary `suchThat` (True `elem`)
+      nmUniq  <- vectorOf n (choose (False, True))
+      subNms  <- shuffle  (["A","B","C","D","E","F","G","H","I","J","K"] \\ noNms)
+      let subNm   = chooseName nmUniq  subNms 
+      let cond    = zip3 subSD labels subNm
+      subs    <- mapM (\x -> randomInnerSD counter x noNms) cond 
+      start   <- elements (map label subs)
+      conns   <- vectorOf n (randomConnection (map label subs))
+      return (StateDiagram subs l nm conns [start])
 
 randomConnection :: [Int] -> Gen Connection
 randomConnection l = do
       from <- elements l
-      to <- elements l `suchThat` (from /=)
+      to   <- elements l `suchThat` (from /=)
       return (Connection [from] [to] "" )
 
-checkListInSD :: UMLStateDiagram -> Bool
-checkListInSD Joint {} = False
-checkListInSD History {} = False
-checkListInSD _ = True
+
