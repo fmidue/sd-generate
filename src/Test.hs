@@ -1,14 +1,14 @@
 {-# LANGUAGE NamedFieldPuns #-}
 module Test
-  ( checkSemantics
-  , checkStartState
-  , checkEndState
+  ( checkStructure
   , checkConnection
   , checkCrossings
   , checkNameUniqueness
   , checkUniqueness
-  , checkStructure
+  , checkEndState
+  , checkStartState
   , checkJoint
+  , checkSemantics
   ) where
 
 import Datatype (
@@ -20,157 +20,6 @@ import Datatype (
   )
 
 import Data.List.Extra
-
-
---checkEndState
-checkEndState :: UMLStateDiagram -> Maybe String
-checkEndState a
-  | not(checkEndOutEdges a) = Just "Error: no EndState should have outgoing edges"
-  | otherwise = Nothing
-
-checkEndOutEdges :: UMLStateDiagram -> Bool
-checkEndOutEdges StateDiagram { substate, connection } = all ((`isConnFromNotEnd` substate) . pointFrom) connection
-                                                         && all checkEndOutEdges substate
-checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
-checkEndOutEdges  _ = True
-
-isConnFromNotEnd :: [Int] -> [UMLStateDiagram] -> Bool
-isConnFromNotEnd [] _ = True
-isConnFromNotEnd [x] a = all (isNotEnd x) a
-isConnFromNotEnd (x:xs) a = isConnFromNotEnd xs (getSubstate x a)
-
-isNotEnd :: Int -> UMLStateDiagram -> Bool
-isNotEnd a EndState {label}  = a /= label
-isNotEnd _ _ = True
-
---checkStartState
-checkStartState :: UMLStateDiagram -> Maybe String
-checkStartState a
-  | not(checkSubS a) = Just "Error: invalid start state "
-  | not(checkStartToRegion a) = Just "Start to regions themselves"
-  | otherwise = Nothing
-
-checkSubS :: UMLStateDiagram -> Bool
-checkSubS  StateDiagram { substate, startState} = checkStart && all checkSubS substate
-                                              where
-                                                getLayerList = map label substate
-                                                checkStart = isContained1 startState getLayerList substate
-checkSubS CombineDiagram {substate} = all checkSubS substate
-checkSubS  _ = True
-
-checkStartToRegion :: UMLStateDiagram -> Bool
-checkStartToRegion StateDiagram{substate,startState}  = 
-                                               lastSecCD startState substate 
-                                             && all checkStartToRegion substate
-checkStartToRegion CombineDiagram {substate} = all checkStartToRegion substate
-checkStartToRegion _ = True                                          
-
---check Connection Points
-checkConnection :: UMLStateDiagram -> Maybe String
-checkConnection a
-  | not(checkSubC a) = Just "Error: Connection Points"
-  | not(checkConnFromToRegion a) = Just "connections from/to regions themselves "
-  | otherwise = Nothing
-
-checkSubC :: UMLStateDiagram -> Bool
-checkSubC  StateDiagram { substate, connection } =  checkConnFrom && checkConnTo  && all checkSubC substate
-                              where
-                                getLayerList = map label substate
-                                checkConnFrom = isContained (map pointFrom connection) getLayerList  substate
-                                checkConnTo = isContained (map pointTo connection ) getLayerList substate
-checkSubC CombineDiagram {substate} = all checkSubC substate
-checkSubC  _ = True
-
-isContained :: [[Int]] -> [Int] -> [UMLStateDiagram] -> Bool
-isContained xs a b = all (\x -> isContained1 x a b) xs
-
-isContained1 :: [Int] -> [Int] -> [UMLStateDiagram] -> Bool
-isContained1 [] _ _ = True
-isContained1 (x:xs) a b =  (x `elem` a)  &&
-       isContained1 xs (map label (getSubstate x b)) (getSubstate x b)
-
-getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
-getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
-
-getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
-getSubstate1 (StateDiagram a _ _ _ _) = a
-getSubstate1 (CombineDiagram a _) = a
-getSubstate1 _ = []
-
-checkConnFromToRegion :: UMLStateDiagram -> Bool
-checkConnFromToRegion StateDiagram{substate,connection}  = 
-                                all ((`lastSecCD` substate) . pointFrom) connection
-                             && all ((`lastSecCD` substate) . pointTo) connection
-                             && all checkConnFromToRegion substate
-checkConnFromToRegion CombineDiagram {substate} = all checkConnFromToRegion substate
-checkConnFromToRegion _ = True
-                        
-lastSecCD :: [Int] -> [UMLStateDiagram]-> Bool
-lastSecCD [] _ = True
-lastSecCD [x, _] a = all (isNotCD x) a
-lastSecCD (x:xs) a = lastSecCD xs (getSubstate x a) 
-
-isNotCD :: Int -> UMLStateDiagram -> Bool
-isNotCD a CombineDiagram{label} = a /= label
-isNotCD _ _ = True
-
-checkCrossings :: UMLStateDiagram -> Maybe String
-checkCrossings s = case connections s - connections (localise s) of
-  0 -> Nothing
-  n -> Just $ "Has " ++ show n ++ " illegal crossing(s) between regions"
-  where
-    connections = foldr ((+) . length) 0
-
---check name uniqueness
-checkNameUniqueness :: UMLStateDiagram -> Maybe String
-checkNameUniqueness a
-  | not(checkSubNameUniq a) = Just "Error: At the same layer name Uniqueness is not fullfilled "
-  | not(checkSDNameUniq a) = Just ("Error: In each StateDiagram, the name (if not empty) should be different"
-    ++"from all names found arbitrarily deep inside the substates.")
-  | otherwise = Nothing
-
-checkSDNameUniq :: UMLStateDiagram -> Bool
-checkSDNameUniq StateDiagram {substate,name} = name `notElem` getLayerName substate
-                                              && all (checkDeeperUniq name) substate
-                                              && all checkSDNameUniq substate
-checkSDNameUniq CombineDiagram {substate} = all checkSDNameUniq substate
-checkSDNameUniq  _ = True
-
-checkDeeperUniq :: String -> UMLStateDiagram -> Bool
-checkDeeperUniq a StateDiagram {substate} = a `notElem` getLayerName substate
-                                              && all (checkDeeperUniq a) substate
-checkDeeperUniq a CombineDiagram {substate} = all (checkDeeperUniq a) substate
-checkDeeperUniq _ _ = True
-
-checkSubNameUniq :: UMLStateDiagram -> Bool
-checkSubNameUniq StateDiagram {substate} =  not (anySame (getLayerName substate))
-                                            && all checkSubNameUniq  substate
-checkSubNameUniq  CombineDiagram {substate} = not (anySame (getLayerName substate))
-                                              && all checkSubNameUniq  substate
-checkSubNameUniq  _ = True
-
-getLayerName :: [UMLStateDiagram] -> [String]
-getLayerName a = filter (not . null) (concatMap getName a)
-
-getName :: UMLStateDiagram -> [String]
-getName StateDiagram{name} = [name]
-getName InnerMostState{name} = [name]
-getName CombineDiagram{substate} = concatMap getName substate
-getName _ = []
-
---check local uniqueness
-checkUniqueness :: UMLStateDiagram -> Maybe String
-checkUniqueness a
-  | not(checkSub a) = Just "Error: Local Uniqueness not fullfilled "
-  | otherwise = Nothing
-
-checkSub :: UMLStateDiagram -> Bool
-checkSub  StateDiagram {substate} =  isUnique (map label substate ) && all checkSub substate
-checkSub  CombineDiagram {substate} =  isUnique (map label substate ) && all checkSub substate
-checkSub  _ = True
-
-isUnique :: [Int] -> Bool
-isUnique a = not (anySame a)
 
 --checkStructure
 checkStructure :: UMLStateDiagram -> Maybe String
@@ -235,14 +84,175 @@ isNotHistory _ _ = True
                --checkEmptyConnPoint 
 checkEmptyConnPoint :: UMLStateDiagram -> Bool
 checkEmptyConnPoint = all (\cs -> not (any (null . pointFrom) cs) && not (any (null . pointTo) cs))
+
+
+
+--checkConnection
+checkConnection :: UMLStateDiagram -> Maybe String
+checkConnection a
+  | not(checkSubC a) = Just "Error: Connection Points"
+  | not(checkConnFromToRegion a) = Just "connections from/to regions themselves "
+  | otherwise = Nothing
+
+checkSubC :: UMLStateDiagram -> Bool
+checkSubC  StateDiagram { substate, connection } =  checkConnFrom && checkConnTo  && all checkSubC substate
+                              where
+                                getLayerList = map label substate
+                                checkConnFrom = isContained (map pointFrom connection) getLayerList  substate
+                                checkConnTo = isContained (map pointTo connection ) getLayerList substate
+checkSubC CombineDiagram {substate} = all checkSubC substate
+checkSubC  _ = True
+
+isContained :: [[Int]] -> [Int] -> [UMLStateDiagram] -> Bool
+isContained xs a b = all (\x -> isContained1 x a b) xs
+
+isContained1 :: [Int] -> [Int] -> [UMLStateDiagram] -> Bool
+isContained1 [] _ _ = True
+isContained1 (x:xs) a b =  (x `elem` a)  &&
+       isContained1 xs (map label (getSubstate x b)) (getSubstate x b)
+
+getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
+getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
+
+getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
+getSubstate1 (StateDiagram a _ _ _ _) = a
+getSubstate1 (CombineDiagram a _) = a
+getSubstate1 _ = []
+
+checkConnFromToRegion :: UMLStateDiagram -> Bool
+checkConnFromToRegion StateDiagram{substate,connection}  = 
+                                all ((`lastSecCD` substate) . pointFrom) connection
+                             && all ((`lastSecCD` substate) . pointTo) connection
+                             && all checkConnFromToRegion substate
+checkConnFromToRegion CombineDiagram {substate} = all checkConnFromToRegion substate
+checkConnFromToRegion _ = True
+                        
+lastSecCD :: [Int] -> [UMLStateDiagram]-> Bool
+lastSecCD [] _ = True
+lastSecCD [x, _] a = all (isNotCD x) a
+lastSecCD (x:xs) a = lastSecCD xs (getSubstate x a) 
+
+isNotCD :: Int -> UMLStateDiagram -> Bool
+isNotCD a CombineDiagram{label} = a /= label
+isNotCD _ _ = True
+
+checkCrossings :: UMLStateDiagram -> Maybe String
+checkCrossings s = case connections s - connections (localise s) of
+  0 -> Nothing
+  n -> Just $ "Has " ++ show n ++ " illegal crossing(s) between regions"
+  where
+    connections = foldr ((+) . length) 0
+
+--checkNameUniqueness
+checkNameUniqueness :: UMLStateDiagram -> Maybe String
+checkNameUniqueness a
+  | not(checkSubNameUniq a) = Just "Error: At the same layer name Uniqueness is not fullfilled "
+  | not(checkSDNameUniq a) = Just ("Error: In each StateDiagram, the name (if not empty) should be different "
+    ++"from all names found arbitrarily deep inside the substates.")
+  | otherwise = Nothing
+
+checkSDNameUniq :: UMLStateDiagram -> Bool
+checkSDNameUniq StateDiagram {substate,name} = name `notElem` getLayerName substate
+                                              && all (checkDeeperUniq name) substate
+                                              && all checkSDNameUniq substate
+checkSDNameUniq CombineDiagram {substate} = all checkSDNameUniq substate
+checkSDNameUniq  _ = True
+
+checkDeeperUniq :: String -> UMLStateDiagram -> Bool
+checkDeeperUniq a StateDiagram {substate} = a `notElem` getLayerName substate
+                                              && all (checkDeeperUniq a) substate
+checkDeeperUniq a CombineDiagram {substate} = all (checkDeeperUniq a) substate
+checkDeeperUniq _ _ = True
+
+checkSubNameUniq :: UMLStateDiagram -> Bool
+checkSubNameUniq StateDiagram {substate} =  not (anySame (getLayerName substate))
+                                            && all checkSubNameUniq  substate
+checkSubNameUniq  CombineDiagram {substate} = not (anySame (getLayerName substate))
+                                              && all checkSubNameUniq  substate
+checkSubNameUniq  _ = True
+
+getLayerName :: [UMLStateDiagram] -> [String]
+getLayerName a = filter (not . null) (concatMap getName a)
+
+getName :: UMLStateDiagram -> [String]
+getName StateDiagram{name} = [name]
+getName InnerMostState{name} = [name]
+getName CombineDiagram{substate} = concatMap getName substate
+getName _ = []
+
+--checkUniqueness
+checkUniqueness :: UMLStateDiagram -> Maybe String
+checkUniqueness a
+  | not(checkSub a) = Just "Error: Local Uniqueness not fullfilled "
+  | otherwise = Nothing
+
+checkSub :: UMLStateDiagram -> Bool
+checkSub  StateDiagram {substate} =  isUnique (map label substate ) && all checkSub substate
+checkSub  CombineDiagram {substate} =  isUnique (map label substate ) && all checkSub substate
+checkSub  _ = True
+
+isUnique :: [Int] -> Bool
+isUnique a = not (anySame a)
+
+
+
+
+--checkEndState
+checkEndState :: UMLStateDiagram -> Maybe String
+checkEndState a
+  | not(checkEndOutEdges a) = Just "Error: no EndState should have outgoing edges"
+  | otherwise = Nothing
+
+checkEndOutEdges :: UMLStateDiagram -> Bool
+checkEndOutEdges StateDiagram { substate, connection } = all ((`isConnFromNotEnd` substate) . pointFrom) connection
+                                                         && all checkEndOutEdges substate
+checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
+checkEndOutEdges  _ = True
+
+isConnFromNotEnd :: [Int] -> [UMLStateDiagram] -> Bool
+isConnFromNotEnd [] _ = True
+isConnFromNotEnd [x] a = all (isNotEnd x) a
+isConnFromNotEnd (x:xs) a = isConnFromNotEnd xs (getSubstate x a)
+
+isNotEnd :: Int -> UMLStateDiagram -> Bool
+isNotEnd a EndState {label}  = a /= label
+isNotEnd _ _ = True
+
+
+
+--checkStartState
+checkStartState :: UMLStateDiagram -> Maybe String
+checkStartState a
+  | not(checkSubS a) = Just "Error: invalid start state "
+  | not(checkStartToRegion a) = Just "Start to regions themselves"
+  | otherwise = Nothing
+
+checkSubS :: UMLStateDiagram -> Bool
+checkSubS  StateDiagram { substate, startState} = checkStart && all checkSubS substate
+                                              where
+                                                getLayerList = map label substate
+                                                checkStart = isContained1 startState getLayerList substate
+checkSubS CombineDiagram {substate} = all checkSubS substate
+checkSubS  _ = True
+
+checkStartToRegion :: UMLStateDiagram -> Bool
+checkStartToRegion StateDiagram{substate,startState}  = 
+                                               lastSecCD startState substate 
+                                             && all checkStartToRegion substate
+checkStartToRegion CombineDiagram {substate} = all checkStartToRegion substate
+checkStartToRegion _ = True                                          
+
+
+
                                                                                  
 --checkJoint
 checkJoint :: UMLStateDiagram -> Maybe String
 checkJoint a
   | not(checkInEdge a) = Just ("Error: No Joint node should be reached by two connections "
     ++ "with different transition label.")
-  |not(checkOutEdge a) = Just ("Error: No Joint node should be left by two connections "
+  | not(checkOutEdge a) = Just ("Error: No Joint node should be left by two connections "
     ++ "with different transition labels.")
+  | not(checkMtoOne a) = Just ("")
   | not (all goIntoParallelRegions joints)
   = Just "at least one Joint has connections to states of the same region"
   | not (all comeOutOfParallelRegions joints)
@@ -252,6 +262,38 @@ checkJoint a
     joints = addressesOfJoints a
     goIntoParallelRegions    x = checkParallelRegionConnections True x a
     comeOutOfParallelRegions x = checkParallelRegionConnections False x a
+
+checkMtoOne :: UMLStateDiagram -> Bool
+checkMtoOne s@StateDiagram{} = 
+                       null (toMany `intersect` fromMany)
+                       && not (any (`isStart` global) toOnlyJoint)
+                       && not (any (`isStart` global) fromOne)
+                       && all (`isStart` global) toNoConn
+                       && null fromNoConn 
+                          where 
+                            global = globalise s
+                            sub    = substate global
+                            conn   = connection global
+                            toOnlyJoint   = map pointTo (filter (not.(`notJoint` sub).pointTo) conn)
+                            fromOnlyJoint = map pointFrom (filter (not.(`notJoint` sub).pointFrom) conn)
+                            toMany        = filter (`overOne` toOnlyJoint) toOnlyJoint
+                            fromMany      = filter (`overOne`  fromOnlyJoint) fromOnlyJoint
+                            fromOne         = filter (`onlyOne` fromOnlyJoint) fromOnlyJoint
+                            toNoConn = (nub (fromOnlyJoint)) \\ (nub (toOnlyJoint))
+                            fromNoConn = (nub (toOnlyJoint)) \\ (nub (fromOnlyJoint))
+checkMtoOne _ = True
+
+isStart ::[Int] -> UMLStateDiagram -> Bool
+isStart (x:[]) StateDiagram{ startState } = [x] == startState
+isStart x StateDiagram{ startState,substate } = x == startState || any (isStart (tail x)) substate
+isStart x CombineDiagram { substate } = any (isStart (tail x)) substate
+isStart _ _ = False
+
+overOne :: [Int] -> [[Int]] -> Bool
+overOne a b =  length (filter( a ==) b) > 1
+
+onlyOne :: [Int] -> [[Int]] -> Bool
+onlyOne a b =  length (filter( a ==) b) == 1
 
 checkInEdge :: UMLStateDiagram -> Bool
 checkInEdge s@StateDiagram {} =
@@ -312,6 +354,9 @@ addressesOfJoints s = case s of
       map (label:) $ concatMap addressesOfJoints' substate
     addressesOfJoints' _ = []
 
+
+
+
 --checkSemantics
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
@@ -320,7 +365,7 @@ checkSemantics a
   | not(checkEmptyTran a) = Just ("Error: The non-Joint state which has more than one outgoing "
     ++ "connection, must have a non-empty transition label.")
   | otherwise = Nothing
-    --checkSameConnection
+          --checkSameConnection
 checkSameConnection :: UMLStateDiagram -> Bool
 checkSameConnection s@StateDiagram {} =
                         all (`checkSameOutTran` withoutJoint) withoutJoint
@@ -345,7 +390,7 @@ notJoint (x:xs) a = notJoint  xs (getSubstate x a)
 isNotJoint :: Int -> UMLStateDiagram -> Bool
 isNotJoint a Joint {label}  = a /= label
 isNotJoint _ _ = True
-    --checkEmptyTran
+           --checkEmptyTran
 checkEmptyTran :: UMLStateDiagram -> Bool
 checkEmptyTran s@StateDiagram {} =                         
                          (not . any (null . transition)) filterOneOut
