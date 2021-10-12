@@ -22,8 +22,7 @@ forCheckInEdge1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Conne
            c = InnerMostState  3 "Tasse absetzen" ""
            d = InnerMostState  4 "Zeitung lesen" ""
            e = Joint 5
-           f = Joint 6
-        
+           f = Joint 6        
            g = EndState 7
 
 forCheckOutEdge1 :: UMLStateDiagram
@@ -37,38 +36,43 @@ forCheckOutEdge1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Conn
            f = Joint 6
            g = EndState 7
 
-forCheckJoint3 :: UMLStateDiagram
-forCheckJoint3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
-      Connection[3] [6] "a",Connection[5] [4] "a",Connection[6] [7] ""] [5]
-     where a = InnerMostState  1 "Tasse nehmen" ""
-           b = InnerMostState  2 "Kaffee trinken" ""
-           c = InnerMostState  3 "Tasse absetzen" ""
-           d = InnerMostState  4 "Zeitung lesen" ""
+forCheckMtoOne1 :: UMLStateDiagram
+forCheckMtoOne1 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[1] [5] "",Connection[5] [4] ""] [5]
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
            e = Joint 5
-           f = Joint 6
-           g = EndState 7
 
-forCheckJoint4 :: UMLStateDiagram
-forCheckJoint4 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[1] [2] "a",Connection[2] [3] "",
-      Connection[3] [6] "a",Connection[5] [4] "a",Connection[4] [6] "a",Connection[6] [7] ""] [5]
-     where a = InnerMostState  1 "Tasse nehmen" ""
-           b = InnerMostState  2 "Kaffee trinken" ""
-           c = InnerMostState  3 "Tasse absetzen" ""
-           d = InnerMostState  4 "Zeitung lesen" ""
+forCheckMtoOne2 :: UMLStateDiagram
+forCheckMtoOne2 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "",Connection[1] [5] "",Connection[5] [4] "a",
+      Connection[5] [3] "a"] [2]
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
            e = Joint 5
-           f = Joint 6
-           g = EndState 7
+
+forCheckMtoOne3 :: UMLStateDiagram
+forCheckMtoOne3 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [] []
+    where
+      a = StateDiagram [c,d] 3 "" [Connection [1,2,2] [1,1,0] "a",Connection [1,2,2] [1,2,0] "a",
+         Connection [1,2,0] [1,2,2] "",Connection [1,1,0] [1,2,2] ""] []
+        where 
+          c = CombineDiagram [e,f] 1
+            where 
+                e = StateDiagram [InnerMostState 0 "" ""] 1 "" [] []
+                f = StateDiagram [InnerMostState 0 "" "",Joint 2] 2 "" [] []
+          d = InnerMostState  2 "" ""
+      b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] []
 
 forCheckEndState1 :: UMLStateDiagram
-forCheckEndState1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "",Connection[2] [3] "",
-      Connection[3] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[7] [6] ""] [5]
+forCheckEndState1 = StateDiagram [a,b,c,d,e] 1 "" [Connection[7] [2] ""] [2]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
            c = InnerMostState  3 "Tasse absetzen" ""
            d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5
-           f = Joint 6
-           g = EndState 7
+           e = EndState 7
 
 forCheckEndState2 :: UMLStateDiagram
 forCheckEndState2 = StateDiagram [a, b] 1 "" [Connection [1,3] [2] "a"] []

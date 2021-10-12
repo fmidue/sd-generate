@@ -61,8 +61,9 @@ spec = do
   counterExamplesOnlyFor "checkJoint"
        [ ("forCheckInEdge1", forCheckInEdge1)
         ,("forCheckOutEdge1", forCheckOutEdge1)
-        ,("forCheckJoint3", forCheckJoint3)
-        ,("forCheckJoint4", forCheckJoint4)
+        ,("forCheckMtoOne1", forCheckMtoOne1)
+        ,("forCheckMtoOne2", forCheckMtoOne2)
+        ,("forCheckMtoOne3", forCheckMtoOne3)
        ]
   counterExamplesOnlyFor "checkStructure"
        [ ("forCheckOuterMostLayer", forCheckOuterMostLayer)
