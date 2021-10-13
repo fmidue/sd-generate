@@ -252,7 +252,7 @@ checkJoint a
     ++ "with different transition label.")
   | not(checkOutEdge a) = Just ("Error: No Joint node should be left by two connections "
     ++ "with different transition labels.")
-  | not(checkMtoOne a) = Just ("")
+  | not(checkMtoOne a) = Just ""
   | not (all goIntoParallelRegions joints)
   = Just "at least one Joint has connections to states of the same region"
   | not (all comeOutOfParallelRegions joints)
@@ -266,10 +266,11 @@ checkJoint a
 checkMtoOne :: UMLStateDiagram -> Bool
 checkMtoOne s@StateDiagram{} = 
                        null (toMany `intersect` fromMany)
-                       && not (any (`isStart` global) toOnlyJoint)
+                       && all (\x -> not (isStart x global)) toOnlyJoint
                        && not (any (`isStart` global) fromOne)
                        && all (`isStart` global) toNoConn
                        && null fromNoConn 
+                       && null (toOne `intersect` fromOne)
                           where 
                             global = globalise s
                             sub    = substate global
@@ -278,13 +279,14 @@ checkMtoOne s@StateDiagram{} =
                             fromOnlyJoint = map pointFrom (filter (not.(`notJoint` sub).pointFrom) conn)
                             toMany        = filter (`overOne` toOnlyJoint) toOnlyJoint
                             fromMany      = filter (`overOne`  fromOnlyJoint) fromOnlyJoint
-                            fromOne         = filter (`onlyOne` fromOnlyJoint) fromOnlyJoint
-                            toNoConn = (nub (fromOnlyJoint)) \\ (nub (toOnlyJoint))
-                            fromNoConn = (nub (toOnlyJoint)) \\ (nub (fromOnlyJoint))
+                            toOne         = filter (`onlyOne` toOnlyJoint) toOnlyJoint
+                            fromOne       = filter (`onlyOne` fromOnlyJoint) fromOnlyJoint
+                            toNoConn = nub fromOnlyJoint \\ nub toOnlyJoint
+                            fromNoConn = nub toOnlyJoint \\ nub fromOnlyJoint
 checkMtoOne _ = True
 
 isStart ::[Int] -> UMLStateDiagram -> Bool
-isStart (x:[]) StateDiagram{ startState } = [x] == startState
+isStart [x] StateDiagram{ startState } = [x] == startState
 isStart x StateDiagram{ startState,substate } = x == startState || any (isStart (tail x)) substate
 isStart x CombineDiagram { substate } = any (isStart (tail x)) substate
 isStart _ _ = False

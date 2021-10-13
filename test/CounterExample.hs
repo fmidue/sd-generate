@@ -36,16 +36,16 @@ forCheckOutEdge1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Conn
            f = Joint 6
            g = EndState 7
 
-forCheckMtoOne1 :: UMLStateDiagram
-forCheckMtoOne1 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[1] [5] "",Connection[5] [4] ""] [5]
+forCheckMtoOne2 :: UMLStateDiagram
+forCheckMtoOne2 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[1] [5] "",Connection[5] [4] ""] [5]
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne2 :: UMLStateDiagram
-forCheckMtoOne2 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "",Connection[1] [5] "",Connection[5] [4] "a",
+forCheckMtoOne1 :: UMLStateDiagram
+forCheckMtoOne1 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "",Connection[1] [5] "",Connection[5] [4] "a",
       Connection[5] [3] "a"] [2]
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
@@ -54,7 +54,39 @@ forCheckMtoOne2 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "",Connectio
            e = Joint 5
 
 forCheckMtoOne3 :: UMLStateDiagram
-forCheckMtoOne3 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [] []
+forCheckMtoOne3 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] ""] [5]
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
+           e = Joint 5
+
+forCheckMtoOne4 :: UMLStateDiagram
+forCheckMtoOne4 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "",Connection[5] [3] ""] []
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
+           e = Joint 5
+
+forCheckMtoOne5 :: UMLStateDiagram
+forCheckMtoOne5 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[3] [5] ""] []
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
+           e = Joint 5
+
+forCheckMtoOne6 :: UMLStateDiagram
+forCheckMtoOne6 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[5] [2] ""] []
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
+           e = Joint 5
+
+forCheckMtoOne7 :: UMLStateDiagram
+forCheckMtoOne7 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [] []
     where
       a = StateDiagram [c,d] 3 "" [Connection [1,2,2] [1,1,0] "a",Connection [1,2,2] [1,2,0] "a",
          Connection [1,2,0] [1,2,2] "",Connection [1,1,0] [1,2,2] ""] []
@@ -397,8 +429,7 @@ forCheckUniqueness2 =  StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] "a"
     l = EndState 5
 
 forCheckUniqueness3 :: UMLStateDiagram
-forCheckUniqueness3 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [4] "a", Connection [4]
-                       [3] "", Connection [3] [4] "g"] [1]
+forCheckUniqueness3 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [4] "a"] [1]
         where
           a = InnerMostState 1 "A" ""
           b = CombineDiagram [e, f] 1  
@@ -482,15 +513,15 @@ forCheckOuterMostLayer = CombineDiagram [a,b,c] 1
           i = InnerMostState 2 "ScrollLockOn" ""
 
 forCheckSubstateSD1::UMLStateDiagram
-forCheckSubstateSD1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1] ""] []
+forCheckSubstateSD1 = StateDiagram [a,b] 1 "" [] []
      where
       a = Joint 1
       b = Joint 2
 
 forCheckSubstateSD2::UMLStateDiagram
-forCheckSubstateSD2 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1] ""] []
+forCheckSubstateSD2 = StateDiagram [a,b] 1 "" [] []
     where
-      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
+      a = StateDiagram  [c,d,e] 1 "Composite State" [] [1]
           where
            c = History 1 Deep
            d = Joint 2
