@@ -13,7 +13,7 @@ verySmall = StateDiagram [EndState 1] 0 "" [] [1]
 
 forCheckSameConnection :: UMLStateDiagram
 forCheckSameConnection =  StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "",Connection[2] [3] "",
-      Connection[3] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] ""] [5]
+      Connection[3] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] "b"] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
            c = InnerMostState  3 "Tasse absetzen" ""
@@ -48,7 +48,7 @@ picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection
 
 picture3 :: UMLStateDiagram
 picture3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
-      Connection[3] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] ""] [5]
+      Connection[3] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] "b"] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
            c = InnerMostState  3 "Tasse absetzen" ""

@@ -248,11 +248,12 @@ checkStartToRegion _ = True
 --checkJoint
 checkJoint :: UMLStateDiagram -> Maybe String
 checkJoint a
-  | not(checkInEdge a) = Just ("Error: No Joint node should be reached by two connections "
-    ++ "with different transition label.")
-  | not(checkOutEdge a) = Just ("Error: No Joint node should be left by two connections "
+  | not(checkTranSame a) = Just ("Error: No Joint node should be left/reached by two connections "
     ++ "with different transition labels.")
-  | not(checkMtoOne a) = Just ""
+  | not(checkTranBothsideEmpty a) = Just ("Error: It is not allowed that a Joint state is reached by a" 
+    ++ " Connection with non-empty transition string and is also left by a Connection with"
+    ++ " non-empty transition string.(Except a Joint state is designated as a start state)")
+  | not(checkMtoOne a) = Just "invalid number of Outgoing edges or ingoing edges of Joint node"
   | not (all goIntoParallelRegions joints)
   = Just "at least one Joint has connections to states of the same region"
   | not (all comeOutOfParallelRegions joints)
@@ -287,8 +288,12 @@ checkMtoOne _ = True
 
 isStart ::[Int] -> UMLStateDiagram -> Bool
 isStart [x] StateDiagram{ startState } = [x] == startState
-isStart x StateDiagram{ startState,substate } = x == startState || any (isStart (tail x)) substate
-isStart x CombineDiagram { substate } = any (isStart (tail x)) substate
+isStart a@(x:xs) StateDiagram{ startState,substate } = a == startState || isStart xs next 
+                                                     where 
+                                                     next = head (filter  ((x ==) . label) substate)                                                   
+isStart (x:xs) CombineDiagram { substate } = isStart xs next
+                                            where 
+                                            next = head (filter  ((x ==) . label) substate) 
 isStart _ _ = False
 
 overOne :: [Int] -> [[Int]] -> Bool
@@ -297,15 +302,23 @@ overOne a b =  length (filter( a ==) b) > 1
 onlyOne :: [Int] -> [[Int]] -> Bool
 onlyOne a b =  length (filter( a ==) b) == 1
 
-checkInEdge :: UMLStateDiagram -> Bool
-checkInEdge s@StateDiagram {} =
-                        all (`checkInTran` onlyJoint) onlyJoint
+checkTranSame :: UMLStateDiagram -> Bool
+checkTranSame s@StateDiagram {} =
+                           all (`checkOutTran` fromOnlyJoint) fromOnlyJoint 
+                        && all (`checkInTran` toOnlyJoint) toOnlyJoint
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
-                             onlyJoint = filter (not.(`notJoint` sub).pointTo) conn
-checkInEdge _ = True
+                             fromOnlyJoint = filter (not.(`notJoint` sub).pointFrom) conn
+                             toOnlyJoint = filter (not.(`notJoint` sub).pointTo) conn
+checkTranSame _ = True
+
+checkOutTran :: Connection -> [Connection] -> Bool
+checkOutTran a b = null tranNotSame 
+                where
+                  fromSame    = filter ((pointFrom a ==).pointFrom) b
+                  tranNotSame = filter ((transition a /=).transition) fromSame
 
 checkInTran :: Connection -> [Connection] -> Bool
 checkInTran a b = null tranNotSame 
@@ -313,21 +326,25 @@ checkInTran a b = null tranNotSame
                   toSame    = filter ((pointTo a ==).pointTo) b
                   tranNotSame = filter ((transition a /=).transition) toSame
 
-checkOutEdge :: UMLStateDiagram -> Bool
-checkOutEdge s@StateDiagram {} =
-                        all (`checkOutTran` onlyJoint) onlyJoint
+checkTranBothsideEmpty :: UMLStateDiagram -> Bool
+checkTranBothsideEmpty s@StateDiagram {} = 
+                          all (`isStart` global) (outTranEmpty `intersect` toTranEmpty)
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
-                             onlyJoint = filter (not.(`notJoint` sub).pointFrom) conn
-checkOutEdge _ = True
+                             fromOnlyJoint = filter (not.(`notJoint` sub).pointFrom) conn
+                             toOnlyJoint = filter (not.(`notJoint` sub).pointTo) conn
+                             outTranEmpty = map pointFrom (filter (`checkOutTranEmpty` fromOnlyJoint) fromOnlyJoint)
+                             toTranEmpty = map pointTo (filter (`checkInTranEmpty` toOnlyJoint) toOnlyJoint)
+checkTranBothsideEmpty _ = True
 
-checkOutTran :: Connection -> [Connection] -> Bool
-checkOutTran a b = null tranNotSame 
-                where
-                  fromSame    = filter ((pointFrom a ==).pointFrom) b
-                  tranNotSame = filter ((transition a /=).transition) fromSame
+checkOutTranEmpty :: Connection -> [Connection] -> Bool
+checkOutTranEmpty a b = any (null.transition) (filter ((pointFrom a ==).pointFrom) b)
+
+checkInTranEmpty :: Connection -> [Connection] -> Bool
+checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
+
 
 checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool
 checkParallelRegionConnections into l s = 0 == connections g {
