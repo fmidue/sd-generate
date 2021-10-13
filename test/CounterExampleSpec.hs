@@ -68,7 +68,8 @@ spec = do
         ,("forCheckMtoOne5", forCheckMtoOne5)
         ,("forCheckMtoOne6", forCheckMtoOne6)
         ,("forCheckMtoOne7", forCheckMtoOne7)
-
+        ,("forCheckTranBothsideEmpty1", forCheckTranBothsideEmpty1)
+        ,("forCheckTranBothsideEmpty2", forCheckTranBothsideEmpty2)
        ]
   counterExamplesOnlyFor "checkStructure"
        [ ("forCheckOuterMostLayer", forCheckOuterMostLayer)
