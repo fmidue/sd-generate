@@ -59,8 +59,8 @@ spec = do
         ,("forCheckEndState2", forCheckEndState2)
        ]
   counterExamplesOnlyFor "checkJoint"
-       [ ("forCheckInEdge1", forCheckInEdge1)
-        ,("forCheckOutEdge1", forCheckOutEdge1)
+       [ ("forCheckTranSame1", forCheckTranSame1)
+        ,("forCheckTranSame2", forCheckTranSame2)
         ,("forCheckMtoOne1", forCheckMtoOne1)
         ,("forCheckMtoOne2", forCheckMtoOne2)
         ,("forCheckMtoOne3", forCheckMtoOne3)
@@ -70,6 +70,11 @@ spec = do
         ,("forCheckMtoOne7", forCheckMtoOne7)
         ,("forCheckTranBothsideEmpty1", forCheckTranBothsideEmpty1)
         ,("forCheckTranBothsideEmpty2", forCheckTranBothsideEmpty2)
+       ]
+  counterExamplesOnlyFor "checkHistory"
+       [ ("forCheckInEdge1", forCheckInEdge1 )
+         ,("forCheckInEdge2", forCheckInEdge2)
+         ,("forCheckOutEdge1", forCheckOutEdge1)
        ]
   counterExamplesOnlyFor "checkStructure"
        [ ("forCheckOuterMostLayer", forCheckOuterMostLayer)

@@ -8,6 +8,7 @@ module Test
   , checkEndState
   , checkStartState
   , checkJoint
+  , checkHistory
   , checkSemantics
   ) where
 
@@ -70,12 +71,12 @@ checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition su
 checkHistOutTransition  _ = True
 
 checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
-checkHistConnTransition Connection { pointFrom,transition } a = isConnFromNotHistory pointFrom a || null transition
+checkHistConnTransition Connection { pointFrom,transition } a = notHistory pointFrom a || null transition
 
-isConnFromNotHistory :: [Int] -> [UMLStateDiagram] -> Bool
-isConnFromNotHistory [] _ = True
-isConnFromNotHistory [x] a = all (isNotHistory x) a
-isConnFromNotHistory (x:xs) a = isConnFromNotHistory xs (getSubstate x a)
+notHistory :: [Int] -> [UMLStateDiagram] -> Bool
+notHistory [] _ = True
+notHistory [x] a = all (isNotHistory x) a
+notHistory (x:xs) a = notHistory xs (getSubstate x a)
 
 isNotHistory :: Int -> UMLStateDiagram -> Bool
 isNotHistory a History {label}  = a /= label
@@ -367,13 +368,39 @@ addressesOfJoints s = case s of
   _               -> []
   where
     addressesOfJoints' Joint {label} = [[label]]
-    addressesOfJoints' StateDiagram {label, substate} =
+    addressesOfJoints' StateDiagram {label, substate}   =
       map (label:) $ concatMap addressesOfJoints' substate
     addressesOfJoints' CombineDiagram {label, substate} =
       map (label:) $ concatMap addressesOfJoints' substate
     addressesOfJoints' _ = []
 
+checkHistory :: UMLStateDiagram -> Maybe String
+checkHistory a
+  | not(checkInEdge a) 
+  = Just "History should never be reached from (somewhere, possibly nested) inside their own compound state"
+  | not(checkOutEdge a) 
+  = Just "History should only have connections towards something in their own compound state or deeper"
+  | otherwise = Nothing
 
+checkInEdge :: UMLStateDiagram -> Bool
+checkInEdge s@StateDiagram {} = 
+       all (\x -> init (take (length $ pointTo x) $ pointFrom x) /= init ( pointTo x ) ) toOnlyHistory
+                               where 
+                                  global = globalise s
+                                  sub    = substate global
+                                  conn   = connection global
+                                  toOnlyHistory = filter (not.(`notHistory` sub).pointTo) conn
+checkInEdge _ = True
+
+checkOutEdge :: UMLStateDiagram -> Bool
+checkOutEdge s@StateDiagram {} = 
+       all (\x -> init (take (length $ pointFrom x) $ pointTo x) == init ( pointFrom x ) ) fromOnlyHistory
+                               where 
+                                  global = globalise s
+                                  sub    = substate global
+                                  conn   = connection global
+                                  fromOnlyHistory = filter (not.(`notHistory` sub).pointFrom) conn
+checkOutEdge _ = True
 
 
 --checkSemantics
