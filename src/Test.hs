@@ -264,9 +264,9 @@ checkJoint a
 checkMtoOne :: UMLStateDiagram -> Bool
 checkMtoOne s@StateDiagram{} = 
                        null (toMany `intersect` fromMany)
-                       && all (\x -> x `notElem` toOnlyJoint) startOnlyJoint
-                       && all (\x -> x `elem` fromMany) startOnlyJoint
-                       && all (\x -> x `elem` startOnlyJoint) toNoConn
+                       && all (`notElem` toOnlyJoint) startOnlyJoint
+                       && all (`elem` fromMany) startOnlyJoint
+                       && all (`elem` startOnlyJoint) toNoConn
                        && null fromNoConn 
                        && null (toOne `intersect` fromOne)
                           where 
@@ -287,12 +287,13 @@ checkMtoOne _ = True
 
 globalStart :: UMLStateDiagram -> [[Int]]
 globalStart StateDiagram{ substate,startState} 
- = [startState] ++ concatMap (`globalStart1` []) substate
+ = startState : concatMap (`globalStart1` []) substate
 globalStart _ = []
 
 globalStart1 :: UMLStateDiagram -> [Int] -> [[Int]]
 globalStart1 StateDiagram{ substate, startState, label} p 
- = [(p ++ [label]) ++ startState] ++ (concatMap (`globalStart1` (p ++ [label])) substate)
+ =  ((p ++ [label]) ++ startState)
+    : concatMap (`globalStart1` (p ++ [label])) substate
 globalStart1 CombineDiagram{ substate ,label} p 
   = concatMap (`globalStart1` (p ++ [label])) substate
 globalStart1 _ _ = []
@@ -305,7 +306,7 @@ checkTransition s@StateDiagram {} =
   all (`checkOutTran` fromOnlyJoint) fromOnlyJoint 
   && all (`checkInTran` toOnlyJoint) toOnlyJoint
   && null (fromTranNonEmpty `intersect` toTranNonEmpty)
-  && all (\x -> x `notElem` fromTranNonEmpty) startOnlyJoint
+  && all (`notElem` fromTranNonEmpty) startOnlyJoint
     where
       global = globalise s
       sub = substate global
