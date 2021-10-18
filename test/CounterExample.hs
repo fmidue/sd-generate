@@ -14,8 +14,8 @@ bogusExample = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1
       a = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
       b = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
 
-forCheckTranSame1 :: UMLStateDiagram
-forCheckTranSame1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
+forCheckTransition1 :: UMLStateDiagram
+forCheckTransition1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
       Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] ""] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
@@ -25,8 +25,8 @@ forCheckTranSame1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Con
            f = Joint 6        
            g = EndState 7
 
-forCheckTranSame2 :: UMLStateDiagram
-forCheckTranSame2 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
+forCheckTransition2 :: UMLStateDiagram
+forCheckTransition2 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
       Connection[3] [6] "a",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] ""] [5]
      where a = InnerMostState  1 "Tasse nehmen" ""
            b = InnerMostState  2 "Kaffee trinken" ""
@@ -105,25 +105,22 @@ forCheckMtoOne7 = StateDiagram [a, b, c, d, l] 1 "" [ Connection [2, 1, 3] [3] "
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
-forCheckTranBothsideEmpty1 :: UMLStateDiagram
-forCheckTranBothsideEmpty1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[3] [6] "",
-           Connection[4] [6] "",Connection[6] [7] ""] [5]
-     where a = InnerMostState  1 "Tasse nehmen" ""
-           b = InnerMostState  2 "Kaffee trinken" ""
-           c = InnerMostState  3 "Tasse absetzen" ""
-           d = InnerMostState  4 "Zeitung lesen" ""
+forCheckMtoOne8 :: UMLStateDiagram
+forCheckMtoOne8 = StateDiagram [a,b,c,d,e] 1 "" [] [5]
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
            e = Joint 5
-           f = Joint 6
-           g = EndState 7
 
-forCheckTranBothsideEmpty2 :: UMLStateDiagram
-forCheckTranBothsideEmpty2 = StateDiagram [a, b, d, l] 1 "" [ Connection [2]
-           [2, 1, 4] "", Connection [4] [2, 1, 4] ""] [1]
+forCheckTransition3 :: UMLStateDiagram
+forCheckTransition3 = StateDiagram [a, b, d, l] 1 "" [Connection [2]
+           [2, 1, 4] "a", Connection [4] [2, 1, 4] "b"] [1]
   where
     a = InnerMostState 1 "A" ""
     b = CombineDiagram [e, f] 2
       where
-        e = StateDiagram [g, h, c, i] 1 "" [Connection [4] [2] ""] [1]
+        e = StateDiagram [g, h, c, i] 1 "" [Connection [4] [2] "c"] [1]
           where
             g = InnerMostState 1 "B" ""
             h = InnerMostState 2 "C" ""
@@ -135,6 +132,14 @@ forCheckTranBothsideEmpty2 = StateDiagram [a, b, d, l] 1 "" [ Connection [2]
             k = InnerMostState 2 "F" ""
     d = InnerMostState 4 "G" ""
     l = EndState 5
+
+forCheckTransition4 :: UMLStateDiagram
+forCheckTransition4 = StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "a",Connection[5] [2] "c"] [5]
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
+           c = InnerMostState  3 "C" ""
+           d = InnerMostState  4 "D" ""
+           e = Joint 5
 
 forCheckEndState1 :: UMLStateDiagram
 forCheckEndState1 = StateDiagram [a,b,c,d,e] 1 "" [Connection[7] [2] ""] [2]
@@ -445,20 +450,17 @@ forCheckUniqueness1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Co
     d = InnerMostState 4 "D" ""
 
 forCheckUniqueness2 :: UMLStateDiagram
-forCheckUniqueness2 =  StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] "a", Connection
-           [2, 1, 2] [4] "h", Connection [2, 1, 3] [3] "a", Connection [2, 2, 2]
-           [3] "a", Connection [3] [4] "g",Connection [4] [5] ""] [1]
+forCheckUniqueness2 =  StateDiagram [a, b, c, d, l] 1 "" [] [1]
   where
     a = InnerMostState 1 "A" ""
     b = CombineDiagram [e, f] 2
       where
-        e = StateDiagram [g, h, i] 1 "" [Connection [3] [2] "b", Connection
-            [2] [3] "c"] [2]
+        e = StateDiagram [g, h, i] 1 "" [] [2]
           where
             g = InnerMostState 2 "B" ""
             h = InnerMostState 2 "C" ""
             i = InnerMostState 3 "D" ""
-        f = StateDiagram [j, k] 2 "" [Connection [1] [2] "e"] [1]
+        f = StateDiagram [j, k] 2 "" [] [1]
           where
             j = InnerMostState 1 "E" ""
             k = InnerMostState 2 "F" ""
