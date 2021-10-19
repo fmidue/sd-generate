@@ -425,39 +425,6 @@ test2 = StateDiagram [a, b] 1 "" [Connection [1] [2, 2, 2] "a"] [1]
     e = InnerMostState 1 "E" ""
     f = InnerMostState 2 "F" ""
 
-test3 :: UMLStateDiagram
-test3 = StateDiagram [a] 1 "" [] [2, 1, 4]
-  where
-    a = StateDiagram [b, c] 2 "A" [Connection [1, 1, 1, 1] [2] "i",
-        Connection [1, 3] [2] "", Connection [1, 2, 2] [2, 2] "h", Connection
-        [2, 2] [1, 1, 2, 3] "e", Connection [2, 1] [1, 0] "f"] []
-      where
-        b = StateDiagram [g1, g, h, i, j] 1 "B" [Connection [1, 1, 2] [3] "c",
-            Connection [1, 2, 2] [3] "c", Connection [0] [2] ""] []
-          where
-            g1 = Joint 4
-            g = CombineDiagram [k, l] 1
-              where
-                k = StateDiagram [InnerMostState 1 "1" "", InnerMostState 2
-                    "2" ""] 1 "C" [Connection [1] [2] "a", Connection [2] [1]
-                    "b"] [1]
-                l = StateDiagram [InnerMostState 1 "3" "", InnerMostState 2
-                    "4" "", InnerMostState 3 "5" ""] 2 "" [Connection [1] [2]
-                    "b", Connection [2] [3] "b", Connection [3] [1] "b"] [1]
-            h = StateDiagram [m, n] 2 "D" [Connection [1] [2] "g", Connection
-                [2] [1] "g"] [1]
-              where
-                m = InnerMostState 1 "9" ""
-                n = InnerMostState 2 "10" ""
-            i = Joint 3
-            j = History 0 Shallow
-        c = StateDiagram [d, e, f] 2 "E" [Connection [1] [3] "d", Connection
-            [3] [2] "d", Connection [2] [1] "d"] [3]
-          where
-            d = InnerMostState 1 "6" ""
-            e = InnerMostState 2 "7" ""
-            f = InnerMostState 3 "8" ""
-
 test4 :: UMLStateDiagram
 test4 = StateDiagram [a] 1 "" [] [1, 1, 1]
   where
