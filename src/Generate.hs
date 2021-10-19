@@ -11,23 +11,26 @@ import Data.List((\\))
 import Test.QuickCheck hiding(label,labels)
 
 randomSD :: Gen UMLStateDiagram
-randomSD = randomSD' `suchThat` (isNothing . checkSemantics)
+randomSD = do 
+      let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"]
+      nm  <- elements alphabet
+      randomSD' 4 [3 .. 4] alphabet (1,nm) [] `suchThat` (isNothing . checkSemantics)
 
-randomSD' :: Gen UMLStateDiagram
-randomSD' = do
-      let counter = 3
-      n       <- elements [3 .. 4]
-      nm      <- elements ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"]
+randomSD' :: Int -> [Int] -> [String] -> (Int,String)-> [String] ->Gen UMLStateDiagram
+randomSD' c ns alphabet (l,nm) exclude = do
+      let counter = c - 1
+          noNms   = exclude ++ [nm]
+      n     <- elements ns
       labels  <- shuffle  [1..n]
       subSD   <- vectorOf n arbitrary `suchThat` (True `elem`)
       nmUniq  <- vectorOf n (choose (False, True))
-      subNms  <- shuffle  (["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"] \\ [nm])
+      subNms  <- shuffle  (alphabet \\ [nm])
       let subNm   = chooseName nmUniq  subNms 
       let cond    = zip3 subSD labels subNm
-      subs    <- mapM (\x -> randomInnerSD counter x [nm]) cond 
+      subs    <- mapM (\x -> randomInnerSD counter alphabet x noNms) cond 
       conns   <- vectorOf n (randomConnection (map label subs))
       start   <- elements (map label subs)
-      return (StateDiagram subs 1 nm conns [start]) 
+      return (StateDiagram subs l nm conns [start]) 
 
 chooseName :: [Bool] -> [String] -> [[String]]
 chooseName (x:xs) str = if x 
@@ -37,46 +40,39 @@ chooseName (x:xs) str = if x
                            take 1 str : chooseName xs (drop 1 str)
 chooseName [] _ = []
 
-randomInnerSD :: Int -> (Bool,Int,[String]) -> [String]-> Gen UMLStateDiagram
-randomInnerSD c (b,l,s) noNm = do
+randomInnerSD :: Int -> [String] -> (Bool,Int,[String]) -> [String]-> Gen UMLStateDiagram
+randomInnerSD counter alphabet (b,l,s) exclude = do
+ let nm = head s
+ if counter > 0 
+  then
+    do
       if b 
         then
           do
             if length s == 1 
               then 
                 do 
-                  let nm = head s 
-                  frequency [ (10,return (InnerMostState l nm "")),(2,randomSubstateCD c (l,nm) noNm)]
+                  frequency [ (10,return (InnerMostState l nm "")),
+                    (2,randomSD' counter [3 .. 4] alphabet (l,nm) exclude)]
             else 
               do 
-               randomCD c l s noNm             
+               randomCD counter alphabet l s exclude             
       else
        do
-         frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(1,return (EndState l))]
+         frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),
+          (1,return (EndState l))]
+  else
+    do 
+      frequency [(10,return (InnerMostState l nm "")),(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),
+        (1,return (EndState l))] 
 
-randomCD :: Int -> Int -> [String] ->[String] -> Gen UMLStateDiagram
-randomCD c l s noNm = do
+randomCD :: Int -> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
+randomCD counter alphabet l s exclude = do
       n      <- elements [2 .. 3]
       labels <- shuffle [1..n]
       let cond   = zip labels s
-      subs   <- mapM (\x -> randomSubstateCD c x noNm) cond
+      subs   <- mapM (\x -> randomSD' counter [3 .. 4] alphabet x exclude) cond
       return (CombineDiagram subs l)
-
-randomSubstateCD :: Int -> (Int,String)-> [String] -> Gen UMLStateDiagram
-randomSubstateCD c (l,nm) noNm = do
-      let counter = c - 1
-          noNms   = noNm ++ [nm]
-      n       <- elements [2 .. 3]
-      labels  <- shuffle [1..n]
-      subSD   <- vectorOf n arbitrary `suchThat` (True `elem`)
-      nmUniq  <- vectorOf n (choose (False, True))
-      subNms  <- shuffle  (["A","B","C","D","E","F","G","H","I","J","K"] \\ noNms)
-      let subNm   = chooseName nmUniq  subNms 
-      let cond    = zip3 subSD labels subNm
-      subs    <- mapM (\x -> randomInnerSD counter x noNms) cond 
-      start   <- elements (map label subs)
-      conns   <- vectorOf n (randomConnection (map label subs))
-      return (StateDiagram subs l nm conns [start])
 
 randomConnection :: [Int] -> Gen Connection
 randomConnection l = do
