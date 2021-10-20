@@ -4,33 +4,37 @@ import Datatype (
   HistoryType(..),
   StateDiagram(..),
   UMLStateDiagram,
+  hoistOutwards
   )
 import Test (checkSemantics)
 import Data.Maybe(isNothing)
-import Data.List((\\)) 
+import Data.List((\\),nub) 
 import Test.QuickCheck hiding(label,labels)
 
 randomSD :: Gen UMLStateDiagram
 randomSD = do 
-      let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T"]
-      nm  <- elements alphabet
+      let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
+      nm <- elements alphabet
       randomSD' 4 [3 .. 4] alphabet (1,nm) [] `suchThat` (isNothing . checkSemantics)
 
 randomSD' :: Int -> [Int] -> [String] -> (Int,String)-> [String] ->Gen UMLStateDiagram
 randomSD' c ns alphabet (l,nm) exclude = do
       let counter = c - 1
           noNms   = exclude ++ [nm]
-      n     <- elements ns
-      labels  <- shuffle  [1..n]
-      subSD   <- vectorOf n arbitrary `suchThat` (True `elem`)
-      nmUniq  <- vectorOf n (choose (False, True))
-      subNms  <- shuffle  (alphabet \\ [nm])
-      let subNm   = chooseName nmUniq  subNms 
-      let cond    = zip3 subSD labels subNm
-      subs    <- mapM (\x -> randomInnerSD counter alphabet x noNms) cond 
-      conns   <- vectorOf n (randomConnection (map label subs))
-      start   <- elements (map label subs)
-      return (StateDiagram subs l nm conns [start]) 
+      n      <- elements ns
+      labels <- shuffle  [1..n]
+      subSD  <- vectorOf n arbitrary `suchThat` (True `elem`)
+      nmUniq <- vectorOf n (choose (True, False))
+      subNms <- shuffle  (alphabet \\ [nm])
+      let subNm   = chooseName nmUniq subNms 
+          cond    = zip3 subSD labels subNm
+      subs <- mapM (\x -> randomInnerSD counter alphabet x noNms) cond
+      let globalConn = hoistOutwards (StateDiagram subs l nm [] [])
+          globalElem = nub (map pointTo globalConn ++ map pointFrom globalConn)
+          layerElem  = map (\x -> [label x]) subs 
+      conns <- vectorOf n (randomConnection (layerElem ++ globalElem))
+      start <- elements (layerElem ++ globalElem)
+      return (StateDiagram subs l nm conns start) 
 
 chooseName :: [Bool] -> [String] -> [[String]]
 chooseName (x:xs) str = if x 
@@ -42,29 +46,26 @@ chooseName [] _ = []
 
 randomInnerSD :: Int -> [String] -> (Bool,Int,[String]) -> [String]-> Gen UMLStateDiagram
 randomInnerSD counter alphabet (b,l,s) exclude = do
- let nm = head s
- if counter > 0 
-  then
+  let nm = head s
+  if counter > 0 
+   then
     do
-      if b 
-        then
-          do
-            if length s == 1 
-              then 
-                do 
-                  frequency [ (10,return (InnerMostState l nm "")),
-                    (2,randomSD' counter [3 .. 4] alphabet (l,nm) exclude)]
-            else 
-              do 
-               randomCD counter alphabet l s exclude             
-      else
+     if b 
+      then
        do
-         frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),
-          (1,return (EndState l))]
+        if length s == 1 
+         then 
+          do 
+           frequency [ (1,return (InnerMostState l nm "")),(90,randomSD' counter [3 .. 4] alphabet (l,nm) exclude)]
+        else 
+          do 
+           randomCD counter alphabet l s exclude             
+     else
+      do
+       frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(1,return (EndState l))]
   else
-    do 
-      frequency [(10,return (InnerMostState l nm "")),(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),
-        (1,return (EndState l))] 
+   do 
+    frequency [(10,return (InnerMostState l nm "")),(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(1,return (EndState l))] 
 
 randomCD :: Int -> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
 randomCD counter alphabet l s exclude = do
@@ -74,10 +75,8 @@ randomCD counter alphabet l s exclude = do
       subs   <- mapM (\x -> randomSD' counter [3 .. 4] alphabet x exclude) cond
       return (CombineDiagram subs l)
 
-randomConnection :: [Int] -> Gen Connection
+randomConnection :: [[Int]] -> Gen Connection
 randomConnection l = do
       from <- elements l
       to   <- elements l `suchThat` (from /=)
-      return (Connection [from] [to] "" )
-
-
+      return (Connection from to "" )

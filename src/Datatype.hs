@@ -16,6 +16,7 @@ module Datatype
   , StateDiagram(..)
   , globalise
   , localise
+  , hoistOutwards
   ) where
 
 import Data.List                        (partition)
