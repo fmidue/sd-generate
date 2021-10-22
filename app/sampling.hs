@@ -12,9 +12,9 @@ import Text.Pretty.Simple (pPrint)
 main = do
   sds <- sample' randomSD
   forM_ (zip [1..] sds) $
-    \(i,sd) ->
+    \(i,(sd,n)) ->
       do
         let file = "sample" ++ show i ++ ".svg"
-        putStrLn $ "\n" ++ file ++ ":"
+        putStrLn $ "\nDiscarded " ++ show n ++ " attempts, then got " ++ file ++ ":"
         pPrint sd
         renderSVG file (mkWidth 250) (drawDiagram sd)

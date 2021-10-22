@@ -11,11 +11,18 @@ import Data.Maybe(isNothing)
 import Data.List((\\),nub) 
 import Test.QuickCheck hiding(label,labels)
 
-randomSD :: Gen UMLStateDiagram
-randomSD = do 
+suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
+suchThatWhileCounting gen p = tryWith 0
+  where
+    tryWith i = do
+      a <- gen
+      if p a then return (a, i) else tryWith (i + 1)
+
+randomSD :: Gen (UMLStateDiagram, Int)
+randomSD = do
       let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
       nm <- elements alphabet
-      randomSD' 4 [3 .. 4] alphabet (1,nm) [] `suchThat` (isNothing . checkSemantics)
+      randomSD' 4 [3 .. 4] alphabet (1,nm) [] `suchThatWhileCounting` (isNothing . checkSemantics)
 
 randomSD' :: Int -> [Int] -> [String] -> (Int,String)-> [String] ->Gen UMLStateDiagram
 randomSD' c ns alphabet (l,nm) exclude = do
