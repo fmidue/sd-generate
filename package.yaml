@@ -1,0 +1,37 @@
+name: ba-zixin-wu
+extra-source-files: []
+dependencies:
+  - base
+  - extra
+default-extensions:
+  - TupleSections
+  - DuplicateRecordFields
+  - OverloadedLabels
+  - MultiParamTypeClasses
+  - FlexibleInstances
+  - TypeApplications
+  - ScopedTypeVariables
+library:
+  source-dirs: src
+  exposed-modules: []
+  ghc-options:
+    - -Wall
+    - -Werror
+executables:
+  default:
+    main: default.hs
+    source-dirs: app
+    dependencies:
+      - ba-zixin-wu
+tests:
+  ba-zixin-wu-test:
+    main: Spec.hs
+    source-dirs:
+      - test
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - ba-zixin-wu
+      - hspec
