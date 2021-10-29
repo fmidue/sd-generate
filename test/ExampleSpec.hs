@@ -30,6 +30,7 @@ allTheCheckers =
   , ("checkStartState", checkStartState)
   , ("checkEndState", checkEndState)
   , ("checkStructure", checkStructure)
+  , ("checkHistory", checkHistory)
   , ("checkSemantics", checkSemantics)
   , ("checkWrapper", checkWrapper)
   ]
@@ -57,7 +58,6 @@ positiveExamples =
         , ("task88", task88)
         , ("test1", test1)
         , ("test2", test2)
-        , ("test3", test3)
         , ("test4", test4)
         , ("picture1", picture1)
         , ("picture2", picture2)
