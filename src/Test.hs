@@ -122,16 +122,16 @@ getSubstate1 _ = []
 
 checkConnFromToRegion :: UMLStateDiagram -> Bool
 checkConnFromToRegion StateDiagram{substate,connection}  = 
-                                all ((`lastSecCD` substate) . pointFrom) connection
-                             && all ((`lastSecCD` substate) . pointTo) connection
+                                all ((`lastSecNotCD` substate) . pointFrom) connection
+                             && all ((`lastSecNotCD` substate) . pointTo) connection
                              && all checkConnFromToRegion substate
 checkConnFromToRegion CombineDiagram {substate} = all checkConnFromToRegion substate
 checkConnFromToRegion _ = True
                         
-lastSecCD :: [Int] -> [UMLStateDiagram]-> Bool
-lastSecCD [] _ = True
-lastSecCD [x, _] a = all (isNotCD x) a
-lastSecCD (x:xs) a = lastSecCD xs (getSubstate x a) 
+lastSecNotCD :: [Int] -> [UMLStateDiagram]-> Bool
+lastSecNotCD [] _ = True
+lastSecNotCD [x, _] a = all (isNotCD x) a
+lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstate x a) 
 
 isNotCD :: Int -> UMLStateDiagram -> Bool
 isNotCD a CombineDiagram{label} = a /= label
@@ -195,9 +195,6 @@ checkSub  _ = True
 isUnique :: [Int] -> Bool
 isUnique a = not (anySame a)
 
-
-
-
 --checkEndState
 checkEndState :: UMLStateDiagram -> Maybe String
 checkEndState a
@@ -238,14 +235,11 @@ checkSubS  _ = True
 
 checkStartToRegion :: UMLStateDiagram -> Bool
 checkStartToRegion StateDiagram{substate,startState}  = 
-                                               lastSecCD startState substate 
+                                               lastSecNotCD startState substate 
                                              && all checkStartToRegion substate
 checkStartToRegion CombineDiagram {substate} = all checkStartToRegion substate
 checkStartToRegion _ = True                                          
-
-
-
-                                                                                 
+                                                                                
 --checkJoint
 checkJoint :: UMLStateDiagram -> Maybe String
 checkJoint a
