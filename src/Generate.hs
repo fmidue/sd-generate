@@ -1,3 +1,4 @@
+{-# LANGUAGE NamedFieldPuns #-}
 module Generate (randomSD) where
 import Datatype (
   Connection(..),
@@ -8,7 +9,7 @@ import Datatype (
   )
 import Test (checkSemantics)
 import Data.Maybe(isNothing)
-import Data.List((\\),nub) 
+import Data.List((\\),nub,find) 
 import Test.QuickCheck hiding(label,labels)
 
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
@@ -39,8 +40,8 @@ randomSD' c ns alphabet (l,nm) exclude = do
       let globalConn = hoistOutwards (StateDiagram subs l nm [] [])
           globalElem = nub (map pointTo globalConn ++ map pointFrom globalConn)
           layerElem  = map (\x -> [label x]) subs 
-      conns <- vectorOf n (randomConnection (layerElem ++ globalElem))
-      start <- elements (layerElem ++ globalElem)
+      conns <- vectorOf n (randomConnection (layerElem ++ globalElem) subs)
+      start <- elements (filter (`lastSecNotCD` subs) (layerElem ++ globalElem)) 
       return (StateDiagram subs l nm conns start) 
 
 chooseName :: [Bool] -> [String] -> [[String]]
@@ -63,7 +64,7 @@ randomInnerSD counter alphabet (b,l,s) exclude = do
         if length s == 1 
          then 
           do 
-           frequency [ (1,return (InnerMostState l nm "")),(90,randomSD' counter [3 .. 4] alphabet (l,nm) exclude)]
+           frequency [ (10,return (InnerMostState l nm "")),(5,randomSD' counter [3 .. 4] alphabet (l,nm) exclude)]
         else 
           do 
            randomCD counter alphabet l s exclude             
@@ -82,8 +83,36 @@ randomCD counter alphabet l s exclude = do
       subs   <- mapM (\x -> randomSD' counter [3 .. 4] alphabet x exclude) cond
       return (CombineDiagram subs l)
 
-randomConnection :: [[Int]] -> Gen Connection
-randomConnection l = do
-      from <- elements l
-      to   <- elements l `suchThat` (from /=)
+randomConnection :: [[Int]] -> [UMLStateDiagram] -> Gen Connection
+randomConnection p sub = do
+      let notRegion = filter (`lastSecNotCD` sub) p
+          endState  = filter (`isEnd` sub) notRegion 
+      from <- elements (notRegion \\ endState)
+      to   <- elements notRegion `suchThat` (from /=)
       return (Connection from to "" )
+
+isEnd :: [Int] -> [UMLStateDiagram] -> Bool
+isEnd [] _ = False
+isEnd [x] a = any (isEnd1 x) a
+isEnd (x:xs) a = isEnd xs (getSubstate x a)
+
+isEnd1 :: Int -> UMLStateDiagram -> Bool
+isEnd1 a EndState{label}  = a == label
+isEnd1 _ _ = False
+
+getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
+getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
+
+getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
+getSubstate1 (StateDiagram a _ _ _ _) = a
+getSubstate1 (CombineDiagram a _) = a
+getSubstate1 _ = []
+
+lastSecNotCD :: [Int] -> [UMLStateDiagram]-> Bool
+lastSecNotCD [] _ = True
+lastSecNotCD [x, _] a = all (isNotCD x) a
+lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstate x a) 
+
+isNotCD :: Int -> UMLStateDiagram -> Bool
+isNotCD a CombineDiagram{label} = a /= label
+isNotCD _ _ = True
