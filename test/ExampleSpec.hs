@@ -26,7 +26,6 @@ allTheCheckers =
   , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
   , ("checkJoint", checkJoint)
-  , ("checkHistory", checkHistory)
   , ("checkStartState", checkStartState)
   , ("checkEndState", checkEndState)
   , ("checkStructure", checkStructure)

@@ -88,7 +88,7 @@ randomConnection p sub = do
       let notRegion = filter (`lastSecNotCD` sub) p
           endState  = filter (`isEnd` sub) notRegion 
       from <- elements (notRegion \\ endState)
-      to   <- elements notRegion `suchThat` (from /=)
+      to   <- elements notRegion `suchThat` ( /= from)
       return (Connection from to "" )
 
 isEnd :: [Int] -> [UMLStateDiagram] -> Bool
