@@ -35,6 +35,8 @@ checkStructure a
     ++ "node always have the empty transition")
   | not(checkEmptyConnPoint a) = Just ("Error: Neither the pointFrom nor the po" 
     ++ "intTo of a connection is an empty list")
+  | not(checkReachablity a) 
+  = Just "Should Not contain unreachable states (except Start states)" 
   | otherwise = Nothing
 
                 --checkOuterMostLayer
@@ -81,7 +83,44 @@ notHistory (x:xs) a = notHistory xs (getSubstate x a)
 isNotHistory :: Int -> UMLStateDiagram -> Bool
 isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
-             
+                 --checkReachablity
+checkReachablity :: UMLStateDiagram -> Bool
+checkReachablity s@StateDiagram{} 
+  = all (`elem` (map pointTo conn ++ globalStart s)) stateNoCDSD
+    where
+      global = globalise s
+      conn   = connection global 
+      stateNoCDSD = getAllElem s
+checkReachablity _ = True
+
+getAllElem :: UMLStateDiagram -> [[Int]]
+getAllElem StateDiagram{substate} 
+  = map (\x -> [label x]) subNoSDCD  
+   ++ concatMap (getAllElem1 []) substate
+    where 
+     subNoSDCD = filter subNotSDCD substate
+getAllElem CombineDiagram{substate} 
+  = concatMap (getAllElem1 []) substate
+getAllElem _ = []
+
+getAllElem1 :: [Int] -> UMLStateDiagram -> [[Int]]
+getAllElem1 prepend s@StateDiagram {substate} 
+  = map (\x -> newPrepend ++ [label x]) subNoSDCD 
+    ++ concatMap (getAllElem1 newPrepend) substate
+      where 
+       subNoSDCD = filter subNotSDCD substate
+       newPrepend = prepend ++ [label s]
+getAllElem1 prepend c@CombineDiagram {substate} 
+  = concatMap (getAllElem1 newPrepend) substate 
+      where
+        newPrepend = prepend ++ [label c]
+getAllElem1 _ _ = []
+
+subNotSDCD :: UMLStateDiagram -> Bool
+subNotSDCD StateDiagram {} = False 
+subNotSDCD CombineDiagram {} = False
+subNotSDCD _ = True
+
                --checkEmptyConnPoint 
 checkEmptyConnPoint :: UMLStateDiagram -> Bool
 checkEmptyConnPoint = all (\cs -> not (any (null . pointFrom) cs) && not (any (null . pointTo) cs))

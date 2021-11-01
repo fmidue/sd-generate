@@ -87,6 +87,8 @@ spec = do
          ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
          -- ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
          -- ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)
+         ,("forCheckReachablity1", forCheckReachablity1)
+         ,("forCheckReachablity2", forCheckReachablity2)
        ]
   counterExamplesOnlyFor "checkSemantics"
        [ ("forCheckSameConnection1", forCheckSameConnection1)

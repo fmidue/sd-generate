@@ -8,6 +8,41 @@ import Datatype (
 
 {-# ANN module "Hlint: ignore Reduce duplication" #-}
 
+forCheckReachablity1 :: UMLStateDiagram
+forCheckReachablity1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection [1] [3] "b",
+        Connection [3] [2] "c", Connection [4] [3] "d", Connection [3] [1] "e"] [1]
+  where
+    a = InnerMostState 1 "A" ""
+    b = InnerMostState 2 "B" ""
+    c = InnerMostState 3 "C" ""
+    d = InnerMostState 4 "D" ""
+
+forCheckReachablity2 :: UMLStateDiagram
+forCheckReachablity2 = StateDiagram [a, b, c, d] 1 "" [Connection [1, 1, 3] [2] "e",
+          Connection [1, 2, 2] [2] "e", Connection [2] [3] "", Connection [3]
+          [4] "c", Connection [3] [4, 2] "d", Connection [4, 2] [1, 2, 2] "a",
+          Connection [4, 1] [1] "a"] [1, 1, 2]
+  where
+    a = CombineDiagram [e, f] 1
+      where
+        e = StateDiagram [i, j, k] 1 "" [Connection [1] [2] "a", Connection
+            [2] [3] "b", Connection [3] [1] "a"] [1]
+          where
+            i = InnerMostState 1 "A" ""
+            j = InnerMostState 2 "B" ""
+            k = InnerMostState 3 "C" ""
+        f = StateDiagram [l, m] 2 "" [Connection [1] [2] "b", Connection [2]
+            [1] "c"] [1]
+          where
+            l = InnerMostState 1 "D" ""
+            m = InnerMostState 2 "E" ""
+    b = Joint 2
+    c = InnerMostState 3 "F" ""
+    d = StateDiagram [g, h] 4 "" [] [2]
+      where
+        g = InnerMostState 1 "G" ""
+        h = InnerMostState 2 "H" ""
+
 bogusExample :: UMLStateDiagram
 bogusExample = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1,3,0] ""] []
     where
