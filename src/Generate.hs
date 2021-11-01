@@ -89,7 +89,12 @@ randomConnection p sub = do
           endState  = filter (`isEnd` sub) notRegion 
       from <- elements (notRegion \\ endState)
       to   <- elements notRegion `suchThat` ( /= from)
-      return (Connection from to "" )
+      tran <- elements ["a","b","c","d","e","f","g","h","i","j","k",""]
+      if notHistory from sub 
+        then 
+          return (Connection from to tran)
+        else 
+          return (Connection from to "")
 
 isEnd :: [Int] -> [UMLStateDiagram] -> Bool
 isEnd [] _ = False
@@ -99,6 +104,15 @@ isEnd (x:xs) a = isEnd xs (getSubstate x a)
 isEnd1 :: Int -> UMLStateDiagram -> Bool
 isEnd1 a EndState{label}  = a == label
 isEnd1 _ _ = False
+
+notHistory :: [Int] -> [UMLStateDiagram] -> Bool
+notHistory [] _ = True
+notHistory [x] a = all (isNotHistory x) a
+notHistory (x:xs) a = notHistory xs (getSubstate x a)
+
+isNotHistory :: Int -> UMLStateDiagram -> Bool
+isNotHistory a History {label}  = a /= label
+isNotHistory _ _ = True
 
 getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
 getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
