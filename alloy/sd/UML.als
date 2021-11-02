@@ -1,8 +1,5 @@
 abstract sig Nodes{
-//	from,to: Nodes
-}
-{
-//	from != to
+	to: set Nodes
 }
 
 // a same state can't be in different blocks(regions and layouts)
@@ -48,12 +45,10 @@ fact{
 }
 
 //In a same layout, states in different regions can't be transited to each other
-/*
 fact{
-	all r1, r2: Region |  r1.partof = r2.partof => r1.contains.from not in (r2.contains.from + r2.contains.to)
-	all r1, r2: Region |  r1.partof = r2.partof => r1.contains.to not in (r2.contains.from + r2.contains.to)
+	all r1, r2: Region |  r1.partof = r2.partof => r2.contains not in r1.contains.to
+	all r1, r2: Region |  r1.partof = r2.partof => r1.contains not in  r2.contains.to
 }
-*/
 
-//check {}
-run {} for 6 but exactly 2 Layout, 2 State, 2 Region
+//check
+run {} for 6
