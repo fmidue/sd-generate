@@ -1,15 +1,14 @@
-{-# LANGUAGE NamedFieldPuns #-}
 module Generate (randomSD) where
 import Datatype (
   Connection(..),
   HistoryType(..),
   StateDiagram(..),
   UMLStateDiagram,
-  hoistOutwards
   )
 import Test (checkSemantics)
+import Helper
 import Data.Maybe(isNothing)
-import Data.List((\\),nub,find) 
+import Data.List((\\)) 
 import Test.QuickCheck hiding(label,labels)
 
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
@@ -37,11 +36,11 @@ randomSD' c ns alphabet (l,nm) exclude = do
       let subNm   = chooseName nmUniq subNms 
           cond    = zip3 subSD labels subNm
       subs <- mapM (\x -> randomInnerSD counter alphabet x noNms) cond
-      let globalConn = hoistOutwards (StateDiagram subs l nm [] [])
-          globalElem = nub (map pointTo globalConn ++ map pointFrom globalConn)
-          layerElem  = map (\x -> [label x]) subs 
-      conns <- vectorOf n (randomConnection (layerElem ++ globalElem) subs)
-      start <- elements (filter (`lastSecNotCD` subs) (layerElem ++ globalElem)) 
+      let layerElem  = map (\x -> [label x]) subs
+          innerElem  = concatMap (getAllElem1 []) subs
+          innerElemNoRegions  = filter (`lastSecNotCD` subs) innerElem
+      conns <- vectorOf n (randomConnection (layerElem ++ innerElemNoRegions) subs)
+      start <- elements (filter (`lastSecNotCD` subs) (layerElem ++ innerElemNoRegions)) 
       return (StateDiagram subs l nm conns start) 
 
 chooseName :: [Bool] -> [String] -> [[String]]
@@ -83,50 +82,31 @@ randomCD counter alphabet l s exclude = do
       subs   <- mapM (\x -> randomSD' counter [3 .. 4] alphabet x exclude) cond
       return (CombineDiagram subs l)
 
-randomConnection :: [[Int]] -> [UMLStateDiagram] -> Gen Connection
-randomConnection p sub = do
-      let notRegion = filter (`lastSecNotCD` sub) p
-          endState  = filter (`isEnd` sub) notRegion 
-      from <- elements (notRegion \\ endState)
-      to   <- elements notRegion `suchThat` ( /= from)
+randomConnection ::[[Int]] -> [UMLStateDiagram] -> Gen Connection
+randomConnection points sub = do
+      let endState  = filter (`isEnd` sub) points
+          --innerElemOnlySDCD = filter (`isSDCD` sub) points
+          --innerElemNotSDCD = points \\ innerElemOnlySDCD
+          outerHistory = filter (\x -> length x == 1 ) onlyHistory 
+                         where 
+                          onlyHistory = filter (not.(`notHistory` sub)) points
+          noEndState = points \\ endState
+          noOuterHistory = points \\ outerHistory 
+      from <- elements noEndState
+      to   <- elements (noOuterHistory\\ [from])
       tran <- elements ["a","b","c","d","e","f","g","h","i","j","k",""]
       if notHistory from sub 
-        then 
-          return (Connection from to tran)
-        else 
-          return (Connection from to "")
-
-isEnd :: [Int] -> [UMLStateDiagram] -> Bool
-isEnd [] _ = False
-isEnd [x] a = any (isEnd1 x) a
-isEnd (x:xs) a = isEnd xs (getSubstate x a)
-
-isEnd1 :: Int -> UMLStateDiagram -> Bool
-isEnd1 a EndState{label}  = a == label
-isEnd1 _ _ = False
-
-notHistory :: [Int] -> [UMLStateDiagram] -> Bool
-notHistory [] _ = True
-notHistory [x] a = all (isNotHistory x) a
-notHistory (x:xs) a = notHistory xs (getSubstate x a)
-
-isNotHistory :: Int -> UMLStateDiagram -> Bool
-isNotHistory a History {label}  = a /= label
-isNotHistory _ _ = True
-
-getSubstate :: Int -> [UMLStateDiagram] -> [UMLStateDiagram]
-getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
-
-getSubstate1 :: UMLStateDiagram -> [UMLStateDiagram]
-getSubstate1 (StateDiagram a _ _ _ _) = a
-getSubstate1 (CombineDiagram a _) = a
-getSubstate1 _ = []
-
-lastSecNotCD :: [Int] -> [UMLStateDiagram]-> Bool
-lastSecNotCD [] _ = True
-lastSecNotCD [x, _] a = all (isNotCD x) a
-lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstate x a) 
-
-isNotCD :: Int -> UMLStateDiagram -> Bool
-isNotCD a CombineDiagram{label} = a /= label
-isNotCD _ _ = True
+        then
+         do
+           if notHistory to sub 
+             then 
+               do  
+                return (Connection from to tran)
+           else 
+            do 
+             historyFrom <- elements (filter (not . inCompoundState to) noEndState)
+             return (Connection historyFrom  to tran)
+      else
+       do
+        historyTo <- elements (filter (inCompoundState from) noOuterHistory)
+        return (Connection from historyTo "")
