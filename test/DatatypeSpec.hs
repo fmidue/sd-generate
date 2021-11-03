@@ -21,16 +21,16 @@ spec = do
     | (name, code) <- positiveExamples ]
   describe "localise/globalise" $
     prop ("are each others' inverses in a sense") $
-      forAll randomSD $ \code -> localise (globalise code) `shouldBe` localise code
+      forAll randomSD $ \(code,_) -> localise (globalise code) `shouldBe` localise code
   describe "globalise/localise" $
     prop ("are each others' inverses in a sense") $
-      forAll randomSD $ \code -> globalise (localise code) `shouldBe` globalise code
+      forAll randomSD $ \(code,_) -> globalise (localise code) `shouldBe` globalise code
   describe "globalise" $ void $ sequence
     [ it ("doesn't leave any connections inside, on " ++ name) $ all connectionsEmpty (substate (globalise code))
     | (name, code) <- positiveExamples ]
   describe "globalise" $
     prop ("doesn't leave any connections inside") $
-      forAll randomSD $ \code -> all connectionsEmpty (substate (globalise code))
+      forAll randomSD $ \(code,_) -> all connectionsEmpty (substate (globalise code))
 
 connectionsEmpty :: UMLStateDiagram -> Bool
 connectionsEmpty = all null
