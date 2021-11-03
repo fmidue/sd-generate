@@ -13,4 +13,7 @@ spec :: Spec
 spec = do
   describe "randomSD" $
     prop ("generates valid diagram expressions") $
-      forAll (fmap fst randomSD) $ \code -> firstJust id (map (($ code) . snd) allTheCheckers) `shouldBe` Nothing
+      forAll randomSD $ \(code,_) -> firstJust id (map (($ code) . snd) allTheCheckers) `shouldBe` Nothing
+  describe "randomSD" $
+    prop ("doesn't retry too often") $
+      forAll randomSD $ \(_,attempts) -> attempts `shouldSatisfy` (< 20)
