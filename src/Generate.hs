@@ -11,6 +11,9 @@ import Data.Maybe(isNothing)
 import Data.List((\\)) 
 import Test.QuickCheck hiding(label,labels)
 
+chooseType :: [Int] -> Gen Int 
+chooseType a = do elements a
+
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
 suchThatWhileCounting gen p = tryWith 0
   where
@@ -24,17 +27,16 @@ randomSD = do
       nm <- elements alphabet
       randomSD' 4 [3 .. 4] alphabet (1,nm) [] `suchThatWhileCounting` (isNothing . checkSemantics)
 
-randomSD' :: Int -> [Int] -> [String] -> (Int,String)-> [String] ->Gen UMLStateDiagram
+randomSD' :: Int -> [Int] -> [String] -> (Int,String)-> [String] -> Gen UMLStateDiagram
 randomSD' c ns alphabet (l,nm) exclude = do
       let counter = c - 1
           noNms   = exclude ++ [nm]
       n      <- elements ns
       labels <- shuffle  [1..n]
-      subSD  <- vectorOf n arbitrary `suchThat` (True `elem`)
-      nmUniq <- vectorOf n (choose (True, False))
+      subTypes <- vectorOf n (if counter > 0 then chooseType [1,2,3,4,5,6] else chooseType [1,2,3,6]) `suchThat` checkSubType
       subNms <- shuffle  (alphabet \\ [nm])
-      let subNm   = chooseName nmUniq subNms 
-          cond    = zip3 subSD labels subNm
+      let subNm   = chooseName subTypes subNms 
+          cond    = zip3 labels subTypes subNm 
       subs <- mapM (\x -> randomInnerSD counter alphabet x noNms) cond
       let layerElem  = map (\x -> [label x]) subs
           innerElem  = concatMap (getAllElem1 []) subs
@@ -43,36 +45,33 @@ randomSD' c ns alphabet (l,nm) exclude = do
       start <- elements (filter (`lastSecNotCD` subs) (layerElem ++ innerElemNoRegions)) 
       return (StateDiagram subs l nm conns start) 
 
-chooseName :: [Bool] -> [String] -> [[String]]
-chooseName (x:xs) str = if x 
+checkSubType :: [Int] -> Bool
+checkSubType [] = False
+checkSubType a  = length histNum < 2 && length endNum < 2 
+                  && ( 2 `elem` a || 3 `elem` a || 4 `elem` a || 5 `elem` a )
+                  where
+                    histNum = filter (== 1) a
+                    endNum = filter (== 2) a
+
+chooseName :: [Int] -> [String] -> [[String]]
+chooseName (x:xs) str = if x == 4 
                           then 
                              take 3 str : chooseName xs (drop 3 str) 
                         else 
                            take 1 str : chooseName xs (drop 1 str)
 chooseName [] _ = []
 
-randomInnerSD :: Int -> [String] -> (Bool,Int,[String]) -> [String]-> Gen UMLStateDiagram
-randomInnerSD counter alphabet (b,l,s) exclude = do
+randomInnerSD :: Int -> [String] -> (Int,Int,[String]) -> [String]-> Gen UMLStateDiagram
+randomInnerSD counter alphabet (l,t,s) exclude = do
   let nm = head s
-  if counter > 0 
-   then
-    do
-     if b 
-      then
-       do
-        if length s == 1 
-         then 
-          do 
-           frequency [ (10,return (InnerMostState l nm "")),(5,randomSD' counter [3 .. 4] alphabet (l,nm) exclude)]
-        else 
-          do 
-           randomCD counter alphabet l s exclude             
-     else
-      do
-       frequency [(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(1,return (EndState l))]
-  else
-   do 
-    frequency [(10,return (InnerMostState l nm "")),(2,return (Joint l)),(1,return (History l Shallow)),(1,return (History l Deep)),(1,return (EndState l))] 
+  case t of 
+       1 -> frequency [(1,return (History l Shallow)),(1,return (History l Deep))]
+       2 -> return (EndState l)
+       3 -> return (InnerMostState l nm "")
+       4 -> randomCD counter alphabet l s exclude
+       5 -> randomSD' counter [3 .. 4] alphabet (l,nm) exclude
+       6 -> return (Joint l)
+       _ -> return (InnerMostState l nm "") -- why not exhausted
 
 randomCD :: Int -> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
 randomCD counter alphabet l s exclude = do
@@ -87,26 +86,26 @@ randomConnection points sub = do
       let endState  = filter (`isEnd` sub) points
           --innerElemOnlySDCD = filter (`isSDCD` sub) points
           --innerElemNotSDCD = points \\ innerElemOnlySDCD
-          outerHistory = filter (\x -> length x == 1 ) onlyHistory 
-                         where 
-                          onlyHistory = filter (not.(`notHistory` sub)) points
-          noEndState = points \\ endState
+          outerHistory = filter (\x -> length x == 1 ) onlyHistory  
+                          where  
+                           onlyHistory = filter (not.(`notHistory` sub)) points 
+          noEndState = points \\ endState 
           noOuterHistory = points \\ outerHistory 
-      from <- elements noEndState
-      to   <- elements (noOuterHistory\\ [from])
+      from <- elements (if length noOuterHistory == 1 then noEndState \\ noOuterHistory else noEndState )
+      to   <- elements (noOuterHistory \\ [from]) 
       tran <- elements ["a","b","c","d","e","f","g","h","i","j","k",""]
       if notHistory from sub 
         then
-         do
-           if notHistory to sub 
-             then 
-               do  
-                return (Connection from to tran)
-           else 
-            do 
-             historyFrom <- elements (filter (not . inCompoundState to) noEndState)
-             return (Connection historyFrom  to tran)
+          do
+            if notHistory to sub 
+              then 
+                do  
+                  return (Connection from to tran)
+            else 
+              do
+                historyFrom <- elements (filter (not . inCompoundState to) points) 
+                return (Connection historyFrom to tran)
       else
-       do
-        historyTo <- elements (filter (inCompoundState from) noOuterHistory)
-        return (Connection from historyTo "")
+        do
+          historyTo <- elements (filter (inCompoundState from) noOuterHistory)
+          return (Connection from historyTo "")
