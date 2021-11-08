@@ -4,15 +4,23 @@ import Datatype (
   HistoryType(..),
   StateDiagram(..),
   UMLStateDiagram,
+  globalise
   )
-import Test (checkSemantics)
+import Test (checkSemantics,checkJoint,checkCrossings)
 import Helper
 import Data.Maybe(isNothing)
-import Data.List((\\)) 
+import Data.List((\\),nub) 
 import Test.QuickCheck hiding(label,labels)
 
-chooseType :: [Int] -> Gen Int 
-chooseType a = do elements a
+data NodeType = Hist | End | Inner | Comb | Stat | Join  deriving Eq
+
+chooseType :: [NodeType] -> Gen NodeType 
+chooseType t = 
+  if length t == 6 
+    then 
+      frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(1,return Join)]
+  else 
+    frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Join)]  
 
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
 suchThatWhileCounting gen p = tryWith 0
@@ -25,87 +33,135 @@ randomSD :: Gen (UMLStateDiagram, Int)
 randomSD = do
       let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
       nm <- elements alphabet
-      randomSD' 4 [3 .. 4] alphabet (1,nm) [] `suchThatWhileCounting` (isNothing . checkSemantics)
+      randomSD' 4 4 [3 .. 4] alphabet (1,nm) [] `suchThatWhileCounting` 
+                  (\x -> isNothing (checkSemantics x) && isNothing (checkJoint x) && isNothing (checkCrossings x))
 
-randomSD' :: Int -> [Int] -> [String] -> (Int,String)-> [String] -> Gen UMLStateDiagram
-randomSD' c ns alphabet (l,nm) exclude = do
-      let counter = c - 1
-          noNms   = exclude ++ [nm]
-      n      <- elements ns
-      labels <- shuffle  [1..n]
-      subTypes <- vectorOf n (if counter > 0 then chooseType [1,2,3,4,5,6] else chooseType [1,2,3,6]) `suchThat` checkSubType
-      subNms <- shuffle  (alphabet \\ [nm])
-      let subNm   = chooseName subTypes subNms 
-          cond    = zip3 labels subTypes subNm 
-      subs <- mapM (\x -> randomInnerSD counter alphabet x noNms) cond
-      let layerElem  = map (\x -> [label x]) subs
-          innerElem  = concatMap (getAllElem1 []) subs
-          innerElemNoRegions  = filter (`lastSecNotCD` subs) innerElem
-      conns <- vectorOf n (randomConnection (layerElem ++ innerElemNoRegions) subs)
-      start <- elements (filter (`lastSecNotCD` subs) (layerElem ++ innerElemNoRegions)) 
-      return (StateDiagram subs l nm conns start) 
+randomSD' :: Int -> Int -> [Int] -> [String] -> (Int,String)-> [String] -> Gen UMLStateDiagram
+randomSD' depth c ns alphabet (l,nm) exclude = do
+  let counter = c - 1
+      noNms   = exclude ++ [nm]
+      nodeTypes = [Hist,End,Inner,Comb,Stat,Join]
+      noSubNodeTypes = [Hist,End,Inner,Join]
+  n      <- elements ns
+  labels <- shuffle  [1..n]
+  subTypes <- vectorOf n (if counter > 0 then chooseType nodeTypes else chooseType noSubNodeTypes) `suchThat` checkSubType
+  subNms <- shuffle  (alphabet \\ noNms)
+  let subNm   = chooseName subTypes subNms 
+      cond    = zip3 labels subTypes subNm 
+  subs <- mapM (\x -> randomInnerSD depth counter ns alphabet x noNms) cond
+  let layerElem  = map (\x -> [label x]) subs
+      innerElem  = concatMap (getAllElem1 []) subs
+      innerElemNoRegions = filter (`lastSecNotCD` subs) innerElem
+  start <- elements (if depth == c && Hist `elem` subTypes
+                    then filter (not.(`notHistory` subs)) layerElem
+                    else filter (`lastSecNotCD` subs) (layerElem ++ innerElemNoRegions))
+                    -- outermost History will impact on REACHABILITY (Only outCompount ingoing edge) 
+  conns <- vectorOf n 
+                 (randomConnection (layerElem ++ innerElemNoRegions) subs start [])
 
-checkSubType :: [Int] -> Bool
+  let innerElemOnlySDCD = filter (`isSDCD` subs) innerElem 
+      innerElemNotSDCD = innerElemNoRegions \\ innerElemOnlySDCD
+      globalStarts  = nub (globalStart (StateDiagram subs l nm [] start ))
+      globalConns   = connection (globalise (StateDiagram subs l nm conns []))
+      toElem       = nub (map pointTo globalConns)
+      reachabelStates = toElem ++ globalStarts 
+      unreachedStates = (layerElem ++ innerElemNotSDCD) \\ reachabelStates         
+  if depth == c && not (null  unreachedStates)
+    then do
+      connsExtra <- mapM (randomConnection (layerElem ++ innerElemNoRegions) subs start) unreachedStates
+      return (StateDiagram subs l nm (conns ++ connsExtra) start)
+  else 
+    return (StateDiagram subs l nm conns start)
+
+checkSubType :: [NodeType] -> Bool
 checkSubType [] = False
-checkSubType a  = length histNum < 2 && length endNum < 2 
-                  && ( 2 `elem` a || 3 `elem` a || 4 `elem` a || 5 `elem` a )
+checkSubType a  = length histNum < 2 && length endNum < 2 && length cdNum < 2 && length sdNum < 3
+                  && ( End `elem` a || Inner `elem` a || Comb `elem` a || Stat `elem` a )
                   where
-                    histNum = filter (== 1) a
-                    endNum = filter (== 2) a
+                    histNum = filter (== Hist) a
+                    endNum = filter (== End) a
+                    cdNum = filter (== Comb) a
+                    sdNum = filter (== Stat) a
 
-chooseName :: [Int] -> [String] -> [[String]]
-chooseName (x:xs) str = if x == 4 
+chooseName :: [NodeType] -> [String] -> [[String]]
+chooseName (x:xs) str = if x == Comb 
                           then 
                              take 3 str : chooseName xs (drop 3 str) 
                         else 
                            take 1 str : chooseName xs (drop 1 str)
 chooseName [] _ = []
 
-randomInnerSD :: Int -> [String] -> (Int,Int,[String]) -> [String]-> Gen UMLStateDiagram
-randomInnerSD counter alphabet (l,t,s) exclude = do
+randomInnerSD :: Int -> Int -> [Int] -> [String] -> (Int,NodeType,[String]) -> [String]-> Gen UMLStateDiagram
+randomInnerSD depth counter ns alphabet (l,t,s) exclude = do
   let nm = head s
   case t of 
-       1 -> frequency [(1,return (History l Shallow)),(1,return (History l Deep))]
-       2 -> return (EndState l)
-       3 -> return (InnerMostState l nm "")
-       4 -> randomCD counter alphabet l s exclude
-       5 -> randomSD' counter [3 .. 4] alphabet (l,nm) exclude
-       6 -> return (Joint l)
-       _ -> return (InnerMostState l nm "") -- why not exhausted
+       Hist  -> frequency [(1,return (History l Shallow)),(1,return (History l Deep))]
+       End   -> return (EndState l)
+       Inner -> return (InnerMostState l nm "")
+       Comb -> randomCD depth counter ns alphabet l s exclude
+       Stat -> randomSD' depth counter ns alphabet (l,nm) exclude
+       Join -> return (Joint l)
 
-randomCD :: Int -> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
-randomCD counter alphabet l s exclude = do
+randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
+randomCD depth c ns alphabet l s exclude = do
+      let counter = c - 1
       n      <- elements [2 .. 3]
       labels <- shuffle [1..n]
       let cond   = zip labels s
-      subs   <- mapM (\x -> randomSD' counter [3 .. 4] alphabet x exclude) cond
+      subs   <- mapM (\x -> randomSD' depth counter ns alphabet x exclude) cond
       return (CombineDiagram subs l)
 
-randomConnection ::[[Int]] -> [UMLStateDiagram] -> Gen Connection
-randomConnection points sub = do
-      let endState  = filter (`isEnd` sub) points
-          --innerElemOnlySDCD = filter (`isSDCD` sub) points
-          --innerElemNotSDCD = points \\ innerElemOnlySDCD
-          outerHistory = filter (\x -> length x == 1 ) onlyHistory  
-                          where  
-                           onlyHistory = filter (not.(`notHistory` sub)) points 
-          noEndState = points \\ endState 
-          noOuterHistory = points \\ outerHistory 
-      from <- elements (if length noOuterHistory == 1 then noEndState \\ noOuterHistory else noEndState )
-      to   <- elements (noOuterHistory \\ [from]) 
-      tran <- elements ["a","b","c","d","e","f","g","h","i","j","k",""]
-      if notHistory from sub 
-        then
-          do
-            if notHistory to sub 
-              then 
-                do  
-                  return (Connection from to tran)
-            else 
-              do
-                historyFrom <- elements (filter (not . inCompoundState to) points) 
-                return (Connection historyFrom to tran)
-      else
-        do
-          historyTo <- elements (filter (inCompoundState from) noOuterHistory)
-          return (Connection from historyTo "")
+randomConnection ::[[Int]] -> [UMLStateDiagram] -> [Int] -> [Int] -> Gen Connection
+randomConnection points sub start unreachedState = do
+  let endState  = filter (not.(`isNotEnd` sub)) points
+      outerHistory = filter (\x -> length x == 1 ) onlyHistory  
+                      where  
+                       onlyHistory = filter (not.(`notHistory` sub)) points 
+      histState = filter (not.(`notHistory` sub)) points
+      noEndState = points \\ endState 
+      noEndHist = noEndState \\histState
+      noOuterHistory = points \\ outerHistory
+      noOutHistHist = noOuterHistory \\ histState
+      transitionNms = ["a","b","c","d","e","f","g","h","i","j","k",""]
+  from <- elements (noEndState \\ [unreachedState])
+  let noTranNms = concatMap (getSameFromTran from) sub
+  if length noTranNms < 4 
+    -- let the number of edges from the same node limit to 4
+    then 
+      do
+        to   <- elements (if all null [unreachedState] then noOuterHistory \\ [from] else [unreachedState]) 
+        tran <- elements (if not (notJoint start sub) && start == from then transitionNms \\ [""] else transitionNms)
+        case [notHistory from sub,notHistory to sub,notJoint from sub] of 
+          [True,True,True] -> do
+                           tr <- elements (if all (checkMoreOut from) sub
+                                                then transitionNms \\ noTranNms
+                                           else (transitionNms \\ noTranNms) \\ [""])
+                           return (Connection from to tr)
+          [True,True,False] -> do 
+                            return (Connection from to tran)
+          [True,False,True] -> do
+                           historyFrom <- elements (filter (not . inCompoundState to) (noEndHist\\[to])) 
+                           tr <- elements (if all (checkMoreOut historyFrom) sub
+                                                then transitionNms \\ noTranNms
+                                           else (transitionNms \\ noTranNms) \\ [""] )
+                           return (Connection historyFrom to tr)
+          [True,False,False] -> do
+                           historyFrom <- elements (filter (not . inCompoundState to) (noEndHist\\[to])) 
+                           return (Connection historyFrom to tran)
+          [False,True,True] -> do
+                           historyTo <- elements (filter (inCompoundState from) (noOutHistHist\\[from]))
+                           return (Connection from historyTo "")
+          [False,True,False] -> do -- not valid
+                           historyTo <- elements (filter (inCompoundState from) (noOutHistHist\\[from]))
+                           return (Connection from historyTo "")
+          [False,False,True] -> do
+                           historyFrom <- elements (filter (not . inCompoundState to) (noEndHist\\[to]))
+                           tr <- elements (if all (checkMoreOut historyFrom) sub
+                                                then transitionNms \\ noTranNms
+                                           else  (transitionNms \\ noTranNms) \\ [""])
+                           return (Connection historyFrom to tr)
+          [False,False,False] -> do -- not valid 
+                           historyFrom <- elements (filter (not . inCompoundState to) (noEndHist\\[to]))
+                           return (Connection historyFrom to tran)
+  else 
+    randomConnection (points\\[from]) sub start unreachedState

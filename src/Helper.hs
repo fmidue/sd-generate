@@ -25,9 +25,9 @@ getSameFromTran1 _ _ = []
 
 checkMoreOut :: [Int] -> UMLStateDiagram -> Bool
 checkMoreOut (x:xs) s@StateDiagram{label} 
-  = if x == label then checkMoreOut1 xs s else True
+  = (x /= label) || checkMoreOut1 xs s
 checkMoreOut (x:xs) CombineDiagram{label,substate} 
-  = if x == label then all (checkMoreOut xs) substate else True
+  = (x /= label) || all (checkMoreOut xs) substate
 checkMoreOut _ _ = True
 
 checkMoreOut1 :: [Int] -> UMLStateDiagram -> Bool
@@ -36,7 +36,7 @@ checkMoreOut1 x s@StateDiagram{}
       where 
           global = globalise s
           conn   = connection global
-          fromSame = (filter ((x ==).pointFrom) conn)
+          fromSame = filter ((x ==) . pointFrom) conn
 checkMoreOut1 _ _ = True
 
 inCompoundState :: [Int] -> [Int] -> Bool 
