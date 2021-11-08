@@ -406,14 +406,6 @@ task88 = StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", Connection [2]
         f = InnerMostState 1 "F" ""
         g = InnerMostState 2 "G" ""
 
-test1 :: UMLStateDiagram
-test1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection [1] [3] "b",
-        Connection [3] [2] "c", Connection [4] [3] "d", Connection [3] [1] "e"] [1]
-  where
-    a = InnerMostState 1 "A" ""
-    b = InnerMostState 2 "B" ""
-    c = InnerMostState 3 "C" ""
-    d = InnerMostState 4 "D" ""
 
 test2 :: UMLStateDiagram
 test2 = StateDiagram [a, b] 1 "" [Connection [1] [2, 2, 2] "a"] [1]
