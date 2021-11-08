@@ -110,7 +110,7 @@ counterExamplesOnlyFor theChecker theExamples = do
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
           theExamples `passing` [checkStructure]
-          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness, checkConnection])
+          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness, checkConnection, checkCrossings])
           ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
       ]
   describe "localise/globalise" $ void $ sequence
