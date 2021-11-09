@@ -7,20 +7,9 @@ import Datatype (
   )
 
 {-# ANN module "Hlint: ignore Reduce duplication" #-}
-
+  
 verySmall :: UMLStateDiagram
 verySmall = StateDiagram [EndState 1] 0 "" [] [1]
-
-forCheckSameConnection :: UMLStateDiagram
-forCheckSameConnection =  StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "",Connection[2] [3] "",
-      Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] "b"] [5]
-     where a = InnerMostState  1 "Tasse nehmen" ""
-           b = InnerMostState  2 "Kaffee trinken" ""
-           c = InnerMostState  3 "Tasse absetzen" ""
-           d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5
-           f = Joint 6
-           g = EndState 7
 
 picture1 :: UMLStateDiagram
 picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
@@ -47,15 +36,21 @@ picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection
       f = EndState 6
 
 picture3 :: UMLStateDiagram
-picture3 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "",Connection[1] [2] "a",Connection[2] [3] "",
-      Connection[3] [6] "",Connection[5] [4] "",Connection[4] [6] "",Connection[6] [7] "b"] [5]
-     where a = InnerMostState  1 "Tasse nehmen" ""
-           b = InnerMostState  2 "Kaffee trinken" ""
-           c = InnerMostState  3 "Tasse absetzen" ""
-           d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5
-           f = Joint 6
-           g = EndState 7
+picture3 = StateDiagram [a,b,c,d] 1 "" [Connection[3] [1,1,1] "",Connection[1] [1,1,2] "a",
+       Connection[1,1,2] [1,1,3] "",Connection[1,1,3] [4] "",Connection[3] [1,2,1] "",
+       Connection[1,2,1] [4] "",Connection[4] [5] "b"] [3]
+       where 
+        a = CombineDiagram [e,f] 1
+         where
+            e = StateDiagram [g,h,i] 1 "" [] []
+              where 
+                g = InnerMostState 1 "Tasse nehmen" ""
+                h = InnerMostState 2 "Kaffee trinken" ""
+                i = InnerMostState 3 "Tasse absetzen" ""
+            f = StateDiagram [InnerMostState 1 "Zeitung lesen" ""] 2 "" [] []
+        b = Joint 3
+        c = Joint 4
+        d = EndState 5
 
 picture4 :: UMLStateDiagram
 picture4 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []

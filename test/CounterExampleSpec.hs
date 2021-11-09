@@ -64,7 +64,6 @@ spec = do
         ,("forCheckMtoOne1", forCheckMtoOne1)
         ,("forCheckMtoOne2", forCheckMtoOne2)
         ,("forCheckMtoOne3", forCheckMtoOne3)
-        ,("forCheckMtoOne4", forCheckMtoOne4)
         ,("forCheckMtoOne5", forCheckMtoOne5)
         ,("forCheckMtoOne6", forCheckMtoOne6)
         ,("forCheckMtoOne7", forCheckMtoOne7)

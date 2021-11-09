@@ -98,15 +98,6 @@ forCheckMtoOne3 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "",Connectio
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne4 :: UMLStateDiagram 
-forCheckMtoOne4 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "",Connection[5] [3] "",Connection[2] [1] "a",
-      Connection[1] [2] "a"] []
-     where a = InnerMostState  1 "A" ""
-           b = InnerMostState  2 "B" ""
-           c = InnerMostState  3 "C" ""
-           d = InnerMostState  4 "D" ""
-           e = Joint 5
-
 forCheckMtoOne5 :: UMLStateDiagram
 forCheckMtoOne5 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[3] [5] "",Connection[2] [1] "a",
       Connection[1] [2] "a",Connection[1] [3] "b" ] [4]
