@@ -89,7 +89,7 @@ data Connection =  Connection {
   pointTo :: [Int],
   transition :: String
   }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |

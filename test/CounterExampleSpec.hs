@@ -9,7 +9,7 @@ import DatatypeSpec (connectionsEmpty)
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (void, forM_)
 import Data.Maybe (isJust, isNothing)
-import Data.List (partition)
+import Data.List (partition, sort)
 import Data.Tuple.Extra ((***))
 
 spec :: Spec
@@ -113,10 +113,10 @@ counterExamplesOnlyFor theChecker theExamples = do
           ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
       ]
   describe "localise/globalise" $ void $ sequence
-    [ it ("are each others' inverses in a sense, on " ++ name) $ localise (globalise code) `shouldBe` localise code
+    [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (globalise code)) `shouldBe` fmap sort (localise code)
     | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection] ]
   describe "globalise/localise" $ void $ sequence
-    [ it ("are each others' inverses in a sense, on " ++ name) $ globalise (localise code) `shouldBe` globalise code
+    [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
     | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection, checkCrossings] ]
   describe "globalise" $ void $ sequence
     [ it ("doesn't leave any connections inside, on " ++ name) $ all connectionsEmpty (substate (globalise code))
