@@ -61,5 +61,4 @@ positiveExamples =
         , ("picture2", picture2)
         , ("picture3", picture3)
         , ("picture4", picture4)
-        , ("forCheckSameConnection", forCheckSameConnection)
         ]
