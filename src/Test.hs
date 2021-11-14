@@ -38,7 +38,6 @@ checkStructure a
   | not(checkReachablity a) 
   = Just "Should Not contain unreachable states (except Start states)" 
   | otherwise = Nothing
-
                 --checkOuterMostLayer
 checkOuterMostLayer :: UMLStateDiagram -> Bool
 checkOuterMostLayer StateDiagram{} = True
@@ -330,7 +329,7 @@ checkHistory a
 checkInEdge :: UMLStateDiagram -> Bool
 checkInEdge s@StateDiagram {} = 
      all (\Connection{pointFrom, pointTo} -> 
-                       init (take (length pointTo) pointFrom) /= init pointTo) toOnlyHistory
+                      not( inCompoundState pointTo pointFrom)) toOnlyHistory
                                where 
                                   global = globalise s
                                   sub    = substate global
@@ -341,7 +340,7 @@ checkInEdge _ = True
 checkOutEdge :: UMLStateDiagram -> Bool
 checkOutEdge s@StateDiagram {} = 
      all (\Connection{pointFrom, pointTo} -> 
-                      init (take (length pointFrom) pointTo) == init pointFrom) fromOnlyHistory
+                      inCompoundState pointFrom pointTo) fromOnlyHistory
                                where 
                                   global = globalise s
                                   sub    = substate global
