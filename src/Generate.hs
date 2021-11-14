@@ -186,7 +186,7 @@ randomConnection layerElem innerElem sub unreachedState = do
   --                                                            ++ "subs" ++ show sub
   --                                                            ++ show depth ++ show c) else return ()
   to   <- elements (if all null [unreachedState] then noOuterHistory \\ [from] else [unreachedState])
-  tran <- elements (if not (null excludeTranNms) then seq hb fromSameNodeTranNms else transitionNms)
+  tran <- elements (if not (null excludeTranNms) then fromSameNodeTranNms else transitionNms)
   --let noParallelRegionFromElem2 = filter (\x -> checkParallelRegion to x sub ) (noEndState \\[to])
    --   noParallelRegionToElem2 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
   case [notHistory from sub,notHistory to sub] of 
