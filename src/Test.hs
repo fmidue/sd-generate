@@ -126,7 +126,7 @@ checkCrossings s = case connections s - connections (localise s) of
   0 -> Nothing
   n -> Just $ "Has " ++ show n ++ " illegal crossing(s) between regions"
   where
-    connections = foldr ((+) . length) 0
+    connections = sum . fmap length
 
 --checkNameUniqueness
 checkNameUniqueness :: UMLStateDiagram -> Maybe String
@@ -292,12 +292,11 @@ checkInTranEmpty :: Connection -> [Connection] -> Bool
 checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 
 checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool
-checkParallelRegionConnections into l s = 0 == connections g {
+checkParallelRegionConnections into l s = all null . localise $ g {
   connection = [ Connection a b "" | a <- insides, b <- insides, a < b ]
   }
   where
     g = globalise s
-    connections = foldr ((+) . length) 0 . localise
     insideCandidates = map inside . filter ((== l) . outside) $ connection g
     insides
       | xs@(_:_:_) <- insideCandidates = xs
