@@ -609,7 +609,7 @@ forCheckSubstateCD1 = StateDiagram [CombineDiagram [a] 1] 1 "active" [] [1]
             e = InnerMostState 2 "NumLockOn" ""
 
 forCheckSubstateCD2 :: UMLStateDiagram
-forCheckSubstateCD2 = StateDiagram [CombineDiagram [a,b] 1] 1 "active" [] [1]
+forCheckSubstateCD2 = StateDiagram [CombineDiagram [a,b] 1] 1 "active" [] [1,2]
   where
     a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
       where d = InnerMostState 1 "NumLockOff" ""

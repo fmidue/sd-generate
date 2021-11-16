@@ -1,12 +1,11 @@
 {-# LANGUAGE NamedFieldPuns #-}
 module Test
-  ( checkStructure
-  , checkConnection
+  ( checkRepresentation
+  , checkStructure
   , checkCrossings
   , checkNameUniqueness
   , checkUniqueness
   , checkEndState
-  , checkStartState
   , checkJoint
   , checkHistory
   , checkSemantics
@@ -21,39 +20,24 @@ import Datatype (
   )
 import Helper
 import Data.List.Extra
-
---checkStructure
-checkStructure :: UMLStateDiagram -> Maybe String
-checkStructure a
+--checkRepresentation
+checkRepresentation :: UMLStateDiagram -> Maybe String
+checkRepresentation a
   | not(checkOuterMostLayer a) = Just ("Error: Outermost layer must be 'StateD"
     ++ "iagram")
-  | not(checkSubstateSD a) = Just ("Error: Substate of StateDiagram constructo"
-    ++ "r cannot be empty or just History/Joint")
   | not(checkSubstateCD a) = Just ("Error: CombineDiagram constructor must con"
     ++ "tain at least 2 StateDiagram and no other type of constructor")
-  | not(checkHistOutTransition a) = Just ("Error: Outgoing edges from a history"
-    ++ "node always have the empty transition")
-  | not(checkEmptyConnPoint a) = Just ("Error: Neither the pointFrom nor the po" 
+  | not(checkEmptyConnPoint a) = Just ("Error: Neither the pointFrom nor the po"
     ++ "intTo of a connection is an empty list")
-  | not(checkReachablity a) 
-  = Just "Should Not contain unreachable states (except Start states)" 
+  | not(checkSubC a) = Just "Error: Connection Points"
+  | not(checkConnFromToRegion a) = Just "connections from/to regions themselves "
+  | not(checkSubS a) = Just "Error: invalid start state "
+  | not(checkStartToRegion a) = Just "Start to regions themselves"
   | otherwise = Nothing
                 --checkOuterMostLayer
 checkOuterMostLayer :: UMLStateDiagram -> Bool
 checkOuterMostLayer StateDiagram{} = True
 checkOuterMostLayer _ = False
-
-                --checkSubstateSD
-checkSubstateSD :: UMLStateDiagram -> Bool
-checkSubstateSD (CombineDiagram a _) = all checkSubstateSD a
-checkSubstateSD (StateDiagram a _ _ _ _) = any checkListInSD a && all checkSubstateSD a
-checkSubstateSD _ = True
-
-checkListInSD :: UMLStateDiagram -> Bool
-checkListInSD Joint {} = False
-checkListInSD History {} = False
-checkListInSD _ = True
-
                 --checkSubstateCD
 checkSubstateCD :: UMLStateDiagram -> Bool
 checkSubstateCD (CombineDiagram a _) = length a > 1 && all checkListInCD a
@@ -63,39 +47,10 @@ checkSubstateCD _ = True
 checkListInCD :: UMLStateDiagram -> Bool
 checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
 checkListInCD _ = False
-
-                 --checkHistOutTransitions
-checkHistOutTransition :: UMLStateDiagram -> Bool
-checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistConnTransition` substate) connection
-                                                               && all checkHistOutTransition substate
-checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition substate
-checkHistOutTransition  _ = True
-
-checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
-checkHistConnTransition Connection { pointFrom,transition } a = notHistory pointFrom a || null transition
-
-                 --checkReachablity
-checkReachablity :: UMLStateDiagram -> Bool
-checkReachablity s@StateDiagram{} 
-  = all (`elem` (map pointTo conn ++ globalStart s)) stateNoCDSD
-    where
-      global = globalise s
-      conn   = connection global 
-      sub    = substate global
-      stateNoCDSD = filter (not.(`isSDCD` sub)) (getAllElem s)
-checkReachablity _ = True
-
-               --checkEmptyConnPoint 
+                --checkEmptyConnPoint 
 checkEmptyConnPoint :: UMLStateDiagram -> Bool
 checkEmptyConnPoint = all (\cs -> not (any (null . pointFrom) cs) && not (any (null . pointTo) cs))
-
---checkConnection
-checkConnection :: UMLStateDiagram -> Maybe String
-checkConnection a
-  | not(checkSubC a) = Just "Error: Connection Points"
-  | not(checkConnFromToRegion a) = Just "connections from/to regions themselves "
-  | otherwise = Nothing
-
+                --checkSubC
 checkSubC :: UMLStateDiagram -> Bool
 checkSubC  StateDiagram { substate, connection } =  checkConnFrom && checkConnTo  && all checkSubC substate
                               where
@@ -112,7 +67,7 @@ isContained1 :: [Int] -> [Int] -> [UMLStateDiagram] -> Bool
 isContained1 [] _ _ = True
 isContained1 (x:xs) a b =  (x `elem` a)  &&
        isContained1 xs (map label (getSubstate x b)) (getSubstate x b)
-
+                 --checkConnFromToRegion
 checkConnFromToRegion :: UMLStateDiagram -> Bool
 checkConnFromToRegion StateDiagram{substate,connection}  = 
                                 all ((`lastSecNotCD` substate) . pointFrom) connection
@@ -120,7 +75,63 @@ checkConnFromToRegion StateDiagram{substate,connection}  =
                              && all checkConnFromToRegion substate
 checkConnFromToRegion CombineDiagram {substate} = all checkConnFromToRegion substate
 checkConnFromToRegion _ = True
-                        
+                 --checkSubS
+checkSubS :: UMLStateDiagram -> Bool
+checkSubS  StateDiagram { substate, startState} = checkStart && all checkSubS substate
+                                              where
+                                                getLayerList = map label substate
+                                                checkStart = isContained1 startState getLayerList substate
+checkSubS CombineDiagram {substate} = all checkSubS substate
+checkSubS  _ = True
+                 --checkStartToRegion
+checkStartToRegion :: UMLStateDiagram -> Bool
+checkStartToRegion StateDiagram{substate,startState}  = 
+                                               lastSecNotCD startState substate 
+                                             && all checkStartToRegion substate
+checkStartToRegion CombineDiagram {substate} = all checkStartToRegion substate
+checkStartToRegion _ = True    
+
+--checkStructure
+checkStructure :: UMLStateDiagram -> Maybe String
+checkStructure a
+  | not(checkSubstateSD a) = Just ("Error: Substate of StateDiagram constructo"
+    ++ "r cannot be empty or just History/Joint")
+  | not(checkHistOutTransition a) = Just ("Error: Outgoing edges from a history"
+    ++ "node always have the empty transition")
+  | not(checkReachablity a) 
+  = Just "Should Not contain unreachable states (except Start states)" 
+  | otherwise = Nothing
+                --checkSubstateSD
+checkSubstateSD :: UMLStateDiagram -> Bool
+checkSubstateSD (CombineDiagram a _) = all checkSubstateSD a
+checkSubstateSD (StateDiagram a _ _ _ _) = any checkListInSD a && all checkSubstateSD a
+checkSubstateSD _ = True
+
+checkListInSD :: UMLStateDiagram -> Bool
+checkListInSD Joint {} = False
+checkListInSD History {} = False
+checkListInSD _ = True
+                 --checkHistOutTransitions
+checkHistOutTransition :: UMLStateDiagram -> Bool
+checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistConnTransition` substate) connection
+                                                               && all checkHistOutTransition substate
+checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition substate
+checkHistOutTransition  _ = True
+
+checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
+checkHistConnTransition Connection { pointFrom,transition } a = notHistory pointFrom a || null transition
+                --checkReachablity
+checkReachablity :: UMLStateDiagram -> Bool
+checkReachablity s@StateDiagram{} 
+  = all (`elem` (map pointTo conn ++ globalStart s)) stateNoCDSD
+    where
+      global = globalise s
+      conn   = connection global 
+      sub    = substate global
+      stateNoCDSD = filter (not.(`isSDCD` sub)) (getAllElem s)
+checkReachablity _ = True
+
+--checkCrossings                       
 checkCrossings :: UMLStateDiagram -> Maybe String
 checkCrossings s = case connections s - connections (localise s) of
   0 -> Nothing
@@ -135,7 +146,7 @@ checkNameUniqueness a
   | not(checkSDNameUniq a) = Just ("Error: In each StateDiagram, the name (if not empty) should be different "
     ++"from all names found arbitrarily deep inside the substates.")
   | otherwise = Nothing
-
+                --checkSDNameUniq
 checkSDNameUniq :: UMLStateDiagram -> Bool
 checkSDNameUniq StateDiagram {substate,name} = name `notElem` getLayerName substate
                                               && all (checkDeeperUniq name) substate
@@ -148,7 +159,7 @@ checkDeeperUniq a StateDiagram {substate} = a `notElem` getLayerName substate
                                               && all (checkDeeperUniq a) substate
 checkDeeperUniq a CombineDiagram {substate} = all (checkDeeperUniq a) substate
 checkDeeperUniq _ _ = True
-
+                --checkSubNameUniq 
 checkSubNameUniq :: UMLStateDiagram -> Bool
 checkSubNameUniq StateDiagram {substate} =  not (anySame (getLayerName substate))
                                             && all checkSubNameUniq  substate
@@ -189,29 +200,7 @@ checkEndOutEdges :: UMLStateDiagram -> Bool
 checkEndOutEdges StateDiagram { substate, connection } = all ((`isNotEnd` substate) . pointFrom) connection
                                                          && all checkEndOutEdges substate
 checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
-checkEndOutEdges  _ = True
-
---checkStartState
-checkStartState :: UMLStateDiagram -> Maybe String
-checkStartState a
-  | not(checkSubS a) = Just "Error: invalid start state "
-  | not(checkStartToRegion a) = Just "Start to regions themselves"
-  | otherwise = Nothing
-
-checkSubS :: UMLStateDiagram -> Bool
-checkSubS  StateDiagram { substate, startState} = checkStart && all checkSubS substate
-                                              where
-                                                getLayerList = map label substate
-                                                checkStart = isContained1 startState getLayerList substate
-checkSubS CombineDiagram {substate} = all checkSubS substate
-checkSubS  _ = True
-
-checkStartToRegion :: UMLStateDiagram -> Bool
-checkStartToRegion StateDiagram{substate,startState}  = 
-                                               lastSecNotCD startState substate 
-                                             && all checkStartToRegion substate
-checkStartToRegion CombineDiagram {substate} = all checkStartToRegion substate
-checkStartToRegion _ = True                                          
+checkEndOutEdges  _ = True                                      
                                                                                 
 --checkJoint
 checkJoint :: UMLStateDiagram -> Maybe String
