@@ -21,14 +21,13 @@ spec =
       ]
 
 allTheCheckers =
-  [ ("checkConnection", checkConnection)
+  [ ("checkRepresentation", checkRepresentation)
+  , ("checkStructure", checkStructure)
   , ("checkCrossings", checkCrossings)
   , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
-  , ("checkJoint", checkJoint)
-  , ("checkStartState", checkStartState)
   , ("checkEndState", checkEndState)
-  , ("checkStructure", checkStructure)
+  , ("checkJoint", checkJoint)
   , ("checkHistory", checkHistory)
   , ("checkSemantics", checkSemantics)
   , ("checkWrapper", checkWrapper)

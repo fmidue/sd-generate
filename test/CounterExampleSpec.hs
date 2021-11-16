@@ -14,23 +14,44 @@ import Data.Tuple.Extra ((***))
 
 spec :: Spec
 spec = do
+  counterExamplesOnlyFor "checkRepresentation"
+     [ ("forCheckOuterMostLayer", forCheckOuterMostLayer)
+       ,("forCheckSubstateCD1", forCheckSubstateCD1)
+       ,("forCheckSubstateCD2", forCheckSubstateCD2)
+       -- ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
+       -- ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)
+       ,("forCheckConnection1", forCheckConnection1)
+       ,("forCheckConnection2", forCheckConnection2)
+       ,("forCheckConnection3", forCheckConnection3)
+       ,("forCheckConnection4", forCheckConnection4)
+       ,("forCheckConnection5", forCheckConnection5)
+       ,("forCheckConnection6", forCheckConnection6)
+       ,("forCheckConnection7", forCheckConnection7)
+       ,("forCheckConnection8", forCheckConnection8)
+       ,("forCheckConnFromToRegion1", forCheckConnFromToRegion1)
+       ,("forCheckConnFromToRegion2", forCheckConnFromToRegion2)
+       ,("forCheckConnFromToRegion3", forCheckConnFromToRegion3)
+       ,("forCheckConnFromToRegion4", forCheckConnFromToRegion4)
+       ,("forCheckSubS1", forCheckSubS1)
+       ,("forCheckSubS2",forCheckSubS2)
+       ,("forCheckSubS3",forCheckSubS3)
+       ,("forCheckSubS4",forCheckSubS4)
+       ,("forCheckSubS5",forCheckSubS5)
+       ,("forCheckSubS6",forCheckSubS6)
+       ,("forCheckStartToRegion1",forCheckStartToRegion1)
+       ,("forCheckStartToRegion2",forCheckStartToRegion2)
+     ]
+  counterExamplesOnlyFor "checkStructure"
+     [ ("forCheckSubstateSD1", forCheckSubstateSD1)
+       ,("forCheckSubstateSD2", forCheckSubstateSD2)
+       ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
+       ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
+       ,("forCheckReachablity1", forCheckReachablity1)
+       ,("forCheckReachablity2", forCheckReachablity2)
+     ]
   counterExamplesOnlyFor "checkCrossings"
     [ ("bogusExample", bogusExample)
     ]
-  counterExamplesOnlyFor "checkConnection"
-        [ ("forCheckConnection1", forCheckConnection1)
-         ,("forCheckConnection2", forCheckConnection2)
-         ,("forCheckConnection3", forCheckConnection3)
-         ,("forCheckConnection4", forCheckConnection4)
-         ,("forCheckConnection5", forCheckConnection5)
-         ,("forCheckConnection6", forCheckConnection6)
-         ,("forCheckConnection7", forCheckConnection7)
-         ,("forCheckConnection8", forCheckConnection8)
-         ,("forCheckConnFromToRegion1", forCheckConnFromToRegion1)
-         ,("forCheckConnFromToRegion2", forCheckConnFromToRegion2)
-         ,("forCheckConnFromToRegion3", forCheckConnFromToRegion3)
-         ,("forCheckConnFromToRegion4", forCheckConnFromToRegion4)
-        ]
   counterExamplesOnlyFor "checkNameUniqueness"
         [("forCheckNameUniqueness1", forCheckNameUniqueness1)
         ,("forCheckNameUniqueness2", forCheckNameUniqueness2)
@@ -43,16 +64,6 @@ spec = do
         ,("forCheckUniqueness5", forCheckUniqueness5)
         ,("forCheckUniqueness6", forCheckUniqueness6)
         ,("forCheckUniqueness7", forCheckUniqueness7)
-        ]
-  counterExamplesOnlyFor "checkStartState"
-        [ ("forCheckSubS1", forCheckSubS1)
-          ,("forCheckSubS2",forCheckSubS2)
-          ,("forCheckSubS3",forCheckSubS3)
-          ,("forCheckSubS4",forCheckSubS4)
-          ,("forCheckSubS5",forCheckSubS5)
-          ,("forCheckSubS6",forCheckSubS6)
-          ,("forCheckStartToRegion1",forCheckStartToRegion1)
-          ,("forCheckStartToRegion2",forCheckStartToRegion2)
         ]
   counterExamplesOnlyFor "checkEndState"
        [ ("forCheckEndState1", forCheckEndState1 )
@@ -76,19 +87,6 @@ spec = do
          ,("forCheckInEdge2", forCheckInEdge2)
          ,("forCheckOutEdge1", forCheckOutEdge1)
        ]
-  counterExamplesOnlyFor "checkStructure"
-       [ ("forCheckOuterMostLayer", forCheckOuterMostLayer)
-         ,("forCheckSubstateSD1", forCheckSubstateSD1)
-         ,("forCheckSubstateSD2", forCheckSubstateSD2)
-         ,("forCheckSubstateCD1", forCheckSubstateCD1)
-         ,("forCheckSubstateCD2", forCheckSubstateCD2)
-         ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
-         ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
-         -- ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
-         -- ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)
-         ,("forCheckReachablity1", forCheckReachablity1)
-         ,("forCheckReachablity2", forCheckReachablity2)
-       ]
   counterExamplesOnlyFor "checkSemantics"
        [ ("forCheckSameConnection1", forCheckSameConnection1)
        ,("forCheckSameConnection2", forCheckSameConnection2)
@@ -108,19 +106,19 @@ counterExamplesOnlyFor theChecker theExamples = do
     describe checkerName $ void $ sequence
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
-          theExamples `passing` [checkStructure]
-          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness, checkConnection, checkCrossings])
+          theExamples `passing` [checkStructure, checkRepresentation]
+          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness,  checkRepresentation, checkCrossings])
           ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
       ]
   describe "localise/globalise" $ void $ sequence
     [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (globalise code)) `shouldBe` fmap sort (localise code)
-    | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection] ]
+    | (name, code) <- theExamples `passing` [checkUniqueness, checkRepresentation] ]
   describe "globalise/localise" $ void $ sequence
     [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
-    | (name, code) <- theExamples `passing` [checkUniqueness, checkConnection, checkCrossings] ]
+    | (name, code) <- theExamples `passing` [checkUniqueness, checkRepresentation, checkCrossings] ]
   describe "globalise" $ void $ sequence
     [ it ("doesn't leave any connections inside, on " ++ name) $ all connectionsEmpty (substate (globalise code))
-    | (name, code) <- theExamples `passing` [checkStructure] ]
+    | (name, code) <- theExamples `passing` [checkStructure, checkRepresentation] ]
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 
