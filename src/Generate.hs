@@ -6,7 +6,7 @@ import Datatype (
   UMLStateDiagram,
   globalise
   )
-import Test (checkSemantics,checkJoint,checkCrossings)
+import Test (checkSemantics,checkJoint)
 import Helper
 import Data.Maybe(isNothing)
 import Data.List((\\),nub) 
@@ -41,26 +41,18 @@ chooseName (x:xs) str
 chooseName [] _ = []
 
 --to check if connection violate checkCrossings 
---checkParallelRegion :: [Int] -> [Int] -> [UMLStateDiagram]-> Bool
---checkParallelRegion [] _ _ = True
---checkParallelRegion _ [] _ = True
---checkParallelRegion [_] _ _ = True
---checkParallelRegion _ [_] _ = True
---checkParallelRegion [_,_] _ _= True
---checkParallelRegion _ [_,_] _= True
---checkParallelRegion a@[x,xs,_] [y,ys,_] subs 
---  = if x == y then not (not (lastThirdNotCD a subs) && xs /= ys) else True 
---checkParallelRegion (x:xs) (y:ys) subs 
---  = if x == y then checkParallelRegion xs ys (getSubstate x subs) else True 
-
---lastThirdNotCD :: [Int] -> [UMLStateDiagram]-> Bool
---lastThirdNotCD [] _ = True
---lastThirdNotCD [x,_,_] a = all (lastThirdNotCD1 x) a
---lastThirdNotCD (x:xs) a = lastThirdNotCD xs (getSubstate x a) 
-
---lastThirdNotCD1 :: Int -> UMLStateDiagram -> Bool
---lastThirdNotCD1 a CombineDiagram{label} = a /= label
---lastThirdNotCD1 _ _ = True
+checkParallelRegion :: [Int] -> [Int] -> [UMLStateDiagram]-> Bool
+checkParallelRegion [] _ _ = True
+checkParallelRegion _ [] _ = True
+checkParallelRegion [_] _ _ = True
+checkParallelRegion _ [_] _ = True
+checkParallelRegion [_,_] _ _ = True
+checkParallelRegion _ [_,_] _ = True
+checkParallelRegion (x:xs) (y:ys) subs 
+  = case [x == y, all (isNotCD x) subs] of
+     [True,True] -> checkParallelRegion xs ys (getSubstate x subs)
+     [True,False] -> head xs == head ys && checkParallelRegion xs ys (getSubstate x subs)
+     [False,_] -> True
 
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
 suchThatWhileCounting gen p = tryWith 0
@@ -74,7 +66,7 @@ randomSD = do
   let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
   nm <- elements alphabet
   randomSD' True 4 [3 .. 4] alphabet (1,nm) [] `suchThatWhileCounting` 
-    (\x -> isNothing (checkSemantics x) && isNothing (checkCrossings x ) && isNothing (checkJoint x ))
+    (\x -> isNothing (checkSemantics x) && isNothing (checkJoint x ))
   -- here outermost layer must be StateDigram (checkOutMostLayer) --&& isNothing (checkJoint x)
 
 randomSD' :: Bool -> Int -> [Int] -> [String] -> (Int,String)-> [String] -> Gen UMLStateDiagram
@@ -163,8 +155,8 @@ randomConnection layerElem innerElem sub unreachedState = do
   let points = layerElem ++ innerElem 
       endState  = filter (not.(`isNotEnd` sub)) points
       noEndState = points \\ endState 
-      --noParallelRegionFromElem1 = filter (\x -> checkParallelRegion unreachedState x sub ) (noEndState \\ [unreachedState])
-  from <- elements (noEndState \\ [unreachedState])-- (seq hw noParallelRegionFromElem1)
+      noParallelRegionFromElem1 = filter (\x -> checkParallelRegion unreachedState x sub ) (noEndState \\ [unreachedState])
+  from <- elements noParallelRegionFromElem1 
   -- endStates have no outgoing edges (checkEndState)
   let outerHistory = filter (not.(`notHistory` sub)) layerElem
       noOuterHistory = points \\ outerHistory
@@ -172,24 +164,24 @@ randomConnection layerElem innerElem sub unreachedState = do
       excludeTranNms = concatMap (getSameFromTran from) sub
       fromSameNodeTranNms = (transitionNms \\ excludeTranNms) \\ [""]
       -- satisfy part of (checkSemantics) 
-  --let noParallelRegionToElem1 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
+  let noParallelRegionToElem1 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
   --hw <- if null (noParallelRegionToElem1) then error ("endState: " ++ show endState  
   --                                                            ++  "points:" ++ show points
   --                                                           ++  "unreachedState:" ++ show unreachedState
   --                                                            ++ "from" ++ show from 
   --                                                            ++ "subs" ++ show sub
   --                                                            ++ show depth ++ show c) else return ()
-  to   <- elements (if null unreachedState then noOuterHistory \\ [from] else [unreachedState])
+  to   <- elements (if null unreachedState then noParallelRegionToElem1 else [unreachedState])
   tran <- elements (if not (null excludeTranNms) then fromSameNodeTranNms else transitionNms)
-  --let noParallelRegionFromElem2 = filter (\x -> checkParallelRegion to x sub ) (noEndState \\[to])
-   --   noParallelRegionToElem2 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
+  let noParallelRegionFromElem2 = filter (\x -> checkParallelRegion to x sub ) (noEndState \\[to])
+      noParallelRegionToElem2 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
   case [notHistory from sub,notHistory to sub] of 
     [True,True] -> do
                      return (Connection from to tran)
     [True,False] -> do
                     -- hc <- if null noParallelRegionFromElem2 then error "44444" else return ()
                      --hd <- if null (filter (not . inCompoundState to) noParallelRegionFromElem2)  then error "55555" else return ()
-                     historyFrom <- elements (filter (not . inCompoundState to) (noEndState \\[to])) 
+                     historyFrom <- elements (filter (not . inCompoundState to) noParallelRegionFromElem2) 
                      if notHistory historyFrom sub then do 
                       return (Connection historyFrom to tran)
                      else do 
@@ -198,17 +190,17 @@ randomConnection layerElem innerElem sub unreachedState = do
                      if null unreachedState then do 
                     --  hc <- if null noParallelRegionToElem2 then error "66666" else return () 
                      -- hd <- if null (filter (inCompoundState from) noParallelRegionToElem2)  then error "777777" else return ()
-                      historyTo <- elements (filter (inCompoundState from) (noOuterHistory \\ [from]))
+                      historyTo <- elements (filter (inCompoundState from) noParallelRegionToElem2)
                       return (Connection from historyTo "")
                      else do
-                      let onlyHistory = filter (not.(`notHistory` sub)) noEndState
+                      let onlyHistory = filter (not.(`notHistory` sub)) noParallelRegionFromElem1
                           validHistory = filter (`inCompoundState` to) onlyHistory
-                          noEndHist = noEndState \\ onlyHistory 
+                          noEndHist = noParallelRegionFromElem1 \\ onlyHistory 
                       unreachedStateFrom <- elements (noEndHist ++ validHistory)
                       -- if to is the unreachedState ,from must be not a History that inside the unreachedState
                       return (Connection unreachedStateFrom to "")
     [False,False] -> do
-                     historyFrom <- elements (filter (not . inCompoundState to) (noEndState \\[to])) 
+                     historyFrom <- elements (filter (not . inCompoundState to) noParallelRegionFromElem2) 
                      if notHistory historyFrom sub then do 
                       return (Connection historyFrom to tran)
                      else do 
@@ -220,8 +212,9 @@ randomJointConnection layerElem innerElem globalStarts subs joint = do
     then do 
       fromNum <- elements [2..3]
       let points = layerElem ++ innerElem 
+          noParallelRegionElem = filter (\x -> checkParallelRegion joint x subs) points
           outerHistory = filter (not.(`notHistory` subs)) layerElem
-          noOuterHistory = points \\ outerHistory 
+          noOuterHistory = noParallelRegionElem \\ outerHistory 
       jointOut <- vectorOf fromNum (elements (noOuterHistory \\[joint])) 
                     `suchThat` (\x -> length (nub x) == length x  
                          && all (\xs -> notHistory xs subs || not (inCompoundState xs joint)) x) 
@@ -232,8 +225,9 @@ randomJointConnection layerElem innerElem globalStarts subs joint = do
     n <- elements [2..3]
     fromNum <- choose (1,n)
     let points = layerElem ++ innerElem 
+        noParallelRegionElem = filter (\x -> checkParallelRegion joint x subs) points
         outerHistory = filter (not.(`notHistory` subs)) layerElem
-        noOuterHistory = points \\ outerHistory 
+        noOuterHistory = noParallelRegionElem \\ outerHistory
     jointOut <- vectorOf fromNum (elements (noOuterHistory \\[joint])) 
                   `suchThat` (\x -> length (nub x) == length x 
                     && all (\xs -> notHistory xs subs || not (inCompoundState xs joint)) x)
@@ -241,8 +235,8 @@ randomJointConnection layerElem innerElem globalStarts subs joint = do
     jointOutNm <- elements transitionNms
     let jointOutConn = map (\x -> Connection joint x jointOutNm) jointOut
         toNum = if fromNum == 1 then n else 1 
-        endState  = filter (not.(`isNotEnd` subs)) points
-        noEndState = points \\ endState 
+        endState  = filter (not.(`isNotEnd` subs)) noParallelRegionElem
+        noEndState = noParallelRegionElem \\ endState 
     jointIn <- vectorOf toNum (elements (noEndState\\[joint])) 
                    `suchThat` (\x -> length (nub x) == length x 
                      && all (\xs -> notHistory xs subs || (jointOutNm /= "" && inCompoundState xs joint)) x )
