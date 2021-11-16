@@ -208,22 +208,9 @@ randomConnection layerElem innerElem sub unreachedState = do
 
 randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen [Connection]
 randomJointConnection layerElem innerElem globalStarts subs joint = do 
-  if joint `elem` globalStarts 
-    then do 
-      fromNum <- elements [2..3]
-      let points = layerElem ++ innerElem 
-          noParallelRegionElem = filter (\x -> checkParallelRegion joint x subs) points
-          outerHistory = filter (not.(`notHistory` subs)) layerElem
-          noOuterHistory = noParallelRegionElem \\ outerHistory 
-      jointOut <- vectorOf fromNum (elements (noOuterHistory \\[joint])) 
-                    `suchThat` (\x -> length (nub x) == length x  
-                         && all (\xs -> notHistory xs subs || not (inCompoundState xs joint)) x) 
-      let jointOutConn = map (\x -> Connection joint x "") jointOut
-      return jointOutConn
-  -- satisfy rules when the start node pointing to the joint 
-  else do
     n <- elements [2..3]
-    fromNum <- choose (1,n)
+    fromNum <- if joint `elem` globalStarts then elements [2..3] else choose (1,n)
+    -- if condition satisfy rules when the start node pointing to the joint 
     let points = layerElem ++ innerElem 
         noParallelRegionElem = filter (\x -> checkParallelRegion joint x subs) points
         outerHistory = filter (not.(`notHistory` subs)) layerElem
@@ -232,14 +219,18 @@ randomJointConnection layerElem innerElem globalStarts subs joint = do
                   `suchThat` (\x -> length (nub x) == length x 
                     && all (\xs -> notHistory xs subs || not (inCompoundState xs joint)) x)
     let transitionNms = ["a","b","c","d","e","f","g","h","i","j","k",""]
-    jointOutNm <- elements transitionNms
+    jointOutNm <- if joint `elem` globalStarts then return "" else elements transitionNms
     let jointOutConn = map (\x -> Connection joint x jointOutNm) jointOut
-        toNum = if fromNum == 1 then n else 1 
-        endState  = filter (not.(`isNotEnd` subs)) noParallelRegionElem
-        noEndState = noParallelRegionElem \\ endState 
-    jointIn <- vectorOf toNum (elements (noEndState\\[joint])) 
-                   `suchThat` (\x -> length (nub x) == length x 
-                     && all (\xs -> notHistory xs subs || (jointOutNm /= "" && inCompoundState xs joint)) x )
-    jointInNm <- if jointOutNm == "" then elements (transitionNms \\ [""]) else return ""
-    let jointInConn = map (\x -> Connection x joint jointInNm) jointIn
-    return (jointOutConn ++ jointInConn)
+    if joint `elem` globalStarts
+      then 
+        return jointOutConn
+    else do
+      let toNum = if fromNum == 1 then n else 1 
+          endState  = filter (not.(`isNotEnd` subs)) noParallelRegionElem
+          noEndState = noParallelRegionElem \\ endState 
+      jointIn <- vectorOf toNum (elements (noEndState\\[joint])) 
+                     `suchThat` (\x -> length (nub x) == length x 
+                       && all (\xs -> notHistory xs subs || (jointOutNm /= "" && inCompoundState xs joint)) x )
+      jointInNm <- if jointOutNm == "" then elements (transitionNms \\ [""]) else return ""
+      let jointInConn = map (\x -> Connection x joint jointInNm) jointIn
+      return (jointOutConn ++ jointInConn)
