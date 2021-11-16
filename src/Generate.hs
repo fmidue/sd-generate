@@ -90,7 +90,7 @@ randomSD' outermost c ns alphabet (l,nm) exclude = do
   let subNm   = chooseName subTypes subNms 
       cond    = zip3 labels subTypes subNm 
   -- (checkUniqueness (label))
-  subs <- mapM (\x -> randomInnerSD False counter ns alphabet x excludeNms) cond
+  subs <- mapM (\x -> randomInnerSD counter ns alphabet x excludeNms) cond
   let layerElem = map (\x -> [label x]) subs
       innerElem = concatMap (getAllElem1 []) subs
       innerElemNoRegions = filter (`lastSecNotCD` subs) innerElem
@@ -130,24 +130,24 @@ randomSD' outermost c ns alphabet (l,nm) exclude = do
   return (StateDiagram subs l nm (conns ++ connsExtra ++ connsExtraJoint ) start)
 
                                                                                                                                                                                
-randomInnerSD :: Bool -> Int -> [Int] -> [String] -> (Int,NodeType,[String]) -> [String]-> Gen UMLStateDiagram
-randomInnerSD outermost counter ns alphabet (l,t,s) exclude = do
+randomInnerSD :: Int -> [Int] -> [String] -> (Int,NodeType,[String]) -> [String]-> Gen UMLStateDiagram
+randomInnerSD counter ns alphabet (l,t,s) exclude = do
   let nm = head s
   case t of 
        Hist  -> frequency [(1,return (History l Shallow)),(1,return (History l Deep))]
        End   -> return (EndState l)
        Inner -> return (InnerMostState l nm "")
-       Comb -> randomCD outermost counter ns alphabet l s exclude
-       Stat -> randomSD' outermost counter ns alphabet (l,nm) exclude
+       Comb -> randomCD counter ns alphabet l s exclude
+       Stat -> randomSD' False counter ns alphabet (l,nm) exclude
        Join -> return (Joint l)
 
-randomCD :: Bool -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
-randomCD outermost c ns alphabet l s exclude = do
+randomCD :: Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
+randomCD c ns alphabet l s exclude = do
   let counter = c - 1
   n      <- elements [2 .. 3]
   labels <- shuffle [1..n]
   let cond   = zip labels s
-  subs   <- mapM (\x -> randomSD' outermost counter ns alphabet x exclude) cond
+  subs   <- mapM (\x -> randomSD' False counter ns alphabet x exclude) cond
   return (CombineDiagram subs l)
 
 randomConnection :: [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen Connection
