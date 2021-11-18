@@ -214,6 +214,19 @@ forAllgoIntoParallelRegions1 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] "a
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
         b = Joint 5
 
+forAllgoIntoParallelRegions2 :: UMLStateDiagram
+forAllgoIntoParallelRegions2 = StateDiagram [a,b,g] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [2,1,1] "a"] [5]
+      where
+        a = CombineDiagram [e,f] 1
+          where 
+            e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
+            f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
+        b = CombineDiagram [c,d] 2
+          where 
+            c = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
+            d = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
+        g = Joint 5
+
 forAllcomeOutOfParallelRegions1 :: UMLStateDiagram
 forAllcomeOutOfParallelRegions1 = StateDiagram [a,b] 1 "" [Connection[1,1,1] [5] "a",Connection[1,1,2] [5] "a",
                                    Connection[5] [1,2,1] "a" ] [1,1,2]
