@@ -44,17 +44,23 @@ spec = do
   counterExamplesOnlyFor "checkStructure"
      [ ("forCheckSubstateSD1", forCheckSubstateSD1)
        ,("forCheckSubstateSD2", forCheckSubstateSD2)
+       ,("forCheckSubstateSD3", forCheckSubstateSD3)
        ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
        ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
+       ,("forCheckHistOutTransition3", forCheckHistOutTransition3)
        ,("forCheckReachablity1", forCheckReachablity1)
        ,("forCheckReachablity2", forCheckReachablity2)
+       ,("forCheckReachablity3", forCheckReachablity3)
      ]
   counterExamplesOnlyFor "checkCrossings"
     [ ("bogusExample", bogusExample)
+      ,("foCheckCrossings1", foCheckCrossings1)
     ]
   counterExamplesOnlyFor "checkNameUniqueness"
         [("forCheckNameUniqueness1", forCheckNameUniqueness1)
         ,("forCheckNameUniqueness2", forCheckNameUniqueness2)
+        ,("forCheckSubNameUniq2", forCheckSubNameUniq2)
+        ,("forCheckSDNameUniq2", forCheckSDNameUniq2)
         ]
   counterExamplesOnlyFor "checkUniqueness"
         [("forCheckUniqueness1", forCheckUniqueness1)
@@ -66,8 +72,9 @@ spec = do
         ,("forCheckUniqueness7", forCheckUniqueness7)
         ]
   counterExamplesOnlyFor "checkEndState"
-       [ ("forCheckEndState1", forCheckEndState1 )
+       [ ("forCheckEndState1", forCheckEndState1)
         ,("forCheckEndState2", forCheckEndState2)
+        ,("forCheckEndState3", forCheckEndState3)
        ]
   counterExamplesOnlyFor "checkJoint"
        [ ("forCheckTransition1", forCheckTransition1)
@@ -75,23 +82,31 @@ spec = do
         ,("forCheckMtoOne1", forCheckMtoOne1)
         ,("forCheckMtoOne2", forCheckMtoOne2)
         ,("forCheckMtoOne3", forCheckMtoOne3)
+        ,("forCheckMtoOne4", forCheckMtoOne4)
         ,("forCheckMtoOne5", forCheckMtoOne5)
         ,("forCheckMtoOne6", forCheckMtoOne6)
         ,("forCheckMtoOne7", forCheckMtoOne7)
         ,("forCheckMtoOne8", forCheckMtoOne8)
         ,("forCheckTransition3", forCheckTransition3)
         ,("forCheckTransition4", forCheckTransition4)
+        ,("forCheckTransition5", forCheckTransition5)
+        ,("forAllgoIntoParallelRegions1", forAllgoIntoParallelRegions1)
+        ,("forAllcomeOutOfParallelRegions1", forAllcomeOutOfParallelRegions1)
        ]
   counterExamplesOnlyFor "checkHistory"
        [ ("forCheckInEdge1", forCheckInEdge1 )
          ,("forCheckInEdge2", forCheckInEdge2)
+         ,("forCheckInEdge3", forCheckInEdge3)
          ,("forCheckOutEdge1", forCheckOutEdge1)
+         ,("forCheckOutEdge2", forCheckOutEdge2)
        ]
   counterExamplesOnlyFor "checkSemantics"
        [ ("forCheckSameConnection1", forCheckSameConnection1)
        ,("forCheckSameConnection2", forCheckSameConnection2)
+       ,("forCheckSameConnection3", forCheckSameConnection3)
        ,("forCheckEmptyTran1", forCheckEmptyTran1)
        ,("forCheckEmptyTran2", forCheckEmptyTran2)
+       ,("forCheckEmptyTran3", forCheckEmptyTran3)
        ]
 
 counterExamplesOnlyFor theChecker theExamples = do
