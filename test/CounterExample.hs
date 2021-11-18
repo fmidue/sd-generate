@@ -43,8 +43,19 @@ forCheckReachablity2 = StateDiagram [a, b, c, d] 1 "" [Connection [1, 1, 3] [2] 
         g = InnerMostState 1 "G" ""
         h = InnerMostState 2 "H" ""
 
+forCheckReachablity3 :: UMLStateDiagram
+forCheckReachablity3 = StateDiagram [a] 1 "" [] []
+  where
+    a = InnerMostState 1 "A" ""
+
 bogusExample :: UMLStateDiagram
 bogusExample = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1,3,0] "",Connection [1] [1,2,0] ""] []
+    where
+      a = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
+      b = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
+
+foCheckCrossings1 :: UMLStateDiagram 
+foCheckCrossings1 = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1,3,0] ""] [1,2,0]
     where
       a = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
       b = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
@@ -145,6 +156,15 @@ forCheckMtoOne8 = StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [1] "a",
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
+forCheckMtoOne4 :: UMLStateDiagram
+forCheckMtoOne4 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] ""] [5]
+      where
+        a = CombineDiagram [e,f] 1
+          where 
+            e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
+            f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
+        b = Joint 5
+
 forCheckTransition3 :: UMLStateDiagram
 forCheckTransition3 = StateDiagram [a, b, d, l] 1 "" [Connection [2]
            [2, 1, 4] "a", Connection [4] [2, 1, 4] "b",Connection [4] [5] "a",
@@ -176,6 +196,34 @@ forCheckTransition4 = StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "a",Conne
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
+forCheckTransition5 :: UMLStateDiagram
+forCheckTransition5 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [1,2,1] "b"] [5]
+      where
+        a = CombineDiagram [e,f] 1
+          where 
+            e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
+            f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] []
+        b = Joint 5
+
+forAllgoIntoParallelRegions1 :: UMLStateDiagram
+forAllgoIntoParallelRegions1 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [1,1,2] "a"] [5]
+      where
+        a = CombineDiagram [e,f] 1
+          where 
+            e = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" [] []
+            f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
+        b = Joint 5
+
+forAllcomeOutOfParallelRegions1 :: UMLStateDiagram
+forAllcomeOutOfParallelRegions1 = StateDiagram [a,b] 1 "" [Connection[1,1,1] [5] "a",Connection[1,1,2] [5] "a",
+                                   Connection[5] [1,2,1] "a" ] [1,1,2]
+      where
+        a = CombineDiagram [e,f] 1
+          where 
+            e = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" [] [1]
+            f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] []
+        b = Joint 5
+
 forCheckEndState1 :: UMLStateDiagram
 forCheckEndState1 = StateDiagram [b,e] 1 "" [Connection[7] [2] ""] [7]
      where 
@@ -193,6 +241,11 @@ forCheckEndState2 = StateDiagram [a, b] 1 "" [Connection [1,3] [2] "a"] []
         e = EndState 3
     b = InnerMostState 2 "E" ""
 
+forCheckEndState3 :: UMLStateDiagram
+forCheckEndState3 = StateDiagram [a,b] 1 "" [Connection[2] [1] ""] [2]
+     where 
+           a = InnerMostState  1 "A" ""
+           b = EndState 2
 
 forCheckSubS1 :: UMLStateDiagram
 forCheckSubS1 = StateDiagram [InnerMostState 1 "" "", InnerMostState 2 "" ""] 1 "" [Connection [1] [2] "",Connection [2] [1] ""] [1,2]
@@ -470,6 +523,16 @@ forCheckNameUniqueness2 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connect
            e = History 3 Deep
       b = InnerMostState  2 "State 3" ""
 
+forCheckSDNameUniq2 :: UMLStateDiagram
+forCheckSDNameUniq2 = StateDiagram [a] 1 "A" [] []
+     where
+      a = StateDiagram  [InnerMostState  1 "A" ""] 1 "" [] [1]
+
+forCheckSubNameUniq2 :: UMLStateDiagram
+forCheckSubNameUniq2 = StateDiagram [a,b] 1 "" [Connection[1] [2] ""] [1]
+     where
+      a = InnerMostState 1 "A" ""
+      b = InnerMostState  2 "A" ""     
 
 forCheckUniqueness1 :: UMLStateDiagram
 forCheckUniqueness1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Connection
@@ -601,6 +664,11 @@ forCheckSubstateSD2 = StateDiagram [a,b] 1 "" [] []
            e = History 3 Deep
       b = InnerMostState  2 "State 3" ""
 
+forCheckSubstateSD3::UMLStateDiagram
+forCheckSubstateSD3 = StateDiagram [a] 1 "" [] [1]
+    where
+      a = History 1 Deep
+
 forCheckSubstateCD1 :: UMLStateDiagram
 forCheckSubstateCD1 = StateDiagram [CombineDiagram [a] 1] 1 "active" [] [1]
   where
@@ -662,6 +730,12 @@ forCheckHistOutTransition2 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 
             e = InnerMostState 2 "7" ""
             f = InnerMostState 3 "8" ""
 
+forCheckHistOutTransition3 :: UMLStateDiagram
+forCheckHistOutTransition3 = StateDiagram [a,b] 1 "" [Connection[1] [2] "error"] [1]
+     where
+      a = History 1 Deep
+      b = InnerMostState  2 "A" ""
+
 forCheckInEdge1 :: UMLStateDiagram
 forCheckInEdge1 = 
   StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
@@ -675,6 +749,12 @@ forCheckInEdge1 =
           g = InnerMostState  2 "State 2b" ""
        e = History 3 Deep
   b = InnerMostState  2 "State 3" ""
+
+forCheckInEdge3 :: UMLStateDiagram
+forCheckInEdge3 = StateDiagram [a,b] 1 "" [Connection [2] [1] ""] [2]
+     where
+      a =  History 1 Deep
+      b = InnerMostState  2 "A" ""
 
 forCheckInEdge2 :: UMLStateDiagram
 forCheckInEdge2 = StateDiagram [a,b] 1 "" [] [2]
@@ -702,6 +782,14 @@ forCheckOutEdge1 = StateDiagram [a,b] 1 "" [Connection[1,3] [2] "",Connection[2]
            e = History 3 Deep
       b = InnerMostState  2 "State 3" ""
 
+forCheckOutEdge2 :: UMLStateDiagram
+forCheckOutEdge2 = StateDiagram [a,b] 1 "" [Connection [1,3] [2] ""] [1,3]
+     where
+     a = StateDiagram  [c,d] 1 "" [] [1]
+          where
+           c = InnerMostState  1 "A" ""
+           d = History 3 Deep
+     b = InnerMostState  2 "A" ""
 
 forCheckEmptyConnPoint1 :: UMLStateDiagram
 forCheckEmptyConnPoint1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
@@ -774,6 +862,12 @@ forCheckSameConnection2 = StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] 
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
+forCheckSameConnection3 :: UMLStateDiagram
+forCheckSameConnection3 = StateDiagram [a, b] 1 "" [Connection [1] [2] "a", Connection [1] [2] "a"] [1]
+  where
+    a = InnerMostState 1 "A" ""
+    b = InnerMostState 2 "B" ""
+
 forCheckEmptyTran1 :: UMLStateDiagram
 forCheckEmptyTran1 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
    Connection [3] [4] "Confirm order(Event)", Connection [4] [5] "",Connection [5] [6] "",Connection [5] [6] "complete"] [1]
@@ -808,3 +902,10 @@ forCheckEmptyTran2 = StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", Connec
       where
         f = InnerMostState 1 "F" ""
         g = InnerMostState 2 "G" ""
+
+forCheckEmptyTran3 :: UMLStateDiagram
+forCheckEmptyTran3 = StateDiagram [a, b] 1 "" [Connection [1] [2] "a", Connection
+           [1] [2] ""] [1]
+  where
+    a = InnerMostState 1 "A" ""
+    b = InnerMostState 2 "B" ""
