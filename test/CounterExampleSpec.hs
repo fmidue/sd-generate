@@ -91,6 +91,7 @@ spec = do
         ,("forCheckTransition4", forCheckTransition4)
         ,("forCheckTransition5", forCheckTransition5)
         ,("forAllgoIntoParallelRegions1", forAllgoIntoParallelRegions1)
+        ,("forAllgoIntoParallelRegions2", forAllgoIntoParallelRegions2)
         ,("forAllcomeOutOfParallelRegions1", forAllcomeOutOfParallelRegions1)
        ]
   counterExamplesOnlyFor "checkHistory"
