@@ -1,54 +1,61 @@
-abstract sig Nodes{
-	to: set Nodes
+// States: a start state, a end state, a normal state or a composite state
+abstract sig State{
+	to: set State
 }
 
-// a same state can't be in different blocks(regions and layouts)
-abstract sig Blocks{
-	contains: disj set Nodes
-}
 
-// all states are nodes
-abstract sig State extends Nodes{
+abstract sig StartState extends State{
 
 }
 
-// Regions and Layouts are Blocks
-abstract sig Region extends Blocks{
-	partof: one Layout
+abstract sig EndState extends State{
+
+}
+{
+	#to = 0
 }
 
-abstract sig Layout extends Blocks{
-	belongs: lone Layout,
-	inner: set Region
+// Normal states
+abstract sig NormalState extends State{
+
 }
 
-// it is replaced by the definition contains: disj set Nodes
-/*
-pred notIn [b1, b2: Blocks]{
-	b1.contains not in b2.contains
+// Region
+abstract sig Region{
+	contains: disj set State, // a region can contain normal states and composite states
+	partof: one CompositeState // a region states can only belong to a composite state
 }
-*/
 
-// a same state can't be in different blocks(regions and layouts)
+//Composite states
+abstract sig CompositeState extends State{
+	contains: disj set NormalState, // a composite state can contain all states
+	belongs: lone CompositeState, // a composite state can only belong to a composite state
+	inner: set Region // region states are in composite states
+}
+
 fact{
-//	all r1, r2: Region | r1 != r2 => notIn[r1, r2]    // it is replaced by the definition contains: disj set Nodes
-//	all l1, l2: Layout | l1 != l2 => notIn[l1, l2]     // it is replaced by the definition contains: disj set Nodes
-	no l1: Layout | l1 in l1.^belongs // this relation has no loop
+	all s1: StartState, s2: State | s1 not in s2.to // no transitions to start states
+
+}
+fact{
+	no c1: CompositeState | c1 in c1.^belongs  // this relation has no loop
 	partof = ~inner  //reverse relation
-	all l1: Layout | #l1.inner !=1 // Regions divide a state diagram into at least two areas that run in parallel.
+	all c1: CompositeState | #c1.inner !=1 && c1 not in c1.to // Region states divide a state diagram into at least two areas that run in parallel
+	all s1: State, c1: CompositeState | s1 in c1.contains => c1 not in s1.to // a normal state in a composite state can't have transition to this composite state
+	all c1, c2: CompositeState | c1 in c2.^belongs => c1 not in c2.^belongs.to // a composite state in another composite state can't have transition to the composite state
 }
 
-// if a layout contains regions, then all states are contained by regions directly and in the layout indirectly, so the layout doesn't contain any states directly
+// if a composite state contains region states, then all states are contained by region states directly and in the composite state indirectly, so the composite state doesn't contain any states directly
 fact{
-	all s1: State | s1 in Region.contains => s1 not in Layout.contains
-	all l1, l2: Layout, s1: State | #l1.inner > 0 => s1 not in l1.contains && l1 not in l2.^belongs
+	all s1: State | s1 in Region.contains => s1 not in CompositeState.contains
+	all c1, c2: CompositeState, s1: State | #c1.inner > 0 => s1 not in c1.contains &&  c1 not in c2.^belongs
 }
 
-//In a same layout, states in different regions can't be transited to each other
+//In a same omposite state, states in different region states can't be transited to each other
 fact{
 	all r1, r2: Region |  r1.partof = r2.partof => r2.contains not in r1.contains.to
 	all r1, r2: Region |  r1.partof = r2.partof => r1.contains not in  r2.contains.to
 }
 
 //check
-run {} for 6
+run {} for 4 
