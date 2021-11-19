@@ -1,5 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
-
 module Checkers.Semantics ( checkSemantics ) where
 
 import Datatype (
