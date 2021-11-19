@@ -1,82 +1,85 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module Helper where
+
+module Checkers.Helpers where
+
 import Datatype (
   Connection(..),
   StateDiagram(..),
   UMLStateDiagram,
   globalise
   )
-import Data.List(find) 
+
+import Data.List (find)
 
 getSameFromTran :: [Int] -> UMLStateDiagram -> [String]
-getSameFromTran (x:xs) s@StateDiagram{label} 
+getSameFromTran (x:xs) s@StateDiagram{label}
   = if x == label then getSameFromTran1 xs s else return []
-getSameFromTran (x:xs) CombineDiagram{label,substate} 
+getSameFromTran (x:xs) CombineDiagram{label,substate}
   = if x == label then concatMap (getSameFromTran xs) substate else return []
 getSameFromTran _ _ = []
 
 getSameFromTran1 :: [Int] -> UMLStateDiagram -> [String]
-getSameFromTran1 x s@StateDiagram{} 
-  = map transition (filter ((== x).pointFrom) conn) 
-      where 
+getSameFromTran1 x s@StateDiagram{}
+  = map transition (filter ((== x).pointFrom) conn)
+      where
           global = globalise s
           conn   = connection global
 getSameFromTran1 _ _ = []
 
 checkMoreOut :: [Int] -> UMLStateDiagram -> Bool
-checkMoreOut (x:xs) s@StateDiagram{label} 
+checkMoreOut (x:xs) s@StateDiagram{label}
   = (x /= label) || checkMoreOut1 xs s
-checkMoreOut (x:xs) CombineDiagram{label,substate} 
+checkMoreOut (x:xs) CombineDiagram{label,substate}
   = (x /= label) || all (checkMoreOut xs) substate
 checkMoreOut _ _ = True
 
 checkMoreOut1 :: [Int] -> UMLStateDiagram -> Bool
-checkMoreOut1 x s@StateDiagram{} 
+checkMoreOut1 x s@StateDiagram{}
   = length fromSame /= 1
-      where 
+      where
           global = globalise s
           conn   = connection global
           fromSame = filter ((x ==) . pointFrom) conn
 checkMoreOut1 _ _ = True
 
-inCompoundState :: [Int] -> [Int] -> Bool 
-inCompoundState a b = init (take (length a) b) == init a 
+inCompoundState :: [Int] -> [Int] -> Bool
+inCompoundState a b = init (take (length a) b) == init a
 
 getAllElem :: UMLStateDiagram -> [[Int]]
-getAllElem StateDiagram{substate} 
-  = map (\x -> [label x]) substate  
+getAllElem StateDiagram{substate}
+  = map (\x -> [label x]) substate
    ++ concatMap (getAllElem1 []) substate
-getAllElem CombineDiagram{substate} 
+getAllElem CombineDiagram{substate}
   = map (\x -> [label x]) substate
   ++ concatMap (getAllElem1 []) substate
 getAllElem _ = []
 
 getAllElem1 :: [Int] -> UMLStateDiagram -> [[Int]]
-getAllElem1 prepend s@StateDiagram {substate} 
+getAllElem1 prepend s@StateDiagram {substate}
   = map (\x -> newPrepend ++ [label x]) substate
     ++ concatMap (getAllElem1 newPrepend) substate
-      where 
+      where
        newPrepend = prepend ++ [label s]
-getAllElem1 prepend c@CombineDiagram {substate} 
+getAllElem1 prepend c@CombineDiagram {substate}
   = map (\x -> newPrepend ++ [label x]) substate
-    ++ concatMap (getAllElem1 newPrepend) substate 
+    ++ concatMap (getAllElem1 newPrepend) substate
       where
         newPrepend = prepend ++ [label c]
 getAllElem1 _ _ = []
 
 globalStart :: UMLStateDiagram -> [[Int]]
-globalStart StateDiagram{ substate,startState} 
+globalStart StateDiagram{ substate,startState}
  = startState : concatMap (`globalStart1` []) substate
 globalStart _ = []
 
 globalStart1 :: UMLStateDiagram -> [Int] -> [[Int]]
-globalStart1 StateDiagram{ substate, startState, label} p 
+globalStart1 StateDiagram{ substate, startState, label} p
  =  ((p ++ [label]) ++ startState)
     : concatMap (`globalStart1` (p ++ [label])) substate
-globalStart1 CombineDiagram{ substate ,label} p 
+globalStart1 CombineDiagram{ substate ,label} p
   = concatMap (`globalStart1` (p ++ [label])) substate
 globalStart1 _ _ = []
- 
+
 isSDCD :: [Int] -> [UMLStateDiagram] -> Bool
 isSDCD [] _ = False
 isSDCD [x] a = any (isSDCD1 x) a
@@ -112,12 +115,12 @@ notJoint (x:xs) a = notJoint  xs (getSubstate x a)
 
 isNotJoint :: Int -> UMLStateDiagram -> Bool
 isNotJoint a Joint {label}  = a /= label
-isNotJoint _ _ = True 
+isNotJoint _ _ = True
 
 lastSecNotCD :: [Int] -> [UMLStateDiagram]-> Bool
 lastSecNotCD [] _ = True
 lastSecNotCD [x, _] a = all (isNotCD x) a
-lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstate x a) 
+lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstate x a)
 
 isNotCD :: Int -> UMLStateDiagram -> Bool
 isNotCD a CombineDiagram{label} = a /= label
