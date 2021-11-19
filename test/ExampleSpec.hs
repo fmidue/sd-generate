@@ -1,7 +1,7 @@
 module ExampleSpec (spec, positiveExamples, allTheCheckers) where
 
 import Example
-import Test
+import Checkers
 import Datatype (globalise, localise)
 import Layout (checkWrapper)
 

@@ -6,8 +6,8 @@ import Datatype (
   UMLStateDiagram,
   globalise
   )
-import Test (checkSemantics,checkJoint)
-import Helper
+import Checkers (checkSemantics, checkJoint)
+import Checkers.Helpers (inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart, getAllElem1, lastSecNotCD, getSubstate, isNotCD)
 import Data.Maybe(isNothing)
 import Data.List((\\),nub) 
 import Test.QuickCheck hiding(label,labels)

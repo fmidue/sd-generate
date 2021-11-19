@@ -1,7 +1,7 @@
 module CounterExampleSpec (spec) where
 
 import CounterExample
-import Test
+import Checkers
 import ExampleSpec (allTheCheckers)
 import Datatype (globalise, localise, StateDiagram(substate))
 import DatatypeSpec (connectionsEmpty)
