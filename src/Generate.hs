@@ -6,10 +6,12 @@ import Datatype (
   UMLStateDiagram,
   globalise
   )
-import Checkers (checkSemantics, checkJoint)
+
+import Checkers (checkSemantics)
 import Checkers.Helpers (inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart, getAllElem1, lastSecNotCD, getSubstate, isNotCD)
 import Data.Maybe(isNothing)
-import Data.List((\\),nub) 
+import Data.List((\\),nub,zip4) 
+import Data.List.Extra(allSame)
 import Test.QuickCheck hiding(label,labels)
 
 -- define random Node value
@@ -24,7 +26,7 @@ checkSubType subNum x =
   && (End `elem` x || Inner `elem` x || Comb `elem` x || Stat `elem` x) 
   -- here satisfy the rule of (checkSUbstateSD in checkStructure ) 
   &&  if Comb `notElem` x && Stat `notElem` x then null joinNum else length joinNum < subNum - 1 
-  -- to limit the number of joint to zero when it goes to innermost layer
+  -- to limit the number of joint to zero when it goes to innermost layer 
     where
       histNum = filter (== Hist) x
       endNum = filter (== End) x
@@ -64,33 +66,61 @@ suchThatWhileCounting gen p = tryWith 0
 randomSD :: Gen (UMLStateDiagram, Int)
 randomSD = do
   let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
+      mustCD = False
+      -- mustCD represents if a randoomSD' must have a CD
+      cdMaxNum = 1 
+      -- to ignore nested CD 
   nm <- elements alphabet
-  randomSD' True 4 [3 .. 4] alphabet (1,nm) [] `suchThatWhileCounting` 
-    (\x -> isNothing (checkSemantics x) && isNothing (checkJoint x ))
-  -- here outermost layer must be StateDigram (checkOutMostLayer) --&& isNothing (checkJoint x)
+  randomSD' True 4 cdMaxNum [3 .. 4] alphabet (1,nm,mustCD) [] `suchThatWhileCounting` (isNothing . checkSemantics)
+  -- here outermost layer must be StateDigram (checkOutMostLayer) 
+  
+chooseRandomMustCD' :: NodeType -> Gen Bool
+chooseRandomMustCD' Stat = choose (True,False)
+chooseRandomMustCD' _ =  return False
 
-randomSD' :: Bool -> Int -> [Int] -> [String] -> (Int,String)-> [String] -> Gen UMLStateDiagram
-randomSD' outermost c ns alphabet (l,nm) exclude = do
+randomSD' :: Bool -> Int -> Int -> [Int] -> [String] -> (Int,String,Bool)-> [String] -> Gen UMLStateDiagram
+randomSD' outermost c cdMaxNum ns alphabet (l,nm,mustCD) exclude = do
   n <- elements ns 
   -- number of substates
-  labels <- shuffle  [1..n] 
+  labels <- shuffle  [1..9] 
   -- shuffle to achieve random assignment of label
   let counter = c - 1
-      chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(2,return Stat),(1,return Join)]
+      chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(2,return Join)]
       -- all types
+      chooseNoCombJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
       chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Join)]
       -- types that have no substates 
-  subTypes <- vectorOf n (if counter > 0 then chooseNodeTypes else chooseNoSubNodeTypes)
-                        `suchThat` checkSubType n
+      chooseNoSubJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Join)]
+  subTypes1 <- vectorOf n ( case [counter > 0, cdMaxNum == 0] of
+                            [True,True] -> chooseNoCombJointNodeTypes
+                            [True,False] -> chooseNodeTypes 
+                            [False,True] -> chooseNoSubJointNodeTypes
+                            [False,False] -> chooseNoSubNodeTypes ) `suchThat` checkSubType n
   -- check counter > 0 to limit the depth the diagram
+  let newMustCD = (Join `elem` subTypes1) || mustCD
+      subTypes = case [c > 0, newMustCD] of 
+                  [True,True] ->  case [Comb `elem` subTypes1, Stat `elem` subTypes1] of 
+                                    [True,_] -> subTypes1
+                                    [False,True] -> subTypes1
+                                    [False,False] -> subTypes1 ++ [Comb] 
+                  [False,True] -> subTypes1 ++ [Comb]               
+                  [_,False] -> subTypes1                              
+  mustCDs <- case [c > 0, newMustCD] of 
+              [True,True] ->  if Comb `notElem` subTypes1 
+                                    then 
+                                      if Stat `notElem` subTypes1 then return (replicate (n+1) False)
+                                      else mapM chooseRandomMustCD' subTypes `suchThat` (True `elem`)
+                                  else return (replicate n False)
+              [False,True] -> return (replicate (n+1) False)
+              [_,False] -> return (replicate n False)
   let excludeNms   = exclude ++ [nm]
   -- record the StateDiagram used names that should not be used again in inner states 
   -- (checkNameUniqueness. checkSDNameUniq)
   subNms <- shuffle  (alphabet \\ excludeNms )
   let subNm   = chooseName subTypes subNms 
-      cond    = zip3 labels subTypes subNm 
+      cond    = zip4 labels subTypes subNm mustCDs
   -- (checkUniqueness (label))
-  subs <- mapM (\x -> randomInnerSD counter ns alphabet x excludeNms) cond
+  subs <- mapM (\x -> randomInnerSD counter cdMaxNum ns alphabet x excludeNms) cond  
   let layerElem = map (\x -> [label x]) subs
       innerElem = concatMap (getAllElem1 []) subs
       innerElemNoRegions = filter (`lastSecNotCD` subs) innerElem
@@ -114,7 +144,7 @@ randomSD' outermost c ns alphabet (l,nm) exclude = do
   connsExtraJoint1 
     <- if outermost 
          then 
-          mapM (randomJointConnection layerElem innerElemNoRegions globalStarts subs) jointStates 
+          mapM (randomJointConnection layerElemNoJoint innerElemNoRegionsJoint globalStarts subs) jointStates 
        else return []
   let connsExtraJoint = concat connsExtraJoint1
       innerElemNoRegionsJointSDCD = filter (not.(`isSDCD` subs)) innerElemNoRegionsJoint 
@@ -129,25 +159,25 @@ randomSD' outermost c ns alphabet (l,nm) exclude = do
         else return []
   return (StateDiagram subs l nm (conns ++ connsExtra ++ connsExtraJoint ) start)
 
-                                                                                                                                                                               
-randomInnerSD :: Int -> [Int] -> [String] -> (Int,NodeType,[String]) -> [String]-> Gen UMLStateDiagram
-randomInnerSD counter ns alphabet (l,t,s) exclude = do
+randomInnerSD :: Int -> Int -> [Int] -> [String] -> (Int,NodeType,[String],Bool) -> [String]-> Gen UMLStateDiagram
+randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
   let nm = head s
   case t of 
        Hist  -> frequency [(1,return (History l Shallow)),(1,return (History l Deep))]
        End   -> return (EndState l)
        Inner -> return (InnerMostState l nm "")
-       Comb -> randomCD counter ns alphabet l s exclude
-       Stat -> randomSD' False counter ns alphabet (l,nm) exclude
+       Comb -> randomCD counter cdMaxNum ns alphabet l s exclude
+       Stat -> randomSD' False counter cdMaxNum ns alphabet (l,nm,mustCD) exclude
        Join -> return (Joint l)
 
-randomCD :: Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
-randomCD c ns alphabet l s exclude = do
-  let counter = c - 1
+randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
+randomCD counter cdMaxNum ns alphabet l s exclude = do
   n      <- elements [2 .. 3]
   labels <- shuffle [1..n]
-  let cond   = zip labels s
-  subs   <- mapM (\x -> randomSD' False counter ns alphabet x exclude) cond
+  let cdMaxNum' = cdMaxNum - 1
+      mustCDs =replicate n False
+      cond   = zip3 labels s mustCDs
+  subs   <- mapM (\x -> randomSD' False counter cdMaxNum' ns alphabet x exclude) cond
   return (CombineDiagram subs l)
 
 randomConnection :: [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen Connection
@@ -165,12 +195,6 @@ randomConnection layerElem innerElem sub unreachedState = do
       fromSameNodeTranNms = (transitionNms \\ excludeTranNms) \\ [""]
       -- satisfy part of (checkSemantics) 
   let noParallelRegionToElem1 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
-  --hw <- if null (noParallelRegionToElem1) then error ("endState: " ++ show endState  
-  --                                                            ++  "points:" ++ show points
-  --                                                           ++  "unreachedState:" ++ show unreachedState
-  --                                                            ++ "from" ++ show from 
-  --                                                            ++ "subs" ++ show sub
-  --                                                            ++ show depth ++ show c) else return ()
   to   <- elements (if null unreachedState then noParallelRegionToElem1 else [unreachedState])
   tran <- elements (if not (null excludeTranNms) then fromSameNodeTranNms else transitionNms)
   let noParallelRegionFromElem2 = filter (\x -> checkParallelRegion to x sub ) (noEndState \\[to])
@@ -200,16 +224,16 @@ randomConnection layerElem innerElem sub unreachedState = do
 
 randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen [Connection]
 randomJointConnection layerElem innerElem globalStarts subs joint = do 
-    n <- elements [2..3]
-    fromNum <- if joint `elem` globalStarts then elements [2..3] else choose (1,n)
+    fromNum <- if joint `elem` globalStarts then return 2 else choose (1,2)
     -- if condition satisfy rules when the start node pointing to the joint 
-    let points = layerElem ++ innerElem 
-        noParallelRegionElem = filter (\x -> checkParallelRegion joint x subs) points
-        outerHistory = filter (not.(`notHistory` subs)) layerElem
-        noOuterHistory = noParallelRegionElem \\ outerHistory
-    jointOut <- vectorOf fromNum (elements (noOuterHistory \\[joint])) 
-                  `suchThat` (\x -> length (nub x) == length x 
-                    && all (\xs -> notHistory xs subs || not (inCompoundState xs joint)) x)
+    let points = layerElem ++ innerElem
+        noHistory = filter (`notHistory` subs) points
+        -- here let Joint will not point to/from History
+       -- noParallelRegionHistoryElem = filter (\x -> checkParallelRegion joint x subs) noHistory
+    cd <- elements (filter (not.(`notCD` subs)) noHistory)  
+    let cdSub = filter (\ x -> take (length cd) x == cd) noHistory \\ [cd]
+    jointOut <- vectorOf fromNum (elements (if fromNum == 1 then noHistory \\[joint] else cdSub \\[joint]))
+                  `suchThat` (\x -> length (nub x) == length x && checkDistinctRegion cd x )
     let transitionNms = ["a","b","c","d","e","f","g","h","i","j","k",""]
     jointOutNm <- if joint `elem` globalStarts then return "" else elements transitionNms
     let jointOutConn = map (\x -> Connection joint x jointOutNm) jointOut
@@ -217,12 +241,23 @@ randomJointConnection layerElem innerElem globalStarts subs joint = do
       then 
         return jointOutConn
     else do
-      let toNum = if fromNum == 1 then n else 1 
-          endState  = filter (not.(`isNotEnd` subs)) noParallelRegionElem
-          noEndState = noParallelRegionElem \\ endState 
-      jointIn <- vectorOf toNum (elements (noEndState\\[joint])) 
-                     `suchThat` (\x -> length (nub x) == length x 
-                       && all (\xs -> notHistory xs subs || (jointOutNm /= "" && inCompoundState xs joint)) x )
+      let toNum = if fromNum == 1 then 2 else 1 
+          noEndState  = filter (`isNotEnd` subs) noHistory
+          cdSubsNoEndState = filter (`isNotEnd` subs) cdSub
+      jointIn <- vectorOf toNum (elements (if toNum == 1 then noEndState\\[joint] else cdSubsNoEndState \\[joint] ))
+                     `suchThat` (\x -> length (nub x) == length x && checkDistinctRegion cd x )
       jointInNm <- if jointOutNm == "" then elements (transitionNms \\ [""]) else return ""
       let jointInConn = map (\x -> Connection x joint jointInNm) jointIn
       return (jointOutConn ++ jointInConn)
+
+checkDistinctRegion :: [Int] -> [[Int]] -> Bool
+checkDistinctRegion _ [_] = True
+checkDistinctRegion cd points 
+  = not (allSame headOfPointsInsideCD)
+    where 
+       headOfPointsInsideCD = map (last . take (length cd + 1)) points
+
+notCD :: [Int] -> [UMLStateDiagram] -> Bool
+notCD [] _ = True
+notCD [x] a = all (isNotCD x) a
+notCD (x:xs) a = notCD xs (getSubstate x a)
