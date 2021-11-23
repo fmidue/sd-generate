@@ -85,6 +85,7 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
   -- number of substates
   labels <- shuffle  [1..(n+1)] 
   -- shuffle to achieve random assignment of label
+  let counter = c - 1
       chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(2,return Join)]
       -- all types
       chooseNoCombJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
