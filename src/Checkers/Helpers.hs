@@ -26,22 +26,6 @@ getSameFromTran1 x s@StateDiagram{}
           conn   = connection global
 getSameFromTran1 _ _ = []
 
-checkMoreOut :: [Int] -> UMLStateDiagram -> Bool
-checkMoreOut (x:xs) s@StateDiagram{label}
-  = (x /= label) || checkMoreOut1 xs s
-checkMoreOut (x:xs) CombineDiagram{label,substate}
-  = (x /= label) || all (checkMoreOut xs) substate
-checkMoreOut _ _ = True
-
-checkMoreOut1 :: [Int] -> UMLStateDiagram -> Bool
-checkMoreOut1 x s@StateDiagram{}
-  = length fromSame /= 1
-      where
-          global = globalise s
-          conn   = connection global
-          fromSame = filter ((x ==) . pointFrom) conn
-checkMoreOut1 _ _ = True
-
 inCompoundState :: [Int] -> [Int] -> Bool
 inCompoundState a b = init (take (length a) b) == init a
 
