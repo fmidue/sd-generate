@@ -7,7 +7,7 @@ import Datatype (
   globalise,
   )
 
-import Checkers.Helpers
+import Checkers.Helpers (notJoint)
 
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a

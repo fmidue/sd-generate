@@ -8,7 +8,7 @@ import Datatype (
   UMLStateDiagram,
   )
 
-import Checkers.Helpers
+import Checkers.Helpers (getSubstate, lastSecNotCD)
 
 checkRepresentation :: UMLStateDiagram -> Maybe String
 checkRepresentation a

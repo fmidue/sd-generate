@@ -9,7 +9,7 @@ import Datatype (
   globalise,
   )
 
-import Checkers.Helpers
+import Checkers.Helpers (globalStart, notHistory, isSDCD, getAllElem)
 
 checkStructure :: UMLStateDiagram -> Maybe String
 checkStructure a

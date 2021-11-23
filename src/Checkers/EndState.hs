@@ -8,7 +8,7 @@ import Datatype (
   UMLStateDiagram,
   )
 
-import Checkers.Helpers
+import Checkers.Helpers (isNotEnd)
 
 checkEndState :: UMLStateDiagram -> Maybe String
 checkEndState a

@@ -1,6 +1,19 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Checkers.Helpers where
+module Checkers.Helpers (
+  getAllElem,
+  getAllElem1,
+  getSameFromTran,
+  getSubstate,
+  globalStart,
+  inCompoundState,
+  isNotCD,
+  isNotEnd,
+  isSDCD,
+  lastSecNotCD,
+  notHistory,
+  notJoint
+  ) where
 
 import Datatype (
   Connection(..),
