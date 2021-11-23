@@ -23,7 +23,7 @@ checkSubType _ _ _ [] = False
 checkSubType subNum outermost leastTwoLevels x =
   length histNum < 2 && length endNum < 2 && length cdNum < 2 && length sdNum < 3 
   -- here limit the number of some ingredients to make the diagram not so complicated or sens
-  && if outermost && leastTwoLevels then (Comb `elem` x || Stat `elem` x)
+  && if outermost && leastTwoLevels then Comb `elem` x || Stat `elem` x
      else (End `elem` x || Inner `elem` x || Comb `elem` x || Stat `elem` x)  
   -- here satisfy the rule of (checkSUbstateSD in checkStructure ) 
   &&  if Comb `notElem` x && Stat `notElem` x then null joinNum else length joinNum < subNum - 1 
@@ -110,7 +110,7 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
   mustCDs <- case (c > 0, newMustCD) of 
               (True,True) ->  case (Comb `elem` subTypes1, Stat `elem` subTypes1) of 
                                 (True,_) -> return (replicate n False)
-                                (False,True) -> mapM chooseRandomMustCD' subTypes `suchThat`(or) 
+                                (False,True) -> mapM chooseRandomMustCD' subTypes `suchThat` or
                                 (False,False) -> return (replicate (n+1) False)
               (False,True) -> return (replicate (n+1) False)
               (_,False) -> return (replicate n False)
