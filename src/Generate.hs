@@ -18,15 +18,15 @@ import Test.QuickCheck hiding(label,labels)
 data NodeType = Hist | End | Inner | Comb | Stat | Join  deriving Eq
 
 -- the substate of SD must obey some rules 
-checkSubType :: Int -> [NodeType] -> Bool
-checkSubType _ [] = False
-checkSubType subNum x =
+checkSubType :: Int -> Bool -> Bool -> [NodeType] -> Bool
+checkSubType _ _ _ [] = False
+checkSubType subNum outermost leastTwoLevels x =
   length histNum < 2 && length endNum < 2 && length cdNum < 2 && length sdNum < 3 
   -- here limit the number of some ingredients to make the diagram not so complicated or sens
-  && (End `elem` x || Inner `elem` x || Comb `elem` x || Stat `elem` x) 
+  && if outermost && leastTwoLevels then (Comb `elem` x || Stat `elem` x)
+     else (End `elem` x || Inner `elem` x || Comb `elem` x || Stat `elem` x)  
   -- here satisfy the rule of (checkSUbstateSD in checkStructure ) 
   &&  if Comb `notElem` x && Stat `notElem` x then null joinNum else length joinNum < subNum - 1 
-  -- to limit the number of joint to zero when it goes to innermost layer 
     where
       histNum = filter (== Hist) x
       endNum = filter (== End) x
@@ -71,48 +71,48 @@ randomSD = do
       cdMaxNum = 1 
       -- to ignore nested CD 
   nm <- elements alphabet
-  randomSD' True 4 cdMaxNum [3 .. 4] alphabet (1,nm,mustCD) [] `suchThatWhileCounting` (isNothing . checkSemantics)
+  leastTwoLevels <- choose(True,False)
+  randomSD' True 4 cdMaxNum leastTwoLevels [3 .. 4] alphabet (1,nm,mustCD) [] `suchThatWhileCounting` (isNothing . checkSemantics)
   -- here outermost layer must be StateDigram (checkOutMostLayer) 
   
 chooseRandomMustCD' :: NodeType -> Gen Bool
 chooseRandomMustCD' Stat = choose (True,False)
 chooseRandomMustCD' _ =  return False
 
-randomSD' :: Bool -> Int -> Int -> [Int] -> [String] -> (Int,String,Bool)-> [String] -> Gen UMLStateDiagram
-randomSD' outermost c cdMaxNum ns alphabet (l,nm,mustCD) exclude = do
+randomSD' :: Bool -> Int -> Int -> Bool -> [Int] -> [String] -> (Int,String,Bool)-> [String] -> Gen UMLStateDiagram
+randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude = do
   n <- elements ns 
   -- number of substates
-  labels <- shuffle  [1..9] 
+  labels <- shuffle  [1..(n+1)] 
   -- shuffle to achieve random assignment of label
-  let counter = c - 1
       chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(2,return Join)]
       -- all types
       chooseNoCombJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
       chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Join)]
       -- types that have no substates 
       chooseNoSubJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Join)]
-  subTypes1 <- vectorOf n ( case [counter > 0, cdMaxNum == 0] of
-                            [True,True] -> chooseNoCombJointNodeTypes
-                            [True,False] -> chooseNodeTypes 
-                            [False,True] -> chooseNoSubJointNodeTypes
-                            [False,False] -> chooseNoSubNodeTypes ) `suchThat` checkSubType n
+  subTypes1 <- vectorOf n (case (c > 0, cdMaxNum == 0) of
+                            (True,True) -> chooseNoCombJointNodeTypes
+                            (True,False) -> chooseNodeTypes 
+                            (False,True) -> chooseNoSubJointNodeTypes
+                            (False,False) -> chooseNoSubNodeTypes ) 
+                              `suchThat` checkSubType n outermost leastTwoLevels 
   -- check counter > 0 to limit the depth the diagram
   let newMustCD = (Join `elem` subTypes1) || mustCD
-      subTypes = case [c > 0, newMustCD] of 
-                  [True,True] ->  case [Comb `elem` subTypes1, Stat `elem` subTypes1] of 
-                                    [True,_] -> subTypes1
-                                    [False,True] -> subTypes1
-                                    [False,False] -> subTypes1 ++ [Comb] 
-                  [False,True] -> subTypes1 ++ [Comb]               
-                  [_,False] -> subTypes1                              
-  mustCDs <- case [c > 0, newMustCD] of 
-              [True,True] ->  if Comb `notElem` subTypes1 
-                                    then 
-                                      if Stat `notElem` subTypes1 then return (replicate (n+1) False)
-                                      else mapM chooseRandomMustCD' subTypes `suchThat` (True `elem`)
-                                  else return (replicate n False)
-              [False,True] -> return (replicate (n+1) False)
-              [_,False] -> return (replicate n False)
+      subTypes = case (c > 0, newMustCD) of 
+                  (True,True) ->  case (Comb `elem` subTypes1, Stat `elem` subTypes1) of 
+                                    (True,_) -> subTypes1
+                                    (False,True) -> subTypes1
+                                    (False,False) -> subTypes1 ++ [Comb] 
+                  (False,True) -> subTypes1 ++ [Comb]               
+                  (_,False) -> subTypes1                              
+  mustCDs <- case (c > 0, newMustCD) of 
+              (True,True) ->  case (Comb `elem` subTypes1, Stat `elem` subTypes1) of 
+                                (True,_) -> return (replicate n False)
+                                (False,True) -> mapM chooseRandomMustCD' subTypes `suchThat`(or) 
+                                (False,False) -> return (replicate (n+1) False)
+              (False,True) -> return (replicate (n+1) False)
+              (_,False) -> return (replicate n False)
   let excludeNms   = exclude ++ [nm]
   -- record the StateDiagram used names that should not be used again in inner states 
   -- (checkNameUniqueness. checkSDNameUniq)
@@ -167,7 +167,7 @@ randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
        End   -> return (EndState l)
        Inner -> return (InnerMostState l nm "")
        Comb -> randomCD counter cdMaxNum ns alphabet l s exclude
-       Stat -> randomSD' False counter cdMaxNum ns alphabet (l,nm,mustCD) exclude
+       Stat -> randomSD' False counter cdMaxNum False ns alphabet (l,nm,mustCD) exclude
        Join -> return (Joint l)
 
 randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
@@ -177,7 +177,7 @@ randomCD counter cdMaxNum ns alphabet l s exclude = do
   let cdMaxNum' = cdMaxNum - 1
       mustCDs =replicate n False
       cond   = zip3 labels s mustCDs
-  subs   <- mapM (\x -> randomSD' False counter cdMaxNum' ns alphabet x exclude) cond
+  subs   <- mapM (\x -> randomSD' False counter cdMaxNum' False ns alphabet x exclude) cond
   return (CombineDiagram subs l)
 
 randomConnection :: [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen Connection
