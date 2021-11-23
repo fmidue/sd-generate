@@ -9,7 +9,7 @@ import Datatype (
   globalise,
   )
 
-import Checkers.Helpers
+import Checkers.Helpers (inCompoundState, notHistory)
 
 checkHistory :: UMLStateDiagram -> Maybe String
 checkHistory a

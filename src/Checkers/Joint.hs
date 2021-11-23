@@ -10,7 +10,7 @@ import Datatype (
   localise,
   )
 
-import Checkers.Helpers
+import Checkers.Helpers (globalStart, notJoint)
 import Data.List.Extra
 
 checkJoint :: UMLStateDiagram -> Maybe String
