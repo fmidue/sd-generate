@@ -1,13 +1,13 @@
 // States: a start state, a end state, a normal state or a composite state
 abstract sig State{
 	contains: set State,
-	flow_triggerwith: set Trigger -> some State 
+	flow_triggerwith: Trigger  set -> State 
 }
 
 //Node: a fork node or a joint node
 abstract sig Node{
-	flowfrom_triggerwith: set Trigger -> State,
-	flowto_triggerwith: set Trigger -> State
+	flowfrom_triggerwith: Trigger set -> State,
+	flowto_triggerwith: Trigger set -> State
 }
 
 // A trigger condition is notated with Char
@@ -20,7 +20,7 @@ abstract sig Char{
 
 // Trigger condition
 sig Trigger{
-	notated: disj lone Char // if it is noated with no char, it is an unconditional trigger
+	notated: disj lone Char // A kind of trigger maps a char, if it is noated with no char, it is an unconditional trigger
 }
 
 // Normal states
@@ -35,16 +35,18 @@ sig NormalState extends State{
 sig StartState extends NormalState{
 
 }
+{
+	#this > 0
+}
 
 // An end state is a special normal state
 sig EndState extends NormalState{
 
 }
 {
-	#flow_triggerwith = 0
 	#this < 2
 }
-
+	
 // Region
 sig Region{
 	contains: set State, // a region can contain normal states and composite states
@@ -59,31 +61,45 @@ sig CompositeState extends State{
 	#inner > 1  // Regions divide a composite state into at least two areas that run in parallel
 }
 
-sig forkNode extends Node{
+//A special node: fork nodes
+sig ForkNode extends Node{
 
 }
 {
+	//It should be 1 to n(n >= 2), n to n is not allowed
 	#flowfrom_triggerwith[Trigger] = 1
+	#flowfrom_triggerwith = 1
 	#flowto_triggerwith[Trigger] > 1
+	#flowto_triggerwith > 1
 }
 
-sig joinNode extends Node{
+// A special node: join nodes
+sig JoinNode extends Node{
 
 }
 {
+	//It should be n(n >= 2) to 1, n to n is not allowed
 	#flowfrom_triggerwith[Trigger] > 1
+	#flowfrom_triggerwith > 1
 	#flowto_triggerwith[Trigger] = 1
+	#flowto_triggerwith = 1
 }
 
 pred noCrossing [r1, r2: Region]{
 	 r2.contains not in r1.contains.flow_triggerwith[Trigger] && r1.contains not in  r2.contains.flow_triggerwith[Trigger]
 }
 
-//rules of the start state
+pred noLoopArc [n1: Node, s1, s2: State, t1,t2:Trigger]{
+	 n1.flowfrom_triggerwith[t1] not in n1.flowto_triggerwith[t2]
+	
+}
+//rules of start states and end states
 fact{
-	all s1: StartState, s2: State | s1 not in s2.flow_triggerwith[Trigger] // no transitions to start states
+	all s1: StartState, s2: State, n1:Node | s1 not in s2.flow_triggerwith[Trigger] + n1.flowto_triggerwith[Trigger] // no transitions to start states
+	all e1: EndState, s1: State,  n1: Node | e1 not in s1.flow_triggerwith[Trigger] + n1.flowfrom_triggerwith[Trigger] //no leaving transitions, only coming transitions
 }
 
+//rules of composite states
 fact{
 	no c1: CompositeState | c1 in c1.^contains // this relation has no loop
 	partof = ~inner  //reverse relation
@@ -94,11 +110,21 @@ fact{
 	all r1, r2: Region |  r1.partof = r2.partof => noCrossing [r1, r2] //In a same omposite state, states in different region states can't be transited to each other
 }
 
+//rules of fork nodes and join nodes
+fact{
+	all f1: ForkNode, t1, t2: Trigger | f1.flowto_triggerwith[t1] != none && f1.flowto_triggerwith[t2] != none => t1=t2 // for fork nodes, leaving transitions should have same conditions or no conditions
+	all j1: ForkNode, t1, t2: Trigger | j1.flowfrom_triggerwith[t1] != none && j1.flowfrom_triggerwith[t2] != none => t1=t2 // for join nodes, comming transitions should have same conditions or no conditions
+	all f1: ForkNode, j1: JoinNode, s1, s2: State, t1, t2:Trigger | noLoopArc[f1, s1, s2, t1, t2] && noLoopArc[j1, s1, s2, t1, t2] // no loop arc for fork nodes and join nodes        
+}
+
 // if a composite state contains region states, then all states are contained by region states directly and in the composite state indirectly, so the composite state doesn't contain any states directly
 fact{
 	all s1: State | s1 in Region.contains => s1 not in CompositeState.contains
 	all c1, c2: CompositeState, s1: State | #c1.inner > 0 => s1 not in c1.contains &&  c1 not in c2.^contains
 }
 
+fact {
+	one t1: Trigger | #t1.notated  = 0 //No need to have many unconditional triggers to express unconditional transitions 
+}
 //check
-run {} for 2 but exactly 2 NormalState
+run {} for 6 but exactly 1 EndState, exactly 2 Node, exactly 3 Trigger
