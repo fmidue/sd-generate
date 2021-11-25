@@ -1,13 +1,13 @@
 // States: a start state, a end state, a normal state or a composite state
 abstract sig State{
 	contains: set State,
-	flow_triggerwith: Trigger  set -> State 
+	flow_triggerwith: Trigger set -> set State 
 }
 
 //Node: a fork node or a joint node
 abstract sig Node{
-	flowfrom_triggerwith: Trigger set -> State,
-	flowto_triggerwith: Trigger set -> State
+	flowfrom_triggerwith: Trigger set -> set State,
+	flowto_triggerwith: Trigger set -> set State
 }
 
 // A trigger condition is notated with Char
@@ -69,7 +69,7 @@ sig ForkNode extends Node{
 	//It should be 1 to n(n >= 2), n to n is not allowed
 	#flowfrom_triggerwith[Trigger] = 1
 	#flowfrom_triggerwith = 1
-	#flowto_triggerwith[Trigger] > 1
+	one t1:Trigger | #flowto_triggerwith[t1] > 0
 	#flowto_triggerwith > 1
 }
 
@@ -79,7 +79,7 @@ sig JoinNode extends Node{
 }
 {
 	//It should be n(n >= 2) to 1, n to n is not allowed
-	#flowfrom_triggerwith[Trigger] > 1
+	one t1:Trigger | #flowfrom_triggerwith[t1] > 0
 	#flowfrom_triggerwith > 1
 	#flowto_triggerwith[Trigger] = 1
 	#flowto_triggerwith = 1
@@ -89,10 +89,7 @@ pred noCrossing [r1, r2: Region]{
 	 r2.contains not in r1.contains.flow_triggerwith[Trigger] && r1.contains not in  r2.contains.flow_triggerwith[Trigger]
 }
 
-pred noLoopArc [n1: Node, s1, s2: State, t1,t2:Trigger]{
-	 n1.flowfrom_triggerwith[t1] not in n1.flowto_triggerwith[t2]
-	
-}
+
 //rules of start states and end states
 fact{
 	all s1: StartState, s2: State, n1:Node | s1 not in s2.flow_triggerwith[Trigger] + n1.flowto_triggerwith[Trigger] // no transitions to start states
@@ -113,8 +110,9 @@ fact{
 //rules of fork nodes and join nodes
 fact{
 	all f1: ForkNode, t1, t2: Trigger | f1.flowto_triggerwith[t1] != none && f1.flowto_triggerwith[t2] != none => t1=t2 // for fork nodes, leaving transitions should have same conditions or no conditions
-	all j1: ForkNode, t1, t2: Trigger | j1.flowfrom_triggerwith[t1] != none && j1.flowfrom_triggerwith[t2] != none => t1=t2 // for join nodes, comming transitions should have same conditions or no conditions
-	all f1: ForkNode, j1: JoinNode, s1, s2: State, t1, t2:Trigger | noLoopArc[f1, s1, s2, t1, t2] && noLoopArc[j1, s1, s2, t1, t2] // no loop arc for fork nodes and join nodes        
+	all j1: JoinNode, t1, t2: Trigger | j1.flowfrom_triggerwith[t1] != none && j1.flowfrom_triggerwith[t2] != none => t1=t2 // for join nodes, comming transitions should have same conditions or no conditions
+	all f1: ForkNode, t1, t2:Trigger | f1.flowfrom_triggerwith[t1] & (f1.flowto_triggerwith[t1] + f1.flowto_triggerwith[t2]) = none // no loop arcs for fork nodes
+	all j1: JoinNode, t1, t2:Trigger | j1.flowfrom_triggerwith[t1] not in Region.contains => j1.flowto_triggerwith[t1] & (j1.flowfrom_triggerwith[t1] + j1.flowfrom_triggerwith[t2]) = none  // if states are not in regions, no loop arcs for join nodes
 }
 
 // if a composite state contains region states, then all states are contained by region states directly and in the composite state indirectly, so the composite state doesn't contain any states directly
@@ -127,4 +125,4 @@ fact {
 	one t1: Trigger | #t1.notated  = 0 //No need to have many unconditional triggers to express unconditional transitions 
 }
 //check
-run {} for 6 but exactly 1 EndState, exactly 2 Node, exactly 3 Trigger
+run {} for 3 but  exactly 1 Node, exactly 2 Trigger
