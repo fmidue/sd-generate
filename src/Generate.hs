@@ -144,10 +144,13 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
   let layerElemNoJoint = filter (`notJoint` subs) layerElem  
       innerElemNoRegionsJoint = filter (`notJoint` subs) innerElemNoRegions
   -- let Joint connections only be controlled at the outermost layer
-  conns <- vectorOf (n - 1)
-            (randomConnection layerElemNoJoint innerElemNoRegionsJoint subs [])
+  conns <-  vectorOf
+    (length layerElemNoJoint)
+    (randomConnection layerElemNoJoint innerElemNoRegionsJoint subs [])
+    `suchThat`
+      (\ x
+         -> all (`checkSameOutTran` x) x && all (`checkEmptyOutTran` x) x)
   -- connections that from Joint/ to Joint is not considered
--- could add check same connection ???
   let jointStates = filter (not.(`notJoint` subs)) (innerElem ++ layerElem)
       globalStarts  = globalStartsWithoutCurrent ++ [start]
   connsExtraJoint1 
@@ -162,10 +165,12 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
       reachabelStates = toElem ++ globalStarts
       unreachedStates = (layerElemNoJoint ++ innerElemNoRegionsJointSDCD) \\ reachabelStates
   connsExtra 
-    <- if outermost 
+    <- (if outermost 
           then 
             mapM (randomConnection layerElemNoJoint innerElemNoRegionsJoint subs) unreachedStates
-        else return []
+        else return [])
+          `suchThat` 
+            (\x -> all (`checkSameOutTran` x) x && all (`checkEmptyOutTran` x) x)
   return (StateDiagram subs l nm (conns ++ connsExtra ++ connsExtraJoint ) start)
 
 randomInnerSD :: Int -> Int -> [Int] -> [String] -> (Int,NodeType,[String],Bool) -> [String]-> Gen UMLStateDiagram
@@ -193,18 +198,30 @@ randomConnection :: [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen Conn
 randomConnection layerElem innerElem sub unreachedState = do
   let points = layerElem ++ innerElem 
       endState  = filter (not.(`isNotEnd` sub)) points
-      noEndState = points \\ endState 
-      noParallelRegionFromElem1 = filter (\x -> checkParallelRegion unreachedState x sub ) (noEndState \\ [unreachedState])
-  from <- elements noParallelRegionFromElem1 
+      layerElemNoEnd = layerElem \\ endState 
+      noEndState = points \\ endState  
+      noParallelRegionFromElem1 = 
+        filter (\x -> checkParallelRegion unreachedState x sub ) (noEndState \\ [unreachedState])
+  from <- frequency [(3,elements noParallelRegionFromElem1),(7,elements layerElemNoEnd)]
   -- endStates have no outgoing edges (checkEndState)
   let outerHistory = filter (not.(`notHistory` sub)) layerElem
+      layerElemNoOH = layerElem \\ outerHistory
       noOuterHistory = points \\ outerHistory
       transitionNms = ["a","b","c","d","e","f","g","h","i","j","k",""]
       excludeTranNms = concatMap (getSameFromTran from) sub
       fromSameNodeTranNms = (transitionNms \\ excludeTranNms) \\ [""]
       -- satisfy part of (checkSemantics) 
   let noParallelRegionToElem1 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
-  to   <- elements (if null unreachedState then noParallelRegionToElem1 else [unreachedState])
+  to <- if null unreachedState 
+          then 
+            if null noParallelRegionToElem1
+              then elements (layerElemNoOH \\ [from])
+            else 
+              if null (layerElemNoOH \\ [from])
+                then elements noParallelRegionToElem1
+              else 
+               frequency [(3,elements noParallelRegionToElem1),(7,elements (layerElemNoOH \\ [from]))]
+        else return unreachedState
   tran <- elements (if not (null excludeTranNms) then fromSameNodeTranNms else transitionNms)
   let noParallelRegionFromElem2 = filter (\x -> checkParallelRegion to x sub ) (noEndState \\[to])
       noParallelRegionToElem2 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
@@ -270,3 +287,14 @@ notCD :: [Int] -> [UMLStateDiagram] -> Bool
 notCD [] _ = True
 notCD [x] a = all (isNotCD x) a
 notCD (x:xs) a = notCD xs (getSubstate x a)
+
+checkSameOutTran :: Connection -> [Connection] -> Bool
+checkSameOutTran a b = length tranSame == 1
+                where
+                  fromSame  = filter ((pointFrom a ==).pointFrom) b
+                  tranSame = filter ((transition a ==).transition) fromSame
+
+checkEmptyOutTran :: Connection -> [Connection] -> Bool
+checkEmptyOutTran a b = null fromSame || (not . any (null . transition)) fromSame
+                where
+                  fromSame  = filter ((pointFrom a ==).pointFrom) b
