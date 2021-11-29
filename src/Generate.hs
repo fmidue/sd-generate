@@ -129,12 +129,17 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
       innerElem = concatMap (getAllElem1 []) subs
       innerElemNoRegions = filter (`lastSecNotCD` subs) innerElem
       globalStartsWithoutCurrent = globalStart (StateDiagram subs l nm [] [])
-      startchoice = (layerElem ++ innerElemNoRegions) \\ globalStartsWithoutCurrent
       -- let there is no two startStates pointing the same node 
       -- and no StartState points to regions (checkStartToRegion)
-  start <- elements (if outermost && Hist `elem` subTypes
-                       then filter (not.(`notHistory` subs)) layerElem
-                     else startchoice )
+  start <- 
+    if outermost && Hist `elem` subTypes
+      then elements (filter (not.(`notHistory` subs)) layerElem)
+    else 
+      if null innerElemNoRegions then elements layerElem 
+      else frequency 
+        [(2, elements (innerElemNoRegions \\ globalStartsWithoutCurrent))
+         ,(8,elements layerElem)]
+       -- let there is no two startStates pointing the same node 
   -- if there is an outermost History then start is this outermost History 
   let layerElemNoJoint = filter (`notJoint` subs) layerElem  
       innerElemNoRegionsJoint = filter (`notJoint` subs) innerElemNoRegions
