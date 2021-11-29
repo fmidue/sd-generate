@@ -8,7 +8,7 @@ import Datatype (
   )
 
 import Checkers (checkSemantics)
-import Checkers.Helpers (inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart, getAllElem1, lastSecNotCD, getSubstate, isNotCD)
+import Checkers.Helpers (inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart,getAllElem1, lastSecNotCD, getSubstate, isNotCD)
 import Data.Maybe(isNothing)
 import Data.List((\\),nub,zip4) 
 import Data.List.Extra(allSame)
@@ -56,6 +56,9 @@ checkParallelRegion (x:xs) (y:ys) subs
      [True,False] -> head xs == head ys && checkParallelRegion xs ys (getSubstate x subs)
      [False,_] -> True
 
+--haveJoint:: UMLStateDiagram -> Bool
+--haveJoint a = any (\x -> not (notJoint x (substate a))) (getAllElem a)  
+
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
 suchThatWhileCounting gen p = tryWith 0
   where
@@ -71,8 +74,9 @@ randomSD = do
       cdMaxNum = 1 
       -- to ignore nested CD 
   nm <- elements alphabet
-  leastTwoLevels <- choose(True,False)
-  randomSD' True 4 cdMaxNum leastTwoLevels [3 .. 4] alphabet (1,nm,mustCD) [] `suchThatWhileCounting` (isNothing . checkSemantics)
+  leastTwoLevels <- frequency [(2,return False),(8,return True)]
+  randomSD' True 4 cdMaxNum leastTwoLevels [3 .. 4] alphabet (1,nm,mustCD) [] 
+   `suchThatWhileCounting`  (isNothing . checkSemantics)
   -- here outermost layer must be StateDigram (checkOutMostLayer) 
   
 chooseRandomMustCD' :: NodeType -> Gen Bool
@@ -86,20 +90,19 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
   labels <- shuffle  [1..(n+1)] 
   -- shuffle to achieve random assignment of label
   let counter = c - 1
-      chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(2,return Join)]
+      chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(10,return Join)]
       -- all types
       chooseNoCombJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
-      chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Join)]
+      chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(5,return Join)]
       -- types that have no substates 
-      chooseNoSubJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Join)]
   subTypes1 <- vectorOf n (case (c > 0, cdMaxNum == 0) of
                             (True,True) -> chooseNoCombJointNodeTypes
                             (True,False) -> chooseNodeTypes 
-                            (False,True) -> chooseNoSubJointNodeTypes
+                            (False,True) -> chooseNoSubNodeTypes
                             (False,False) -> chooseNoSubNodeTypes ) 
                               `suchThat` checkSubType n outermost leastTwoLevels 
   -- check counter > 0 to limit the depth the diagram
-  let newMustCD = (Join `elem` subTypes1) || mustCD
+  let newMustCD = (Join `elem` subTypes1 && cdMaxNum /= 0) || mustCD
       subTypes = case (c > 0, newMustCD) of 
                   (True,True) ->  case (Comb `elem` subTypes1, Stat `elem` subTypes1) of 
                                     (True,_) -> subTypes1
