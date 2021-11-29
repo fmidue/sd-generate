@@ -12,7 +12,9 @@ module Checkers.Helpers (
   isSDCD,
   lastSecNotCD,
   notHistory,
-  notJoint
+  notJoint,
+  checkEmptyOutTran,
+  checkSameOutTran
   ) where
 
 import Datatype (
@@ -23,6 +25,17 @@ import Datatype (
   )
 
 import Data.List (find)
+
+checkSameOutTran :: Connection -> [Connection] -> Bool
+checkSameOutTran a b = length tranSame == 1
+                where
+                  fromSame  = filter ((pointFrom a ==).pointFrom) b
+                  tranSame = filter ((transition a ==).transition) fromSame
+
+checkEmptyOutTran :: Connection -> [Connection] -> Bool
+checkEmptyOutTran a b = length fromSame == 1|| (not . any (null . transition)) fromSame
+                where
+                  fromSame  = filter ((pointFrom a ==).pointFrom) b
 
 getSameFromTran :: [Int] -> UMLStateDiagram -> [String]
 getSameFromTran (x:xs) s@StateDiagram{label}

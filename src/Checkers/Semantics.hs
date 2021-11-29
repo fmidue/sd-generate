@@ -7,7 +7,7 @@ import Datatype (
   globalise,
   )
 
-import Checkers.Helpers (notJoint)
+import Checkers.Helpers (checkEmptyOutTran,checkSameOutTran,notJoint)
 
 checkSemantics :: UMLStateDiagram -> Maybe String
 checkSemantics a
@@ -28,24 +28,13 @@ checkSameConnection s@StateDiagram {} =
                           withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
 checkSameConnection _ = True
 
-checkSameOutTran :: Connection -> [Connection] -> Bool
-checkSameOutTran a b = length tranSame == 1
-                where
-                  fromSame  = filter ((pointFrom a ==).pointFrom) b
-                  tranSame = filter ((transition a ==).transition) fromSame
-
 checkEmptyTran :: UMLStateDiagram -> Bool
 checkEmptyTran s@StateDiagram {} =
-                         (not . any (null . transition)) filterOneOut
+                         all (`checkEmptyOutTran` withoutJoint) withoutJoint
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
                              withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
-                             filterOneOut = filter (not.(`onlyOneOut` withoutJoint)) withoutJoint
 checkEmptyTran _ = True
 
-onlyOneOut :: Connection -> [Connection] -> Bool
-onlyOneOut a b = length fromSame == 1
-            where
-             fromSame  = filter ((pointFrom a ==).pointFrom) b
