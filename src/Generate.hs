@@ -8,7 +8,7 @@ import Datatype (
   )
 
 import Checkers (checkSemantics)
-import Checkers.Helpers (inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart,getAllElem1, lastSecNotCD, getSubstate, isNotCD)
+import Checkers.Helpers (checkEmptyOutTran,checkSameOutTran,inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart,getAllElem1, lastSecNotCD, getSubstate, isNotCD)
 import Data.Maybe(isNothing)
 import Data.List((\\),nub,zip4) 
 import Data.List.Extra(allSame)
@@ -288,13 +288,3 @@ notCD [] _ = True
 notCD [x] a = all (isNotCD x) a
 notCD (x:xs) a = notCD xs (getSubstate x a)
 
-checkSameOutTran :: Connection -> [Connection] -> Bool
-checkSameOutTran a b = length tranSame == 1
-                where
-                  fromSame  = filter ((pointFrom a ==).pointFrom) b
-                  tranSame = filter ((transition a ==).transition) fromSame
-
-checkEmptyOutTran :: Connection -> [Connection] -> Bool
-checkEmptyOutTran a b = null fromSame || (not . any (null . transition)) fromSame
-                where
-                  fromSame  = filter ((pointFrom a ==).pointFrom) b
