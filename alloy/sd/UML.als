@@ -104,13 +104,17 @@ pred noCrossing [r1, r2: Region]{
 fact{
 	#StartState > 0
 	#EndState < 2
-	all s1: StartState, s2: State, n1:Node | s1 not in s2.flow_triggerwith[Trigger] + n1.flowto_triggerwith[Trigger] // no transitions to start states
-	all e1: EndState, n1: Node | e1 not in n1.flowfrom_triggerwith[Trigger] //no leaviteng transitions(including to nodes), only coming transitions	
+	all s1: StartState| s1 not in State.flow_triggerwith[Trigger] + Node.flowto_triggerwith[Trigger] // no transitions to start states
+	all r1: Region, s1: StartState | s1 in r1.contains => #s1 < 2 //In regions, there is at most one start state.
+	all c1: CompositeState, s1: StartState | s1 in c1.contains => #s1 < 2 //In composite states, there is at most one start state.
+	#CompositeState = 0 => #StartState < 2 //if no regions and composites, there is also at most one start state.
+	all e1: EndState | e1 in (State.flow_triggerwith[Trigger] + Node.flowto_triggerwith[Trigger]) &&  e1 not in Node.flowfrom_triggerwith[Trigger]//no leaving transitions(including to nodes), only coming transitions, but if an end state exists, there must be transitions to it
 }
 //rules of composite states
 fact{
 	no c1: CompositeState | c1 in c1.^contains // this relation has no loop
 	partof = ~inner  //reverse relation
+	all c1: CompositeState | c1.inner = none => c1.contains & (NormalState + CompositeState) != none // only start state, end start and nodes in composite states is unallowed
 }
 
 //rules of regions
@@ -120,7 +124,6 @@ fact{
 	all f1: ForkNode, c1: CompositeState | f1.flowto_triggerwith[Trigger] & c1.inner.contains != none  => f1.flowto_triggerwith[Trigger] in c1.inner.contains && #f1.flowto_triggerwith[Trigger] = #c1.inner // fork node lead to all regions paralell to each other
 	all  j1: JoinNode, c1: CompositeState | j1.flowfrom_triggerwith[Trigger] & c1.inner.contains != none => j1.flowfrom_triggerwith[Trigger] in c1.inner.contains && #j1.flowfrom_triggerwith[Trigger] = #c1.inner // join nodes merges flows of all regions paralell to each other.
 	no r1: Region | r1.contains & (NormalState + CompositeState) = none // only start state, end start and nodes in regions is unallowed
-	all c1: CompositeState | c1.inner = none => c1.contains & (NormalState + CompositeState) != none // only start state, end start and nodes in composite states is unallowed
 }
 
 //rules of fork nodes and join nodes
@@ -128,7 +131,7 @@ fact{
 	all f1: ForkNode, t1, t2: Trigger | f1.flowto_triggerwith[t1] != none && f1.flowto_triggerwith[t2] != none => t1=t2 // for fork nodes, leaving transitions should have same conditions or no conditions
 	all j1: JoinNode, t1, t2: Trigger | j1.flowfrom_triggerwith[t1] != none && j1.flowfrom_triggerwith[t2] != none => t1=t2 // for join nodes, comming transitions should have same conditions or no conditions
 	all f1: ForkNode, t1, t2:Trigger | f1.flowfrom_triggerwith[t1] & (f1.flowto_triggerwith[t1] + f1.flowto_triggerwith[t2]) = none // no loop arcs for fork nodes
-	all j1: JoinNode, t1, t2:Trigger | j1.flowfrom_triggerwith[t1] not in Region.contains => j1.flowto_triggerwith[t1] & (j1.flowfrom_triggerwith[t1] + j1.flowfrom_triggerwith[t2]) = none  // if states are not in regions, no loop arcs for join nodes
+	all j1: JoinNode, t1, t2:Trigger | j1.flowfrom_triggerwith[t1] not in Region.contains => (j1.flowto_triggerwith[t1] + j1.flowto_triggerwith[t2]) & (j1.flowfrom_triggerwith[t1] + j1.flowfrom_triggerwith[t2]) = none  // if states are not in regions, no loop arcs for join nodes
 }
 
 // if a composite state contains region states, then all states are contained by region states directly and in the composite state indirectly, so the composite state doesn't contain any states directly
@@ -139,7 +142,10 @@ fact{
 
 // other rules
 fact {
-	one t1: Trigger | #t1.notated  = 0 //No need to have many unconditional triggers to express unconditional transitions 
-}
+	one t1: Trigger | #t1.notated  = 0 //No need to have many unconditional triggers to express unconditional transitions
+	all s1: State, t1: Trigger | #s1.flow_triggerwith[t1] < 2 //Transitions leaving one state can't have the same triggers
+	all s1: State, t1, t2: Trigger | s1.flow_triggerwith[t1] != none && t1.notated = none => s1.flow_triggerwith[t1] & s1.flow_triggerwith[t2] = none //One state shouldn't be left with both a conditional and an unconditional transition
+	State & (NormalState + CompositeState) != none
+ }
 //check
-run {} for 4 but  exactly 2 Trigger, exactly 2 Region
+run {} for 4 but  exactly 2 Trigger
