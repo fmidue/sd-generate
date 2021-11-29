@@ -30,16 +30,15 @@ checkSameConnection _ = True
 
 checkEmptyTran :: UMLStateDiagram -> Bool
 checkEmptyTran s@StateDiagram {} =
-                         (not . any (null . transition)) filterOneOut
+                         all (`checkEmptyOutTran'` withoutJoint) withoutJoint
                         where
                              global = globalise s
                              sub = substate global
                              conn = connection global
                              withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
-                             filterOneOut = filter (not.(`onlyOneOut` withoutJoint)) withoutJoint
 checkEmptyTran _ = True
 
-onlyOneOut :: Connection -> [Connection] -> Bool
-onlyOneOut a b = length fromSame == 1
+checkEmptyOutTran' :: Connection -> [Connection] -> Bool
+checkEmptyOutTran' a b = length fromSame == 1 || not (null (transition a))
             where
              fromSame  = filter ((pointFrom a ==).pointFrom) b
