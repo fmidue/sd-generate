@@ -67,7 +67,7 @@ appendEdges a l rightType layouts = case layouts of
 drawWrapper :: [Int] -> Wrapper -> Diagram B
 drawWrapper a (StartS _ l rightType layouts) = appendEdges (circle 0.1 # fc
   black) l rightType layouts # named (a ++ [-1])
-drawWrapper a (CrossStateDummy b) = square 0.005 # fc black # named (a ++ [b])
+drawWrapper a (CrossStateDummy b _) = square 0.005 # fc black # named (a ++ [b])
 drawWrapper a (EndS k l rightType layouts) =
   appendEdges (circle 0.16 # lw ultraThin `atop` circle 0.1 # fc black) l rightType layouts
   # named (a ++ [k])
@@ -647,15 +647,20 @@ addDummyRight ForwardWH (x:xs) matchLabel b@AndDecom {} = if key b ==
   (key b) (layout b) (lengthXY b) (rightC b) (outerLayout b) else b
 addDummyRight _ _ _ b = b
 
+
+-- | 'lengthXY' of 'CrossStateDummy'
+csdWidth :: Double
+csdWidth = 0.05
+
 insertDummyLeft :: Wrapper  -> [[Wrapper]]
 insertDummyLeft a = if all checkWrapperLayer (head $ layered a) then
-  (CrossStateDummy (maxLabel a + 1) : head (layered a)) : tail (layered a)
-  else [CrossStateDummy (maxLabel a + 1)] : layered a
+  (CrossStateDummy (maxLabel a + 1) csdWidth : head (layered a)) : tail (layered a)
+  else [CrossStateDummy (maxLabel a + 1) csdWidth] : layered a
 
 insertDummyRight :: Wrapper -> [[Wrapper]]
 insertDummyRight a = if all checkWrapperLayer (last $ layered a) then init (
-  layered a) ++ [last (layered a) ++ [CrossStateDummy (maxLabel a + 1)]] else
-  layered a ++ [[CrossStateDummy (maxLabel a + 1)]]
+  layered a) ++ [last (layered a) ++ [CrossStateDummy (maxLabel a + 1) csdWidth]] else
+  layered a ++ [[CrossStateDummy (maxLabel a + 1) csdWidth]]
 
 changeConnectionType :: [Connection] -> [[Wrapper]] -> [ConnectWithType]
   -> [ConnectWithType]

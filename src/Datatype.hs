@@ -68,7 +68,10 @@ data Wrapper =
              rightC :: RightConnect,
              outerLayout :: Layout
            }
-  | CrossStateDummy { key :: Int }
+  | CrossStateDummy {
+      key :: Int,
+      lengthXY :: Double
+      }
   | Dummy { key :: Int,
             outerLayout :: Layout,
             lengthXY :: Double
