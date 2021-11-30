@@ -3,6 +3,7 @@ import Diagrams.Backend.SVG
 import Layout (drawDiagram)
 
 import Generate
+import Checkers (checkDrawability)
 
 import Test.QuickCheck
 import Control.Monad
@@ -17,4 +18,5 @@ main = do
         let file = "sample" ++ show i ++ ".svg"
         putStrLn $ "\nDiscarded " ++ show n ++ " attempts, then got " ++ file ++ ":"
         pPrint sd
-        renderSVG file (mkWidth 250) (drawDiagram sd)
+        when (checkDrawability sd)
+          $ renderSVG file (mkWidth 250) (drawDiagram sd)
