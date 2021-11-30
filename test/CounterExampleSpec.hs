@@ -4,7 +4,6 @@ import CounterExample
 import Checkers
 import ExampleSpec (allTheCheckers)
 import Datatype (globalise, localise, StateDiagram(substate))
-import DatatypeSpec (connectionsEmpty)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (void, forM_)
@@ -132,9 +131,6 @@ counterExamplesOnlyFor theChecker theExamples = do
   describe "globalise/localise" $ void $ sequence
     [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
     | (name, code) <- theExamples `passing` [checkUniqueness, checkRepresentation, checkCrossings] ]
-  describe "globalise" $ void $ sequence
-    [ it ("doesn't leave any connections inside, on " ++ name) $ all connectionsEmpty (substate (globalise code))
-    | (name, code) <- theExamples `passing` [checkStructure, checkRepresentation] ]
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
-module DatatypeSpec (spec, connectionsEmpty) where
+module DatatypeSpec (spec) where
 
 import Datatype (StateDiagram(..), UMLStateDiagram, localise, globalise)
 import ExampleSpec (positiveExamples)
@@ -27,12 +27,3 @@ spec = do
   describe "globalise/localise" $
     prop ("are each others' inverses in a sense") $
       forAll randomSD $ \(code,_) -> fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
-  describe "globalise" $ void $ sequence
-    [ it ("doesn't leave any connections inside, on " ++ name) $ all connectionsEmpty (substate (globalise code))
-    | (name, code) <- positiveExamples ]
-  describe "globalise" $
-    prop ("doesn't leave any connections inside") $
-      forAll randomSD $ \(code,_) -> all connectionsEmpty (substate (globalise code))
-
-connectionsEmpty :: UMLStateDiagram -> Bool
-connectionsEmpty = all null
