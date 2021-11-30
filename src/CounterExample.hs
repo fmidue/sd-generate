@@ -261,7 +261,8 @@ forCheckEndState3 = StateDiagram [a,b] 1 "" [Connection[2] [1] ""] [2]
            b = EndState 2
 
 forCheckSubS1 :: UMLStateDiagram
-forCheckSubS1 = StateDiagram [InnerMostState 1 "" "", InnerMostState 2 "" ""] 1 "" [Connection [1] [2] "",Connection [2] [1] ""] [1,2]
+forCheckSubS1 = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" 
+ [Connection [1] [2] "",Connection [2] [1] ""] [1,2]
 
 forCheckSubS2 :: UMLStateDiagram
 forCheckSubS2 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,5,2]  
@@ -355,15 +356,10 @@ forCheckStartToRegion2 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2
       b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] [0]
       
 forCheckConnection1 :: UMLStateDiagram
-forCheckConnection1 = StateDiagram [a, b, c, d] 1 "" [Connection [5] [3] "a", Connection
-           [1] [2] "f", Connection [2] [4] "b", Connection [3] [4] "c",
-           Connection [3] [1] "e", Connection [4] [3] "d", Connection [4] [1]
-           "e"] [1]
+forCheckConnection1 = StateDiagram [a, b] 1 "" [Connection [5] [1] "a"] [2]
   where
     a = InnerMostState 1 "A" ""
     b = InnerMostState 2 "B" ""
-    c = InnerMostState 3 "C" ""
-    d = InnerMostState 4 "D" ""
 
 forCheckConnection2 :: UMLStateDiagram
 forCheckConnection2 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
@@ -649,33 +645,21 @@ forCheckUniqueness7 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1]
             i = InnerMostState 2 "ScrollLockOn" ""
 
 forCheckOuterMostLayer :: UMLStateDiagram
-forCheckOuterMostLayer = CombineDiagram [a,b,c] 1
+forCheckOuterMostLayer = CombineDiagram [a,b] 1
   where
-   a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
-     where d = InnerMostState 1 "NumLockOff" ""
-           e = InnerMostState 2 "NumLockOn" ""
-   b = StateDiagram  [f,g] 2 ""  [Connection [1] [2] "EvCapsLockPressed", Connection [2] [1] "EvCapsLockPressed"] [1]
-    where f = InnerMostState 1 "CapsLockOff" ""
-          g = InnerMostState 2 "CapsLockOn" ""
-   c = StateDiagram  [h,i] 3 ""  [Connection [1] [2] "EvScrollLockPressed", Connection [2] [1] "EvScrollLockPressed"] [1]
-    where h = InnerMostState 1 "ScrollLockOff" ""
-          i = InnerMostState 2 "ScrollLockOn" ""
+   a = StateDiagram  [InnerMostState 1 "A" ""] 1 ""  [] [1]
+   b = StateDiagram  [InnerMostState 1 "B" ""] 2 ""  [] [1]
 
 forCheckSubstateSD1::UMLStateDiagram
-forCheckSubstateSD1 = StateDiagram [a,b] 1 "" [] []
-     where
-      a = Joint 1
-      b = Joint 2
+forCheckSubstateSD1 = StateDiagram [] 1 "" [] []
 
 forCheckSubstateSD2::UMLStateDiagram
-forCheckSubstateSD2 = StateDiagram [a,b] 1 "" [] []
-    where
-      a = StateDiagram  [c,d,e] 1 "Composite State" [] [1]
-          where
-           c = History 1 Deep
-           d = Joint 2
-           e = History 3 Deep
-      b = InnerMostState  2 "State 3" ""
+forCheckSubstateSD2 = StateDiagram [a] 1 "" [] []
+      where
+        a = CombineDiagram [c,d] 1
+          where 
+            c = StateDiagram [History 1 Deep] 1 "" [] [1]
+            d = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
 
 forCheckSubstateSD3::UMLStateDiagram
 forCheckSubstateSD3 = StateDiagram [a] 1 "" [] [1]
@@ -683,18 +667,14 @@ forCheckSubstateSD3 = StateDiagram [a] 1 "" [] [1]
       a = History 1 Deep
 
 forCheckSubstateCD1 :: UMLStateDiagram
-forCheckSubstateCD1 = StateDiagram [CombineDiagram [a] 1] 1 "active" [] [1]
+forCheckSubstateCD1 = StateDiagram [CombineDiagram [a] 1] 1 "" [] []
   where
-    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
-      where d = InnerMostState 1 "NumLockOff" ""
-            e = InnerMostState 2 "NumLockOn" ""
+    a = StateDiagram  [InnerMostState 1 "A" ""] 1 ""  [] [1]
 
 forCheckSubstateCD2 :: UMLStateDiagram
-forCheckSubstateCD2 = StateDiagram [CombineDiagram [a,b] 1] 1 "active" [] [1,2]
+forCheckSubstateCD2 = StateDiagram [CombineDiagram [a,b] 1] 1 "" [] [1,2]
   where
-    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
-      where d = InnerMostState 1 "NumLockOff" ""
-            e = InnerMostState 2 "NumLockOn" ""
+    a = StateDiagram  [InnerMostState 1 "A" ""] 1 "" [] [1]
     b = InnerMostState 2 "" ""
 
 forCheckHistOutTransition1 :: UMLStateDiagram
@@ -805,15 +785,9 @@ forCheckOutEdge2 = StateDiagram [a,b] 1 "" [Connection [1,3] [2] ""] [1,3]
      b = InnerMostState  2 "A" ""
 
 forCheckEmptyConnPoint1 :: UMLStateDiagram
-forCheckEmptyConnPoint1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",Connection[1] [2] "a",Connection[2] [3] "",
-      Connection[] [6] "",Connection[5] [4] "a",Connection[4] [6] "",Connection[6] [7] ""] [5]
-     where a = InnerMostState  1 "Tasse nehmen" ""
-           b = InnerMostState  2 "Kaffee trinken" ""
-           c = InnerMostState  3 "Tasse absetzen" ""
-           d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5
-           f = Joint 6
-           g = EndState 7 
+forCheckEmptyConnPoint1 = StateDiagram [a,b] 1 "" [Connection[] [1] "a"] [2]
+     where a = InnerMostState  1 "A" ""
+           b = InnerMostState  2 "B" ""
 
 forCheckEmptyConnPoint2 :: UMLStateDiagram
 forCheckEmptyConnPoint2 =  StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", Connection [2]
