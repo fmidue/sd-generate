@@ -111,7 +111,7 @@ spec = do
 
 counterExamplesOnlyFor theChecker theExamples = do
   let
-    (negative, positives) = partition ((theChecker ==) . fst) allTheCheckersExceptForWrapper
+    (negative, positives) = partition ((theChecker ==) . fst) allTheCheckersExceptForBlackbox
   forM_ negative $ \(checkerName, checkerCode) ->
     describe checkerName $ void $ sequence
       [ it ("rejects " ++ name) $ checkerCode code `shouldSatisfy` isJust
@@ -134,5 +134,5 @@ counterExamplesOnlyFor theChecker theExamples = do
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 
-allTheCheckersExceptForWrapper =
-  filter (("checkWrapper" /=) . fst) allTheCheckers
+allTheCheckersExceptForBlackbox =
+  filter ((`notElem` ["checkWrapper", "checkDrawability"]) . fst) allTheCheckers
