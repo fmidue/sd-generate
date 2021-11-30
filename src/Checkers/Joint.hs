@@ -20,9 +20,9 @@ checkJoint a
   | not (checkMtoOne a) =
       Just "invalid number of Outgoing edges or ingoing edges of Joint node"
   | not (all goIntoParallelRegions joints) =
-      Just "at least one Joint has connections to states of the same region"
+      Just "at least one Joint has connections to states that are not in distinct parallel regions"
   | not (all comeOutOfParallelRegions joints) =
-      Just "states from the same region connect to the same Joint"
+      Just "states not from distinct parallel regions connect to the same Joint"
   | otherwise =
       Nothing
   where
