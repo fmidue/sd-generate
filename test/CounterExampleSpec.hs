@@ -1,7 +1,7 @@
 module CounterExampleSpec (spec) where
 
 import CounterExample
-import Checkers
+import Checkers (checkStructure, checkCrossings, checkUniqueness)
 import ExampleSpec (allTheCheckers)
 import Datatype (globalise, localise, StateDiagram(substate))
 
@@ -121,16 +121,16 @@ counterExamplesOnlyFor theChecker theExamples = do
     describe checkerName $ void $ sequence
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
-          theExamples `passing` [checkStructure, checkRepresentation]
-          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness,  checkRepresentation, checkCrossings])
+          theExamples `passing` [checkStructure]
+          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness, checkCrossings])
           ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
       ]
   describe "localise/globalise" $ void $ sequence
     [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (globalise code)) `shouldBe` fmap sort (localise code)
-    | (name, code) <- theExamples `passing` [checkUniqueness, checkRepresentation] ]
+    | (name, code) <- theExamples `passing` [checkUniqueness] ]
   describe "globalise/localise" $ void $ sequence
     [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
-    | (name, code) <- theExamples `passing` [checkUniqueness, checkRepresentation, checkCrossings] ]
+    | (name, code) <- theExamples `passing` [checkCrossings] ]
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 
