@@ -896,3 +896,139 @@ forCheckEmptyTran3 = StateDiagram [a, b] 1 "" [Connection [1] [2] "a", Connectio
   where
     a = InnerMostState 1 "A" ""
     b = InnerMostState 2 "B" ""
+
+forCheckDrawability :: UMLStateDiagram
+forCheckDrawability =
+  StateDiagram
+    { substate =
+        [ StateDiagram
+            { substate =
+                [ CombineDiagram
+                    { substate =
+                        [ StateDiagram
+                            { substate =
+                                [ InnerMostState
+                                    { label = 1
+                                    , name = "1.1"
+                                    , operations = ""
+                                    }
+                                ]
+                            , label = 1
+                            , name = "1"
+                            , connection =
+                                [ ]
+                            , startState =
+                                [ ]
+                            }
+                        , StateDiagram
+                            { substate =
+                                [ StateDiagram
+                                    { substate =
+                                        [ InnerMostState
+                                            { label = 5
+                                            , name = "Q"
+                                            , operations = ""
+                                            }
+                                        , InnerMostState
+                                            { label = 2
+                                            , name = "R"
+                                            , operations = ""
+                                            }
+                                        , EndState { label = 1 }
+                                        ]
+                                    , label = 2
+                                    , name = "E"
+                                    , connection =
+                                        [ ]
+                                    , startState = [ 1 ]
+                                    }
+                                , InnerMostState
+                                    { label = 1
+                                    , name = "J"
+                                    , operations = ""
+                                    }
+                                , StateDiagram
+                                    { substate =
+                                        [ InnerMostState
+                                            { label = 3
+                                            , name = "W"
+                                            , operations = ""
+                                            }
+                                        ]
+                                    , label = 4
+                                    , name = "M"
+                                    , connection =
+                                        [ ]
+                                    , startState = [ ]
+                                    }
+                                ]
+                            , label = 2
+                            , name = "N"
+                            , connection =
+                                [ Connection
+                                    { pointFrom =
+                                        [ 2
+                                        , 2
+                                        ]
+                                    , pointTo = [ 2 ]
+                                    , transition = "k"
+                                    }
+                                ]
+                            , startState =
+                                [ 4
+                                , 3
+                                ]
+                            }
+                        ]
+                    , label = 2
+                    }
+                , InnerMostState
+                    { label = 3
+                    , name = "F"
+                    , operations = ""
+                    }
+                ]
+            , label = 2
+            , name = "B"
+            , connection =
+                [ ]
+            , startState =
+                [ ]
+            }
+        ]
+    , label = 1
+    , name = "I"
+    , connection =
+        [ Connection
+            { pointFrom =
+                [ 2
+                , 2
+                , 2
+                , 4
+                ]
+            , pointTo =
+                [ 2
+                , 2
+                , 2
+                , 1
+                ]
+            , transition = "a"
+            }
+        , Connection
+            { pointFrom =
+                [ 2
+                , 2
+                ]
+            , pointTo =
+                [ 2
+                , 2
+                , 2
+                , 2
+                , 5
+                ]
+            , transition = "c"
+            }
+        ]
+    , startState =
+        [ ]
+    }

@@ -1,7 +1,7 @@
 module CounterExampleSpec (spec) where
 
 import CounterExample
-import Checkers (checkStructure, checkCrossings, checkUniqueness)
+import Checkers (checkStructure, checkCrossings, checkUniqueness, checkDrawability)
 import ExampleSpec (allTheCheckers)
 import Datatype (globalise, localise, StateDiagram(substate))
 
@@ -108,6 +108,11 @@ spec = do
        ,("forCheckEmptyTran2", forCheckEmptyTran2)
        ,("forCheckEmptyTran3", forCheckEmptyTran3)
        ]
+  describe "checkDrawability" $
+    it "rejects forCheckDrawability" $ checkDrawability forCheckDrawability `shouldSatisfy` isJust
+  forM_ (filter ((`notElem` ["checkDrawability", "checkStructure"]) . fst) allTheCheckers) $ \(checkerName, checkerCode) ->
+    describe checkerName $
+      it "isSuccessful for forCheckDrawability" $ checkerCode forCheckDrawability `shouldBe` Nothing
 
 counterExamplesOnlyFor theChecker theExamples = do
   let
