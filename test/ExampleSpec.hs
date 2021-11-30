@@ -31,6 +31,7 @@ allTheCheckers =
   , ("checkHistory", checkHistory)
   , ("checkSemantics", checkSemantics)
   , ("checkWrapper", checkWrapper)
+  , ("checkDrawability", checkDrawability)
   ]
 
 positiveExamples =

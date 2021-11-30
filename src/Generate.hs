@@ -7,7 +7,7 @@ import Datatype (
   globalise
   )
 
-import Checkers (checkSemantics)
+import Checkers (checkSemantics, checkDrawability)
 import Checkers.Helpers (checkEmptyOutTran,checkSameOutTran,inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart,getAllElem1, lastSecNotCD, getSubstate, isNotCD)
 import Data.Maybe(isNothing)
 import Data.List((\\),nub,zip4) 
@@ -76,7 +76,7 @@ randomSD = do
   nm <- elements alphabet
   leastTwoLevels <- frequency [(2,return False),(8,return True)]
   randomSD' True 4 cdMaxNum leastTwoLevels [3 .. 4] alphabet (1,nm,mustCD) [] 
-   `suchThatWhileCounting`  (isNothing . checkSemantics)
+   `suchThatWhileCounting` (\sd -> isNothing (checkSemantics sd) && isNothing (checkDrawability sd))
   -- here outermost layer must be StateDigram (checkOutMostLayer) 
   
 chooseRandomMustCD' :: NodeType -> Gen Bool
