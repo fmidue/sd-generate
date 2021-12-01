@@ -21,7 +21,7 @@ data NodeType = Hist | End | Inner | Comb | Stat | Join  deriving Eq
 checkSubType :: Int -> Bool -> Bool -> [NodeType] -> Bool
 checkSubType _ _ _ [] = False
 checkSubType subNum outermost leastTwoLevels x =
-  length histNum < 2 && length endNum < 2 && length cdNum < 2 && length sdNum < 3 
+  length histNum < 2 && length endNum < 2 && length cdNum < 3 && length sdNum < 3 
   -- here limit the number of some ingredients to make the diagram not so complicated or sens
   && if outermost && leastTwoLevels then Comb `elem` x || Stat `elem` x
      else (End `elem` x || Inner `elem` x || Comb `elem` x || Stat `elem` x)  
