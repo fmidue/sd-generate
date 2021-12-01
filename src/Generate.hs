@@ -202,7 +202,10 @@ randomConnection layerElem innerElem sub unreachedState = do
       noEndState = points \\ endState  
       noParallelRegionFromElem1 = 
         filter (\x -> checkParallelRegion unreachedState x sub ) (noEndState \\ [unreachedState])
-  from <- frequency [(3,elements noParallelRegionFromElem1),(7,elements layerElemNoEnd)]
+  from <- if null (layerElemNoEnd \\ [unreachedState]) then elements noParallelRegionFromElem1
+          else 
+            frequency [(3,elements noParallelRegionFromElem1),
+                       (7,elements (layerElemNoEnd \\ [unreachedState]))]
   -- endStates have no outgoing edges (checkEndState)
   let outerHistory = filter (not.(`notHistory` sub)) layerElem
       layerElemNoOH = layerElem \\ outerHistory
