@@ -2,8 +2,9 @@ module components_sig
 
 // States: a start state, a end state, a normal state or a composite state
 abstract sig State{
+	named: lone Char,
 	contains: disj set State,
-	flow_triggerwith: Trigger set -> set State 
+	flow_triggerwith: Trigger set -> set State
 }
 
 //Node: a fork node or a joint node
@@ -17,12 +18,16 @@ abstract sig Char{
 
 }
 {
-	no c1: Char | c1 not in Trigger.notated // no char exists independently
+	no c1: Char | c1 not in (Trigger.notated + State.named + Region.named) // no char exists independently
 }
 
 // Trigger condition
 sig Trigger{
 	notated: disj lone Char // A kind of trigger maps a char, if it is noated with no char, it is an unconditional trigger
+}
+{
+	notated & State.named = none
+	notated & Region.named = none
 }
 
 // Normal states
@@ -31,6 +36,7 @@ sig NormalState extends State{
 }
 {
 	#contains = 0 // a normal state can't contains other states
+	#named = 1 // a normal state must have a name
 }
 
 // A start state is a special normal state
@@ -40,6 +46,7 @@ sig StartState extends State{
 {
 	#contains = 0 // a start state can't contains other states
 	#flow_triggerwith > 0 //At least one leaving transitions
+	#named = 0 // start states don't need a name
 }
 
 // An end state is a special normal state
@@ -49,14 +56,19 @@ sig EndState extends State{
 {
 	#contains = 0 // an end state can't contains other states
 	#flow_triggerwith = 0 // no leaving transitions(to states), only coming transitions
+	#named = 0 // end states don't need a name
 }
 	
 // Region
 sig Region{
+	named: one Char, // regions have a name
 	contains: disj set State, // a region can contain normal states and composite states
 	partof: one CompositeState, // a region can only belong to a composite state
 	s_possess: disj lone ShallowHistory, // a region can possess at most one shallow history (no regions)
 	d_possess: disj lone DeepHistory // a region can possess at most one deep history (no regions)
+}
+{
+	named & State.named = none
 }
 
 //Composite states
@@ -66,7 +78,9 @@ sig CompositeState extends State{
 	d_possess: disj lone DeepHistory // a composite can possess at most one deep history
 }
 {
-	#inner > 1  // Regions divide a composite state into at least two areas that run in parallel
+	#inner = 0 || #inner > 1  // Regions divide a composite state into at least two areas that run in parallel
+	#inner = 0 => #named = 1 // If a composite dosn't have regions, it must have a name
+	#inner > 1 => #named = 0 // If a composite have regions, it dosen't need a name
 }
 
 //A special node: fork nodes
