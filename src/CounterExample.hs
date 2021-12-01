@@ -544,15 +544,11 @@ forCheckSubNameUniq2 = StateDiagram [a,b] 1 "" [Connection[1] [2] ""] [1]
       b = InnerMostState  2 "A" ""     
 
 forCheckUniqueness1 :: UMLStateDiagram
-forCheckUniqueness1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Connection
-           [1] [1] "f", Connection [1] [4] "b", Connection [3] [4] "c",
-           Connection [3] [1] "e", Connection [4] [3] "d", Connection [4] [1]
-           "e"] [1]
+forCheckUniqueness1 = StateDiagram [a, b] 1 "" [] [1]
   where
     a = InnerMostState 1 "A" ""
     b = InnerMostState 1 "B" "" 
-    c = InnerMostState 3 "C" ""
-    d = InnerMostState 4 "D" ""
+
 
 forCheckUniqueness2 :: UMLStateDiagram
 forCheckUniqueness2 =  StateDiagram [a, b, c, d, l] 1 "" [] [1]
