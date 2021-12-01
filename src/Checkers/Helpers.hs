@@ -33,7 +33,7 @@ checkSameOutTran a b = length tranSame == 1
                   tranSame = filter ((transition a ==).transition) fromSame
 
 checkEmptyOutTran :: Connection -> [Connection] -> Bool
-checkEmptyOutTran a b = length fromSame == 1|| (not . any (null . transition)) fromSame
+checkEmptyOutTran a b = length fromSame == 1|| not (null (transition a))
                 where
                   fromSame  = filter ((pointFrom a ==).pointFrom) b
 
