@@ -95,10 +95,11 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
       chooseNoCombJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
       chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(5,return Join)]
       -- types that have no substates 
+      chooseNoSubJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner)]
   subTypes1 <- vectorOf n (case (c > 0, cdMaxNum == 0) of
                             (True,True) -> chooseNoCombJointNodeTypes
                             (True,False) -> chooseNodeTypes 
-                            (False,True) -> chooseNoSubNodeTypes
+                            (False,True) -> chooseNoSubJointNodeTypes
                             (False,False) -> chooseNoSubNodeTypes ) 
                               `suchThat` checkSubType n outermost leastTwoLevels 
   -- check counter > 0 to limit the depth the diagram
