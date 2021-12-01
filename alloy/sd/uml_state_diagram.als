@@ -1,116 +1,6 @@
-// States: a start state, a end state, a normal state or a composite state
-abstract sig State{
-	contains: set State,
-	flow_triggerwith: Trigger set -> set State 
-}
+module uml_state_diagram
 
-//Node: a fork node or a joint node
-abstract sig Node{
-	flowfrom_triggerwith: Trigger set -> set State,
-	flowto_triggerwith: Trigger set -> set State
-}
-
-// A trigger condition is notated with Char
-abstract sig Char{
-
-}
-{
-	no c1: Char | c1 not in Trigger.notated // no char exists independently
-}
-
-// Trigger condition
-sig Trigger{
-	notated: disj lone Char // A kind of trigger maps a char, if it is noated with no char, it is an unconditional trigger
-}
-
-// Normal states
-sig NormalState extends State{
-
-}
-{
-	#contains = 0 // a normal state can't contains other states
-}
-
-// A start state is a special normal state
-sig StartState extends State{
-
-}
-{
-	#contains = 0 // a start state can't contains other states
-	#flow_triggerwith > 0 //At least one leaving transitions
-}
-
-// An end state is a special normal state
-sig EndState extends State{
-
-}
-{
-	#contains = 0 // an end state can't contains other states
-	#flow_triggerwith = 0 // no leaving transitions(to states), only coming transitions
-}
-	
-// Region
-sig Region{
-	contains: disj set State, // a region can contain normal states and composite states
-	partof: one CompositeState, // a region can only belong to a composite state
-	s_possess: disj lone ShallowHistory, // a region can possess at most one shallow history (no regions)
-	d_possess: disj lone DeepHistory // a region can possess at most one deep history (no regions)
-}
-
-//Composite states
-sig CompositeState extends State{
-	inner: disj set Region, // region states are in composite states
-	s_possess: disj lone ShallowHistory, // a composite state can possess at most one shallow history
-	d_possess: disj lone DeepHistory // a composite can possess at most one deep history
-}
-{
-	#inner > 1  // Regions divide a composite state into at least two areas that run in parallel
-}
-
-//A special node: fork nodes
-sig ForkNode extends Node{
-
-}
-{
-	//It should be 1 to n(n >= 2), n to n is not allowed
-	#flowfrom_triggerwith[Trigger] = 1
-	#flowfrom_triggerwith = 1
-	one t1:Trigger | #flowto_triggerwith[t1] > 0
-	#flowto_triggerwith > 1
-}
-
-// A special node: join nodes
-sig JoinNode extends Node{
-
-}
-{
-	//It should be n(n >= 2) to 1, n to n is not allowed
-	one t1:Trigger | #flowfrom_triggerwith[t1] > 0
-	#flowfrom_triggerwith > 1
-	#flowto_triggerwith[Trigger] = 1
-	#flowto_triggerwith = 1
-}
-
-// History: Shallow History and Deep History
-abstract sig History extends Node{
-	
-}
-{
-	all t1: Trigger | flowto_triggerwith[t1] != none => t1.notated = none // The leaving transition of history shouldn't have conditions
-	#flowfrom_triggerwith > 0 // There should be at least one coming transiton to history.
-	#flowto_triggerwith < 2 // There should be at most one leaving transiton from history.
-}
-
-// A special node: shallow history
-sig ShallowHistory extends History{
-
-}
-
-// A special node: deep history
-sig DeepHistory extends History{
-
-}
-
+open components_sig as components
 
 pred noCrossing [r1, r2: Region]{
 	 r2.contains not in r1.contains.flow_triggerwith[Trigger] && r1.contains not in  r2.contains.flow_triggerwith[Trigger]
@@ -121,7 +11,7 @@ pred noCrossing [r1, r2: Region]{
 fact{
 	#StartState > 0 // at least one start state
 	#EndState < 2 // at most one end state
-	//all s1: StartState, t1: Trigger | s1.flow_triggerwith[t1] != none => t1.notated = none
+	all s1: StartState, t1: Trigger | s1.flow_triggerwith[t1] != none => t1.notated = none
 	all s1: StartState| s1 not in State.flow_triggerwith[Trigger] + Node.flowto_triggerwith[Trigger] // no transitions to start states
 			    && s1 not in JoinNode.flowfrom_triggerwith[Trigger] // no transitions between start states and fork nodes
 	all r1: Region, s1: StartState | s1 in r1.contains => #s1 < 2 //In regions, there is at most one start state.
@@ -164,7 +54,7 @@ fact{
 	all h1: DeepHistory, c1: CompositeState |  #c1.inner = 0 && h1 in c1.d_possess => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.^contains
 	all h1: DeepHistory, c1: CompositeState |  #c1.inner > 0 && h1 in c1.inner.d_possess => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.inner.contains.*contains
 
-	all h1: History, c1: CompositeState | h1 in (c1.s_possess + c1.d_possess + c1.inner.s_possess + c1.inner.d_possess) => h1.flowfrom_triggerwith[Trigger] not in (c1.^contains + c1.inner.contains.*contains) //History should never be reached from (somewhere, possibly nested) inside their own compound state
+	all h1: History, c1: CompositeState | h1 in (c1.s_possess + c1.d_possess + c1.inner.s_possess + c1.inner.d_possess) => h1.flowfrom_triggerwith[Trigger] not in (c1.^contains + c1.inner.contains.*contains - StartState) //History should never be reached from (somewhere, possibly nested) inside their own compound state
 	all h1: History, t1: Trigger | h1.flowto_triggerwith[t1] != none => t1.notated = none //leaving transition of history must be unconditional
 }
 
@@ -179,7 +69,7 @@ fact{
 // other rules
 fact {
 	one t1: Trigger | #t1.notated  = 0 //No need to have many unconditional triggers to express unconditional transitions
-	all s1: State, t1: Trigger | s1 in Node.flowfrom_triggerwith[t1] => #s1.flow_triggerwith[t1] + #Node.flowfrom_triggerwith[t1] < 2 else #s1.flow_triggerwith[t1] < 2//Transitions leaving one state can't have the same triggers
+	all s1: State, n1:Node, t1: Trigger | s1 in n1.flowfrom_triggerwith[t1] => #s1.flow_triggerwith[t1] = 0 else #s1.flow_triggerwith[t1] < 2//Transitions leaving one state can't have the same triggers
 
 	//One state shouldn't be left with both a conditional and an unconditional transition
 	all s1: State, t1, t2: Trigger | (t1.notated = none && t1 != t2 && s1.flow_triggerwith[t1] != none) => s1.flow_triggerwith[t2] = none && s1 not in Node.flowfrom_triggerwith[t2]
@@ -187,7 +77,11 @@ fact {
 
 	State & (NormalState + CompositeState) != none //We don't want to allow anything that has only "special nodes" like history or fork/joint, but no normal states.
 	all n1, n2: Node, t1, t2: Trigger | n1 != n2 => n1.flowfrom_triggerwith[t1] != n2.flowfrom_triggerwith[t1] && n1.flowto_triggerwith[t2] != n2.flowto_triggerwith[t2] //no duplicate nodes
+
+	// Reachability: all states are reachable
+	all n1: NormalState | n1 in (NormalState.flow_triggerwith[Trigger] + Node.flowto_triggerwith[Trigger])
+	all c1: CompositeState | (c1.contains + c1.inner.contains) not in (NormalState.flow_triggerwith[Trigger] + Node.flowto_triggerwith[Trigger]) => c1 in (NormalState.flow_triggerwith[Trigger] + Node.flowto_triggerwith[Trigger])
  }
 
 //check
-run {} for 5 but  exactly 2 Trigger, exactly 2 ForkNode
+run {} for 4
