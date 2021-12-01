@@ -159,9 +159,11 @@ fact{
 	// a shallow history should be directed to a same or the first deeper level, but definitely not to a level further outside
 	all h1: ShallowHistory, c1: CompositeState |  #c1.inner = 0 && h1 in c1.s_possess => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in (c1.contains + c1.contains.contains) 
 	all h1: ShallowHistory, c1: CompositeState |  #c1.inner > 0 && h1 in c1.s_possess => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in (c1.inner.contains + c1.inner.contains.contains)
+
 	// a deep history should be directed to a same or a deeper level, but definitely not to a level further outside
 	all h1: DeepHistory, c1: CompositeState |  #c1.inner = 0 && h1 in c1.d_possess => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.^contains
 	all h1: DeepHistory, c1: CompositeState |  #c1.inner > 0 && h1 in c1.inner.d_possess => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.inner.contains.*contains
+
 	all h1: History, c1: CompositeState | h1 in (c1.s_possess + c1.d_possess + c1.inner.s_possess + c1.inner.d_possess) => h1.flowfrom_triggerwith[Trigger] not in (c1.^contains + c1.inner.contains.*contains) //History should never be reached from (somewhere, possibly nested) inside their own compound state
 	all h1: History, t1: Trigger | h1.flowto_triggerwith[t1] != none => t1.notated = none //leaving transition of history must be unconditional
 }
@@ -178,8 +180,14 @@ fact{
 fact {
 	one t1: Trigger | #t1.notated  = 0 //No need to have many unconditional triggers to express unconditional transitions
 	all s1: State, t1: Trigger | s1 in Node.flowfrom_triggerwith[t1] => #s1.flow_triggerwith[t1] + #Node.flowfrom_triggerwith[t1] < 2 else #s1.flow_triggerwith[t1] < 2//Transitions leaving one state can't have the same triggers
-	all s1: State, t1, t2: Trigger | (t1.notated = none && t1 != t2 && s1.flow_triggerwith[t1] != none) => s1.flow_triggerwith[t1] & s1.flow_triggerwith[t2] = none //One state shouldn't be left with both a conditional and an unconditional transition
+
+	//One state shouldn't be left with both a conditional and an unconditional transition
+	all s1: State, t1, t2: Trigger | (t1.notated = none && t1 != t2 && s1.flow_triggerwith[t1] != none) => s1.flow_triggerwith[t2] = none && s1 not in Node.flowfrom_triggerwith[t2]
+	all s1: State, n1, n2: Node, t1, t2: Trigger | (s1 in n1.flowfrom_triggerwith[t1] && t1.notated = none && t1 != t2 && n1 != n2) => s1.flow_triggerwith[t2] = none && s1 not in n2.flowfrom_triggerwith[t2]
+
 	State & (NormalState + CompositeState) != none //We don't want to allow anything that has only "special nodes" like history or fork/joint, but no normal states.
+	all n1, n2: Node, t1, t2: Trigger | n1 != n2 => n1.flowfrom_triggerwith[t1] != n2.flowfrom_triggerwith[t1] && n1.flowto_triggerwith[t2] != n2.flowto_triggerwith[t2] //no duplicate nodes
  }
+
 //check
 run {} for 5 but  exactly 2 Trigger, exactly 2 ForkNode
