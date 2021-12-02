@@ -4,9 +4,13 @@ module history_rules // most constraints of history nodes, but some constraints 
 open components_sig as components // import all signatures
 
 fact{
-	// A history should be directed to a same or a deeper level, but definitely not to a level further outside
-	all h1: History, c1: CompositeState |  #c1.inner = 0 && h1 in (c1.s_possess + c1.d_possess) => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.^contains.*(inner.contains.(iden + ^contains))
-	all h1: History, c1: CompositeState |  #c1.inner > 0 && h1 in (c1.inner.s_possess + c1.inner.d_possess) => h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.inner.contains.(iden + ^contains).*(inner.contains.(iden + ^contains))
+	// A history should be directed to a same or a deeper level which must contains at least one valid state for history to return, but definitely not to a level further outside
+	all h1: History, c1: CompositeState |  #c1.inner = 0 && h1 in (c1.s_possess + c1.d_possess) 
+							=> h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.^contains.*(inner.contains.(iden + ^contains))
+							&& c1.contains & (NormalState + CompositeState) != none // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
+	all h1: History, c1: CompositeState |  #c1.inner > 0 && h1 in (c1.inner.s_possess + c1.inner.d_possess) 
+							=> h1.flowto_triggerwith[Trigger] = none || h1.flowto_triggerwith[Trigger] in c1.inner.contains.(iden + ^contains).*(inner.contains.(iden + ^contains))
+							&& c1.inner.contains & (NormalState + CompositeState) != none // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
 	
 	// History should never be reached from (somewhere, possibly nested) inside their own compound state
 	all h1: History, c1: CompositeState | h1 in (c1.s_possess + c1.d_possess + c1.inner.s_possess + c1.inner.d_possess) 
