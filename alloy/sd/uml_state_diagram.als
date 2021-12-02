@@ -23,5 +23,5 @@ fact{
 	all c1: CompositeState, h1: History | #c1.inner > 0 => h1 not in (c1.s_possess + c1.d_possess)
 }
 
-//check
-run {} for 4 but exactly 2 Region, exactly 1 History, exactly 2 Trigger
+// check {all s1, s2: State | s1 != s2 && s1.named != none && s2.named != none => s1.named != s2.named} for 6
+run {} for 6 but exactly 3 CompositeState
