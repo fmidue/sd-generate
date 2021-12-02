@@ -79,7 +79,7 @@ sig CompositeState extends State{
 	d_possess: disj lone DeepHistory // a composite can possess at most one deep history
 }
 {
-	#inner = 0 || #inner > 1  // Regions divide a composite state into at least two areas that run in parallel
+	#inner != 1 // Regions divide a composite state into at least two areas that run in parallel
 	#inner = 0 => #named = 1 // If a composite dosn't have regions, it must have a name
 	#inner > 1 => #named = 0 // If a composite have regions, it dosen't need a name
 }
