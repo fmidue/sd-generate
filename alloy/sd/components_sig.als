@@ -1,4 +1,4 @@
-module components_sig
+module components_sig // All signatures and some direct constraints in this module
 
 // States: a start state, a end state, a normal state or a composite state
 abstract sig State{
@@ -26,6 +26,7 @@ sig Trigger{
 	notated: disj lone Char // A kind of trigger maps a char, if it is noated with no char, it is an unconditional trigger
 }
 {
+	// names of trigger are different from states and regions
 	notated & State.named = none
 	notated & Region.named = none
 }
