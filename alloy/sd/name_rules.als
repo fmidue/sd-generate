@@ -12,6 +12,6 @@ fact{
 	all r1, r2: Region, c1: CompositeState |  r1 != r2 && r1 in c1.inner && r2 in c1.inner => r1.named != r2.named // In a composite state, no regions have same names
 
 	// In a compound or region, the name of the outermost level must not be repeated anywhere deeper inside.
-//	all c1: CompositeState |  c1.named != c1.^contains.named && c1.named != c1.inner.named && c1.named != c1.inner.contains.named
-//	all r1: Region | r1.named != r1.contains.named
+	all c1: CompositeState, s1: State | s1 in c1.^contains.*(inner.contains.(iden + ^contains)) => c1.named & s1.named = none
+	all r1: Region, s1: State | s1 in r1.contains.(iden + ^contains).*(inner.contains.(iden + ^contains)) => r1.named & s1.named = none
 }
