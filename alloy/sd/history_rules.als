@@ -10,7 +10,7 @@ fact{
 	
 	// History should never be reached from (somewhere, possibly nested) inside their own compound state
 	all h1: History, c1: CompositeState | h1 in (c1.s_possess + c1.d_possess + c1.inner.s_possess + c1.inner.d_possess) 
-							=> h1.flowfrom_triggerwith[Trigger] & (c1.^contains.*(inner.contains.(iden + ^contains)) - (StartState & c1.contains)) = none
+							=> h1.flowfrom_triggerwith[Trigger] & (c1.^contains.*(inner.contains.(iden + ^contains)) +  c1.inner.contains.(iden + ^contains).*(inner.contains.(iden + ^contains)) - (StartState & c1.contains)) = none
 
 	all h1: History, t1: Trigger | h1.flowto_triggerwith[t1] != none => t1.notated = none // Leaving transitions of history must be unconditional
 	no h1: History | h1 not in (CompositeState.s_possess + CompositeState.d_possess + Region.s_possess + Region.d_possess) // No history nodes are at the outermost level of a state diagram
