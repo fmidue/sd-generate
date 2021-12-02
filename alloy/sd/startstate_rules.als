@@ -10,7 +10,8 @@ fact{
 			    && s1 not in JoinNode.flowfrom_triggerwith[Trigger] // no transitions between start states and join nodes
 
 	// Start states are only left by arrows pointing to something in their own compound state or deeper.
-	all s1: StartState, c1: CompositeState | s1 in (c1.contains + c1.inner.contains) => s1.flow_triggerwith[Trigger] in (c1.contains + c1.inner.contains) 
+	all s1: StartState, c1: CompositeState | #c1.inner = 0 && s1 in c1.contains => s1.flow_triggerwith[Trigger] in (c1.^contains.*(inner.contains.(iden + ^contains)))
+	all s1: StartState, c1: CompositeState | #c1.inner > 0 && s1 in c1.inner.contains => s1.flow_triggerwith[Trigger] in c1.inner.contains.(iden + ^contains).*(inner.contains.(iden + ^contains))
 	
 	all s1: StartState, r1: Region | s1 in r1.contains => #s1 < 2 // In regions, there is at most one start state.
 	all s1: StartState, c1: CompositeState | s1 in c1.contains => #s1 < 2 // In composite states, there is at most one start state.
