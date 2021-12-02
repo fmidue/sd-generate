@@ -68,14 +68,18 @@ suchThatWhileCounting gen p = tryWith 0
 
 randomSD :: Gen (UMLStateDiagram, Int)
 randomSD = do
-  let alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
+  let outermost = True
+      counter = 4 
+      ns = [3 .. 4]
+      alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
+      l = 1
       mustCD = False
       -- mustCD represents if a randoomSD' must have a CD
       cdMaxNum = 1 
       -- to ignore nested CD 
   nm <- elements alphabet
   leastTwoLevels <- frequency [(2,return False),(8,return True)]
-  randomSD' True 4 cdMaxNum leastTwoLevels [3 .. 4] alphabet (1,nm,mustCD) [] 
+  randomSD' outermost counter cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) [] 
    `suchThatWhileCounting` (\sd -> isNothing (checkSemantics sd) && isNothing (checkDrawability sd))
   -- here outermost layer must be StateDigram (checkOutMostLayer) 
   
