@@ -5,8 +5,8 @@ open components_sig as components // import all signatures
 
 // There are no arrows that originate in A and lead to B, if A and B are (in) different regions of a common composite regions state.
 pred noCrossing [r1, r2: Region]{
-	r2.contains not in (r1.contains.flow_triggerwith[Trigger] + r1.s_possess.flowto_triggerwith[Trigger] + r1.d_possess.flowto_triggerwith[Trigger])
-	&& r1.contains not in  r2.contains.flow_triggerwith[Trigger]
+	getAllNodeInSameAndDeeperLevel[r2] & getAllNodeInSameAndDeeperLevel[r1].flowto_triggerwith[Trigger] = none
+	getAllNodeInSameAndDeeperLevel[r1] & getAllNodeInSameAndDeeperLevel[r2].flowto_triggerwith[Trigger] = none
 }
 
 fact{
