@@ -1,6 +1,6 @@
 module components_sig // All signatures and some direct constraints in this module
 
-//All componets are a node, this is a super class
+// All componets are a node, this is a super class
 abstract sig Node{
 	flowto_triggerwith: Trigger set -> set Node
 }
@@ -10,7 +10,7 @@ abstract sig Trigger{
 	notated: disj lone Int // A kind of trigger maps a char, if it is noated with no char, it is an unconditional trigger
 }
 {
-	// names of trigger are different from states and regions
+	// Names of trigger are different from states and regions
 	notated & State.named = none
 	notated & Region.named = none
 }
@@ -39,20 +39,20 @@ abstract sig EndState extends State{}
 // Normal states
 abstract sig NormalState extends State{}
 {
-	one named // a normal state must have a name
+	one named // A normal state must have a name
 }
 	
 // Region
 abstract sig Region{
-	named: one Int, // regions have a name
-	contains: disj set Node, // a region can contain normal states and composite states
-	partof: one CompositeState // a region can only belong to a composite state
+	named: one Int, // Regions have a name
+	contains: disj set Node, // A region can contain normal states and composite states
+	partof: one CompositeState // A region can only belong to a composite state
 }
 
-//Composite states
+// Composite states
 abstract sig CompositeState extends State{
 	contains: disj set Node,
-	inner: disj set Region // region states are in composite states
+	inner: disj set Region // Region states are in composite states
 }
 {
 	#inner != 1 // Regions divide a composite state into at least two areas that run in parallel
@@ -63,14 +63,14 @@ abstract sig CompositeState extends State{
 //A special node: fork nodes
 abstract sig ForkNode extends Node{}
 {
-	//It should be 1 to n(n > 1), n to n is not allowed
+	// It should be 1 to n(n > 1), n to n is not allowed
 	one t1:Trigger | #flowto_triggerwith[t1] > 1 // It constrains the number of leaving transition > 1 and for fork nodes, leaving transitions should all have same conditions or no conditions
 }
 
 // A special node: join nodes
 abstract sig JoinNode extends Node{}
 {
-	//It should be n(n >= 2) to 1, n to n is not allowed
+	// It should be n(n >= 2) to 1, n to n is not allowed
 	one flowto_triggerwith // It constrains the number of leaving transition = 1
 	this not in flowto_triggerwith[Trigger] // No self-loop transition
 }
