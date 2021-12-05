@@ -23,14 +23,17 @@ abstract sig State extends Node{
 // Start state: a node
 abstract sig StartState extends Node{}
 {
-	some flowto_triggerwith //At least one leaving transition
+	// Start states are left by one unconditionally transition
+	one flowto_triggerwith // One leaving transition
+	all t1: Trigger | flowto_triggerwith[t1] != none => t1.notated = none // Start states are not left by an arrow with non-empty transition label
+	JoinNode & flowto_triggerwith[Trigger] = none// No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)	
 }
 
 // An end state is a special state
 abstract sig EndState extends State{}
 {
 	no named // There is no need to mark an end state
-	no flowto_triggerwith // no leaving transitions, only coming transitions
+	no flowto_triggerwith // No leaving transitions, only coming transitions
 }
 
 // Normal states
@@ -61,20 +64,24 @@ abstract sig CompositeState extends State{
 abstract sig ForkNode extends Node{}
 {
 	//It should be 1 to n(n > 1), n to n is not allowed
-	one t1:Trigger | #flowto_triggerwith[t1] > 1 // It constrains the number of leaving transition > 1
+	one t1:Trigger | #flowto_triggerwith[t1] > 1 // It constrains the number of leaving transition > 1 and for fork nodes, leaving transitions should all have same conditions or no conditions
 }
 
 // A special node: join nodes
 abstract sig JoinNode extends Node{}
 {
 	//It should be n(n >= 2) to 1, n to n is not allowed
-	one flowto_triggerwith
+	one flowto_triggerwith // It constrains the number of leaving transition = 1
+	this not in flowto_triggerwith[Trigger] // No self-loop transition
 }
 
 // A specail node: History: Shallow History and Deep History
 abstract sig History extends Node{}
 {
+	// History nodes are left by one unconditionally transition
+	one flowto_triggerwith // One leaving transition
 	all t1: Trigger | flowto_triggerwith[t1] != none => t1.notated = none // The leaving transition of history shouldn't have conditions
+	(JoinNode + ForkNode)	& flowto_triggerwith[Trigger] = none // No transitions between history nodes and fork/join nodes
 }
 
 // A special node: shallow history
@@ -83,7 +90,22 @@ abstract sig ShallowHistory extends History{}
 // A special node: deep history
 abstract sig DeepHistory extends History{}
 
-// It gets all nodes in same and deeper levels of composite
-fun getAllSameAndDeeperLevel [c1: CompositeState]: State{
+// It gets all nodes in same and deeper levels of composite states
+fun getAllNodeInSameAndDeeperLevel [c1: CompositeState]: Node{
 	c1.^contains.*(inner.contains.(iden + ^contains))
+}
+
+// It gets all regions in same and deeper levels of composite states
+fun getAllRegionInSameAndDeeperLevel [c1: CompositeState]: Region{
+	c1.inner.(iden + ^(contains.(iden + ^contains).inner))
+}
+
+// It gets all nodes in same and deeper levels of regions
+fun getAllNodeInSameAndDeeperLevel [r1: Region]: Node{
+	r1.contains.(iden + ^contains).*(inner.contains.(iden + ^contains))
+}
+
+// It gets all regions in same and deeper levels of regions
+fun getAllRegionInSameAndDeeperLevel [r1: Region]: Region{
+	r1.contains.(iden + ^contains).inner.(iden + ^(contains.(iden + ^contains).inner))
 }
