@@ -1,14 +1,14 @@
 // About history nodes
-module history_rules // most constraints of history nodes, but some constraints are directly with the signatures 
+module history_rules // Most constraints of history nodes, but some constraints are directly with the signatures 
 
 open components_sig as components // import all signatures
 
 // This predication is optional
 pred atMostOneDeepAndShallowHistory{
-	all h1: ShallowHistory, r1: Region | h1 in r1.contains=> lone h1 // In regions, there is at most one shallow history.
-	all h1: ShallowHistory, c1: CompositeState | h1 in c1.contains=> lone h1 // In composite states, there is at most one shallow history.
-	all h1: DeepHistory, r1: Region | h1 in r1.contains=> lone h1 // In regions, there is at most one deep history.
-	all h1: DeepHistory, c1: CompositeState | h1 in c1.contains=> lone h1 // In composite states, there is at most one deep history.
+	lone h1: ShallowHistory, r1: Region | h1 in r1.contains // In regions, there is at most one shallow history.
+	lone h1: ShallowHistory, c1: CompositeState | h1 in c1.contains // In composite states, there is at most one shallow history.
+	lone h1: DeepHistory, r1: Region | h1 in r1.contains // In regions, there is at most one deep history.
+	lone h1: DeepHistory, c1: CompositeState | h1 in c1.contains // In composite states, there is at most one deep history.
 }
 
 fact{
