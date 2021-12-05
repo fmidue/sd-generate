@@ -1,5 +1,5 @@
 // About transition labels
-module transition_rules // most constraints of transition labels, but some constraints are directly with the signatures 
+module transition_rules // Most constraints of transition labels, but some constraints are directly with the signatures 
 
 open components_sig as components // import all signatures
 

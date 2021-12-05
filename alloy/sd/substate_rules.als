@@ -1,5 +1,5 @@
 // About "substates"
-module substate_rules // most constraints of "substates", but some constraints are directly with the signatures 
+module substate_rules // Most constraints of "substates", but some constraints are directly with the signatures 
 
 open components_sig as components // import all signatures
 

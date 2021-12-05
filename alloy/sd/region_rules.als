@@ -1,5 +1,5 @@
 // About regions and region states
-module region_rules // most constraints of regions and region states, but some constraints are directly with the signature 
+module region_rules // Most constraints of regions and region states, but some constraints are directly with the signature 
 
 open components_sig as components // import all signatures
 
