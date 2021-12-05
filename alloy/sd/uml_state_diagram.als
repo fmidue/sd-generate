@@ -17,11 +17,8 @@ fact{
 	partof = ~inner  //reverse relation
 	
 	// if a composite state contains region states, then all states are contained by region states directly and in the composite state indirectly, so the composite state doesn't contain any states directly, history as well
-	all s1: State | s1 in Region.contains => s1 not in CompositeState.contains
-	all h1: History | h1 in (Region.s_possess + Region.d_possess) => h1 not in (CompositeState.s_possess + CompositeState.d_possess)
-	all c1: CompositeState, s1: State | #c1.inner > 0 => s1 not in c1.contains
-	all c1: CompositeState, h1: History | #c1.inner > 0 => h1 not in (c1.s_possess + c1.d_possess)
+	all c1: CompositeState, n1: Node | #c1.inner > 0 => n1 not in c1.contains
 }
 
 // check {all s1, s2: State | s1 != s2 && s1.named != none && s2.named != none => s1.named != s2.named} for 6
-run {} for 6 but exactly 3 CompositeState
+run {} for 5 but exactly 1 JoinNode, exactly 1 ForkNode, exactly 2 Trigger
