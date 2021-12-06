@@ -15,10 +15,10 @@ open name_rules // import constraints of names
 fact{
 	no c1: CompositeState | c1 in c1.^contains // This relation has no loop
 	partof = ~inner  // Reverse relation
-	
+	all r1: Region, c1: CompositeState | r1.contains & c1.contains = none // No same nodes are contained by different objects	
+
 	// If a composite state contains region states, then all states are contained by region states directly and in the composite state indirectly, so the composite state doesn't contain any states directly, history as well
 	all c1: CompositeState, n1: Node | #c1.inner > 0 => n1 not in c1.contains
 }
 
-// check
-run {} for 10 but exactly 1 JoinNode, exactly 1 ForkNode, exactly 2 Trigger, exactly 6 NormalState
+run {} for 10
