@@ -9,7 +9,7 @@ fact{
 	// One state shouldn't be left with both a conditional and an unconditional transition
 	all s1: State, t1: Trigger | (t1.notated = none && s1.flowto_triggerwith[t1] != none) => s1.flowto_triggerwith[Trigger - t1] = none
 	// If a composite state has a direct exit with a certain label, the label can't appear in the composite state(direct level)
-	all c1: (CompositeStateWithRegion + CompositeStateWithoutRegion), t1: Trigger | c1.flowto_triggerwith[t1] != none => (getAllNodeInSameAndDeeperLevel[c1] + getAllNodeInSameAndDeeperLevel[c1.inner]).flowto_triggerwith[t1] = none
+	all c1: CompositeState, t1: Trigger | c1.flowto_triggerwith[t1] != none => (getAllNodeInSameAndDeeperLevel[c1] + getAllNodeInSameAndDeeperLevel[c1.inner]).flowto_triggerwith[t1] = none
 	// If a composite state has a direct uncondiontal exit, no other transitions allowed in in the composite state(direct level)
-	all c1: (CompositeStateWithRegion + CompositeStateWithoutRegion), t1: Trigger | t1.notated = none && c1.flowto_triggerwith[t1] != none => no (getAllNodeInSameAndDeeperLevel[c1] + getAllNodeInSameAndDeeperLevel[c1.inner]).flowto_triggerwith
+	all c1: CompositeState, t1: Trigger | t1.notated = none && c1.flowto_triggerwith[t1] != none => no (getAllNodeInSameAndDeeperLevel[c1] + getAllNodeInSameAndDeeperLevel[c1.inner]).flowto_triggerwith
 }

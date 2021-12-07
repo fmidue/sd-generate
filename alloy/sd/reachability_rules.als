@@ -5,7 +5,7 @@ open components_sig as components // import all signatures
 
 fact{
 	// Each normal/fork/join/history/end state has at least one incoming arrow (from a start state or somewhere else) 
-	all n1: (Node - StartState - CompositeStateWithoutRegion - CompositeStateWithRegion) | n1 in (Node - n1).flowto_triggerwith[Trigger]
+	all n1: (Node - StartState - CompositeState) | n1 in (Node - n1).flowto_triggerwith[Trigger]
 
 	// Each composite state has at least one entry
 	// If no direct entry and history entry, there must be standard entry

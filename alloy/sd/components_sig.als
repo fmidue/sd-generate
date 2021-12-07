@@ -40,13 +40,16 @@ abstract sig Region{
 	contains: disj set Node // A region can contain normal states and composite states
 }
 
+// Composite states
+abstract sig CompositeState extends State{}
+
 // Composite states without regions
-abstract sig CompositeStateWithoutRegion extends State{
+abstract sig CompositeStateWithoutRegion extends CompositeState{
 	contains: disj set Node,
 }
 
 // Composite states with regions
-abstract sig CompositeStateWithRegion extends State{
+abstract sig CompositeStateWithRegion extends CompositeState{
 	inner: disj set Region // Region states are in composite states
 }
 {
