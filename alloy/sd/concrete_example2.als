@@ -11,8 +11,8 @@ one sig N3 extends NormalState{}
 one sig N4 extends NormalState{}
 one sig N5 extends NormalState{}
 // 2 composite states
-one sig C1 extends CompositeState{}
-one sig C2 extends CompositeState{}
+one sig C1 extends CompositeStateWithRegion{}
+one sig C2 extends CompositeStateWithRegion{}
 // 4 Regions
 one sig r1 extends Region{}
 one sig r2 extends Region{}
