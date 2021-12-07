@@ -28,10 +28,10 @@ one sig N13 extends NormalState{}
 one sig N14 extends NormalState{}
 one sig N15 extends NormalState{}
 // 4 composite states
-one sig C1 extends CompositeState{}
-one sig C2 extends CompositeState{}
-one sig C3 extends CompositeState{}
-one sig C4 extends CompositeState{}
+one sig C1 extends CompositeStateWithoutRegion{}
+one sig C2 extends CompositeStateWithRegion{}
+one sig C3 extends CompositeStateWithRegion{}
+one sig C4 extends CompositeStateWithRegion{}
 // 6 regions
 one sig R1 extends Region{}
 one sig R2 extends Region{}
