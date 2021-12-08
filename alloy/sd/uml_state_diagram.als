@@ -18,7 +18,7 @@ fact{
 	no h1: HierarchicalState | h1 in getAllNodeInSameAndDeeperLevel [h1]  // A hierarchical state can't appear in deeper level of itself
 	no r1: RegionsState | r1 in getAllNodeInSameAndDeeperLevel [r1.inner] // A region state can't appear in deeper level of itself
 	
-	all r1: Region, h1: HierarchicalState | r1.r_contains & h1.h_contains = none // No same nodes are contained by different objects	
+	all r1: Region, h1: HierarchicalState | disj [r1.r_contains, h1.h_contains] // No same nodes are contained by different objects	
 }
 
 run {} for 10

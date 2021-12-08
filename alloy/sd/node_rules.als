@@ -9,14 +9,14 @@ fact{
 	
 	// If two (or more) arrows leave the same such fork node, they must go to distinct parallel regions.
 	all f1: ForkNode | f1.flowto_triggerwith[Trigger] in Region.r_contains
-	all f1: ForkNode, rs1: RegionsState, r1: Region | r1 in rs1.inner && f1.flowto_triggerwith[Trigger] & rs1.inner.r_contains != none => one (f1.flowto_triggerwith[Trigger] & r1.r_contains)
+	all f1: ForkNode, rs1: RegionsState, r1: Region | r1 in rs1.inner && some (f1.flowto_triggerwith[Trigger] & rs1.inner.r_contains) => one (f1.flowto_triggerwith[Trigger] & r1.r_contains)
 	
 	// If two (or more) arrows enter the same such join node, they must come from distinct parallel regions.
 	all j1: JoinNode | j1 in Region.r_contains.flowto_triggerwith[Trigger]
 	all j1: JoinNode, r1: Region, disj s1, s2: State | (s1 + s2) in r1.r_contains && j1 in s1.flowto_triggerwith[Trigger] => j1 not in s2.flowto_triggerwith[Trigger]
 	all j1: JoinNode, rs1: RegionsState, r1: Region | r1 in rs1.inner && j1 in rs1.inner.r_contains.flowto_triggerwith[Trigger] => j1 in r1.r_contains.flowto_triggerwith[Trigger]
 	
-	all n1: ForkNode + JoinNode, t1: Trigger | n1 in StartState.flowto_triggerwith[t1] => n1.flowto_triggerwith[t1] = none // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
-	all n1: ForkNode + JoinNode, t1, t2: Trigger | n1 in Node.flowto_triggerwith[t1] && n1.flowto_triggerwith[t2] != none => t1.notated = none || t2.notated = none // No such node is both entered and left by arrows with non-empty transition label.
+	all n1: ForkNode + JoinNode, t1: Trigger | n1 in StartState.flowto_triggerwith[t1] => no n1.flowto_triggerwith[t1] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
+	all n1: ForkNode + JoinNode, t1, t2: Trigger | n1 in Node.flowto_triggerwith[t1] && some n1.flowto_triggerwith[t2] =>  no t1.notated || no t2.notated // No such node is both entered and left by arrows with non-empty transition label.
 	all disj n1, n2: ForkNode + JoinNode, n3:Node, t1, t2: Trigger | (n1 + n2) not in n3.flowto_triggerwith[t1] || n1.flowto_triggerwith[t2] != n2.flowto_triggerwith[t2] // No duplicate fork/join nodes
 }

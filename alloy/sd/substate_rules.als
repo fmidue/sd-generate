@@ -5,7 +5,7 @@ open components_sig as components // import all signatures
 
 fact{
 	// No compound or region may be empty or contain only history/fork/join nodes.
-	Node & (NormalState + CompositeState + EndState) != none // It constrains outermost level
-	all h1: HierarchicalState | h1.h_contains & (NormalState + CompositeState + EndState) != none // It constrains all composite states without regions
-	all r1: Region | r1.r_contains & (NormalState + CompositeState + EndState) != none // It constrains all region levels
+	some State // It constrains that the whole model can't be empty or contain only only history/fork/join nodes.
+	all h1: HierarchicalState | some (h1.h_contains & State) // It constrains all composite states without regions
+	all r1: Region | some (r1.r_contains & State) // It constrains all region levels
 }
