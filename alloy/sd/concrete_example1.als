@@ -28,10 +28,10 @@ one sig N13 extends NormalState{}
 one sig N14 extends NormalState{}
 one sig N15 extends NormalState{}
 // 4 composite states
-one sig C1 extends CompositeStateWithoutRegion{}
-one sig C2 extends CompositeStateWithRegion{}
-one sig C3 extends CompositeStateWithRegion{}
-one sig C4 extends CompositeStateWithRegion{}
+one sig C1 extends HierarchicalState{}
+one sig C2 extends RegionsState{}
+one sig C3 extends RegionsState{}
+one sig C4 extends RegionsState{}
 // 6 regions
 one sig R1 extends Region{}
 one sig R2 extends Region{}
@@ -69,7 +69,7 @@ fact{
 	C2.named = none
 	C3.named = none
 	C4.named = none
-	C1.contains = (S2 + C2 + C3 + C4)
+	C1.h_contains = (S2 + C2 + C3 + C4)
 	S2.flowto_triggerwith[T0] = C2
 	C2.flowto_triggerwith[T4] = H3
 	C2.flowto_triggerwith[T5] = H2
@@ -86,8 +86,8 @@ fact{
 	R1.named = 6
 	R2.named = 3
 	C2.inner = R1 + R2
-	R1.contains = S3 + N1 + N2 + N3 + N4 + H1
-	R2.contains = S4 + N13
+	R1.r_contains = S3 + N1 + N2 + N3 + N4 + H1
+	R2.r_contains = S4 + N13
 	S3.flowto_triggerwith[T0] = N1
 	N1.flowto_triggerwith[T2] = N2
 	N1.flowto_triggerwith[T3] = N4
@@ -109,8 +109,8 @@ fact{
 	R3.named = 6
 	R4.named = 4
 	C3.inner = R3 + R4
-	R3.contains = S5 + N5 + N6 + N7 + N8 + H2
-	R4.contains = S6 + N14
+	R3.r_contains = S5 + N5 + N6 + N7 + N8 + H2
+	R4.r_contains = S6 + N14
 	S5.flowto_triggerwith[T0] = N5
 	N5.flowto_triggerwith[T2] = N6
 	N5.flowto_triggerwith[T3] = N8
@@ -132,8 +132,8 @@ fact{
 	R5.named = 6
 	R6.named = 7
 	C4.inner = R5 + R6
-	R5.contains = S7+ N9 + N10 + N11 + N12 + H3
-	R6.contains = S8 + N15
+	R5.r_contains = S7+ N9 + N10 + N11 + N12 + H3
+	R6.r_contains = S8 + N15
 	S7.flowto_triggerwith[T0] = N9
 	N9.flowto_triggerwith[T2] = N10
 	N9.flowto_triggerwith[T3] = N12

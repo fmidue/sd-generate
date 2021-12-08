@@ -37,19 +37,22 @@ abstract sig NormalState extends State{}
 // Region
 abstract sig Region{
 	named: lone Int, // Regions have a name
-	contains: disj set Node // A region can contain normal states and composite states
+	r_contains: disj set Node // A region can contain normal states and composite states
+}
+{
+	this in RegionsState.inner
 }
 
-// Composite states
+// Composite states: Hierarchical states and region states 
 abstract sig CompositeState extends State{}
 
-// Composite states without regions
-abstract sig CompositeStateWithoutRegion extends CompositeState{
-	contains: disj set Node,
+// HierarchicalState: Composite states without regions
+abstract sig HierarchicalState extends CompositeState{
+	h_contains: disj set Node,
 }
 
-// Composite states with regions
-abstract sig CompositeStateWithRegion extends CompositeState{
+// RegionState: Composite states with regions
+abstract sig RegionsState extends CompositeState{
 	inner: disj set Region // Region states are in composite states
 }
 {
@@ -60,7 +63,7 @@ abstract sig CompositeStateWithRegion extends CompositeState{
 abstract sig ForkNode extends Node{}
 {
 	// It should be 1 to n(n > 1), n to n is not allowed
-	one t1: Trigger | #flowto_triggerwith[t1] > 1 // It constrains the number of leaving transition > 1 and for fork nodes, leaving transitions should all have same conditions or no conditions
+	one t1: Trigger | not (lone flowto_triggerwith[t1]) // It constrains the number of leaving transition > 1 and for fork nodes, leaving transitions should all have same conditions or no conditions
 }
 
 // A special node: join nodes
@@ -87,21 +90,21 @@ abstract sig ShallowHistory extends History{}
 abstract sig DeepHistory extends History{}
 
 // It gets all nodes in same and deeper levels of composite states
-fun getAllNodeInSameAndDeeperLevel [c1: CompositeStateWithoutRegion]: Node{
-	c1.^contains.*(inner.contains.(iden + ^contains))
+fun getAllNodeInSameAndDeeperLevel [h1: HierarchicalState]: Node{
+	h1.^h_contains.*(inner.r_contains.(iden + ^h_contains))
 }
 
 // It gets all regions in same and deeper levels of composite states
-fun getAllRegionInSameAndDeeperLevel [c1: CompositeStateWithRegion]: Region{
-	c1.inner.(iden + ^(contains.(iden + ^contains).inner))
+fun getAllRegionInSameAndDeeperLevel [r1: RegionsState]: Region{
+	r1.inner.(iden + ^(r_contains.(iden + ^h_contains).inner))
 }
 
 // It gets all nodes in same and deeper levels of regions
 fun getAllNodeInSameAndDeeperLevel [r1: Region]: Node{
-	r1.contains.(iden + ^contains).*(inner.contains.(iden + ^contains))
+	r1.r_contains.(iden + ^h_contains).*(inner.r_contains.(iden + ^h_contains))
 }
 
 // It gets all regions in same and deeper levels of regions
 fun getAllRegionInSameAndDeeperLevel [r1: Region]: Region{
-	r1.contains.(iden + ^contains).inner.(iden + ^(contains.(iden + ^contains).inner))
+	r1.r_contains.(iden + ^h_contains).inner.(iden + ^(r_contains.(iden + ^h_contains).inner))
 }

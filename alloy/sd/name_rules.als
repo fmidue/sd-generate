@@ -6,14 +6,14 @@ open components_sig as components // import all signatures
 // About names of states (and of regions etc.)
 fact{
 	// Entities which are "neighbours" (in the sense of living directly side by side in the same compound or region, but not in two parallel regions of the same compound or such), they must not have the same name. (ignored empty names)
-	all disj s1, s2: State, c1: CompositeStateWithoutRegion | (s1 + s2) in c1.contains && (s1.named + s2.named) != none  => s1.named != s2.named // In a composite state, no states have same names
-	all disj s1, s2: State, r1: Region | (s1 + s2) in r1.contains && (s1.named + s2.named) != none => s1.named != s2.named // In a region, no states have same names
-	all disj s1, s2: State | (s1 + s2) not in (Region.contains + CompositeStateWithoutRegion.contains) && (s1.named + s2.named) != none  => s1.named != s2.named // In the outermost level, no states have same names
-	all disj r1, r2: Region, c1: CompositeStateWithRegion | r1 in c1.inner && r2 in c1.inner => r1.named != r2.named // In a composite state, no regions have same names
+	all disj s1, s2: State, h1: HierarchicalState | (s1 + s2) in h1.h_contains && (s1.named + s2.named) != none  => s1.named != s2.named // In a composite state, no states have same names
+	all disj s1, s2: State, r1: Region | (s1 + s2) in r1.r_contains && (s1.named + s2.named) != none => s1.named != s2.named // In a region, no states have same names
+	all disj s1, s2: State | (s1 + s2) not in (Region.r_contains + HierarchicalState.h_contains) && (s1.named + s2.named) != none  => s1.named != s2.named // In the outermost level, no states have same names
+	all disj r1, r2: Region, c1: RegionsState | r1 in c1.inner && r2 in c1.inner && (r1.named + r2.named) != none => r1.named != r2.named // In a composite state, no regions have same names
 
 	// In a compound or region, the name of the outermost level must not be repeated anywhere deeper inside. (ignored empty names)
-	all c1: CompositeStateWithoutRegion, s1: State | s1 in getAllNodeInSameAndDeeperLevel[c1] && c1.named != none => c1.named & s1.named = none // For all states deeper inside a composite state
+	all h1: HierarchicalState, s1: State | s1 in getAllNodeInSameAndDeeperLevel[h1] => h1.named & s1.named = none // For all states deeper inside a composite state
 	all r1: Region, s1: State | s1 in getAllNodeInSameAndDeeperLevel[r1] => r1.named & s1.named = none // For all states deeper inside a region
-	all c1: CompositeStateWithRegion, r1:Region | r1 in getAllRegionInSameAndDeeperLevel[c1] => c1.named & r1.named = none // For all regions deeper inside a composite state
+	all h1: HierarchicalState, r1:Region | r1 in getAllRegionInSameAndDeeperLevel[h1.h_contains] => h1.named & r1.named = none // For all regions deeper inside a composite state
 	all r1, r2: Region | r2 in getAllRegionInSameAndDeeperLevel[r1] => r1.named & r2.named = none // For all regions deeper inside a region
 }

@@ -14,8 +14,11 @@ open name_rules // import constraints of names
 
 // Other rules
 fact{
-	no c1: CompositeStateWithoutRegion | c1 in c1.^contains // This relation has no loop
-	all r1: Region, c1: CompositeStateWithoutRegion | r1.contains & c1.contains = none // No same nodes are contained by different objects	
+	// A composite state can't appear in in deeper level of itself
+	no h1: HierarchicalState | h1 in getAllNodeInSameAndDeeperLevel [h1]  // A hierarchical state can't appear in deeper level of itself
+	no r1: RegionsState | r1 in getAllNodeInSameAndDeeperLevel [r1.inner] // A region state can't appear in deeper level of itself
+	
+	all r1: Region, h1: HierarchicalState | r1.r_contains & h1.h_contains = none // No same nodes are contained by different objects	
 }
 
 run {} for 10
