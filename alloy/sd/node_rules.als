@@ -5,6 +5,7 @@ open components_sig as components // import all signatures
 
 fact{
 	all f1: ForkNode | one n1: Node, t1: Trigger | f1 in n1.flowto_triggerwith[t1] // Each fork node has only one entering arrow (from a start state or from elsewhere).
+	all f1: ForkNode, disj t1, t2: Trigger | some f1.flowto_triggerwith[t1] => no f1.flowto_triggerwith[t2] // For fork nodes, leaving transitions should all have same conditions
 	all j1: JoinNode, disj t1, t2: Trigger | j1 in Node.flowto_triggerwith[t1] => j1 not in Node.flowto_triggerwith[t2] // For join nodes, comming transitions should all have same conditions
 	
 	// If two (or more) arrows leave the same such fork node, they must go to distinct parallel regions.
