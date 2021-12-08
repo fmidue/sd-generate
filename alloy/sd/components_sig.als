@@ -20,8 +20,8 @@ abstract sig StartState extends Node{}
 {
 	// Start states are left by one unconditionally transition
 	one flowto_triggerwith // One leaving transition
-	all t1: Trigger | flowto_triggerwith[t1] != none => t1.notated = none // Start states are not left by an arrow with non-empty transition label
-	JoinNode & flowto_triggerwith[Trigger] = none// No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)	
+	all t1: Trigger | some flowto_triggerwith[t1] => no t1.notated // Start states are not left by an arrow with non-empty transition label
+	disj [JoinNode, flowto_triggerwith[Trigger]] // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)	
 }
 
 // An end state is a special state
@@ -40,7 +40,7 @@ abstract sig Region{
 	r_contains: disj set Node // A region can contain normal states and composite states
 }
 {
-	this in RegionsState.inner
+	this in RegionsState.inner // No regions exist independtly
 }
 
 // Composite states: Hierarchical states and region states 
@@ -79,8 +79,8 @@ abstract sig History extends Node{}
 {
 	// History nodes are left by one unconditionally transition
 	one flowto_triggerwith // One leaving transition
-	all t1: Trigger | flowto_triggerwith[t1] != none => t1.notated = none // The leaving transition of history shouldn't have conditions
-	(JoinNode + ForkNode)	& flowto_triggerwith[Trigger] = none // No transitions between history nodes and fork/join nodes
+	all t1: Trigger | some flowto_triggerwith[t1] => no t1.notated // The leaving transition of history shouldn't have conditions
+	disj [(JoinNode + ForkNode), flowto_triggerwith[Trigger]] // No transitions between history nodes and fork/join nodes
 }
 
 // A special node: shallow history

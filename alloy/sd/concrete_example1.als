@@ -56,7 +56,7 @@ one sig T5 extends Trigger{}
 
 fact{
 	no (ForkNode + JoinNode + DeepHistory)
-	T0.notated = none // Unconditional
+	no T0.notated // Unconditional
 	T1.notated = 0 // "OK"
 	T2.notated = -1 // "+"
 	T3.notated = -2 // "-"
@@ -66,9 +66,9 @@ fact{
 	C1.flowto_triggerwith[T1] = E1
 	// Display screen
 	C1.named = 5 
-	C2.named = none
-	C3.named = none
-	C4.named = none
+	no C2.named
+	no C3.named
+	no C4.named
 	C1.h_contains = (S2 + C2 + C3 + C4)
 	S2.flowto_triggerwith[T0] = C2
 	C2.flowto_triggerwith[T4] = H3
