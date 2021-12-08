@@ -5,7 +5,6 @@ open components_sig as components // import all signatures
 
 fact{
 	all f1: ForkNode | one n1: Node, t1: Trigger | f1 in n1.flowto_triggerwith[t1] // Each fork node has only one entering arrow (from a start state or from elsewhere).
-	all f1: ForkNode, disj t1, t2: Trigger | some f1.flowto_triggerwith[t1] => no f1.flowto_triggerwith[t2] // For fork nodes, leaving transitions should all have same conditions
 	all j1: JoinNode, disj t1, t2: Trigger | j1 in Node.flowto_triggerwith[t1] => j1 not in Node.flowto_triggerwith[t2] // For join nodes, comming transitions should all have same conditions
 	
 	// If two (or more) arrows leave the same such fork node, they must go to distinct parallel regions.
@@ -19,5 +18,8 @@ fact{
 	
 	all n1: ForkNode + JoinNode, t1: Trigger | n1 in StartState.flowto_triggerwith[t1] => no n1.flowto_triggerwith[t1] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
 	all n1: ForkNode + JoinNode, t1, t2: Trigger | n1 in Node.flowto_triggerwith[t1] && some n1.flowto_triggerwith[t2] =>  no t1.notated || no t2.notated // No such node is both entered and left by arrows with non-empty transition label.
-	all disj n1, n2: ForkNode + JoinNode, n3:Node, t1, t2: Trigger | (n1 + n2) not in n3.flowto_triggerwith[t1] || n1.flowto_triggerwith[t2] != n2.flowto_triggerwith[t2] // No duplicate fork/join nodes
+	no disj f1, f2: ForkNode, n1:Node, t1, t2: Trigger | (f1 + f2) in n1.flowto_triggerwith[t1] && f1.flowto_triggerwith[t2] = f2.flowto_triggerwith[t2] // No duplicate fork nodes
+	no disj j1, j2: JoinNode, disj n1, n2: Node, t1, t2: Trigger | (j1 + j2) in n1.flowto_triggerwith[t1] && (j1 + j2) in n2.flowto_triggerwith[t1] && j1.flowto_triggerwith[t2] != j2.flowto_triggerwith[t2] // No duplicate join nodes
+	
+	
 }

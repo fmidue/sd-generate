@@ -53,17 +53,18 @@ abstract sig HierarchicalState extends CompositeState{
 
 // RegionState: Composite states with regions
 abstract sig RegionsState extends CompositeState{
-	inner: disj set Region // Region states are in composite states
+	inner: disj some Region // Regions are in region states
 }
 {
-	no named
+	no named // Region states have no name themselves
+	not (one inner) // There can't be only one region in Region states
 }
 
 //A special node: fork nodes
 abstract sig ForkNode extends Node{}
 {
 	// It should be 1 to n(n > 1), n to n is not allowed
-	one t1: Trigger | not (lone flowto_triggerwith[t1]) // It constrains the number of leaving transition > 1
+	one t1: Trigger | not (lone flowto_triggerwith[t1]) && no flowto_triggerwith[Trigger - t1] // It constrains the number of leaving transition > 1 and leaving transitions from fork nodes should all have same conditions or no conditions
 }
 
 // A special node: join nodes
