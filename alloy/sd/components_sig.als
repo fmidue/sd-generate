@@ -63,7 +63,7 @@ abstract sig RegionsState extends CompositeState{
 abstract sig ForkNode extends Node{}
 {
 	// It should be 1 to n(n > 1), n to n is not allowed
-	one t1: Trigger | not (lone flowto_triggerwith[t1]) // It constrains the number of leaving transition > 1 and for fork nodes, leaving transitions should all have same conditions or no conditions
+	one t1: Trigger | not (lone flowto_triggerwith[t1]) // It constrains the number of leaving transition > 1
 }
 
 // A special node: join nodes
