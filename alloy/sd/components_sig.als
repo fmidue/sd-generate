@@ -9,7 +9,9 @@ abstract sig Node{
 abstract sig Trigger{
 	notated: disj lone Int // A kind of trigger maps a char, if it is noated with no char, it is an unconditional trigger
 }
-
+{
+	this in Node.flowto_triggerwith.Node // No idenpendent triggers
+}
 // States: a normal state or a composite state
 abstract sig State extends Node{
 	named: lone Int
@@ -78,8 +80,8 @@ abstract sig JoinNode extends Node{}
 // A specail node: History: Shallow History and Deep History
 abstract sig History extends Node{}
 {
-	// History nodes are left by one unconditionally transition
-	one flowto_triggerwith // One leaving transition
+	// History nodes are left by at most one unconditionally leaving transition
+	lone flowto_triggerwith // At most one leaving transition
 	all t1: Trigger | some flowto_triggerwith[t1] => no t1.notated // The leaving transition of history shouldn't have conditions
 	disj [(JoinNode + ForkNode), flowto_triggerwith[Trigger]] // No transitions between history nodes and fork/join nodes
 }
