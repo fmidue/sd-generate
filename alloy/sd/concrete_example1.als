@@ -45,27 +45,26 @@ one sig H2 extends ShallowHistory{}
 one sig H3 extends ShallowHistory{}
 // 1 end state
 one sig E1 extends EndState{}
-//  6 kinds of triggers
-one sig T0 extends Trigger{}
-one sig T1 extends Trigger{}
-one sig T2 extends Trigger{}
-one sig T3 extends Trigger{}
-one sig T4 extends Trigger{}
-one sig T5 extends Trigger{}
-
+// 11 names
+one sig T0 extends EmptyName{}
+one sig T1 extends NonEmptyName{}
+one sig T2 extends NonEmptyName{}
+one sig T3 extends NonEmptyName{}
+one sig T4 extends NonEmptyName{}
+one sig T5 extends NonEmptyName{}
+one sig T6 extends NonEmptyName{}
+one sig T7 extends NonEmptyName{}
+one sig T8 extends NonEmptyName{}
+one sig T9 extends NonEmptyName{}
+one sig T10 extends NonEmptyName{}
 
 fact{
 	no (ForkNode + JoinNode + DeepHistory)
-	no T0.notated // Unconditional
-	T1.notated = 0 // "OK"
-	T2.notated = -1 // "+"
-	T3.notated = -2 // "-"
-	T4.notated = -3 // "L"
-	T5.notated = -4 // "R"
+	Node.flowto_triggerwith.Node in (T0 + T1 + T2 + T3 + T4 + T5)
 	S1.flowto_triggerwith[T0] = C1
 	C1.flowto_triggerwith[T1] = E1
 	// Display screen
-	C1.named = 5 
+	C1.named = T5 
 	no C2.named
 	no C3.named
 	no C4.named
@@ -78,13 +77,13 @@ fact{
 	C4.flowto_triggerwith[T4] = H2
 	C4.flowto_triggerwith[T5] = H1
 	// In the leftmost digit
-	N1.named = 1
-	N2.named = 2
-	N3.named = 3
-	N4.named = 4
-	N13.named = -5 
-	R1.named = 6
-	R2.named = 3
+	N1.named = T1
+	N2.named = T2
+	N3.named = T3
+	N4.named = T4
+	N13.named = T8 
+	R1.named = T7
+	R2.named = T3
 	C2.inner = R1 + R2
 	R1.r_contains = S3 + N1 + N2 + N3 + N4 + H1
 	R2.r_contains = S4 + N13
@@ -101,13 +100,13 @@ fact{
 	S4.flowto_triggerwith[T0] = N13
 	no N13.flowto_triggerwith
 	// In the middle digit
-	N5.named = 1
-	N6.named = 2
-	N7.named = 3
-	N8.named = 4
-	N14.named = -6
-	R3.named = 6
-	R4.named = 4
+	N5.named = T1
+	N6.named = T2
+	N7.named = T3
+	N8.named = T4
+	N14.named = T9
+	R3.named = T6
+	R4.named = T4
 	C3.inner = R3 + R4
 	R3.r_contains = S5 + N5 + N6 + N7 + N8 + H2
 	R4.r_contains = S6 + N14
@@ -124,13 +123,13 @@ fact{
 	S6.flowto_triggerwith[T0] = N14
 	no N14.flowto_triggerwith
 	// In the rightmost digit
-	N9.named = 1
-	N10.named = 2
-	N11.named = 3
-	N12.named = 4
-	N15.named = -7
-	R5.named = 6
-	R6.named = 7
+	N9.named = T1
+	N10.named = T2
+	N11.named = T3
+	N12.named = T4
+	N15.named = T10
+	R5.named = T6
+	R6.named = T7
 	C4.inner = R5 + R6
 	R5.r_contains = S7+ N9 + N10 + N11 + N12 + H3
 	R6.r_contains = S8 + N15
