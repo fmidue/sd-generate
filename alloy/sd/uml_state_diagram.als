@@ -21,4 +21,4 @@ fact{
 	all r1: Region, h1: HierarchicalState | disj [r1.r_contains, h1.h_contains] // No same nodes are contained by different objects	
 }
 
-run {} for 10 but exactly 2 ForkNode, exactly 2 JoinNode
+run {} for 8
