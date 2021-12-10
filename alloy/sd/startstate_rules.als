@@ -8,9 +8,9 @@ fact{
 
 	// Start states are only left by arrows pointing to something in their own compound state or deeper.
 	all s1: StartState, h1: HierarchicalState | s1 in h1.h_contains 
-		=> s1.flowto_triggerwith[EmptyName] in getAllNodeInSameAndDeeperLevel[h1] // When start states in hierarchical states
+		=> s1.flowto_triggerwith[EmptyTrigger] in getAllNodeInSameAndDeeperLevel[h1] // When start states in hierarchical states
 	all s1: StartState, r1:Region | s1 in r1.r_contains 
-		=> s1.flowto_triggerwith[EmptyName] in getAllNodeInSameAndDeeperLevel[r1] // When start states in regions	
+		=> s1.flowto_triggerwith[EmptyTrigger] in getAllNodeInSameAndDeeperLevel[r1] // When start states in regions	
 
 	all r1: Region | lone (StartState & r1.r_contains)  // In regions, there is at most one start state.
 	all h1: HierarchicalState | lone (StartState & h1.h_contains) // In hierarchical states, there is at most one start state.

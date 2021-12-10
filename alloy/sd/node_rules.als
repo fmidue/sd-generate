@@ -24,10 +24,10 @@ fact{
 			=> j1 in r1.r_contains.flowto_triggerwith[Name]
 	
 	all n1: ForkNode + JoinNode |
-		n1 in StartState.flowto_triggerwith[EmptyName] => no n1.flowto_triggerwith[NonEmptyName] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
+		n1 in StartState.flowto_triggerwith[EmptyTrigger] => no n1.flowto_triggerwith[NonEmptyTrigger] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
 	all n1: ForkNode + JoinNode, t1, t2: Name | 
 		n1 in Node.flowto_triggerwith[t1] && some n1.flowto_triggerwith[t2] 
-			=>  t1 = EmptyName || t2 = EmptyName // No such node is both entered and left by arrows with non-empty transition label.
+			=>  t1 = EmptyTrigger || t2 = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
 	// No duplicate fork nodes
 	no disj f1, f2: ForkNode, n1:Node, t1, t2: Name | 
 		(f1 + f2) in n1.flowto_triggerwith[t1] 

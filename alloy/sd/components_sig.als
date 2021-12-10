@@ -2,29 +2,31 @@ module components_sig // All signatures and some direct constraints in this modu
 
 // All componets are a node, this is a super class
 abstract sig Node{
-	flowto_triggerwith: Name set -> set Node // Name is a label of transitions and EmptyName represents no label.
+	flowto_triggerwith: (EmptyTrigger + NonEmptyTrigger) set -> set Node // NoneEmptyLabel is a label of transitions and EmptyLabel represents no label.
 }
 
-// Name: EmptyName + NonEmptyName
+// Name: EmptyTrigger + NonEmptyName + NonEmptyTrigger
 abstract sig Name{}
 {
-	this in (Node.flowto_triggerwith.Node + State.named + Region.named) // No idenpendent labels
+	this in (Node.flowto_triggerwith.Node + State.named + Region.named) // No idenpendent names
 }
 
-one abstract sig EmptyName extends Name{}
+abstract sig NonEmptyName extends Name{} // It is a name space of states and regions
 
-abstract sig NonEmptyName extends Name{}
+one abstract sig EmptyTrigger extends Name{} // It represents unconditinonal triggers
+
+abstract sig NonEmptyTrigger extends Name{} // It is a name space of triggers
 
 // States: NormalState + CompositeState + EndState
 abstract sig State extends Node{
-	named: lone Name,
+	named: lone NonEmptyName
 }
 
 abstract sig StartState extends Node{}
 {
 	// Start states are left by one unconditionally transition
 	one flowto_triggerwith // One leaving transition
-	flowto_triggerwith.(Node - this) = EmptyName // Start states are not left by an arrow with non-empty transition label
+	flowto_triggerwith.(Node - this) = EmptyTrigger // Start states are not left by an arrow with non-empty transition label
 	disj [JoinNode, flowto_triggerwith[Name]] // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)	
 }
 
@@ -39,7 +41,7 @@ abstract sig NormalState extends State{
 }
 	
 abstract sig Region{
-	named: lone Name, // Regions have a name
+	named: lone NonEmptyName, // Regions have a name
 	r_contains: disj set Node // A region can contain normal states and composite states
 }
 {
@@ -52,7 +54,7 @@ abstract sig CompositeState extends State{}
 
 // HierarchicalState: Composite states without regions
 abstract sig HierarchicalState extends CompositeState{
-	h_contains: disj set Node,
+	h_contains: disj set Node
 }
 {
 	h_contains in (StartState + EndState) => no flowto_triggerwith // If a hierarchical state has only a start state or a end state, a leaving transition is superfluous.
@@ -85,8 +87,8 @@ abstract sig History extends Node{}
 {
 	// History nodes are left by at most one unconditionally leaving transition
 	lone flowto_triggerwith // At most one leaving transition
-	flowto_triggerwith.(Node - this) = EmptyName // The leaving transition of history shouldn't have conditions
-	disj [(JoinNode + ForkNode), flowto_triggerwith[Name]] // No transitions between history nodes and fork/join nodes
+	one flowto_triggerwith => flowto_triggerwith.(Node - this) = EmptyTrigger // The leaving transition of history shouldn't have conditions
+	disj [JoinNode, flowto_triggerwith[Name]] // No transitions between history nodes and fork/join nodes
 }
 
 abstract sig ShallowHistory extends History{}
