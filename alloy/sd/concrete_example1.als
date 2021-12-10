@@ -45,31 +45,36 @@ one sig H2 extends ShallowHistory{}
 one sig H3 extends ShallowHistory{}
 // 1 end state
 one sig E1 extends EndState{}
-// 11 names
-one sig T0 extends EmptyName{}
-one sig T1 extends NonEmptyName{}
-one sig T2 extends NonEmptyName{}
-one sig T3 extends NonEmptyName{}
-one sig T4 extends NonEmptyName{}
-one sig T5 extends NonEmptyName{}
-one sig T6 extends NonEmptyName{}
-one sig T7 extends NonEmptyName{}
-one sig T8 extends NonEmptyName{}
-one sig T9 extends NonEmptyName{}
-one sig T10 extends NonEmptyName{}
+// 10 names in name spaces of states and regions
+one sig Name1 extends NonEmptyName{}
+one sig Name2 extends NonEmptyName{}
+one sig Name3 extends NonEmptyName{}
+one sig Name4 extends NonEmptyName{}
+one sig Name5 extends NonEmptyName{}
+one sig Name6 extends NonEmptyName{}
+one sig Name7 extends NonEmptyName{}
+one sig Name8 extends NonEmptyName{}
+one sig Name9 extends NonEmptyName{}
+one sig Name10 extends NonEmptyName{}
+// 5 names in name spaces of triggers
+one sig T1 extends NonEmptyTrigger{}
+one sig T2 extends NonEmptyTrigger{}
+one sig T3 extends NonEmptyTrigger{}
+one sig T4 extends NonEmptyTrigger{}
+one sig T5 extends NonEmptyTrigger{}
 
 fact{
 	no (ForkNode + JoinNode + DeepHistory)
-	Node.flowto_triggerwith.Node in (T0 + T1 + T2 + T3 + T4 + T5)
-	S1.flowto_triggerwith[T0] = C1
+//	Node.flowto_triggerwith.Node in (EmptyName + T1 + T2 + T3 + T4 + T5)
+	S1.flowto_triggerwith[EmptyTrigger] = C1
 	C1.flowto_triggerwith[T1] = E1
 	// Display screen
-	C1.named = T5 
+	C1.named = Name5 
 	no C2.named
 	no C3.named
 	no C4.named
 	C1.h_contains = (S2 + C2 + C3 + C4)
-	S2.flowto_triggerwith[T0] = C2
+	S2.flowto_triggerwith[EmptyTrigger] = C2
 	C2.flowto_triggerwith[T4] = H3
 	C2.flowto_triggerwith[T5] = H2
 	C3.flowto_triggerwith[T4] = H1
@@ -77,17 +82,17 @@ fact{
 	C4.flowto_triggerwith[T4] = H2
 	C4.flowto_triggerwith[T5] = H1
 	// In the leftmost digit
-	N1.named = T1
-	N2.named = T2
-	N3.named = T3
-	N4.named = T4
-	N13.named = T8 
-	R1.named = T7
-	R2.named = T3
+	N1.named = Name1
+	N2.named = Name2
+	N3.named = Name3
+	N4.named = Name4
+	N13.named = Name8 
+	R1.named = Name7
+	R2.named = Name3
 	C2.inner = R1 + R2
 	R1.r_contains = S3 + N1 + N2 + N3 + N4 + H1
 	R2.r_contains = S4 + N13
-	S3.flowto_triggerwith[T0] = N1
+	S3.flowto_triggerwith[EmptyTrigger] = N1
 	N1.flowto_triggerwith[T2] = N2
 	N1.flowto_triggerwith[T3] = N4
 	N2.flowto_triggerwith[T2] = N3
@@ -96,21 +101,21 @@ fact{
 	N3.flowto_triggerwith[T3] = N2
 	N4.flowto_triggerwith[T2] = N1
 	N4.flowto_triggerwith[T3] = N3
-	H1.flowto_triggerwith[T0] = N1
-	S4.flowto_triggerwith[T0] = N13
+	H1.flowto_triggerwith[EmptyTrigger] = N1
+	S4.flowto_triggerwith[EmptyTrigger] = N13
 	no N13.flowto_triggerwith
 	// In the middle digit
-	N5.named = T1
-	N6.named = T2
-	N7.named = T3
-	N8.named = T4
-	N14.named = T9
-	R3.named = T6
-	R4.named = T4
+	N5.named = Name1
+	N6.named = Name2
+	N7.named = Name3
+	N8.named = Name4
+	N14.named = Name9
+	R3.named = Name6
+	R4.named = Name4
 	C3.inner = R3 + R4
 	R3.r_contains = S5 + N5 + N6 + N7 + N8 + H2
 	R4.r_contains = S6 + N14
-	S5.flowto_triggerwith[T0] = N5
+	S5.flowto_triggerwith[EmptyTrigger] = N5
 	N5.flowto_triggerwith[T2] = N6
 	N5.flowto_triggerwith[T3] = N8
 	N6.flowto_triggerwith[T2] = N7
@@ -119,21 +124,21 @@ fact{
 	N7.flowto_triggerwith[T3] = N6
 	N8.flowto_triggerwith[T2] = N5
 	N8.flowto_triggerwith[T3] = N7
-	H2.flowto_triggerwith[T0] = N5
-	S6.flowto_triggerwith[T0] = N14
+	H2.flowto_triggerwith[EmptyTrigger] = N5
+	S6.flowto_triggerwith[EmptyTrigger] = N14
 	no N14.flowto_triggerwith
 	// In the rightmost digit
-	N9.named = T1
-	N10.named = T2
-	N11.named = T3
-	N12.named = T4
-	N15.named = T10
-	R5.named = T6
-	R6.named = T7
+	N9.named = Name1
+	N10.named = Name2
+	N11.named = Name3
+	N12.named = Name4
+	N15.named = Name10
+	R5.named = Name6
+	R6.named = Name7
 	C4.inner = R5 + R6
 	R5.r_contains = S7+ N9 + N10 + N11 + N12 + H3
 	R6.r_contains = S8 + N15
-	S7.flowto_triggerwith[T0] = N9
+	S7.flowto_triggerwith[EmptyTrigger] = N9
 	N9.flowto_triggerwith[T2] = N10
 	N9.flowto_triggerwith[T3] = N12
 	N10.flowto_triggerwith[T2] = N11
@@ -142,8 +147,8 @@ fact{
 	N11.flowto_triggerwith[T3] = N10
 	N12.flowto_triggerwith[T2] = N9
 	N12.flowto_triggerwith[T3] = N11
-	H3.flowto_triggerwith[T0] = N9
-	S8.flowto_triggerwith[T0] = N15
+	H3.flowto_triggerwith[EmptyTrigger] = N9
+	S8.flowto_triggerwith[EmptyTrigger] = N15
 	no N15.flowto_triggerwith
 }
 
