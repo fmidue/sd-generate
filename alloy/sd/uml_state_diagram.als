@@ -15,10 +15,10 @@ open name_rules // import constraints of names
 // Other rules
 fact{
 	// A composite state can't appear in in deeper level of itself
-	no h1: HierarchicalState | h1 in getAllNodeInSameAndDeeperLevel [h1]  // A hierarchical state can't appear in deeper level of itself
-	no r1: RegionsState | r1 in getAllNodeInSameAndDeeperLevel [r1.inner] // A region state can't appear in deeper level of itself
+	no h1: HierarchicalStates | h1 in getAllNodesInSameAndDeeperLevel [h1]  // A hierarchical state can't appear in deeper level of itself
+	no r1: RegionsStates | r1 in getAllNodesInSameAndDeeperLevel [r1.inner] // A region state can't appear in deeper level of itself
 	
-	all r1: Region, h1: HierarchicalState | disj [r1.r_contains, h1.h_contains] // No same nodes are contained by different objects	
+	all r1: Regions, h1: HierarchicalStates | disj [r1.r_contains, h1.h_contains] // No same nodes are contained by different objects	
 }
 
-run {} for 8
+run {} for 4 but exactly 1 HierarchicalStates, exactly 1 EndStates

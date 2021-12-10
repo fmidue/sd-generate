@@ -4,11 +4,11 @@ module region_rules // Most constraints of regions and region states, but some c
 open components_sig as components // import all signatures
 
 // There are no arrows that originate in A and lead to B, if A and B are (in) different regions of a common composite regions state.
-pred noCrossing [r1, r2: Region]{
-	disj [getAllNodeInSameAndDeeperLevel[r2], getAllNodeInSameAndDeeperLevel[r1].flowto_triggerwith[Name]]
-	disj [getAllNodeInSameAndDeeperLevel[r1], getAllNodeInSameAndDeeperLevel[r2].flowto_triggerwith[Name]]
+pred noCrossing [r1, r2: Regions]{
+	disj [getAllNodesInSameAndDeeperLevel[r2], getAllNodesInSameAndDeeperLevel[r1].flowto_triggerwith[Names]]
+	disj [getAllNodesInSameAndDeeperLevel[r1], getAllNodesInSameAndDeeperLevel[r2].flowto_triggerwith[Names]]
 }
 
 fact{
-	all disj r1, r2: Region, rs1: RegionsState |  (r1 + r2) in rs1.inner => noCrossing [r1, r2] // In a same region state, states in different region states can't be transited to each other
+	all disj r1, r2: Regions, rs1: RegionsStates |  (r1 + r2) in rs1.inner => noCrossing [r1, r2] // In a same region state, states in different region states can't be transited to each other
 }
