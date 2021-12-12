@@ -4,7 +4,7 @@ module components_sig // All signatures and some direct constraints in this modu
 abstract sig Nodes{
 	flow: (EmptyTriggers + TriggerNames) set // TriggerNames is a set of labels of transitions and EmptyTriggers represents no label.
 				   -> set (Nodes - StartStates), // No coming transitions to start states
-//	hasflow: set Nodes - this - CompositeStates // It is used to check true reachability and self loop has no impact on checking, so reflexive transitions can be excluded 
+	hasflow: set Nodes - this - CompositeStates // It is used to check true reachability and self loop has no impact on checking, so reflexive transitions can be excluded 
 }
 
 // Names: EmptyTriggers + ComponentNames + TriggerNames
@@ -24,8 +24,11 @@ abstract sig States extends Nodes{
 	name: lone ComponentNames
 }
 
-abstract sig StartStates extends Nodes{}
+abstract sig StartStates extends Nodes{
+	flag: Int // It is used to check if this can be neglected
+}
 {
+	flag = 0 || flag = 1 // If flag = 0, it can't be neglected, or it can be neglected
 	// Start states are left by one unconditionally transition
 	one flow // One leaving transition
 	flow.Nodes = EmptyTriggers // Start states are not left by an arrow with non-empty transition label
@@ -60,7 +63,6 @@ abstract sig HierarchicalStates extends CompositeStates{
 	h_contains: disj set Nodes
 }
 {
-	disj[Regions.r_contains, h_contains] // No same nodes are contained by different objects
 	h_contains in (StartStates + EndStates) => no flow // If a hierarchical state has only a start state or a end state, a leaving transition is superfluous.
 }
 
@@ -116,4 +118,20 @@ fun getAllRegionsInSameAndDeeperLevels[r1: RegionsStates]: Regions{
 fun getAllRegionsInSameAndDeeperLevels[r1: Regions]: Regions{
 	r1.r_contains.*h_contains.inner.*(r_contains.*h_contains.inner)
 }
+
 fun Triggers[]: Names{EmptyTriggers + TriggerNames}
+
+// Get a set of all nodes inside composite states
+fun getAllContainedNodes[]: Nodes{HierarchicalStates.h_contains + Regions.r_contains}
+
+// Get start states directly in a certain hierarchical state
+fun getStartStates[h1: HierarchicalStates]: StartStates{StartStates & h1.h_contains}
+
+// Get start states directly in a certain region
+fun getStartStates[r1: Regions]: StartStates{StartStates & r1.r_contains}
+
+// Get end states directly in a certain hierarchical state
+fun getEndStates[h1: HierarchicalStates]: EndStates{EndStates & h1.h_contains}
+
+// Get end states directly in a certain hierarchical state
+fun getEndStates[r1: Regions]: EndStates{EndStates & r1.r_contains}
