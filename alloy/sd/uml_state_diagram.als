@@ -19,7 +19,9 @@ pred acyclicContain{
 
 // Other rules
 fact{
-	acyclicContain	
+	acyclicContain
+	disj[Regions.r_contains, HierarchicalStates.h_contains] // No same nodes are contained by different objects	
 }
 
-run {} for 7 but exactly 2 HierarchicalStates, exactly 4 NormalStates, exactly 2 TriggerNames
+
+run {} for 4 but exactly 2 StartStates, exactly 1 EndStates, exactly 0 NormalStates

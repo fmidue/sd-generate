@@ -6,14 +6,15 @@ open components_sig as components // import all signatures
 // No duplicate fork/join nodes
 pred noDuplicateNodes{
 	// No duplicate fork nodes
-	no disj f1, f2: ForkNodes, n1:Nodes, t1, t2: Triggers | 
-		(f1 + f2) in n1.flow[t1] && 
-		f1.flow[t2] = f2.flow[t2]
+	no disj f1, f2: ForkNodes, n1: Nodes, t1, t2: Triggers | 
+		(f1 + f2) in n1.flow[t1] && f1.flow[t2] = f2.flow[t2]
 	// No duplicate join nodes
 	no disj j1, j2: JoinNodes, disj n1, n2: Nodes, t1, t2: Triggers | 
-		(j1 + j2) in n1.flow[t1] && 
-		(j1 + j2) in n2.flow[t1] && 
-		j1.flow[t2] = j2.flow[t2] 	
+	{	
+		(j1 + j2) in n1.flow[t1] 
+		(j1 + j2) in n2.flow[t1] 
+		j1.flow[t2] = j2.flow[t2]
+	} 	
 }
 
 // If two (or more) arrows leave the same such fork node, they must go to distinct parallel regions.

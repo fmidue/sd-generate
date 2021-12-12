@@ -6,17 +6,17 @@ open components_sig as components // import all signatures
 // Entities which are "neighbours" (in the sense of living directly side by side in the same compound or region, but not in two parallel regions of the same compound or such), they must not have the same name. (ignored empty names)
 pred noSameTriggersInSameLevels{
 	all disj s1, s2: States, h1: HierarchicalStates | 
-		(s1 + s2) in h1.h_contains && some (s1.name + s2.name)  
-			=> s1.name != s2.name // In a composite state without regions, no states have same names
+		(s1 + s2) in h1.h_contains && some (s1.name + s2.name)  => 
+			s1.name != s2.name // In a composite state without regions, no states have same names
 	all disj s1, s2: States, r1: Regions | 
-		(s1 + s2) in r1.r_contains && some (s1.name + s2.name) 
-			=> s1.name != s2.name // In a region, no states have same names
+		(s1 + s2) in r1.r_contains && some (s1.name + s2.name) => 
+			s1.name != s2.name // In a region, no states have same names
 	all disj s1, s2: States | 
-		(s1 + s2) not in (Regions.r_contains + HierarchicalStates.h_contains) && 
-		some (s1.name + s2.name) => s1.name != s2.name // In the outermost level, no states have same names
+		(s1 + s2) not in getAllContainedNodes && some (s1.name + s2.name) => 
+			s1.name != s2.name // In the outermost level, no states have same names
 	all disj r1, r2: Regions, c1: RegionsStates |
-		r1 in c1.inner && r2 in c1.inner && some (r1.name + r2.name) 
-			=> r1.name != r2.name // In a composite state, no regions have same names
+		r1 in c1.inner && r2 in c1.inner && some (r1.name + r2.name) => 
+			r1.name != r2.name // In a composite state, no regions have same names
 }
 
 // In a compound or region, the name of the outermost level must not be repeated anywhere deeper inside. (ignored empty names)s
