@@ -13,10 +13,10 @@ pred atMostOneStartStatesInLevels{
 // Start states are only left by arrows pointing to something in their own compound state or deeper.
 pred startStatesArrowsPointToSameOrDeeperLevels{
 	all s1: StartStates, h1: HierarchicalStates | 
-		s1 in h1.h_contains => 
+		s1 in h1.contains => 
 			s1.flow[EmptyTrigger] in getAllNodesInSameAndDeeperLevels[h1] // When start states in hierarchical states
 	all s1: StartStates, r1:Regions | 
-		s1 in r1.r_contains => 
+		s1 in r1.contains => 
 			s1.flow[EmptyTrigger] in getAllNodesInSameAndDeeperLevels[r1] // When start states in regions	
 }
 

@@ -51,13 +51,13 @@ fact{
 	R3.name = Name6
 	R4.name = Name7
 
-	C1.inner = R1 + R2
-	C2.inner = R3 + R4
+	C1.contains = R1 + R2
+	C2.contains = R3 + R4
 
-	R1.r_contains = C2 + F2 + J1
-	R2.r_contains = N3 + N5
-	R3.r_contains = N1 + N2
-	R4.r_contains = N4
+	R1.contains = C2 + F2 + J1
+	R2.contains = N3 + N5
+	R3.contains = N1 + N2
+	R4.contains = N4
 
 	S1.flow[EmptyTrigger] = F1
 	F1.flow[EmptyTrigger] = F2 + N3
