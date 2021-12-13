@@ -14,10 +14,10 @@ pred atMostOneStartStatesInLevels{
 pred startStatesArrowsPointToSameOrDeeperLevels{
 	all s1: StartStates, h1: HierarchicalStates | 
 		s1 in h1.h_contains => 
-			s1.flow[EmptyTriggers] in getAllNodesInSameAndDeeperLevels[h1] // When start states in hierarchical states
+			s1.flow[EmptyTrigger] in getAllNodesInSameAndDeeperLevels[h1] // When start states in hierarchical states
 	all s1: StartStates, r1:Regions | 
 		s1 in r1.r_contains => 
-			s1.flow[EmptyTriggers] in getAllNodesInSameAndDeeperLevels[r1] // When start states in regions	
+			s1.flow[EmptyTrigger] in getAllNodesInSameAndDeeperLevels[r1] // When start states in regions	
 }
 
 fact{	

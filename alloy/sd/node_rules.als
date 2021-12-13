@@ -39,9 +39,9 @@ fact{
 	forkNodesGoToDistinctParalleRegions
 	joinNodesComeFromDistinctParalleRegions
 	all n1: ForkNodes + JoinNodes |
-		n1 in StartStates.flow[EmptyTriggers] => no n1.flow[TriggerNames] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
+		n1 in StartStates.flow[EmptyTrigger] => no n1.flow[TriggerNames] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
 	all n1: ForkNodes + JoinNodes, t1, t2: Triggers | 
 		n1 in Nodes.flow[t1] && some n1.flow[t2] => 
-			t1 = EmptyTriggers || t2 = EmptyTriggers // No such node is both entered and left by arrows with non-empty transition label.
+			t1 = EmptyTrigger || t2 = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
 	noDuplicateNodes
 }

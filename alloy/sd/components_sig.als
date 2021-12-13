@@ -2,22 +2,23 @@ module components_sig // All signatures and some direct constraints in this modu
 
 // All componets are a node, this is a super class
 abstract sig Nodes{
-	flow: (EmptyTriggers + TriggerNames) set // TriggerNames is a set of labels of transitions and EmptyTriggers represents no label.
+	flow: Triggers set // TriggerNames is a set of labels of transitions and EmptyTriggers represents no label.
 				   -> set (Nodes - StartStates), // No coming transitions to start states
 	hasflow: set Nodes - this - CompositeStates // It is used to check true reachability and self loop has no impact on checking, so reflexive transitions can be excluded 
 }
 
 // Names: EmptyTriggers + ComponentNames + TriggerNames
-abstract sig Names{}
-{
-	this in (Nodes.flow.Nodes + States.name + Regions.name) // No idenpendent names
+abstract sig ComponentNames{}{
+	this in (States.name + Regions.name)
 }
 
-abstract sig ComponentNames extends Names{} // It is a name space of states and regions
+abstract sig Triggers{}
 
-lone abstract sig EmptyTriggers extends Names{} // It represents unconditinonal triggers
+one abstract sig EmptyTrigger extends Triggers{}
 
-abstract sig TriggerNames extends Names{} // It is a name space of triggers
+abstract sig TriggerNames extends Triggers{}{
+	this in (Nodes.flow.Nodes)
+}
 
 // States: NormalStates + CompositeStates + EndStates
 abstract sig States extends Nodes{
@@ -31,8 +32,8 @@ abstract sig StartStates extends Nodes{
 	flag = 0 || flag = 1 // If flag = 0, it can't be neglected, or it can be neglected
 	// Start states are left by one unconditionally transition
 	one flow // One leaving transition
-	flow.Nodes = EmptyTriggers // Start states are not left by an arrow with non-empty transition label
-	disj [JoinNodes, flow[Names]] // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)	
+	flow.Nodes = EmptyTrigger // Start states are not left by an arrow with non-empty transition label
+	disj [JoinNodes, flow[EmptyTrigger]] // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)	
 }
 
 abstract sig EndStates extends States{}
@@ -95,7 +96,7 @@ abstract sig HistoryNodes extends Nodes{}
 	// History nodes are left by at most one unconditionally leaving transition
 	lone flow // At most one leaving transition
 	no flow[TriggerNames] // The leaving transition of history shouldn't have conditions
-	disj [(JoinNodes + this), flow[Triggers]] // No self-loop transition and transitions between history nodes and join nodes
+	disj [(JoinNodes + this), flow[EmptyTrigger]] // No self-loop transition and transitions between history nodes and join nodes
 }
 
 abstract sig ShallowHistoryNodes extends HistoryNodes{}
@@ -118,8 +119,6 @@ fun getAllRegionsInSameAndDeeperLevels[r1: RegionsStates]: Regions{
 fun getAllRegionsInSameAndDeeperLevels[r1: Regions]: Regions{
 	r1.r_contains.*h_contains.inner.*(r_contains.*h_contains.inner)
 }
-
-fun Triggers[]: Names{EmptyTriggers + TriggerNames}
 
 // Get a set of all nodes inside composite states
 fun getAllContainedNodes[]: Nodes{HierarchicalStates.h_contains + Regions.r_contains}
