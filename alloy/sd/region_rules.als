@@ -10,5 +10,6 @@ pred noCrossing [r1, r2: Regions]{
 }
 
 fact{
-	all disj r1, r2: Regions, rs1: RegionsStates |  (r1 + r2) in rs1.inner => noCrossing [r1, r2] // In a same region state, states in different region states can't be transited to each other
+	all disj r1, r2: Regions, rs1: RegionsStates |  (r1 + r2) in rs1.contains => noCrossing [r1, r2] // In a same region state, states in different region states can't be transited to each other
 }
+

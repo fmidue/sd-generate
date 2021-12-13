@@ -73,7 +73,7 @@ fact{
 	no C2.name
 	no C3.name
 	no C4.name
-	C1.h_contains = (S2 + C2 + C3 + C4)
+	C1.contains = (S2 + C2 + C3 + C4)
 	S2.flow[EmptyTrigger] = C2
 	C2.flow[T4] = H3
 	C2.flow[T5] = H2
@@ -89,9 +89,9 @@ fact{
 	N13.name = Name9 //"leftmost"
 	R1.name = Name6 //"The leftmost digit"
 	no R2.name
-	C2.inner = R1 + R2
-	R1.r_contains = S3 + N1 + N2 + N3 + N4 + H1
-	R2.r_contains = S4 + N13
+	C2.contains = R1 + R2
+	R1.contains = S3 + N1 + N2 + N3 + N4 + H1
+	R2.contains = S4 + N13
 	S3.flow[EmptyTrigger] = N1
 	N1.flow[T2] = N2
 	N1.flow[T3] = N4
@@ -112,9 +112,9 @@ fact{
 	N14.name = Name10 //"middle"
 	R3.name = Name7 //"The middle digit"
 	no R4.name
-	C3.inner = R3 + R4
-	R3.r_contains = S5 + N5 + N6 + N7 + N8 + H2
-	R4.r_contains = S6 + N14
+	C3.contains = R3 + R4
+	R3.contains = S5 + N5 + N6 + N7 + N8 + H2
+	R4.contains = S6 + N14
 	S5.flow[EmptyTrigger] = N5
 	N5.flow[T2] = N6
 	N5.flow[T3] = N8
@@ -135,9 +135,9 @@ fact{
 	N15.name = Name11 //"rightmost"
 	R5.name = Name8 //"The rightmost digit"
 	no R6.name
-	C4.inner = R5 + R6
-	R5.r_contains = S7+ N9 + N10 + N11 + N12 + H3
-	R6.r_contains = S8 + N15
+	C4.contains = R5 + R6
+	R5.contains = S7+ N9 + N10 + N11 + N12 + H3
+	R6.contains = S8 + N15
 	S7.flow[EmptyTrigger] = N9
 	N9.flow[T2] = N10
 	N9.flow[T3] = N12

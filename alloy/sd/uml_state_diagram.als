@@ -14,13 +14,13 @@ open name_rules // import constraints of names
 // A composite state can't appear in in deeper level of itself
 pred acyclicContain{
 	no h1: HierarchicalStates | h1 in getAllNodesInSameAndDeeperLevels[h1]  // A hierarchical state can't appear in deeper level of itself
-	no r1: RegionsStates | r1 in getAllNodesInSameAndDeeperLevels[r1.inner] // A region state can't appear in deeper level of itself
+	no r1: RegionsStates | r1 in getAllNodesInSameAndDeeperLevels[r1.contains] // A region state can't appear in deeper level of itself
 }
 
 // Other rules
 fact{
 	acyclicContain
-	disj[Regions.r_contains, HierarchicalStates.h_contains] // No same nodes are contained by different objects	
+	disj[Regions.contains, HierarchicalStates.contains] // No same nodes are contained by different objects	
 }
 
 

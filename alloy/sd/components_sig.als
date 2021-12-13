@@ -2,9 +2,7 @@ module components_sig // All signatures and some direct constraints in this modu
 
 // All componets are a node, this is a super class
 abstract sig Nodes{
-	flow: Triggers set // TriggerNames is a set of labels of transitions and EmptyTriggers represents no label.
-				   -> set (Nodes - StartStates), // No coming transitions to start states
-	hasflow: set Nodes - this - CompositeStates // It is used to check true reachability and self loop has no impact on checking, so reflexive transitions can be excluded 
+	flow: Triggers set -> set (Nodes - StartStates), // No coming transitions to start states
 }
 
 // Names: EmptyTriggers + ComponentNames + TriggerNames
@@ -46,34 +44,31 @@ abstract sig NormalStates extends States{}
 	
 abstract sig Regions{
 	name: lone ComponentNames, // Regions have a name
-	r_contains: disj set Nodes // A region can contain normal states and composite states
+	contains: disj set Nodes // A region can contain normal states and composite states
 }
 {
-	this in RegionsStates.inner // No regions exist independtly
-	r_contains in (StartStates + EndStates) => no inner.this.flow // If a region has only a start state or a end state, a leaving transition is superfluous for its regions state
+	this in RegionsStates.contains // No regions exist independtly
+	contains in (StartStates + EndStates) => no (RegionsStates <: contains).this.flow // If a region has only a start state or a end state, a leaving transition is superfluous for its regions state
 }
 
 // Composite states: HierarchicalState + RegionsState 
 abstract sig CompositeStates extends States{}
-{
-	no hasflow
-}
 
 // HierarchicalState: Composite states without regions
 abstract sig HierarchicalStates extends CompositeStates{
-	h_contains: disj set Nodes
+	contains: disj set Nodes
 }
 {
-	h_contains in (StartStates + EndStates) => no flow // If a hierarchical state has only a start state or a end state, a leaving transition is superfluous.
+	contains in (StartStates + EndStates) => no flow // If a hierarchical state has only a start state or a end state, a leaving transition is superfluous.
 }
 
 // RegionState: Composite states with regions
 abstract sig RegionsStates extends CompositeStates{
-	inner: disj some Regions // Regions are in region states
+	contains: disj some Regions // Regions are in region states
 }
 {
 	no name // Region states have no name themselves
-	not (one inner) // There can't be only one region in Region states
+	not (one contains) // There can't be only one region in Region states
 }
 
 abstract sig ForkNodes extends Nodes{}
@@ -105,32 +100,32 @@ abstract sig DeepHistoryNodes extends HistoryNodes{}
 
 // It gets all nodes in same and deeper levels of hierarchical states or regions
 fun getAllNodesInSameAndDeeperLevels[h1: HierarchicalStates]: Nodes{
-	h1.^h_contains.*(inner.r_contains.*h_contains) 
+	h1.^(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains)) 
 }
 // It gets all nodes in same and deeper levels of regions
 fun getAllNodesInSameAndDeeperLevels[r1: Regions]: Nodes{
-	r1.r_contains.*h_contains.*(inner.r_contains.*h_contains)
+	r1.(Regions <: contains).*(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
 }
 // It gets all regions in same and deeper levels of regions states
 fun getAllRegionsInSameAndDeeperLevels[r1: RegionsStates]: Regions{
-	r1.inner.*(r_contains.*h_contains.inner) 
+	r1.(RegionsStates <: contains).*((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains)) 
 }
 // It gets all regions in same and deeper levels of regions states or regions
 fun getAllRegionsInSameAndDeeperLevels[r1: Regions]: Regions{
-	r1.r_contains.*h_contains.inner.*(r_contains.*h_contains.inner)
+	r1.^((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains))
 }
 
 // Get a set of all nodes inside composite states
-fun getAllContainedNodes[]: Nodes{HierarchicalStates.h_contains + Regions.r_contains}
+fun getAllContainedNodes[]: Nodes{HierarchicalStates.contains + Regions.contains}
 
 // Get start states directly in a certain hierarchical state
-fun getStartStates[h1: HierarchicalStates]: StartStates{StartStates & h1.h_contains}
+fun getStartStates[h1: HierarchicalStates]: StartStates{StartStates & h1.contains}
 
 // Get start states directly in a certain region
-fun getStartStates[r1: Regions]: StartStates{StartStates & r1.r_contains}
+fun getStartStates[r1: Regions]: StartStates{StartStates & r1.contains}
 
 // Get end states directly in a certain hierarchical state
-fun getEndStates[h1: HierarchicalStates]: EndStates{EndStates & h1.h_contains}
+fun getEndStates[h1: HierarchicalStates]: EndStates{EndStates & h1.contains}
 
 // Get end states directly in a certain hierarchical state
-fun getEndStates[r1: Regions]: EndStates{EndStates & r1.r_contains}
+fun getEndStates[r1: Regions]: EndStates{EndStates & r1.contains}

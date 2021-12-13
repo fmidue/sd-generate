@@ -11,5 +11,5 @@ fact{
 	all c1: CompositeStates, t1: Triggers | 
 		some c1.flow[t1] => 
 			no (getAllNodesInSameAndDeeperLevels[c1] + 
-			getAllNodesInSameAndDeeperLevels[c1.inner]).flow[t1]
+			getAllNodesInSameAndDeeperLevels[c1.(RegionsStates <: contains)]).flow[t1]
 }

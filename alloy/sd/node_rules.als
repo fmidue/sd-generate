@@ -19,17 +19,17 @@ pred noDuplicateNodes{
 
 // If two (or more) arrows leave the same such fork node, they must go to distinct parallel regions.
 pred forkNodesGoToDistinctParalleRegions{
-	all f1: ForkNodes | f1.flow[Triggers] in Regions.r_contains
+	all f1: ForkNodes | f1.flow[Triggers] in Regions.contains
 	all f1: ForkNodes, r1: Regions, disj n1, n2: Nodes | 
-		(n1 + n2) in r1.r_contains && n1 in f1.flow[Triggers] => 
+		(n1 + n2) in r1.contains && n1 in f1.flow[Triggers] => 
 			n2 not in f1.flow[Triggers]
 }
 
 // If two (or more) arrows enter the same such join node, they must come from distinct parallel regions.
 pred joinNodesComeFromDistinctParalleRegions{
-	all j1: JoinNodes | j1 in Regions.r_contains.flow[Triggers]
+	all j1: JoinNodes | j1 in Regions.contains.flow[Triggers]
 	all j1: JoinNodes, r1: Regions, disj n1, n2: Nodes | 
-		(n1 + n2) in r1.r_contains && j1 in n1.flow[Triggers] => 
+		(n1 + n2) in r1.contains && j1 in n1.flow[Triggers] => 
 			j1 not in n2.flow[Triggers]
 }
 
