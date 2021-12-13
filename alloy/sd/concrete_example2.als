@@ -59,9 +59,9 @@ fact{
 	R3.r_contains = N1 + N2
 	R4.r_contains = N4
 
-	S1.flow[EmptyTriggers] = F1
-	F1.flow[EmptyTriggers] = F2 + N3
-	F2.flow[EmptyTriggers] = N1 + N4
+	S1.flow[EmptyTrigger] = F1
+	F1.flow[EmptyTrigger] = F2 + N3
+	F2.flow[EmptyTrigger] = N1 + N4
 	N1.flow[T1] = N2
 	no N1.flow[Triggers - T1]
 	N2.flow[T2] = J1
@@ -70,10 +70,10 @@ fact{
 	no N3.flow[Triggers - T1]
 	N4.flow[T2] = J1
 	no N4.flow[Triggers - T2]
-	N5.flow[EmptyTriggers] = J2
-	no N5.flow[Triggers - EmptyTriggers]
-	J1.flow[EmptyTriggers] = J2
-	J2.flow[EmptyTriggers] = E1
+	N5.flow[EmptyTrigger] = J2
+	no N5.flow[Triggers - EmptyTrigger]
+	J1.flow[EmptyTrigger] = J2
+	J2.flow[EmptyTrigger] = E1
 	no C1.flow
 	no C2.flow	
 }
