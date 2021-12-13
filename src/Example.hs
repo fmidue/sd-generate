@@ -36,7 +36,7 @@ picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection
       f = EndState 6
 
 picture3 :: UMLStateDiagram
-picture3 = StateDiagram [a,b,c,d] 1 "" [Connection[3] [1,1,1] "",Connection[1] [1,1,2] "a",
+picture3 = StateDiagram [a,b,c,d] 1 "" [Connection[3] [1,1,1] "",Connection[1,1,1] [1,1,2] "",
        Connection[1,1,2] [1,1,3] "",Connection[1,1,3] [4] "",Connection[3] [1,2,1] "",
        Connection[1,2,1] [4] "",Connection[4] [5] "b"] [3]
        where 
