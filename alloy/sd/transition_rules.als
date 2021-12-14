@@ -9,7 +9,5 @@ fact{
 	all s1: States | one s1.flow[EmptyTrigger] => no s1.flow[TriggerNames]
 	// If a composite state has a direct exit with a trigger, the trigger can't appear in the composite state(direct level)
 	all c1: CompositeStates, t1: Triggers | 
-		some c1.flow[t1] => 
-			no (getAllNodesInSameAndDeeperLevels[c1] + 
-			getAllNodesInSameAndDeeperLevels[c1.(RegionsStates <: contains)]).flow[t1]
+		some c1.flow[t1] => no allNodesInThisAndDeeper[c1].flow[t1]
 }

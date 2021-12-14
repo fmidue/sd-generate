@@ -7,7 +7,7 @@ open components_sig as components // import all signatures
 pred noDuplicateNodes{
 	// No duplicate fork nodes
 	no disj f1, f2: ForkNodes, n1: Nodes, t1, t2: Triggers | 
-		(f1 + f2) in n1.flow[t1] && f1.flow[t2] = f2.flow[t2]
+		(f1 + f2) in n1.flow[t1] and f1.flow[t2] = f2.flow[t2]
 	// No duplicate join nodes
 	no disj j1, j2: JoinNodes, disj n1, n2: Nodes, t1, t2: Triggers | 
 	{	
@@ -21,7 +21,7 @@ pred noDuplicateNodes{
 pred forkNodesGoToDistinctParalleRegions{
 	all f1: ForkNodes | f1.flow[Triggers] in Regions.contains
 	all f1: ForkNodes, r1: Regions, disj n1, n2: Nodes | 
-		(n1 + n2) in r1.contains && n1 in f1.flow[Triggers] => 
+		(n1 + n2) in r1.contains and n1 in f1.flow[Triggers] implies 
 			n2 not in f1.flow[Triggers]
 }
 
@@ -29,7 +29,7 @@ pred forkNodesGoToDistinctParalleRegions{
 pred joinNodesComeFromDistinctParalleRegions{
 	all j1: JoinNodes | j1 in Regions.contains.flow[Triggers]
 	all j1: JoinNodes, r1: Regions, disj n1, n2: Nodes | 
-		(n1 + n2) in r1.contains && j1 in n1.flow[Triggers] => 
+		(n1 + n2) in r1.contains and j1 in n1.flow[Triggers] implies 
 			j1 not in n2.flow[Triggers]
 }
 
@@ -39,9 +39,9 @@ fact{
 	forkNodesGoToDistinctParalleRegions
 	joinNodesComeFromDistinctParalleRegions
 	all n1: ForkNodes + JoinNodes |
-		n1 in StartStates.flow[EmptyTrigger] => no n1.flow[TriggerNames] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
+		n1 in StartStates.flow[EmptyTrigger] implies no n1.flow[TriggerNames] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
 	all n1: ForkNodes + JoinNodes, t1, t2: Triggers | 
-		n1 in Nodes.flow[t1] && some n1.flow[t2] => 
-			t1 = EmptyTrigger || t2 = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
+		n1 in Nodes.flow[t1] and some n1.flow[t2] implies 
+			t1 = EmptyTrigger or t2 = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
 	noDuplicateNodes
 }
