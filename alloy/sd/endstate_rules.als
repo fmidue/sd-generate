@@ -5,8 +5,8 @@ open components_sig as components // import all signatures
 
 // There is at most one end state in each level
 pred atMostOneEndStatesInLevels{
-	all r1: Regions | lone getEndStates[r1] // In regions, there is at most one end state.
-	all h1: HierarchicalStates | lone getEndStates[h1] // In hierarchical states, there is at most one end state.
+	all r1: Regions | lone (EndStates & r1.contains) // In regions, there is at most one end state.
+	all h1: HierarchicalStates | lone (EndStates & h1.contains) // In hierarchical states, there is at most one end state.
 	lone e1: EndStates | e1 not in allContainedNodes // Outside hierarchical states and regions, there is also at most one end state.
 }
 

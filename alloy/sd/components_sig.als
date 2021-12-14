@@ -99,36 +99,24 @@ abstract sig ShallowHistoryNodes extends HistoryNodes{}
 abstract sig DeepHistoryNodes extends HistoryNodes{}
 
 // It gets all nodes in same and deeper levels of a composite state
-fun allNodesInThisAndDeeper[c1: CompositeStates] : set Nodes {
+fun nodesInThisAndDeeper[c1: CompositeStates] : set Nodes {
 	c1.*(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains)) - c1
 }
 
 // It gets all nodes in same and deeper levels of a region
-fun allNodesInThisAndDeeper[r1: Regions] : set Nodes {
+fun nodesInThisAndDeeper[r1: Regions] : set Nodes {
 	r1.contains.*(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
 }
 
 // It gets all regions in same and deeper levels of a composite state
-fun allRegionsInThisAndDeeper[c1: CompositeStates]: set Regions{
-	c1.*(HierarchicalStates <: contains).(RegionsStates <: contains).*((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains)) 
+fun regionsInThisAndDeeper[h1: HierarchicalStates]: set Regions{
+	h1.*(HierarchicalStates <: contains).(RegionsStates <: contains).*((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains)) 
 }
 
 // It gets all regions in same and deeper levels of a region
-fun allRegionsInThisAndDeeper[r1: Regions]: set Regions{
+fun regionsInThisAndDeeper[r1: Regions]: set Regions{
 	r1.^((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains))
 }
 
 // Get a set of all nodes inside composite states
 fun allContainedNodes[]: set Nodes{HierarchicalStates.contains + Regions.contains}
-
-// Get start states directly in a certain hierarchical state
-fun getStartStates[h1: HierarchicalStates]: set StartStates{StartStates & h1.contains}
-
-// Get start states directly in a certain region
-fun getStartStates[r1: Regions]: set StartStates{StartStates & r1.contains}
-
-// Get end states directly in a certain hierarchical state
-fun getEndStates[h1: HierarchicalStates]: set EndStates{EndStates & h1.contains}
-
-// Get end states directly in a certain hierarchical state
-fun getEndStates[r1: Regions]: set EndStates{EndStates & r1.contains}

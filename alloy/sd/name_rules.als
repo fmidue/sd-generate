@@ -18,13 +18,13 @@ pred noSameTriggersInSameLevels{
 // In a compound or region, the name of the outermost level must not be repeated anywhere deeper inside. (ignored empty names)s
 pred outermostLevelsTriggersNotInDeeperLevels{
 	all h1: HierarchicalStates, s1: States | 
-		s1 in allNodesInThisAndDeeper[h1] implies disj [h1.name, s1.name]  // For all states deeper inside a composite state without regions
+		s1 in nodesInThisAndDeeper[h1] implies disj [h1.name, s1.name]  // For all states deeper inside a composite state without regions
 	all r1: Regions, s1: States | 
-		s1 in allNodesInThisAndDeeper[r1] implies disj [r1.name, s1.name] // For all states deeper inside a region
+		s1 in nodesInThisAndDeeper[r1] implies disj [r1.name, s1.name] // For all states deeper inside a region
 	all h1: HierarchicalStates, r1:Regions | 
-		r1 in allRegionsInThisAndDeeper[h1] implies disj [h1.name, r1.name] // For all regions deeper inside a composite state without regions
+		r1 in regionsInThisAndDeeper[h1] implies disj [h1.name, r1.name] // For all regions deeper inside a composite state without regions
 	all r1, r2: Regions | 
-		r2 in allRegionsInThisAndDeeper[r1] implies disj [r1.name, r2.name] // For all regions deeper inside a region
+		r2 in regionsInThisAndDeeper[r1] implies disj [r1.name, r2.name] // For all regions deeper inside a region
 }
 
 // About names of states (and of regions etc.)
