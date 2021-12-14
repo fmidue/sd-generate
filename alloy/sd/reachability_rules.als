@@ -6,9 +6,9 @@ open components_sig as components // import all signatures
 // Each composite state has at least one entry
 pred atLeastOneEntryToCompositeStates{
 	all c1: CompositeStates | 
-		let n1 = allNodesInThisAndDeeper[c1], n2 = Nodes - c1 - n1 |
-			c1 in n2.flow[Triggers] or // Standard entry
-			some (n1 & n2.flow[Triggers]) // Direct, history or fork entry 
+		let n1 = nodesInThisAndDeeper[c1], n2 = Nodes - c1 - n1 |
+			c1 in n2.flow[Triggers] // Standard entry
+			or some (n1 & n2.flow[Triggers]) // Direct, history or fork entry 
 }
 
 pred approximateReachability{
@@ -27,7 +27,7 @@ pred setStartStatesFlag{
 	} or some h2: HierarchicalStates |
 	{	
 		h2.contains = s1 + EndStates
-		s1.flow[EmptyTrigger] = getEndStates[h2]	
+		s1.flow[EmptyTrigger] = (EndStates & h2.contains)	
 	}) implies s1.flag = 1 else s1.flag = 0	
 }
 
@@ -37,19 +37,19 @@ fact{
 	approximateReachability
 	// If there are history entries without default leaving transition, there must be a start state, because history nodes have neither record and a default leaving transitionat at the first entry
 	all h1: HierarchicalStates, h2: HistoryNodes | let n1 = h1.contains | 
-		no h2.flow and h2 in (n1 & (Nodes - h1 - n1)).flow[Triggers] implies one getStartStates[h1]
+		no h2.flow and h2 in (n1 & (Nodes - h1 - n1)).flow[Triggers] implies one (StartStates & h1.contains)
 	all r1: Regions, h1: HistoryNodes | let n1 = r1.contains | 
-		no h1.flow and h1 in (n1 & (Nodes - n1)).flow[Triggers] implies one getStartStates[r1]
+		no h1.flow and h1 in (n1 & (Nodes - n1)).flow[Triggers] implies one (StartStates & r1.contains)
 	// If a composite state has regions and there are direct entries to one of the regions(except fork nodes), other regions must have start states
 	all disj r1, r2: Regions, rs1: RegionsStates | 
-		let n1 = allNodesInThisAndDeeper[r1] | 
-			(r1 + r2) in rs1.contains and 
-			some (n1 & (Nodes - rs1 - n1 - ForkNodes).flow[Triggers]) implies
-				one getStartStates[r2]
+		let n1 = nodesInThisAndDeeper[r1] | 
+			(r1 + r2) in rs1.contains  
+			and some (n1 & (Nodes - rs1 - n1 - ForkNodes).flow[Triggers]) 
+				implies one (StartStates & r2.contains)
 	// If a composite without regions has a standard entry, there must be a start state in it.
 	all h1: HierarchicalStates | 
-		h1 in Nodes.flow[Triggers] implies one getStartStates[h1]
+		h1 in Nodes.flow[Triggers] implies one (StartStates & h1.contains)
 	// If a composite with regions has a standard entry, there must be a start state in each region.
 	all rs1: RegionsStates, r1:Regions | 
-		r1 in rs1.contains and rs1 in Nodes.flow[Triggers] implies one getStartStates[r1]
+		r1 in rs1.contains and rs1 in Nodes.flow[Triggers] implies one (StartStates & r1.contains)
 }

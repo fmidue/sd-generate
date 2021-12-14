@@ -21,16 +21,16 @@ pred noDuplicateNodes{
 pred forkNodesGoToDistinctParalleRegions{
 	all f1: ForkNodes | f1.flow[Triggers] in Regions.contains
 	all f1: ForkNodes, r1: Regions, disj n1, n2: Nodes | 
-		(n1 + n2) in r1.contains and n1 in f1.flow[Triggers] implies 
-			n2 not in f1.flow[Triggers]
+		(n1 + n2) in r1.contains and n1 in f1.flow[Triggers]
+			implies n2 not in f1.flow[Triggers]
 }
 
 // If two (or more) arrows enter the same such join node, they must come from distinct parallel regions.
 pred joinNodesComeFromDistinctParalleRegions{
 	all j1: JoinNodes | j1 in Regions.contains.flow[Triggers]
 	all j1: JoinNodes, r1: Regions, disj n1, n2: Nodes | 
-		(n1 + n2) in r1.contains and j1 in n1.flow[Triggers] implies 
-			j1 not in n2.flow[Triggers]
+		(n1 + n2) in r1.contains and j1 in n1.flow[Triggers]  
+			implies j1 not in n2.flow[Triggers]
 }
 
 fact{
@@ -41,7 +41,7 @@ fact{
 	all n1: ForkNodes + JoinNodes |
 		n1 in StartStates.flow[EmptyTrigger] implies no n1.flow[TriggerNames] // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
 	all n1: ForkNodes + JoinNodes, t1, t2: Triggers | 
-		n1 in Nodes.flow[t1] and some n1.flow[t2] implies 
-			t1 = EmptyTrigger or t2 = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
+		n1 in Nodes.flow[t1] and some n1.flow[t2]
+			implies t1 = EmptyTrigger or t2 = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
 	noDuplicateNodes
 }
