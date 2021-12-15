@@ -100,7 +100,8 @@ abstract sig DeepHistoryNodes extends HistoryNodes{}
 
 // It gets all nodes in same and deeper levels of a composite state
 fun nodesInThisAndDeeper[c1: CompositeStates] : set Nodes {
-	c1.*(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains)) - c1
+    c1.^(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
+ + c1.^((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
 }
 
 // It gets all nodes in same and deeper levels of a region
@@ -110,7 +111,7 @@ fun nodesInThisAndDeeper[r1: Regions] : set Nodes {
 
 // It gets all regions in same and deeper levels of a composite state
 fun regionsInThisAndDeeper[h1: HierarchicalStates]: set Regions{
-	h1.*(HierarchicalStates <: contains).(RegionsStates <: contains).*((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains)) 
+	h1.^(HierarchicalStates <: contains).(RegionsStates <: contains).*((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains)) 
 }
 
 // It gets all regions in same and deeper levels of a region
