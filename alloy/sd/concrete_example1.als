@@ -3,14 +3,14 @@ module concrete_example1 // It demonstrates the example "https://github.com/fmid
 open uml_state_diagram // import all abstract signatures and constraints
 
 // 8 start Statess
-one sig S1 extends StartStates{} // S1 is the outermost start state
-one sig S2 extends StartStates{} // S2 is tte start state in "Display screen"
-one sig S3 extends StartStates{} // S3 is the start state in the first region in "The leftmost digit"
-one sig S4 extends StartStates{} // S4 is the start state in the second region in "The leftmost digit"
-one sig S5 extends StartStates{} // S5 is the start state in the first region in "The middle digit"
-one sig S6 extends StartStates{} // S6 is the start state in the second region in "The middle digit"
-one sig S7 extends StartStates{} // S7 is the start state in the first region in "The rightmost digit"
-one sig S8 extends StartStates{} // S8 is the start state in the second region in "The rightmost digit"
+one sig S1 extends StartNodes{} // S1 is the outermost start state
+one sig S2 extends StartNodes{} // S2 is tte start state in "Display screen"
+one sig S3 extends StartNodes{} // S3 is the start state in the first region in "The leftmost digit"
+one sig S4 extends StartNodes{} // S4 is the start state in the second region in "The leftmost digit"
+one sig S5 extends StartNodes{} // S5 is the start state in the first region in "The middle digit"
+one sig S6 extends StartNodes{} // S6 is the start state in the second region in "The middle digit"
+one sig S7 extends StartNodes{} // S7 is the start state in the first region in "The rightmost digit"
+one sig S8 extends StartNodes{} // S8 is the start state in the second region in "The rightmost digit"
 // 15 normal Statess
 one sig N1 extends NormalStates{} // “1” in "The leftmost digit"
 one sig N2 extends NormalStates{} // "2" in "The leftmost digit"
@@ -44,7 +44,7 @@ one sig H1 extends ShallowHistoryNodes{} // The history node in the leftmost reg
 one sig H2 extends ShallowHistoryNodes{} // The history node in the middle regions state
 one sig H3 extends ShallowHistoryNodes{} // The history node in the rightmoste regions state
 // 1 end States
-one sig E1 extends EndStates{} // The outermost end state
+one sig E1 extends EndNodes{} // The outermost end state
 // 10 names in Names spaces of Statess and regions
 one sig Name1 extends ComponentNames{} //”1“
 one sig Name2 extends ComponentNames{} //”2“

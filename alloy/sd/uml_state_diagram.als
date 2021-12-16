@@ -23,4 +23,4 @@ fact{
 }
 
 
-run {} for 6 but exactly 2 HierarchicalStates, exactly 1 EndStates
+run {} for 6 but exactly 2 HierarchicalStates, exactly 1 EndNodes
