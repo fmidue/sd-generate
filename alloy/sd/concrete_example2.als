@@ -3,7 +3,7 @@ module concrete_example2
 open uml_state_diagram
 
 // 1 start state
-one sig S1 extends StartStates{}
+one sig S1 extends StartNodes{}
 // 5 normal states
 one sig N1 extends NormalStates{}
 one sig N2 extends NormalStates{}
@@ -36,7 +36,7 @@ one sig Name5 extends ComponentNames{}
 one sig Name6 extends ComponentNames{}
 one sig Name7 extends ComponentNames{}
 // 1 end state
-one sig E1 extends EndStates{}
+one sig E1 extends EndNodes{}
 
 fact{
 	no HistoryNodes

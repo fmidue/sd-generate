@@ -19,7 +19,7 @@ fact{
 			{	
 				no h1.flow[Triggers] or h1.flow[Triggers] in n1 // A history should be directed to a same or a deeper level
 				some (hs1.contains & (NormalStates + CompositeStates)) // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
-				h1 not in (n1 - (StartStates & hs1.contains)).flow[Triggers] // History should never be reached from (somewhere, possibly nested) inside their own composite states excluding start states
+				h1 not in (n1 - (StartNodes & hs1.contains)).flow[Triggers] // History should never be reached from (somewhere, possibly nested) inside their own composite states excluding start states
 			}
 	all h1: HistoryNodes, r1: Regions | 
 		let n1 = nodesInThisAndDeeper[r1] | 
@@ -27,7 +27,7 @@ fact{
 			{	
 				no h1.flow[Triggers] or h1.flow[Triggers] in n1 // A history should be directed to a same or a deeper level
 				some (r1.contains & (NormalStates + CompositeStates)) // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
-				h1 not in (n1 - (StartStates & r1.contains)).flow[Triggers] // History should never be reached from (somewhere, possibly nested) inside their own regions excluding start states	
+				h1 not in (n1 - (StartNodes & r1.contains)).flow[Triggers] // History should never be reached from (somewhere, possibly nested) inside their own regions excluding start states	
 			}
 
 	HistoryNodes in allContainedNodes // No history nodes are at the outermost level of a state diagram

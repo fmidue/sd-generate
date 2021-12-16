@@ -2,7 +2,7 @@ module components_sig // All signatures and some direct constraints in this modu
 
 // All componets are a node, this is a super class
 abstract sig Nodes{
-	flow: Triggers set -> set (Nodes - StartStates), // No coming transitions to start states
+	flow: Triggers set -> set (Nodes - StartNodes), // No coming transitions to start states
 }
 
 // Names: EmptyTriggers + ComponentNames + TriggerNames
@@ -18,12 +18,12 @@ abstract sig TriggerNames extends Triggers{}{
 	this in (Nodes.flow.Nodes)
 }
 
-// States: NormalStates + CompositeStates + EndStates
+// States: NormalStates + CompositeStates
 abstract sig States extends Nodes{
 	name: lone ComponentNames
 }
 
-abstract sig StartStates extends Nodes{
+abstract sig StartNodes extends Nodes{
 	flag: Int // It is used to check if this can be neglected
 }
 {
@@ -34,9 +34,8 @@ abstract sig StartStates extends Nodes{
 	disj [JoinNodes, flow[EmptyTrigger]] // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)	
 }
 
-abstract sig EndStates extends States{}
+abstract sig EndNodes extends Nodes{}
 {
-	no name // There is no need to mark an end state
 	no flow // No leaving transitions, only coming transitions
 }
 
@@ -48,7 +47,7 @@ abstract sig Regions{
 }
 {
 	this in RegionsStates.contains // No regions exist independtly
-	contains in (StartStates + EndStates) implies no (RegionsStates <: contains).this.flow // If a region has only a start state or a end state, a leaving transition is superfluous for its regions state
+	contains in (StartNodes + EndNodes) implies no (RegionsStates <: contains).this.flow // If a region has only a start state or a end state, a leaving transition is superfluous for its regions state
 }
 
 // Composite states: HierarchicalState + RegionsState 
@@ -59,7 +58,7 @@ abstract sig HierarchicalStates extends CompositeStates{
 	contains: disj some Nodes
 }
 {
-	contains in (StartStates + EndStates) implies no flow // If a hierarchical state has only a start state or a end state, a leaving transition is superfluous.
+	contains in (StartNodes + EndNodes) implies no flow // If a hierarchical state has only a start state or a end state, a leaving transition is superfluous.
 }
 
 // RegionState: Composite states with regions
@@ -75,7 +74,7 @@ abstract sig ForkNodes extends Nodes{}
 {
 	// It should be 1 to n(n > 1), n to n is not allowed
 	one t1: Triggers | not (lone flow[t1]) and no flow[Triggers - t1] // It constrains the number of leaving transition > 1 and leaving transitions from fork nodes should all have same conditions or no conditions
-	disj [EndStates, flow[Triggers]] // No transitions between end states and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg") 
+	disj [EndNodes, flow[Triggers]] // No transitions between end states and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg") 
 }
 
 abstract sig JoinNodes extends Nodes{}
