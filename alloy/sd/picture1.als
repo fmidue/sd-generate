@@ -56,7 +56,7 @@ fact{
 	//under a same "where" like “c” = N_1_1, ‘d“ = C_1_2, "e" = H_1_3 in a same level("Composite State")
 	C_1.contains = S_1 + N_1_1 + C_1_2 + H_1_3 // According to a = StateDiagram [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1], we can get "c","d","e" and a start state in it
 	S_1.flow[EmptyTrigger] = N_1_1 // a: [1] => S_1.flow[EmptyTrigger] = N_1_1
-	no S_1.flow[Triggers] // Explict added
+	no S_1.flow[TriggerNames] // Explict added
 	N_1_1.flow[EmptyTrigger] = C_1_2 // a: Connection [1] [2] "" => 1.flow[""] = 2 => c.flow[""] = d => N_1_1.flow[EmptyTrigger] = C_1_2
 	no N_1_1.flow[Triggers - EmptyTrigger]
 	N_2.flow[EmptyTrigger] = H_1_3 // picture1: Connection[2] [1,3] "" => 2.flow[""] = 1.3 => b.flow[""] = e => N_2.flow[EmptyTrigger] = H_1_3
@@ -75,7 +75,7 @@ fact{
 	// under a same "where" like “f” = N_1_2_1, ‘g“ = N_1_2_2, in a same level("Composite State")
 	C_1_2.contains = S_1_2 + N_1_2_1 + N_1_2_2 // According to d = StateDiagram [f,g] 2 "state 2" [Connection [1] [2] ""] [1], we can get "f","g" and a start state in it
 	S_1_2.flow[EmptyTrigger] = N_1_2_1 // d: [1] => S_1_2.flow[EmptyTrigger] = N_1_2_1
-	no S_1_2.flow[Triggers]
+	no S_1_2.flow[TriggerNames]
 	N_1_2_1.flow[EmptyTrigger] = N_1_2_2 // d: Connection [1] [2] "" => 1.flow[""] = 2 => f.flow[""] = g => N_1_2_1.flow[EmptyTrigger] = N_1_2_2
 	no N_1_2_1.flow[Triggers - EmptyTrigger]
 	no N_1_2_2.flow
