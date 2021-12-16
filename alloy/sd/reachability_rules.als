@@ -37,9 +37,11 @@ fact{
 	approximateReachability
 	// If there are history entries without default leaving transition, there must be a start state, because history nodes have neither record and a default leaving transitionat at the first entry
 	all h1: HierarchicalStates, h2: HistoryNodes | let n1 = h1.contains | 
-		no h2.flow and h2 in (n1 & (Nodes - h1 - n1)).flow[Triggers] implies one (StartStates & h1.contains)
+		no h2.flow and h2 in (n1 & (Nodes - h1 - n1)).flow[Triggers] 
+			implies one (StartStates & h1.contains)
 	all r1: Regions, h1: HistoryNodes | let n1 = r1.contains | 
-		no h1.flow and h1 in (n1 & (Nodes - n1)).flow[Triggers] implies one (StartStates & r1.contains)
+		no h1.flow and h1 in (n1 & (Nodes - n1)).flow[Triggers] 
+			implies one (StartStates & r1.contains)
 	// If a composite state has regions and there are direct entries to one of the regions(except fork nodes), other regions must have start states
 	all disj r1, r2: Regions, rs1: RegionsStates | 
 		let n1 = nodesInThisAndDeeper[r1] | 
@@ -51,5 +53,6 @@ fact{
 		h1 in Nodes.flow[Triggers] implies one (StartStates & h1.contains)
 	// If a composite with regions has a standard entry, there must be a start state in each region.
 	all rs1: RegionsStates, r1:Regions | 
-		r1 in rs1.contains and rs1 in Nodes.flow[Triggers] implies one (StartStates & r1.contains)
+		r1 in rs1.contains and rs1 in Nodes.flow[Triggers] 
+			implies one (StartStates & r1.contains)
 }

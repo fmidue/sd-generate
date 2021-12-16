@@ -23,4 +23,4 @@ fact{
 }
 
 
-run {} for 4 but exactly 2 StartStates, exactly 1 EndStates, exactly 0 NormalStates
+run {} for 6 but exactly 2 HierarchicalStates, exactly 1 EndStates

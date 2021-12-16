@@ -3,14 +3,14 @@ module picture1 // It is correspoding to the Haskell version "picture1"
 open uml_state_diagram // "UMLStateDiagram"
 
 // 2 composite states
-one sig C1 extends HierarchicalStates{} // "Composite State"
-one sig C2 extends HierarchicalStates{} // "state 2"
+one sig C_1 extends HierarchicalStates{} // "Composite State", the suffix number can be regarded as address
+one sig C_1_2 extends HierarchicalStates{} // "state 2"
 
 // 4 normal states
-one sig N1 extends NormalStates{} // "State 1"
-one sig N2 extends NormalStates{} // "State 2a"
-one sig N3 extends NormalStates{} // "State 2b"
-one sig N4 extends NormalStates{} // "State 3"
+one sig N_1_1 extends NormalStates{} // "State 1"
+one sig N_1_2_1 extends NormalStates{} // "State 2a"
+one sig N_1_2_2 extends NormalStates{} // "State 2b"
+one sig N_2 extends NormalStates{} // "State 3"
 
 // 2 start states
 one sig S1 extends StartStates{} // The start state in "Composite State"
@@ -28,54 +28,57 @@ one sig Name6 extends ComponentNames{} // "State 3"
 one sig T1 extends TriggerNames{} // "t"
 
 // 1 DeepHistoryNodes
-one sig H1 extends DeepHistoryNodes{} // "H*" in "Composite State"
+one sig H_1_3 extends DeepHistoryNodes{} // "H*" in "Composite State"
 
 fact{
 	//Outermost level
 	/* 
 	  picture1 = StateDiagram [a, b] 1 "" [Connection[1] [2] "t", Connection[2] [1,3] ""] []  is the outermost level
 	  a and b in the outermost level; 
-	  "1" is a string as a label; 
-	  "" means no name; 
-	  Connection[1] [2] "t" means what is labeled with "1" has connection "t" to what is labeled with "2"; 
-	  Connection[2] [1,3] "" means what is labeled with "2" has connection "" to what is labeled with "3" in what is labeled with "1"
-	  [] means no start states, if it has elements, the integer is the label of start states and the number of integer is the number of start states 
+	  "1" is a string as a label, also can be regarded as address. In Alloy model, it is added as a suffix "_1" of a signature name
+	  "" means no name; the outermost level, we can directly discard the label and the name.
+	  Connection[1] [2] "t" means what is labeled with "_1" has connection "t" to what is labeled with "_2"; 
+	  Connection[2] [1,3] "" means what is labeled with "_2" has connection "" to what is labeled with "_1_3"
+	  [] means no start states, if it has elements, it means there is a start state directed to the node inside "picture1" and addressed with the elements 
 	*/
-	// under a same "where" like "a" = C1, ‘b“ = N4 in a same level(outermost level) 
-	C1.flow[T1] = N4 // According to the label, we can replace Connection[1] [2] "t" by Connection a b "t", it can be transformed into a.flow[t] = b, namely C1.flow[T1] = N4
-	no C1.flow[Triggers - T1] // If a node has flow[EmptyTrigger], adding this constraint is optional, but if it has non-empty labeled flow, it is necessary. 
-	C1.name = Name1 // "Composite State"
-	N4.name = Name6 // "State 3"
+	// under a same "where" like "a" = C_1, ‘b“ = N_2 in a same level(outermost level) 
+	C_1.flow[T1] = N_2 // According to the label, we can replace Connection[1] [2] "t" by Connection a b "t", it can be transformed into a.flow[t] = b, namely C_1.flow[T1] = N_2
+	no C_1.flow[Triggers - T1] // No other flows like this should be added explictly 
+	C_1.name = Name1 // "Composite State"
+	N_2.name = Name6 // "State 3"
 	
 	// In the composte state "Composite State"
 	/*
 	  a = StateDiagram [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
 	  The translation like above.
-	  It is noticeable that S1 is labeled with "1"
+	  It is noticeable that S1 is directed to a node inside "a" (_1) and addressed with "_1" which can be translated into a node addressed with "_1_1"
 	*/
-	//under a same "where" like “c” = N1, ‘d“ = C2, "e" = H1 in a same level("Composite State")
-	C1.contains = S1 + N1 + C2 + H1 // According to a = StateDiagram [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1], we can get "c","d","e" and a start state labeled with "1" in it
-	S1.flow[EmptyTrigger] = N1 // a: Connection [1] [2] "" => 1.flow[""] = 2 => S1.flow[EmptyTrigger] = N1
-	N1.flow[EmptyTrigger] = C2 // a: Connection [1] [2] "" => 1.flow[""] = 2 => c.flow[""] = d => N1.flow[EmptyTrigger] = C2, too 
-	N4.flow[EmptyTrigger] = H1 // picture1: Connection[2] [1,3] "" => 2.flow[""] = 1.3 => b.flow[""] = e => N4.flow[EmptyTrigger] = H1
-	no C2.flow // If a node has no flow, this is necessary
-	no H1.flow
-	C2.name = Name2 // "state 2"
-	N1.name = Name3 // "State 1"
+	//under a same "where" like “c” = N_1_1, ‘d“ = C_1_2, "e" = H_1_3 in a same level("Composite State")
+	C_1.contains = S1 + N_1_1 + C_1_2 + H_1_3 // According to a = StateDiagram [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1], we can get "c","d","e" and a start state in it
+	S1.flow[EmptyTrigger] = N_1_1 // a: [1] => S1.flow[EmptyTrigger] = N_1_1
+	N_1_1.flow[EmptyTrigger] = C_1_2 // a: Connection [1] [2] "" => 1.flow[""] = 2 => c.flow[""] = d => N_1_1.flow[EmptyTrigger] = C_1_2
+	no N_1_1.flow[Triggers - EmptyTrigger]
+	N_2.flow[EmptyTrigger] = H_1_3 // picture1: Connection[2] [1,3] "" => 2.flow[""] = 1.3 => b.flow[""] = e => N_2.flow[EmptyTrigger] = H_1_3
+	no N_2.flow[Triggers - EmptyTrigger]
+	no C_1_2.flow 
+	no H_1_3.flow
+	C_1_2.name = Name2 // "state 2"
+	N_1_1.name = Name3 // "State 1"
 
 	//In the composte state "state 2"
 	/*
 	  d = StateDiagram [f,g] 2 "state 2" [Connection [1] [2] ""] [1]
 	  The translation like above.
-	  It is noticeable that S2 is labeled with "1"
+	  It is noticeable that S2 is directed to a node inside "d" (_1_2) and addressed with "_1" which can be translated into a node addressed with "_1_2_1"
 	*/
-	// under a same "where" like “f” = N4, ‘g“ = N5, in a same level("Composite State")
-	C2.contains = S2 + N2 + N3 // According to d = StateDiagram [f,g] 2 "state 2" [Connection [1] [2] ""] [1], we can get "f","g" and a start state labeled with "1" in it
-	S2.flow[EmptyTrigger] = N2 // d: Connection [1] [2] "" => 1.flow[""] = 2 => S1.flow[EmptyTrigger] = N4
-	N2.flow[EmptyTrigger] = N3 // d: Connection [1] [2] "" => 1.flow[""] = 2 => f.flow[""] = g => N4.flow[EmptyTrigger] = N5, too
-	no N3.flow
-	N2.name = Name4 // "State 2a"
-	N3.name = Name5 // "State 2b"
+	// under a same "where" like “f” = N_1_2_1, ‘g“ = N_1_2_2, in a same level("Composite State")
+	C_1_2.contains = S2 + N_1_2_1 + N_1_2_2 // According to d = StateDiagram [f,g] 2 "state 2" [Connection [1] [2] ""] [1], we can get "f","g" and a start state in it
+	S2.flow[EmptyTrigger] = N_1_2_1 // d: [1] => S2.flow[EmptyTrigger] = N_1_2_1
+	N_1_2_1.flow[EmptyTrigger] = N_1_2_2 // d: Connection [1] [2] "" => 1.flow[""] = 2 => f.flow[""] = g => N_1_2_1.flow[EmptyTrigger] = N_1_2_2
+	no N_1_2_1.flow[Triggers - EmptyTrigger]
+	no N_1_2_2.flow
+	N_1_2_1.name = Name4 // "State 2a"
+	N_1_2_2.name = Name5 // "State 2b"
 }
 
 run {} for 6
