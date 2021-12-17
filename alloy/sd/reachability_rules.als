@@ -3,7 +3,7 @@ module reachability_rules // Most constraints of reachability, but some constrai
 
 open components_sig as components // import all signatures
 
-// Each composite state has at least one entry
+// Each composite state has at least one entry, except something like "box", in which all events happen, but it also has a default standard entry from the outermost start node which can be set invisible
 pred atLeastOneEntryToCompositeStates{
 	all c1: CompositeStates | 
 		let n1 = nodesInThisAndDeeper[c1], n2 = Nodes - c1 - n1 |
@@ -18,6 +18,7 @@ pred approximateReachability{
 	atLeastOneEntryToCompositeStates
 }
 
+// set the flag representing if the start node is invisible
 pred setStartNodesFlag{
 	all s1: StartNodes | let h1 = CompositeStates - allContainedNodes |
 	({	
@@ -48,6 +49,12 @@ fact{
 			(r1 + r2) in rs1.contains  
 			and some (n1 & (Nodes - rs1 - n1 - ForkNodes).flow[Triggers]) 
 				implies one (StartNodes & r2.contains)
+	// If a composite state with regions has a fork entry, those parallel regions without the entry from the fork node will contain a start node.
+	all r1: Regions, rs1: RegionsStates, f1: ForkNodes | 
+		some (f1.flow[Triggers] & nodesInThisAndDeeper[rs1]) 
+		and r1 in rs1.contains and f1 not in rs1.contains.contains
+		and no (f1.flow[Triggers] & nodesInThisAndDeeper[r1])
+			implies one (StartNodes & r1.contains) 
 	// If a composite without regions has a standard entry, there must be a start state in it.
 	all h1: HierarchicalStates | 
 		h1 in Nodes.flow[Triggers] implies one (StartNodes & h1.contains)
