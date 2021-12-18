@@ -93,13 +93,14 @@ pred trueReachability{
 		(f.from in (States + StartNodes - (StartNodes & allContainedNodes)) 
 		and f.to = hn and no hn.flow and hn in HierarchicalStates.contains)
 			implies let cs = (StartNodes & (HierarchicalStates <: contains).hn.contains).flow[Triggers] |
-				one nf: f.derive | nf.from = f.from and nf.to = cs
+				((one nf: f.derive | nf.from = f.from and nf.to = cs)
+				and (all nf: f.derive | nf.from = f.from and nf.to = cs))
 	// When a history node is in a hierarchical state and has a default flow
 	all f: Flows, hn: HistoryNodes | 
 		(f.from in (States + StartNodes - (StartNodes & allContainedNodes)) 
 		and f.to = hn and one hn.flow and hn in HierarchicalStates.contains)
-			implies one nf: f.derive | nf.from = f.from and nf.to = hn.flow[Triggers]
-		
+			implies ((one nf: f.derive | nf.from = f.from and nf.to = hn.flow[Triggers])
+				and (all nf: f.derive | nf.from = f.from and nf.to = hn.flow[Triggers]))
 	
 	(Nodes - StartNodes - CompositeStates) in 
 		(StartNodes - (StartNodes & allContainedNodes)).^((~from :> Flows) . (Flows <: to)) // Starting from the outermost start node, all nodes except composite states and start nodes can be reached. 
@@ -109,4 +110,4 @@ fact{
 	trueReachability
 }
 
-run {} for 9  but exactly 2 HierarchicalStates, exactly 1 RegionsStates
+run {} for 15 but exactly 2 HierarchicalStates, exactly 1 RegionsStates, exactly 1 ForkNodes, exactly 1 HistoryNodes, exactly 1 JoinNodes, exactly 6 NormalStates
