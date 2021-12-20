@@ -31,8 +31,7 @@ pred setStartNodesFlag{
 		s1.flow[EmptyTrigger] = (EndNodes & h2.contains)	
 	}) implies s1.flag = 1 else s1.flag = 0	
 }
-
-				
+			
 fact{
 	setStartNodesFlag
 	approximateReachability
