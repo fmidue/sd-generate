@@ -27,7 +27,7 @@ pred forkNodesGoToDistinctParalleRegions{
 
 // If two (or more) arrows enter the same such join node, they must come from distinct parallel regions.
 pred joinNodesComeFromDistinctParalleRegions{
-	all j1: JoinNodes | j1 in Regions.contains.flow[Triggers]
+	all j1: JoinNodes | not lone n1: Nodes | n1 in Regions.contains and j1 in n1.flow[Triggers] // Each join node has at least two coming arrows from regions.
 	all j1: JoinNodes, r1: Regions, disj n1, n2: Nodes | 
 		(n1 + n2) in r1.contains and j1 in n1.flow[Triggers]  
 			implies j1 not in n2.flow[Triggers]
