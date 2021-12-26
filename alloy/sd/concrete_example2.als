@@ -13,7 +13,7 @@ one sig N5 extends NormalStates{}
 // 2 composite states
 one sig C1 extends RegionsStates{}
 one sig C2 extends RegionsStates{}
-// 4 Regionss
+// 4 Regions
 one sig R1 extends Regions{}
 one sig R2 extends Regions{}
 one sig R3 extends Regions{}
@@ -24,6 +24,19 @@ one sig F2 extends ForkNodes{}
 // 2 join nodes
 one sig J1 extends JoinNodes{}
 one sig J2 extends JoinNodes{}
+// 12 Flows
+one sig Flow1 extends Flows{}
+one sig Flow2 extends Flows{}
+one sig Flow3 extends Flows{}
+one sig Flow4 extends Flows{}
+one sig Flow5 extends Flows{}
+one sig Flow6 extends Flows{}
+one sig Flow7 extends Flows{}
+one sig Flow8 extends Flows{}
+one sig Flow9 extends Flows{}
+one sig Flow10 extends Flows{}
+one sig Flow11 extends Flows{}
+one sig Flow12 extends Flows{}
 // 2 names in the name space of triggers
 one sig T1 extends TriggerNames{}
 one sig T2 extends TriggerNames{}
@@ -59,23 +72,57 @@ fact{
 	R3.contains = N1 + N2
 	R4.contains = N4
 
-	S1.flow[EmptyTrigger] = F1
-	F1.flow[EmptyTrigger] = F2 + N3
-	F2.flow[EmptyTrigger] = N1 + N4
-	N1.flow[T1] = N2
-	no N1.flow[Triggers - T1]
-	N2.flow[T2] = J1
-	no N2.flow[Triggers - T2]
-	N3.flow[T1] = N5 
-	no N3.flow[Triggers - T1]
-	N4.flow[T2] = J1
-	no N4.flow[Triggers - T2]
-	N5.flow[EmptyTrigger] = J2
-	no N5.flow[Triggers - EmptyTrigger]
-	J1.flow[EmptyTrigger] = J2
-	J2.flow[EmptyTrigger] = E1
-	no C1.flow
-	no C2.flow	
+	Flows = Flow1 + Flow2 + Flow3 + Flow4 
+		+ Flow5 + Flow6 + Flow7 + Flow8 
+		+Flow9 + Flow10 + Flow11 + Flow12
+	
+	Flow1.from = S1
+	Flow1.label = EmptyTrigger
+	Flow1.to = F1
+	
+	Flow2.from = F1
+	Flow2.label = EmptyTrigger
+	Flow2.to = F2
+	
+	Flow3.from = F1
+	Flow3.label = EmptyTrigger
+	Flow3.to = N3
+
+	Flow4.from = F2
+	Flow4.label = EmptyTrigger
+	Flow4.to = N1
+
+	Flow5.from = F2
+	Flow5.label = EmptyTrigger
+	Flow5.to = N4
+
+	Flow6.from = N1
+	Flow6.label = T1
+	Flow6.to = N2
+	
+	Flow7.from = N2
+	Flow7.label = T2
+	Flow7.to = J1
+
+	Flow8.from = N3
+	Flow8.label = T1
+	Flow8.to = N5 
+	
+	Flow9.from = N4
+	Flow9.label = T2
+	Flow9.to = J1
+	
+	Flow10.from = N5
+	Flow10.label = EmptyTrigger
+	Flow10.to = J2
+
+	Flow11.from = J1
+	Flow11.label = EmptyTrigger
+	Flow11.to = J2
+	
+	Flow12.from = J2
+	Flow12.label = EmptyTrigger
+	Flow12.to = E1
 }
 
-run {} for 10
+run {} for 12 but  21 ProtoFlows
