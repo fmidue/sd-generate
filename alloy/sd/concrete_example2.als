@@ -125,4 +125,4 @@ fact{
 	Flow12.to = E1
 }
 
-run {} for 12 but  21 ProtoFlows
+run {} for 12 but 21 ProtoFlows
