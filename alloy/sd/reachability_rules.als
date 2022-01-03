@@ -111,19 +111,19 @@ fact{
 		no (Flows <: from).h1 and h1 in (Flows <: from).(n1 & (Nodes - n1)).to 
 			implies one (StartNodes & r1.contains)
 	// If a composite state has regions and there are direct entries to one of the regions(except fork nodes), other regions must have start states
-	all rs1: RegionsStates, disj r1, r2: Regions & rs1.contains | 
+	all rs1: RegionsStates, disj r1, r2: rs1.contains | 
 		let n1 = nodesInThisAndDeeper[r1] | 
 			some ((Flows <: from).(n1 & (Nodes - rs1 - n1 - ForkNodes)).to) 
 				implies one (StartNodes & r2.contains)
 	// If a composite state with regions has a fork entry, those parallel regions without the entry from the fork node will contain a start node.
-	all r1: Regions, rs1: RegionsStates, f1: ForkNodes | 
+	all rs1: RegionsStates, r1: rs1.contains, f1: ForkNodes | 
 		some ((Flows <: from).f1.to & nodesInThisAndDeeper[rs1]) 
-		and r1 in rs1.contains and f1 not in rs1.contains.contains
+		and f1 not in rs1.contains.contains
 		and no ((Flows <: from).f1.to & nodesInThisAndDeeper[r1])
 			implies one (StartNodes & r1.contains) 
 	// If a composite without regions has a standard entry, there must be a start state in it.
 	all h1: HierarchicalStates & (Flows <: from).Nodes.to | one (StartNodes & h1.contains)
 	// If a composite with regions has a standard entry, there must be a start state in each region.
-	all rs1: RegionsStates & (Flows <: from).Nodes.to, r1: Regions & rs1.contains |
+	all rs1: RegionsStates & (Flows <: from).Nodes.to, r1: rs1.contains |
 		 one (StartNodes & r1.contains)
 }
