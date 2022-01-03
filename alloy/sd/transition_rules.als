@@ -9,6 +9,5 @@ fact{
 	all s1: States | let sl = from.s1.label | 
 		EmptyTrigger in sl implies TriggerNames not in sl 
 	// If a composite state has a direct exit with a trigger, the trigger can't appear in the composite state(direct level)
-	all c1: CompositeStates, t1: Triggers | t1 in from.c1.label 
-		implies t1 not in  from.(nodesInThisAndDeeper[c1]).label
+	all c1: CompositeStates, t1: from.c1.label | t1 not in from.(nodesInThisAndDeeper[c1]).label
 }
