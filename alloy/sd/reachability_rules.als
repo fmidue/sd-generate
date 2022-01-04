@@ -11,6 +11,11 @@ pred atLeastOneEntryToCompositeStates{
 			or some (n1 & (Flows <: from).n2.to) // Direct, history or fork entry
 }
 
+pred flattening[pf : ProtoFlows, ns : set Nodes]{
+	all n : ns | one tf: pf.derived | tf.from = pf.from and tf.to = n
+	all tf: pf.derived | tf.from = pf.from and tf.to in ns
+}
+
 // It implements only approximate reachability
 pred approximateReachability{
 	no derived
@@ -24,6 +29,7 @@ pred approximateReachability{
 pred trueReachability{
 	atLeastOneEntryToCompositeStates // It is a necessary condition for "true reachability"
 	(ProtoFlows - Flows) in ProtoFlows.derived
+	no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and pf1.label = pf2.label// no duplicate flows
 	// The following are predicates to implement "flattening".
 	// It flattens flows from composite states to normal states and end nodes
 	all pf: ProtoFlows | let sn = StartNodes - (StartNodes & allContainedNodes) |
@@ -34,21 +40,18 @@ pred trueReachability{
 			else
 		(pf.from in (sn + States) and pf.to in CompositeStates)
 			implies (let cs = from.(StartNodes & nodesInThis[pf.to]).to |
-				((all s: cs | one tf: pf.derived | tf.from = pf.from and tf.to = s)
-				and (all tf: pf.derived | tf.from = pf.from and tf.to in cs)))
+				flattening[pf, cs])
 			else
 		// // It flattens flows from all states and the outermost start node to all states in regions, here end nodes are excluded, because coming to an end node means all end.
 		(pf.from in (sn + States) and pf.to in (Regions.contains & States))
 			implies (let cs = from.(nodesInOtherParallelRegions[(Regions <: contains).(pf.to)] & StartNodes).to |
-				((all s: cs | one tf: pf.derived | tf.from = pf.from and tf.to = s)
-				and (all tf: pf.derived | tf.from = pf.from and tf.to in cs)))
+				flattening[pf, cs])
 			else
 		// It seems that above 3 predicates can constrain nodes except special nodes.
 		// It flattens flows from all states and the outermost start node to fork nodes
 		(pf.from in (sn + States) and pf.to in ForkNodes)
 			implies (let cs = from.(pf.to).to + from.(nodesInOtherParallelRegions[(Regions <: contains).(from.(pf.to).to)] & StartNodes).to |
-				((all s: cs | one tf: pf.derived | tf.from = pf.from and tf.to = s)
-				and (all tf: pf.derived | tf.from = pf.from and tf.to in cs)))
+				flattening[pf, cs])
 			else
 		// It flattens flows from join nodes to all states and the outermost start node
 		(pf.from in States & Regions.contains and pf.to in JoinNodes)
@@ -60,14 +63,12 @@ pred trueReachability{
 		// When a history node is in a region and has no default flow (states + the outermost start state -> history nodes in regions and without a default flow)
 		(pf.from in (sn + States) and pf.to in HistoryNodes and no from.(pf.to) and pf.to in Regions.contains)
 			implies (let cs = from.(StartNodes & ((RegionsStates <: contains).contains.(pf.to)).contains.contains).to |
-				((all s: cs | one tf: pf.derived | tf.from = pf.from and tf.to = s)
-				and (all tf: pf.derived | tf.from = pf.from and tf.to in cs)))
+				flattening[pf, cs])
 			else
 		// When a history node is in a region and has a default flow (states + the outermost start state -> history nodes in regions and with a default flow)
 		(pf.from in (sn + States) and pf.to in HistoryNodes and one from.(pf.to) and pf.to in Regions.contains)
 			implies (let cs = (Flows <: from).(pf.to).to + from.(nodesInOtherParallelRegions[contains.(pf.to)]).to |
-				((all s: cs | one tf: pf.derived | tf.from = pf.from and tf.to = s)
-				and (all tf: pf.derived | tf.from = pf.from and tf.to in cs)))
+				flattening[pf, cs])
 			else
 		// When a history node is in a hierarchical state and has no default flow (states + the outermost start state -> history nodes in hierarchical states and without a default flow)
 		(pf.from in (sn + States) and pf.to in HistoryNodes and no from.(pf.to) and pf.to in HierarchicalStates.contains)

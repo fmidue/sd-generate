@@ -4,7 +4,7 @@ module components_sig // All signatures and some direct constraints in this modu
 sig ProtoFlows{
 	from: one (Nodes - EndNodes), // End nodes have no leaving transitions
 	to: one (Nodes - StartNodes), // Start nodes have no coming transitions
-	derived: disj set (ProtoFlows - Flows)
+	derived: set (ProtoFlows - Flows)
 }
 
 // Flows is corresponding to actual flows
@@ -81,17 +81,18 @@ abstract sig RegionsStates extends CompositeStates{
 abstract sig ForkNodes extends Nodes{}
 {
 	// It should be 1 to n(n > 1), n to n is not allowed
-	one (Flows <: to).this// Each fork node has only one entering arrow (from a start state or from elsewhere).
-	one t1: Triggers | not (lone (Flows <: from).this) and from.this.label = t1 // It constrains the number of leaving transition > 1 and leaving transitions from fork nodes should all have same conditions or no conditions
+	not (lone (Flows <: from).this) // leaving transitions from fork nodes should all have same conditions or no conditions
+	one (Flows <: to).this // It constrains the number of leaving transition > 1
+	one from.this.label // Each fork node has only one entering arrow (from a start state or from elsewhere).
 	disj [EndNodes, (Flows <: from).this.to] // No transitions between end states and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
 }
 
 abstract sig JoinNodes extends Nodes{}
 {
 	// It should be n(n >= 2) to 1, n to n is not allowed
+	one (Flows <: from).this // It constrains the number of leaving transition = 1
 	not (lone (Flows <: to).this) // Each join node has two or more entering arrows
 	one to.this.label // For join nodes, comming transitions should all have same conditions
-	one (Flows <: from).this // It constrains the number of leaving transition = 1
 	this not in (Flows <: from).this.to // No self-loop transition
 }
 
@@ -100,7 +101,7 @@ abstract sig HistoryNodes extends Nodes{}
 {
 	// History nodes are left by at most one unconditionally leaving transition
 	lone (Flows <: from).this // At most one leaving transition
-	no f: Flows | f.from = this and f.label = TriggerNames // The leaving transition of history shouldn't have conditions
+	from.this.label in TriggerNames // The leaving transition of history shouldn't have conditions
 	disj [(JoinNodes + this), (Flows <: from).this.to] // No self-loop transition and transitions between history nodes and join nodes
 }
 
