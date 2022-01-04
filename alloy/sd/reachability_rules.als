@@ -23,7 +23,6 @@ pred approximateReachability{
 // It implements true reachability
 pred trueReachability{
 	atLeastOneEntryToCompositeStates // It is a necessary condition for "true reachability"
-	no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and pf1.label = pf2.label// no duplicate flows
 	(ProtoFlows - Flows) in ProtoFlows.derived
 	// The following are predicates to implement "flattening".
 	// It flattens flows from composite states to normal states and end nodes
@@ -31,12 +30,12 @@ pred trueReachability{
 		(pf.from in CompositeStates and pf.to in (NormalStates + EndNodes))
 			implies (let cs = States & nodesInThis[pf.from] |
 				((all s: cs | one tf: pf.derived | tf.from = s and tf.to = pf.to)
-				and (all tf : pf.derived | tf.from in cs and tf.to = pf.to)))
+				and (all tf: pf.derived | tf.from in cs and tf.to = pf.to)))
 			else
 		(pf.from in (sn + States) and pf.to in CompositeStates)
 			implies (let cs = from.(StartNodes & nodesInThis[pf.to]).to |
 				((all s: cs | one tf: pf.derived | tf.from = pf.from and tf.to = s)
-				and (all tf : pf.derived | tf.from = pf.from and tf.to in cs)))
+				and (all tf: pf.derived | tf.from = pf.from and tf.to in cs)))
 			else
 		// // It flattens flows from all states and the outermost start node to all states in regions, here end nodes are excluded, because coming to an end node means all end.
 		(pf.from in (sn + States) and pf.to in (Regions.contains & States))
