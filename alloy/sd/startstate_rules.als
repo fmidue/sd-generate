@@ -7,7 +7,7 @@ open components_sig as components // import all signatures
 pred atMostOneStartNodesInLevels{
 	all r1: Regions | lone (StartNodes & r1.contains)  // In regions, there is at most one start state.
 	all h1: HierarchicalStates | lone (StartNodes & h1.contains) // In hierarchical states, there is at most one start state.
-	lone s1: StartNodes | s1 not in allContainedNodes // Outside all hierarchical states and regions, there is at most one start state
+	lone (StartNodes - allContainedNodes) // Outside all hierarchical states and regions, there is at most one start state
 }
 
 // Start states are only left by arrows pointing to something in their own compound state or deeper.

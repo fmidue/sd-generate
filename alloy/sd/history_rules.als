@@ -5,10 +5,10 @@ open components_sig as components // import all signatures
 
 // This predication is optional
 pred atMostOneDeepAndShallowHistoryNodes{
-	all r1: Regions | lone sh1: ShallowHistoryNodes | sh1 in r1.contains // In regions, there is at most one shallow history.
-	all h1: HierarchicalStates | lone sh1: ShallowHistoryNodes | sh1 in h1.contains // In composite states, there is at most one shallow history.
-	all r1: Regions | lone dh1: DeepHistoryNodes | dh1 in r1.contains // In regions, there is at most one deep history.
-	all h1: HierarchicalStates | lone dh1: DeepHistoryNodes | dh1 in h1.contains // In composite states, there is at most one deep history.
+	all r1: Regions | lone (ShallowHistoryNodes & r1.contains) // In regions, there is at most one shallow history.
+	all h1: HierarchicalStates | lone (ShallowHistoryNodes & h1.contains) // In composite states, there is at most one shallow history.
+	all r1: Regions | lone (DeepHistoryNodes & r1.contains) // In regions, there is at most one deep history.
+	all h1: HierarchicalStates | lone (DeepHistoryNodes & h1.contains) // In composite states, there is at most one deep history.
 }
 
 fact{
@@ -16,16 +16,16 @@ fact{
 	all hs1: HierarchicalStates, h1: HistoryNodes & hs1.contains |
 		let n1 = nodesInThisAndDeeper[hs1] |
 		{
-			no (Flows <: from).h1 or (Flows <: from).h1.to in n1 // A history should be directed to a same or a deeper level
+			(Flows <: from).h1.to in n1 // A history should be directed to a same or a deeper level
 			some (hs1.contains & (NormalStates + CompositeStates)) // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
-			h1 not in (Flows <: from).(n1 - (StartNodes & hs1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own composite states excluding start states
+			h1 not in (Flows <: from).(n1 - (StartNodes & hs1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own composite states excluding start nodes
 		}
 	all r1: Regions, h1: HistoryNodes & r1.contains |
 		let n1 = nodesInThisAndDeeper[r1] |
 		{
-			no (Flows <: from).h1 or (Flows <: from).h1.to in n1 // A history should be directed to a same or a deeper level
+			(Flows <: from).h1.to in n1 // A history should be directed to a same or a deeper level
 			some (r1.contains & (NormalStates + CompositeStates)) // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
-			h1 not in (Flows <: from).(n1 - (StartNodes & r1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own regions excluding start states
+			h1 not in (Flows <: from).(n1 - (StartNodes & r1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own regions excluding start nodes
 		}
 
 	HistoryNodes in allContainedNodes // No history nodes are at the outermost level of a state diagram
