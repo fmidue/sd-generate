@@ -5,16 +5,16 @@ open components_sig as components // import all signatures
 
 // If two (or more) arrows leave the same such fork node, they must go to distinct parallel regions.
 pred forkNodesGoToDistinctParalleRegions{
-	all f1: ForkNodes | one r1: RegionsStates | (Flows <: from).f1.to in r1.contains.contains
-	all f1: ForkNodes, r1: Regions, disj n1, n2: r1.contains |
-		n1 in (Flows <: from).f1.to implies n2 not in (Flows <: from).f1.to
+	all fn : ForkNodes | one rs : RegionsStates | (Flows <: from).fn.to in nodesInThisAndDeeper[rs]
+		and no r : rs.contains, disj f1, f2 : (Flows <: from).fn |
+			(f1 + f2).to in nodesInThisAndDeeper[r]
 }
 
 // If two (or more) arrows enter the same such join node, they must come from distinct parallel regions.
 pred joinNodesComeFromDistinctParalleRegions{
-	all j1: JoinNodes | one r1: RegionsStates | j1 in (Flows <: from).(r1.contains.contains).to
-	all j1: JoinNodes, r1: Regions, disj n1, n2: r1.contains |
-		j1 in (Flows <: from).n1.to implies j1 not in (Flows <: from).n2.to
+	all jn: JoinNodes | one rs: RegionsStates | (Flows <: to).jn.from in nodesInThisAndDeeper[rs]
+		and no r : rs.contains, disj f1, f2 : (Flows <: to).jn |
+			(f1 + f2).from in nodesInThisAndDeeper[r]
 }
 
 fact{
