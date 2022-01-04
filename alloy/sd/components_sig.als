@@ -1,6 +1,6 @@
 module components_sig // All signatures and some direct constraints in this module
 
-// ProtoFlows includes actual flows and translated flows 
+// ProtoFlows includes actual flows and translated flows
 sig ProtoFlows{
 	from: one (Nodes - EndNodes), // End nodes have no leaving transitions
 	to: one (Nodes - StartNodes), // Start nodes have no coming transitions
@@ -48,7 +48,7 @@ abstract sig StartNodes extends Nodes{
 abstract sig EndNodes extends Nodes{}
 
 abstract sig NormalStates extends States{}
-	
+
 abstract sig Regions{
 	name: lone ComponentNames, // Regions have at most one name
 	contains: disj some Nodes
@@ -58,7 +58,7 @@ abstract sig Regions{
 	contains in (StartNodes + EndNodes) implies no (Flows <: from).(RegionsStates <: contains).this // If a region has only a start state or a end state, a leaving transition is superfluous for its regions state
 }
 
-// Composite states: HierarchicalState + RegionsState 
+// Composite states: HierarchicalState + RegionsState
 abstract sig CompositeStates extends States{}
 
 // HierarchicalState: Composite states without regions
@@ -83,7 +83,7 @@ abstract sig ForkNodes extends Nodes{}
 	// It should be 1 to n(n > 1), n to n is not allowed
 	one (Flows <: to).this// Each fork node has only one entering arrow (from a start state or from elsewhere).
 	one t1: Triggers | not (lone (Flows <: from).this) and from.this.label = t1 // It constrains the number of leaving transition > 1 and leaving transitions from fork nodes should all have same conditions or no conditions
-	disj [EndNodes, (Flows <: from).this.to] // No transitions between end states and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg") 
+	disj [EndNodes, (Flows <: from).this.to] // No transitions between end states and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
 }
 
 abstract sig JoinNodes extends Nodes{}
@@ -126,7 +126,7 @@ fun nodesInThisAndDeeper[r1: Regions] : set Nodes {
 
 // It gets all regions in same and deeper levels of a composite state
 fun regionsInThisAndDeeper[h1: HierarchicalStates]: set Regions{
-	h1.^(HierarchicalStates <: contains).(RegionsStates <: contains).*((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains)) 
+	h1.^(HierarchicalStates <: contains).(RegionsStates <: contains).*((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains))
 }
 
 // It gets all regions in same and deeper levels of a region

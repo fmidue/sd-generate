@@ -58,7 +58,7 @@ fact{
 	N3.name = Name3
 	N4.name = Name1
 	N5.name = Name2
-	
+
 	R1.name = Name4
 	R2.name = Name5
 	R3.name = Name6
@@ -72,18 +72,18 @@ fact{
 	R3.contains = N1 + N2
 	R4.contains = N4
 
-	Flows = Flow1 + Flow2 + Flow3 + Flow4 
-		+ Flow5 + Flow6 + Flow7 + Flow8 
+	Flows = Flow1 + Flow2 + Flow3 + Flow4
+		+ Flow5 + Flow6 + Flow7 + Flow8
 		+Flow9 + Flow10 + Flow11 + Flow12
-	
+
 	Flow1.from = S1
 	Flow1.label = EmptyTrigger
 	Flow1.to = F1
-	
+
 	Flow2.from = F1
 	Flow2.label = EmptyTrigger
 	Flow2.to = F2
-	
+
 	Flow3.from = F1
 	Flow3.label = EmptyTrigger
 	Flow3.to = N3
@@ -99,19 +99,19 @@ fact{
 	Flow6.from = N1
 	Flow6.label = T1
 	Flow6.to = N2
-	
+
 	Flow7.from = N2
 	Flow7.label = T2
 	Flow7.to = J1
 
 	Flow8.from = N3
 	Flow8.label = T1
-	Flow8.to = N5 
-	
+	Flow8.to = N5
+
 	Flow9.from = N4
 	Flow9.label = T2
 	Flow9.to = J1
-	
+
 	Flow10.from = N5
 	Flow10.label = EmptyTrigger
 	Flow10.to = J2
@@ -119,7 +119,7 @@ fact{
 	Flow11.from = J1
 	Flow11.label = EmptyTrigger
 	Flow11.to = J2
-	
+
 	Flow12.from = J2
 	Flow12.label = EmptyTrigger
 	Flow12.to = E1
