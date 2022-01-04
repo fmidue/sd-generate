@@ -1,5 +1,5 @@
 // About start states
-module startstate_rules // Most constraints of start states, but some constraints are directly with the signature 
+module startstate_rules // Most constraints of start states, but some constraints are directly with the signature
 
 open components_sig as components // import all signatures
 
@@ -12,13 +12,13 @@ pred atMostOneStartNodesInLevels{
 
 // Start states are only left by arrows pointing to something in their own compound state or deeper.
 pred startNodesArrowsPointToSameOrDeeperLevels{
-	all h1: HierarchicalStates, s1: StartNodes & h1.contains | 
+	all h1: HierarchicalStates, s1: StartNodes & h1.contains |
 		(Flows <: from).s1.to in nodesInThisAndDeeper[h1] // When start states in hierarchical states
-	all r1:Regions, s1: StartNodes & r1.contains | 
-		(Flows <: from).s1.to in nodesInThisAndDeeper[r1] // When start states in regions	
+	all r1:Regions, s1: StartNodes & r1.contains |
+		(Flows <: from).s1.to in nodesInThisAndDeeper[r1] // When start states in regions
 }
 
-fact{	
+fact{
 	atMostOneStartNodesInLevels
-	startNodesArrowsPointToSameOrDeeperLevels		
+	startNodesArrowsPointToSameOrDeeperLevels
 }

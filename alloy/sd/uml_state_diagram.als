@@ -19,7 +19,7 @@ pred acyclicContain{
 // Other rules
 fact{
 	acyclicContain
-	disj[Regions.contains, HierarchicalStates.contains] // No same nodes are contained by different objects	
+	disj[Regions.contains, HierarchicalStates.contains] // No same nodes are contained by different objects
 }
 
 

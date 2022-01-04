@@ -1,5 +1,5 @@
 // About end states
-module endstate_rules // Most constraints of end states, but some constraints are directly with the signature 
+module endstate_rules // Most constraints of end states, but some constraints are directly with the signature
 
 open components_sig as components // import all signatures
 

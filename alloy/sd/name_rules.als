@@ -1,5 +1,5 @@
 // About names of states (and of regions etc.)
-module name_rules // Most constraints of names, but some constraints are directly with the signatures 
+module name_rules // Most constraints of names, but some constraints are directly with the signatures
 
 open components_sig as components // import all signatures
 
