@@ -42,7 +42,6 @@ abstract sig StartNodes extends Nodes{
 	// Start nodes are left by one unconditionally transition
 	one (Flows <: from).this // Start nodes have only one leaving transition
 	from.this.label = EmptyTrigger // Start states are not left by an arrow with non-empty transition label
-	(Flows <: from).this.to not in JoinNodes // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)
 }
 
 abstract sig EndNodes extends Nodes{}
@@ -93,7 +92,7 @@ abstract sig JoinNodes extends Nodes{}
 	one (Flows <: from).this // It constrains the number of leaving transition = 1
 	not (lone (Flows <: to).this) // Each join node has two or more entering arrows
 	one to.this.label // For join nodes, comming transitions should all have same conditions
-	this not in (Flows <: from).this.to // No self-loop transition
+	disj[StartNodes, (Flows <: to).this.from] // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg“)
 }
 
 // A specail node HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes
@@ -101,7 +100,7 @@ abstract sig HistoryNodes extends Nodes{}
 {
 	// History nodes are left by at most one unconditionally leaving transition
 	lone (Flows <: from).this // At most one leaving transition
-	from.this.label in TriggerNames // The leaving transition of history shouldn't have conditions
+	from.this.label in EmptyTrigger // The leaving transition of history shouldn't have conditions
 	disj [(JoinNodes + this), (Flows <: from).this.to] // No self-loop transition and transitions between history nodes and join nodes
 }
 
@@ -141,4 +140,9 @@ fun allContainedNodes[]: set Nodes{HierarchicalStates.contains + Regions.contain
 // It gets all nodes in other parallel regions
 fun nodesInOtherParallelRegions[rs: set Regions]: set Nodes{
 	((contains.rs).(RegionsStates <: contains) - rs).contains
+}
+
+fact{
+	(ProtoFlows - Flows) in ProtoFlows.derived
+	no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and pf1.label = pf2.label// no duplicate flows
 }
