@@ -52,77 +52,77 @@ one sig Name7 extends ComponentNames{}
 one sig E1 extends EndNodes{}
 
 fact{
-	no HistoryNodes
-	N1.name = Name1
-	N2.name = Name2
-	N3.name = Name3
-	N4.name = Name1
-	N5.name = Name2
+        no HistoryNodes
+        N1.name = Name1
+        N2.name = Name2
+        N3.name = Name3
+        N4.name = Name1
+        N5.name = Name2
 
-	R1.name = Name4
-	R2.name = Name5
-	R3.name = Name6
-	R4.name = Name7
+        R1.name = Name4
+        R2.name = Name5
+        R3.name = Name6
+        R4.name = Name7
 
-	C1.contains = R1 + R2
-	C2.contains = R3 + R4
+        C1.contains = R1 + R2
+        C2.contains = R3 + R4
 
-	R1.contains = C2 + F2 + J1
-	R2.contains = N3 + N5
-	R3.contains = N1 + N2
-	R4.contains = N4
+        R1.contains = C2 + F2 + J1
+        R2.contains = N3 + N5
+        R3.contains = N1 + N2
+        R4.contains = N4
 
-	Flows = Flow1 + Flow2 + Flow3 + Flow4
-		+ Flow5 + Flow6 + Flow7 + Flow8
-		+Flow9 + Flow10 + Flow11 + Flow12
+        Flows = Flow1 + Flow2 + Flow3 + Flow4
+                + Flow5 + Flow6 + Flow7 + Flow8
+                +Flow9 + Flow10 + Flow11 + Flow12
 
-	Flow1.from = S1
-	Flow1.label = EmptyTrigger
-	Flow1.to = F1
+        Flow1.from = S1
+        Flow1.label = EmptyTrigger
+        Flow1.to = F1
 
-	Flow2.from = F1
-	Flow2.label = EmptyTrigger
-	Flow2.to = F2
+        Flow2.from = F1
+        Flow2.label = EmptyTrigger
+        Flow2.to = F2
 
-	Flow3.from = F1
-	Flow3.label = EmptyTrigger
-	Flow3.to = N3
+        Flow3.from = F1
+        Flow3.label = EmptyTrigger
+        Flow3.to = N3
 
-	Flow4.from = F2
-	Flow4.label = EmptyTrigger
-	Flow4.to = N1
+        Flow4.from = F2
+        Flow4.label = EmptyTrigger
+        Flow4.to = N1
 
-	Flow5.from = F2
-	Flow5.label = EmptyTrigger
-	Flow5.to = N4
+        Flow5.from = F2
+        Flow5.label = EmptyTrigger
+        Flow5.to = N4
 
-	Flow6.from = N1
-	Flow6.label = T1
-	Flow6.to = N2
+        Flow6.from = N1
+        Flow6.label = T1
+        Flow6.to = N2
 
-	Flow7.from = N2
-	Flow7.label = T2
-	Flow7.to = J1
+        Flow7.from = N2
+        Flow7.label = T2
+        Flow7.to = J1
 
-	Flow8.from = N3
-	Flow8.label = T1
-	Flow8.to = N5
+        Flow8.from = N3
+        Flow8.label = T1
+        Flow8.to = N5
 
-	Flow9.from = N4
-	Flow9.label = T2
-	Flow9.to = J1
+        Flow9.from = N4
+        Flow9.label = T2
+        Flow9.to = J1
 
-	Flow10.from = N5
-	Flow10.label = EmptyTrigger
-	Flow10.to = J2
+        Flow10.from = N5
+        Flow10.label = EmptyTrigger
+        Flow10.to = J2
 
-	Flow11.from = J1
-	Flow11.label = EmptyTrigger
-	Flow11.to = J2
+        Flow11.from = J1
+        Flow11.label = EmptyTrigger
+        Flow11.to = J2
 
-	Flow12.from = J2
-	Flow12.label = EmptyTrigger
-	Flow12.to = E1
+        Flow12.from = J2
+        Flow12.label = EmptyTrigger
+        Flow12.to = E1
 }
 
 run {} for 12 but 21 ProtoFlows

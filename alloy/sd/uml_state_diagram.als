@@ -13,13 +13,13 @@ open name_rules // import constraints of names
 
 // A composite state can't appear in in deeper level of itself
 pred acyclicContain{
-	all c1: CompositeStates | c1 not in nodesInThisAndDeeper[c1] // A composite state can't appear in deeper level of itself
+        all c1: CompositeStates | c1 not in nodesInThisAndDeeper[c1] // A composite state can't appear in deeper level of itself
 }
 
 // Other rules
 fact{
-	acyclicContain
-	disj[Regions.contains, HierarchicalStates.contains] // No same nodes are contained by different objects
+        acyclicContain
+        disj[Regions.contains, HierarchicalStates.contains] // No same nodes are contained by different objects
 }
 
 
