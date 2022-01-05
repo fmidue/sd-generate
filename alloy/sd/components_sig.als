@@ -12,6 +12,11 @@ sig Flows extends ProtoFlows{
         label: one Triggers
 }
 
+fact{
+        (ProtoFlows - Flows) in ProtoFlows.derived // No independent derived flows
+        no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and pf1.label = pf2.label// no duplicate flows
+}
+
 // All componets are a node, this is a super class
 abstract sig Nodes{}
 
@@ -80,10 +85,10 @@ abstract sig RegionsStates extends CompositeStates{
 abstract sig ForkNodes extends Nodes{}
 {
         // It should be 1 to n(n > 1), n to n is not allowed
-        not (lone (Flows <: from).this) // leaving transitions from fork nodes should all have same conditions or no conditions
-        one (Flows <: to).this // It constrains the number of leaving transition > 1
-        one from.this.label // Each fork node has only one entering arrow (from a start state or from elsewhere).
-        disj [EndNodes, (Flows <: from).this.to] // No transitions between end states and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
+        not (lone (Flows <: from).this)  // Each fork node has two or more leaving arrows
+        one (Flows <: to).this // It constrains the number of coming transition = 1
+        one from.this.label // For fork nodes, leaving transitions should all have same conditions
+        disj [EndNodes, (Flows <: from).this.to] // No transitions between end nodes and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
 }
 
 abstract sig JoinNodes extends Nodes{}
@@ -92,7 +97,7 @@ abstract sig JoinNodes extends Nodes{}
         one (Flows <: from).this // It constrains the number of leaving transition = 1
         not (lone (Flows <: to).this) // Each join node has two or more entering arrows
         one to.this.label // For join nodes, comming transitions should all have same conditions
-        disj[StartNodes, (Flows <: to).this.from] // No transitions between start states and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg")
+        disj[StartNodes + HistoryNodes, (Flows <: to).this.from] // No transitions between start/history nodes and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg")
 }
 
 // A specail node HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes
@@ -101,7 +106,7 @@ abstract sig HistoryNodes extends Nodes{}
         // History nodes are left by at most one unconditionally leaving transition
         lone (Flows <: from).this // At most one leaving transition
         from.this.label in EmptyTrigger // The leaving transition of history shouldn't have conditions
-        disj [(JoinNodes + this), (Flows <: from).this.to] // No self-loop transition and transitions between history nodes and join nodes
+        this not in (Flows <: from).this.to // No self-loop transition
 }
 
 abstract sig ShallowHistoryNodes extends HistoryNodes{}
@@ -110,13 +115,13 @@ abstract sig DeepHistoryNodes extends HistoryNodes{}
 
 // It gets contained nodes in a direct level of composite states
 fun nodesInThis[c1: CompositeStates] : set Nodes {
-    c1.(HierarchicalStates <: contains) + c1.(RegionsStates <: contains).(Regions <: contains)
+        c1.(HierarchicalStates <: contains) + c1.(RegionsStates <: contains).(Regions <: contains)
 }
 
 // It gets all nodes in same and deeper levels of a composite state
 fun nodesInThisAndDeeper[c1: CompositeStates] : set Nodes {
-    c1.^(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
- + c1.^((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
+        c1.^(HierarchicalStates <: contains).*((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
+        + c1.^((RegionsStates <: contains).(Regions <: contains).*(HierarchicalStates <: contains))
 }
 
 // It gets all nodes in same and deeper levels of a region
@@ -140,9 +145,4 @@ fun allContainedNodes[]: set Nodes{HierarchicalStates.contains + Regions.contain
 // It gets all nodes in other parallel regions
 fun nodesInOtherParallelRegions[rs: set Regions]: set Nodes{
         ((contains.rs).(RegionsStates <: contains) - rs).contains
-}
-
-fact{
-        (ProtoFlows - Flows) in ProtoFlows.derived
-        no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and pf1.label = pf2.label// no duplicate flows
 }

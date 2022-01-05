@@ -18,7 +18,7 @@ pred joinNodesComeFromDistinctParalleRegions{
 }
 
 fact{
-        all n1: (ForkNodes + JoinNodes) & (Flows <: from).StartNodes.to |
+        all n1: ForkNodes & (Flows <: from).StartNodes.to |
                 from.n1.label = EmptyTrigger // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
         all n1: (ForkNodes + JoinNodes) |
                 to.n1.label = EmptyTrigger or from.n1.label = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
