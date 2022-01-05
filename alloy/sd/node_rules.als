@@ -18,8 +18,10 @@ pred joinNodesComeFromDistinctParalleRegions{
 }
 
 fact{
+        disj [EndNodes, (Flows <: from).ForkNodes.to] // No transitions between end nodes and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
+        disj[StartNodes + HistoryNodes, (Flows <: to).JoinNodes.from] // No transitions between start/history nodes and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg")
         all n1: ForkNodes & (Flows <: from).StartNodes.to |
-                from.n1.label = EmptyTrigger // If such a node(frok and join) is reached from a start state, it is not left by an arrow with non-empty transition label.
+                from.n1.label = EmptyTrigger // If a fork node is reached from a start state, it is not left by an arrow with non-empty transition label.
         all n1: (ForkNodes + JoinNodes) |
                 to.n1.label = EmptyTrigger or from.n1.label = EmptyTrigger // No such node is both entered and left by arrows with non-empty transition label.
         forkNodesGoToDistinctParalleRegions

@@ -9,7 +9,7 @@ pred approximateReachability{
         no derived
         // Each normal/fork/join/history/end state has at least one incoming arrow (from a start state or somewhere else)
         all n1: (Nodes - StartNodes - CompositeStates) | n1 in (Flows <: from).(Nodes - n1).to
-        one s1: StartNodes | s1 not in allContainedNodes // Outside all hierarchical states and regions, there is exactly one start state
+        one (StartNodes - allContainedNodes) // Outside all hierarchical states and regions, there is exactly one start state
         atLeastOneEntryToCompositeStates
 }
 
