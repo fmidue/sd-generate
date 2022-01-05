@@ -4,6 +4,14 @@ module reachability_rules // Most constraints of reachability, but some constrai
 open components_sig as components // import all signatures
 open trueReachability_v2 as trueReachability // import "trueReachability"
 
+// Each composite state has at least one entry, except something like "box", in which all events happen, but it also has a default standard entry from the outermost start node which can be set invisible
+pred atLeastOneEntryToCompositeStates{
+        all c1: CompositeStates |
+                let n1 = nodesInThisAndDeeper[c1], n2 = Nodes - c1 - n1 |
+                        c1 in (Flows <: from).n2.to // Standard entry
+                        or some (n1 & (Flows <: from).n2.to) // Direct, history or fork entry
+}
+
 // It implements only approximate reachability
 pred approximateReachability{
         no derived
@@ -25,6 +33,16 @@ pred setStartNodesFlag{
                 h2.contains = s1 + EndNodes
                 (Flows <: from).s1.to = (EndNodes & h2.contains)
         }) implies s1.flag = 1 else s1.flag = 0
+}
+
+
+pred trueReachability{
+        atLeastOneEntryToCompositeStates // It is a necessary condition for "true reachability"
+
+        theFlatteningStrategy
+
+        (Nodes - StartNodes - CompositeStates) in
+                (Nodes - StartNodes - CompositeStates).^(~from.to + ~to.from) // Starting from a random nodes except start nodes and composite states, all nodes except start nodes and composite states can be reachable
 }
 
 fact{
