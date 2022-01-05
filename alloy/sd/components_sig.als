@@ -88,7 +88,6 @@ abstract sig ForkNodes extends Nodes{}
         not (lone (Flows <: from).this)  // Each fork node has two or more leaving arrows
         one (Flows <: to).this // It constrains the number of coming transition = 1
         one from.this.label // For fork nodes, leaving transitions should all have same conditions
-        disj [EndNodes, (Flows <: from).this.to] // No transitions between end nodes and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
 }
 
 abstract sig JoinNodes extends Nodes{}
@@ -97,7 +96,6 @@ abstract sig JoinNodes extends Nodes{}
         one (Flows <: from).this // It constrains the number of leaving transition = 1
         not (lone (Flows <: to).this) // Each join node has two or more entering arrows
         one to.this.label // For join nodes, comming transitions should all have same conditions
-        disj[StartNodes + HistoryNodes, (Flows <: to).this.from] // No transitions between start/history nodes and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg")
 }
 
 // A specail node HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes
