@@ -3,14 +3,6 @@ module trueReachabilit_v1 // A part of reachability
 
 open components_sig as components // import all signatures
 
-// Each composite state has at least one entry, except something like "box", in which all events happen, but it also has a default standard entry from the outermost start node which can be set invisible
-pred atLeastOneEntryToCompositeStates{
-        all c1: CompositeStates |
-                let n1 = nodesInThisAndDeeper[c1], n2 = Nodes - c1 - n1 |
-                        c1 in (Flows <: from).n2.to // Standard entry
-                        or some (n1 & (Flows <: from).n2.to) // Direct, history or fork entry
-}
-
 // Specialized flattening strategies
 pred flattening[pf : ProtoFlows, ns : set Nodes]{
         all n : ns | one tf: pf.derived | tf.from = pf.from and tf.to = n
@@ -23,8 +15,7 @@ pred flattening[pf : ProtoFlows, ns1 : set Nodes, ns2: Nodes]{
 }
 
 // It implements true reachability
-pred trueReachability{
-        atLeastOneEntryToCompositeStates // It is a necessary condition for "true reachability"
+pred theFlatteningStrategy{
         // The following are predicates to implement "flattening".
         // It flattens flows from composite states to normal states and end nodes
         all pf: ProtoFlows |
@@ -73,7 +64,4 @@ pred trueReachability{
                         implies (let cs = from.(pf.to).to |
                                 flattening[pf, cs])
                         else no pf.derived
-
-        (Nodes - StartNodes - CompositeStates) in
-                (Nodes - StartNodes - CompositeStates).^(~from.to + ~to.from) // Starting from a random nodes except start nodes and composite states, all nodes except start nodes and composite states can be reachable
 }
