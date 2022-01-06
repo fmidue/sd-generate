@@ -4,7 +4,7 @@ module components_sig // All signatures and some direct constraints in this modu
 sig ProtoFlows{
         from: one (Nodes - EndNodes), // End nodes have no leaving transitions
         to: one (Nodes - StartNodes), // Start nodes have no coming transitions
-        derived: set (ProtoFlows - Flows)
+        derived: set ProtoFlows
 }
 
 // Flows is corresponding to actual flows
@@ -14,7 +14,7 @@ sig Flows extends ProtoFlows{
 
 fact{
         (ProtoFlows - Flows) in ProtoFlows.derived // No independent derived flows
-        no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and pf1.label = pf2.label// no duplicate flows
+        no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and lone (pf1.label + pf2.label) // no duplicate flows
 }
 
 // All componets are a node, this is a super class
