@@ -22,5 +22,4 @@ fact{
         disj[Regions.contains, HierarchicalStates.contains] // No same nodes are contained by different objects
 }
 
-
 run {} for 6 but exactly 2 HierarchicalStates, exactly 1 EndNodes

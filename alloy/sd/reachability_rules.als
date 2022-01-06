@@ -2,7 +2,7 @@
 module reachability_rules // Most constraints of reachability, but some constraints are directly with the signatures
 
 open components_sig as components // import all signatures
-open trueReachability_v2 as trueReachability // import "trueReachability"
+open trueReachability_v1 as trueReachability // import "trueReachability"
 
 // Each composite state has at least one entry, except something like "box", in which all events happen, but it also has a default standard entry from the outermost start node which can be set invisible
 pred atLeastOneEntryToCompositeStates{
@@ -42,7 +42,7 @@ pred trueReachability{
         theFlatteningStrategy
 
         (Nodes - StartNodes - CompositeStates) in
-                (Nodes - StartNodes - CompositeStates).^(~from.to + ~to.from) // Starting from a random nodes except start nodes and composite states, all nodes except start nodes and composite states can be reachable
+                (StartNodes - allContainedNodes).^(~from.to) // Starting from a outermost satrt node except start nodes and composite states, all nodes except start nodes and composite states can be reachable
 }
 
 fact{
