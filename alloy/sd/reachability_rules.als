@@ -2,7 +2,7 @@
 module reachability_rules // Most constraints of reachability, but some constraints are directly with the signatures
 
 open components_sig as components // import all signatures
-open trueReachability_v1 as trueReachability // import "trueReachability"
+open trueReachability // import "trueReachability"
 
 // Each composite state has at least one entry, except something like "box", in which all events happen, but it also has a default standard entry from the outermost start node which can be set invisible
 pred atLeastOneEntryToCompositeStates{
