@@ -5,13 +5,13 @@ open components_sig as components // import all signatures
 
 // Specialized flattening strategies
 pred flatteningRight[fn : Nodes - EndNodes, ds : set ProtoFlows, ts : set (Nodes - StartNodes)]{
-        all tn : ts | one tf : ds | tf.from = fn and tf.to = tn
-        all tf : ds | tf.from = fn and tf.to in ts
+        // (Flows & from.fn & to.ts) in ds
+        ds.from = fn and ds.to = ts
 }
 
 pred flatteningLeft[fs : set (Nodes - EndNodes), ds : set ProtoFlows, tn : Nodes - StartNodes]{
-        all fn : fs | one tf : ds | tf.from = fn and tf.to = tn
-        all tf : ds | tf.from in fs and tf.to = tn
+        // (Flows & from.fs & to.tn) in ds
+        ds.from = fs and ds.to = tn
 }
 
 // It implements true reachability
