@@ -16,7 +16,7 @@ pred theFlatteningStrategy{
                 (pf.from in (sn + States) and pf.to in CompositeStates)
                         implies
                                 pf.derived.from = pf.from
-                                and pf.derived.to = from.(StartNodes & (pf.to).contains).to
+                                and pf.derived.to = from.(StartNodes & nodesInThis[pf.to]).to
                         else
                 // // It flattens flows from all states and the outermost start node to all states in regions, here end nodes are excluded, because coming to an end node means all end.
                 (pf.from in (sn + States - nodesInThisAndDeeper[(Regions <: contains).(pf.to)]) and pf.to in (Regions.contains & States) and pf not in to.(HistoryNodes + ForkNodes).derived)
