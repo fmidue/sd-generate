@@ -95,20 +95,19 @@ data StateDiagram a =
                  startState :: [Int]
                }
   | CombineDiagram { substate :: [StateDiagram a],
-                   label :: Int
-                 }
-  | EndState {
-      label :: Int
-    }
+                     label :: Int
+                   }
+  | EndState { label :: Int
+             }
   | Joint { label :: Int
-        }
-  | History { label :: Int,
-            historyType :: HistoryType
           }
+  | History { label :: Int,
+              historyType :: HistoryType
+            }
   | InnerMostState { label :: Int,
-                   name :: String,
-                   operations :: String
-                 }
+                     name :: String,
+                     operations :: String
+                   }
 
 picture2 :: UMLStateDiagram
 picture2 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2, 1, 1] "", Connection [1] [2, 2, 1] "", -- default outermost level, F1$0 -> a, C1$0 -> b, J2$0 -> c, E1$0 ->d
