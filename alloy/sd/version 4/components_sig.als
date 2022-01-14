@@ -98,7 +98,7 @@ abstract sig JoinNodes extends Nodes{}
         one to.this.label // For join nodes, comming transitions should all have same conditions
 }
 
-// A specail node HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes
+// HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes
 abstract sig HistoryNodes extends Nodes{}
 {
         // History nodes are left by at most one unconditionally leaving transition
@@ -111,7 +111,7 @@ abstract sig ShallowHistoryNodes extends HistoryNodes{}
 
 abstract sig DeepHistoryNodes extends HistoryNodes{}
 
-// It gets contained nodes in a direct level of composite states
+// It gets all nodes contained by a composite state.
 fun nodesInThis[c1: CompositeStates] : set Nodes {
         c1.(HierarchicalStates <: contains) + c1.(RegionsStates <: contains).(Regions <: contains)
 }
@@ -137,10 +137,10 @@ fun regionsInThisAndDeeper[r1: Regions]: set Regions{
         r1.^((Regions <: contains).*(HierarchicalStates <: contains).(RegionsStates <: contains))
 }
 
-// Get a set of all nodes inside composite states
+// It gets all contained nodes, namely nodes inside composite states
 fun allContainedNodes[]: set Nodes{HierarchicalStates.contains + Regions.contains}
 
-// It gets all nodes in other parallel regions
+// It gets all nodes contained by other parallel regions
 fun nodesInOtherParallelRegions[rs: set Regions]: set Nodes{
         ((contains.rs).(RegionsStates <: contains) - rs).contains
 }
