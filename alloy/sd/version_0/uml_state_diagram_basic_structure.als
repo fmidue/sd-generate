@@ -1,3 +1,9 @@
+module uml_diagram_basic_structure
+/*
+  It implememnts a basic structure, only some constraints about the relation "contains", 
+  namely no cyclic containing. Other further constraints will be added progressively.
+*/
+
 // All componets are a node, this is a super class
 abstract sig Nodes{}
 
@@ -38,6 +44,7 @@ fun nodesInThisAndDeeper[c1: CompositeStates] : set Nodes {
 // A composite state can't appear in in deeper level of itself
 pred acyclicContain{
         all c1: CompositeStates | c1 not in nodesInThisAndDeeper[c1]
+}
 
 fact{
         acyclicContain
