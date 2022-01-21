@@ -1,20 +1,10 @@
 module components_sig // All signatures and some direct constraints in this module
 
-// ProtoFlows includes actual flows and translated flows
-sig ProtoFlows{
+// Flows is corresponding to actual flows
+sig Flows{
         from: one (Nodes - EndNodes), // End nodes have no leaving transitions
         to: one (Nodes - StartNodes), // Start nodes have no coming transitions
-        derived: set ProtoFlows
-}
-
-// Flows is corresponding to actual flows
-sig Flows extends ProtoFlows{
         label: one Triggers
-}
-
-fact{
-        (ProtoFlows - Flows) in ProtoFlows.derived // No independent derived flows
-        no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and lone (pf1.label + pf2.label) // no duplicate flows
 }
 
 // All componets are a node, this is a super class
@@ -42,7 +32,7 @@ abstract sig States extends Nodes{
 abstract sig StartNodes extends Nodes{}
 {
         // Start nodes are left by one unconditionally transition
-        one (Flows <: from).this // Start nodes have only one leaving transition
+        one from.this // Start nodes have only one leaving transition
         from.this.label = EmptyTrigger // Start states are not left by an arrow with non-empty transition label
 }
 
@@ -78,16 +68,16 @@ abstract sig RegionsStates extends CompositeStates{
 abstract sig ForkNodes extends Nodes{}
 {
         // It should be 1 to n(n > 1), n to n is not allowed
-        not (lone (Flows <: from).this)  // Each fork node has two or more leaving arrows
-        one (Flows <: to).this // It constrains the number of coming transition = 1
+        not (lone from.this)  // Each fork node has two or more leaving arrows
+        one to.this // It constrains the number of coming transition = 1
         one from.this.label // For fork nodes, leaving transitions should all have same conditions
 }
 
 abstract sig JoinNodes extends Nodes{}
 {
         // It should be n(n >= 2) to 1, n to n is not allowed
-        one (Flows <: from).this // It constrains the number of leaving transition = 1
-        not (lone (Flows <: to).this) // Each join node has two or more entering arrows
+        one from.this // It constrains the number of leaving transition = 1
+        not (lone to.this) // Each join node has two or more entering arrows
         one to.this.label // For join nodes, comming transitions should all have same conditions
 }
 
@@ -95,9 +85,9 @@ abstract sig JoinNodes extends Nodes{}
 abstract sig HistoryNodes extends Nodes{}
 {
         // History nodes are left by at most one unconditionally leaving transition
-        lone (Flows <: from).this // At most one leaving transition
+        lone from.this // At most one leaving transition
         from.this.label in EmptyTrigger // The leaving transition of history shouldn't have conditions
-        this not in (Flows <: from).this.to // No self-loop transition
+        this not in from.this.to // No self-loop transition
 }
 
 abstract sig ShallowHistoryNodes extends HistoryNodes{}
