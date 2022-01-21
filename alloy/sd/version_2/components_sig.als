@@ -78,7 +78,7 @@ abstract sig JoinNodes extends Nodes{}
         // It should be n(n >= 2) to 1, n to n is not allowed
         one from.this // It constrains the number of leaving transition = 1
         not (lone to.this) // Each join node has two or more entering arrows
-        one to.this.label // For join nodes, comming transitions should all have same conditions
+        one to.this.label // For join nodes, coming transitions should all have same conditions
 }
 
 // HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes
