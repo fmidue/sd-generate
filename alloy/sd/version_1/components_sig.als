@@ -13,7 +13,19 @@ abstract sig States extends Nodes{
         name: lone ComponentNames
 }
 
+abstract sig StartNodes extends Nodes{}
+
+abstract sig EndNodes extends Nodes{}
+
 abstract sig NormalStates extends States{}
+
+abstract sig Regions{
+        name: lone ComponentNames, // Regions have at most one name
+        contains: disj some Nodes
+}
+{
+        this in RegionsStates.contains // No regions exist independtly
+}
 
 // Composite states: HierarchicalState + RegionsState
 abstract sig CompositeStates extends States{}
@@ -32,21 +44,15 @@ abstract sig RegionsStates extends CompositeStates{
         not (one contains) // There can't be only one region in Region states
 }
 
-abstract sig Regions{
-        name: lone ComponentNames, // Regions have at most one name
-        contains: disj some Nodes
-}
-{
-        this in RegionsStates.contains // No regions exist independtly
-}
-
-abstract sig StartNodes extends Nodes{}
-abstract sig EndNodes extends Nodes{}
 abstract sig ForkNodes extends Nodes{}
+
 abstract sig JoinNodes extends Nodes{}
+
 // HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes
 abstract sig HistoryNodes extends Nodes{}
+
 abstract sig ShallowHistoryNodes extends HistoryNodes{}
+
 abstract sig DeepHistoryNodes extends HistoryNodes{}
 
 // It gets all nodes in same and deeper levels of a composite state
