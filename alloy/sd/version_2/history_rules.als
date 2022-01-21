@@ -16,16 +16,16 @@ fact{
         all hs1: HierarchicalStates, h1: HistoryNodes & hs1.contains |
                 let n1 = nodesInThisAndDeeper[hs1] |
                 {
-                        (Flows <: from).h1.to in n1 // A history should be directed to a same or a deeper level
+                        from.h1.to in n1 // A history should be directed to a same or a deeper level
                         some (hs1.contains & States) // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
-                        h1 not in (Flows <: from).(n1 - (StartNodes & hs1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own composite states excluding start nodes
+                        h1 not in from.(n1 - (StartNodes & hs1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own composite states excluding start nodes
                 }
         all r1: Regions, h1: HistoryNodes & r1.contains |
                 let n1 = nodesInThisAndDeeper[r1] |
                 {
-                        (Flows <: from).h1.to in n1 // A history should be directed to a same or a deeper level
+                        from.h1.to in n1 // A history should be directed to a same or a deeper level
                         some (r1.contains & States) // It excludes "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample5.svg"
-                        h1 not in (Flows <: from).(n1 - (StartNodes & r1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own regions excluding start nodes
+                        h1 not in from.(n1 - (StartNodes & r1.contains)).to // History should never be reached from (somewhere, possibly nested) inside their own regions excluding start nodes
                 }
         atMostOneDeepAndShallowHistoryNodes // In composite states and regions, there is at most one shallow history and at most one deep history
 }
