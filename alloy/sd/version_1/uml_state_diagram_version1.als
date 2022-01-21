@@ -1,4 +1,4 @@
-module version1 // All nodes and naming rules are introduced, but no transitions and further strategies.
+module uml_state_diagram_version1 // All nodes and naming rules are introduced, but no transitions and further strategies.
 /*
 These constraints are added:
 1. No compound or region may be empty or contain only start/history/fork/join nodes.
