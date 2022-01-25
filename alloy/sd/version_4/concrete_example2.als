@@ -10,6 +10,8 @@ one sig N2 extends NormalStates{}
 one sig N3 extends NormalStates{}
 one sig N4 extends NormalStates{}
 one sig N5 extends NormalStates{}
+one sig N6 extends NormalStates{}
+one sig N7 extends NormalStates{}
 // 2 composite states
 one sig C1 extends RegionsStates{}
 one sig C2 extends RegionsStates{}
@@ -37,6 +39,8 @@ one sig Flow9 extends Flows{}
 one sig Flow10 extends Flows{}
 one sig Flow11 extends Flows{}
 one sig Flow12 extends Flows{}
+one sig Flow13 extends Flows{}
+one sig Flow14 extends Flows{}
 // 2 names in the name space of triggers
 one sig T1 extends TriggerNames{}
 one sig T2 extends TriggerNames{}
@@ -58,6 +62,8 @@ fact{
         N3.name = Name3
         N4.name = Name1
         N5.name = Name2
+        N6.name = Name3
+        N7.name = Name2
 
         R1.name = Name4
         R2.name = Name5
@@ -67,14 +73,14 @@ fact{
         C1.contains = R1 + R2
         C2.contains = R3 + R4
 
-        R1.contains = C2 + F2 + J1
+        R1.contains = C2 + F2 + J1 + N6 + N7
         R2.contains = N3 + N5
         R3.contains = N1 + N2
         R4.contains = N4
 
         Flows = Flow1 + Flow2 + Flow3 + Flow4
                 + Flow5 + Flow6 + Flow7 + Flow8
-                +Flow9 + Flow10 + Flow11 + Flow12
+                +Flow9 + Flow10 + Flow11 + Flow12 + Flow13 + Flow14
 
         Flow1.from = S1
         Flow1.label = EmptyTrigger
@@ -82,7 +88,7 @@ fact{
 
         Flow2.from = F1
         Flow2.label = EmptyTrigger
-        Flow2.to = F2
+        Flow2.to = N6
 
         Flow3.from = F1
         Flow3.label = EmptyTrigger
@@ -118,11 +124,19 @@ fact{
 
         Flow11.from = J1
         Flow11.label = EmptyTrigger
-        Flow11.to = J2
+        Flow11.to = N7
 
         Flow12.from = J2
         Flow12.label = EmptyTrigger
         Flow12.to = E1
+
+        Flow13.from = N6
+        Flow13.label = EmptyTrigger
+        Flow13.to = F2
+
+        Flow14.from = N7
+        Flow14.label = EmptyTrigger
+        Flow14.to = J2
 }
 
-run {} for 12 but 21 ProtoFlows
+run {} for 12 but 22 ProtoFlows
