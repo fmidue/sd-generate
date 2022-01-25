@@ -1,10 +1,14 @@
 module components_sig // All signatures and some direct constraints in this module
 
 // Flows is corresponding to actual flows
-sig Flows{
+abstract sig Flows{
         from: one (Nodes - EndNodes), // End nodes have no leaving transitions
         to: one (Nodes - StartNodes), // Start nodes have no coming transitions
         label: one Triggers
+}
+
+fact{
+        no disj f1, f2: Flows | f1.from = f2.from and f1.to = f2.to and f1.label = f2.label // no duplicate flows
 }
 
 // All componets are a node, this is a super class

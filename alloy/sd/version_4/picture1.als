@@ -51,6 +51,8 @@ one sig Name6 extends ComponentNames{} // "State 3"
 
 // 1 TriggerNames
 one sig T1 extends TriggerNames{} // "t"
+one sig T2 extends TriggerNames{} // "a"
+one sig T3 extends TriggerNames{} // "b"
 
 // 1 DeepHistoryNodes
 one sig H_1_3 extends DeepHistoryNodes{} // "H*" in "Composite State"
@@ -95,9 +97,9 @@ fact{
         S_1Flow.from = S_1
         S_1Flow.label = EmptyTrigger
         S_1Flow.to = N_1_1
-        // a: Connection [1] [2] "" => 1.flow[""] = 2 => c.flow[""] = d => Connection3 from N_1_1 to C_1_2 with EmptyTrigger
+        // a: Connection [1] [2] "a" => 1.flow["a"] = 2 => c.flow["a"] = d => Connection3 from N_1_1 to C_1_2 with "a"
         Connection3.from = N_1_1
-        Connection3.label = EmptyTrigger
+        Connection3.label = T2
         Connection3.to = C_1_2
         // picture1: Connection[2] [1,3] "" => 2.flow[""] = 1.3 => b.flow[""] = e => Connection2 from N_2 to H_1_3 with EmptyTrigger
         Connection2.from = N_2
@@ -119,9 +121,9 @@ fact{
         S_1_2Flow.from = S_1_2
         S_1_2Flow.label = EmptyTrigger
         S_1_2Flow.to = N_1_2_1
-        // d: Connection [1] [2] "" => 1.flow[""] = 2 => f.flow[""] = g => Connection4 from N_1_2_1 to N_1_2_2 with EmptyTrigger
+        // d: Connection [1] [2] "b" => 1.flow["b"] = 2 => f.flow["b"] = g => Connection4 from N_1_2_1 to N_1_2_2 with "b“
         Connection4.from = N_1_2_1
-        Connection4.label = EmptyTrigger
+        Connection4.label = T3
         Connection4.to = N_1_2_2
         N_1_2_1.name = Name4 // "State 2a"
         N_1_2_2.name = Name5 // "State 2b"

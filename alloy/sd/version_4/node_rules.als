@@ -21,7 +21,8 @@ fact{
         forkNodesGoToDistinctParalleRegions
         joinNodesComeFromDistinctParalleRegions
         disj [EndNodes, (Flows <: from).ForkNodes.to] // No transitions between end nodes and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
-        disj[StartNodes + HistoryNodes, (Flows <: to).JoinNodes.from] // No transitions between start/history nodes and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg")
+        disj [StartNodes + HistoryNodes, (Flows <: to).JoinNodes.from] // No transitions between start/history nodes and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg")
+        disj [ForkNodes + JoinNodes, (Flows <: from).(ForkNodes + JoinNodes).to] // No consecutive fork/join nodes
         all n1: ForkNodes & (Flows <: from).StartNodes.to |
                 from.n1.label = EmptyTrigger // If a fork node is reached from a start state, it is not left by an arrow with non-empty transition label.
         all n1: (ForkNodes + JoinNodes) |
