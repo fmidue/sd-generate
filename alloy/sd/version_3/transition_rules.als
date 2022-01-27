@@ -9,10 +9,10 @@ fact{
         all s1: States | let sl = from.s1.label | EmptyTrigger in sl implies sl = EmptyTrigger
         // If a composite state has a standard exit with a trigger, the trigger can't appear on leaving transitions from states in the composite state
         all c1: CompositeStates | disj[from.c1.label, from.(nodesInThisAndDeeper[c1] & States).label]
-        // If a composite state has a standard exit with an empty trigger, non-empty triggers can't appear on leaving transitions from states in the composite state
+        // If a composite state has a standard exit with an empty trigger, there are no leaving transitions from states in the composite state
         // If a composite state has a standard exit with non-empty triggers, the empty trigger can't appear on leaving transitions from states in the composite state
         all c1: CompositeStates | (EmptyTrigger in from.c1.label
-                implies disj[TriggerNames, from.(nodesInThisAndDeeper[c1] & States).label])
+                implies no (Flows <: from).(nodesInThisAndDeeper[c1] & States))
                 and (some (TriggerNames & from.c1.label)
                 implies EmptyTrigger not in from.(nodesInThisAndDeeper[c1] & States).label)
 }
