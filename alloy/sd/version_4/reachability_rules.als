@@ -48,7 +48,7 @@ pred trueReachability{
 fact{
         setStartNodesFlag
         trueReachability
-        // If there are history entries without default leaving transition, there must be a start state, because history nodes have neither record and a default leaving transitionat at the first entry
+        // If there are history entries without default leaving transition, there must be a start state, because history nodes have neither record and a default leaving transition at the first entry
         all h1: HierarchicalStates, h2: HistoryNodes | let n1 = h1.contains |
                 no (Flows <: from).h2.to and h2 in (Flows <: from).(n1 & (Nodes - h1 - n1)).to
                         implies one (StartNodes & h1.contains)
