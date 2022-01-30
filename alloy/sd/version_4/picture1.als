@@ -3,13 +3,15 @@ module picture1 // It is correspoding to the Haskell version "picture1"
 open uml_state_diagram // "UMLStateDiagram"
 
 /*
+The Hakell version:
+---------------------------------------------------------
 picture1 :: UMLStateDiagram
 picture1 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t", Connection[2] [1,3] ""] [1] // Here adds a start node in the outermost level
         where
-                a = StateDiagram [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
+                a = StateDiagram [c,d,e] 1 "Composite State" [Connection [1] [2] "a"] [1]
                         where
                                 c = InnerMostState 1 "State 1" ""
-                                d = StateDiagram [f,g] 2 "state 2" [Connection [1] [2] ""] [1]
+                                d = StateDiagram [f,g] 2 "state 2" [Connection [1] [2] "b"] [1]
                                 where
                                         f = InnerMostState 1 "State 2a" ""
                                         g = InnerMostState 2 "State 2b" ""
@@ -72,7 +74,7 @@ fact{
           [] means no start nodes, if it has elements, it means there is a start node directed to the node inside "picture1" and addressed with the elements
           Here [1] means there is a start node in outermost level and directed to a suffix address is "_1" (because the label of outermost level is discarded)
         */
-        // under a same "where" like "a" = C_1, ‘b“ = N_2 in a same level(outermost level)
+        // under a same "where" like a = C_1, b = N_2 in a same level(outermost level)
         // picture1: [1] => SFlow from S to C_1 with EmptyTrigger
         SFlow.from = S
         SFlow.label = EmptyTrigger
