@@ -2,7 +2,7 @@
 module DatatypeSpec (spec) where
 
 import Datatype (StateDiagram(..), UMLStateDiagram, localise, globalise)
-import ExampleSpec (positiveExamples)
+import Example (positiveExamples)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Control.Monad (void)

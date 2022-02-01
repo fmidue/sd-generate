@@ -2,7 +2,16 @@ name: ba-zixin-wu
 extra-source-files: []
 dependencies:
   - base
+  - bytestring
+  - containers
+  - ilist
+  - diagrams-lib
+  - diagrams-svg
+  - SVGFonts
   - extra
+  - svg-builder
+  - QuickCheck
+  - string-interpolate
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
@@ -13,13 +22,36 @@ default-extensions:
   - ScopedTypeVariables
 library:
   source-dirs: src
-  exposed-modules: []
+  exposed-modules:
+    - Datatype
+    - Example
+    - CounterExample
+    - Checkers
+    - Layout
+    - Generate
+    - AlloyDiagrams
   ghc-options:
     - -Wall
     - -Werror
 executables:
+  sampling:
+    main: sampling.hs
+    source-dirs: app
+    dependencies:
+      - ba-zixin-wu
+      - pretty-simple
+  drawing:
+    main: drawing.hs
+    source-dirs: app
+    dependencies:
+      - ba-zixin-wu
   default:
     main: default.hs
+    source-dirs: app
+    dependencies:
+      - ba-zixin-wu
+  transform:
+    main: transform.hs
     source-dirs: app
     dependencies:
       - ba-zixin-wu

@@ -440,3 +440,33 @@ test4 = StateDiagram [a] 1 "" [] [1, 1, 1]
     g1 = InnerMostState 1 "3" ""
     g2 = InnerMostState 2 "4" ""
     g3 = InnerMostState 3 "5" ""
+
+positiveExamples :: [(String, UMLStateDiagram)]
+positiveExamples =
+        [ ("verySmall", verySmall)
+        , ("picture1", picture1)
+        , ("picture2", picture2)
+        , ("picture3", picture3)
+        , ("picture4", picture4)
+        , ("slide246", slide246)
+        , ("slide253", slide253)
+        , ("slide257", slide257)
+        , ("slide267a", slide267a)
+        , ("slide267b", slide267b)
+        , ("slide271", slide271)
+        , ("slide273", slide273)
+        , ("slide275", slide275)
+        , ("slide277", slide277)
+        , ("slide278", slide278)
+        , ("slide279", slide279)
+        , ("slide280", slide280)
+        , ("slide281", slide281)
+        , ("slide283", slide283)
+        , ("task26a", task26a)
+        , ("task26b", task26b)
+        , ("task27", task27)
+        , ("task85", task85)
+        , ("task88", task88)
+        , ("test2", test2)
+        , ("test4", test4)
+        ]
