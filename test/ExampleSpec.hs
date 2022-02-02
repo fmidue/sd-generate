@@ -12,7 +12,7 @@ import Data.Tuple.Extra ((***))
 spec :: Spec
 spec =
   forM_ allTheCheckers $ \(checkerName, checkerCode) ->
-    describe checkerName $ void $ sequence
+    describe checkerName $ void $ sequence_
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
           positiveExamples

@@ -15,15 +15,15 @@ import Test.Hspec.QuickCheck
 
 spec :: Spec
 spec = do
-  describe "localise/globalise" $ void $ sequence
+  describe "localise/globalise" $ void $ sequence_
     [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (globalise code)) `shouldBe` fmap sort (localise code)
     | (name, code) <- positiveExamples ]
-  describe "globalise/localise" $ void $ sequence
+  describe "globalise/localise" $ void $ sequence_
     [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
     | (name, code) <- positiveExamples ]
   describe "localise/globalise" $
-    prop ("are each others' inverses in a sense") $
+    prop "are each others' inverses in a sense" $
       forAll randomSD $ \(code,_) -> fmap sort (localise (globalise code)) `shouldBe` fmap sort (localise code)
   describe "globalise/localise" $
-    prop ("are each others' inverses in a sense") $
+    prop "are each others' inverses in a sense" $
       forAll randomSD $ \(code,_) -> fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
