@@ -1,4 +1,4 @@
-name: HLint
+name: Haskell Linter
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  linting:
+  run:
     runs-on: ubuntu-latest
     permissions:
       checks: write
@@ -15,7 +15,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Haskell Linter
-      uses: domdere/haskell-lint-action@v1.0.2
+    - uses: domdere/haskell-lint-action@v1.0.2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
