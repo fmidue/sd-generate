@@ -92,7 +92,7 @@ renderConnection transitionMapping Connection{ pointFrom, pointTo, transition } 
 
 renderInner recurse substate inherited =
   let
-    recursively = map (flip recurse inherited) substate
+    recursively = map (`recurse` inherited) substate
   in
       Synthesized
       { alloy = unlines $ map alloy recursively

@@ -12,8 +12,8 @@ import Test.Hspec.QuickCheck
 spec :: Spec
 spec = do
   describe "randomSD" $
-    prop ("generates valid diagram expressions") $
+    prop "generates valid diagram expressions" $
       forAll randomSD $ \(code,_) -> firstJust id (map (($ code) . snd) allTheCheckers) `shouldBe` Nothing
   describe "randomSD" $
-    prop ("doesn't retry too often") $
+    prop "doesn't retry too often" $
       forAll randomSD $ \(_,attempts) -> attempts `shouldSatisfy` (< 60)
