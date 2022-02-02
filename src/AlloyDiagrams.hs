@@ -121,7 +121,7 @@ renderComposite kind eachWith StateDiagram{ substate, label, name, startState } 
   Synthesized
   { alloy = unlines $
             [i|one sig #{node} extends #{kind}{}{
-  #{if null name then "no name" else "name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
+  #{if kind == "RegionsStates" then "" else if null name then "no name" else "name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
   contains = #{intercalate " + " (maybe [] (\x -> [fst x]) start ++ rootNodes)}
 }|]
             : maybe id ((:) . renderStart) start
