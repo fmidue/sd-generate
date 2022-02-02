@@ -7,7 +7,7 @@ import Datatype (
   )
 
 {-# ANN module "Hlint: ignore Reduce duplication" #-}
-  
+
 verySmall :: UMLStateDiagram
 verySmall = StateDiagram [EndState 1] 0 "" [] [1]
 
@@ -39,11 +39,11 @@ picture3 :: UMLStateDiagram
 picture3 = StateDiagram [a,b,c,d] 1 "" [Connection[3] [1,1,1] "",Connection[1,1,1] [1,1,2] "",
        Connection[1,1,2] [1,1,3] "",Connection[1,1,3] [4] "",Connection[3] [1,2,1] "",
        Connection[1,2,1] [4] "",Connection[4] [5] "b"] [3]
-       where 
+       where
         a = CombineDiagram [e,f] 1
          where
             e = StateDiagram [g,h,i] 1 "" [] []
-              where 
+              where
                 g = InnerMostState 1 "Tasse nehmen" ""
                 h = InnerMostState 2 "Kaffee trinken" ""
                 i = InnerMostState 3 "Tasse absetzen" ""
