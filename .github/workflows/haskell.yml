@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build_and_test:
     strategy:
       matrix:
         os:
@@ -74,12 +74,12 @@ jobs:
         ARGS: ${{ matrix.plan.resolver }}
         BUILD: ${{ matrix.plan.build }}
 
-    - name: Build
+    - name: Build and test
       run: |
         set -ex
         case "$BUILD" in
           stack)
-            stack --no-terminal $ARGS test --bench --no-run-benchmarks --haddock --no-haddock-deps
+            stack --no-terminal $ARGS test --coverage --bench --no-run-benchmarks --haddock --no-haddock-deps
             ;;
           cabal)
             PACKAGES=$(stack --install-ghc query locals | grep '^ *path' | sed 's@^ *path:@@')
