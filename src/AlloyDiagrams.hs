@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-missing-fields -Wno-incomplete-patterns -Wno-missing-signatures -Wno-type-defaults #-}
+{-# OPTIONS_GHC -Wno-missing-fields -Wno-incomplete-patterns -Wno-missing-signatures -Wno-type-defaults -Wno-name-shadowing #-}
 {-# Language QuasiQuotes #-}
 {-# Language NamedFieldPuns #-}
 {-# Language ViewPatterns #-}
@@ -34,7 +34,7 @@ data Synthesized = Synthesized
   }
 
 render :: UMLStateDiagram -> String
-render (globalise -> StateDiagram{ substate, connection, startState }) =
+render (globalise -> StateDiagram{ substate, label, name, connection, startState }) =
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
         renderInner renderNode substate
           Inherited {ctxt = [], nameMapping = nameMapping
@@ -51,7 +51,7 @@ render (globalise -> StateDiagram{ substate, connection, startState }) =
         ++ map (++"Flow") theInnerStarts
         ++ zipWith (const $ ("Connection"++) . show) connection [1..]
   in
-  [i|module diagram
+  [i|module diagram // name: #{show name}, (irrelevant) label: #{show label}
 open uml_state_diagram
 #{if null startState then "" else renderStart ("S", startState)}
 #{alloy}
@@ -112,7 +112,7 @@ renderInner recurse substate inherited =
 renderComposite kind eachWith StateDiagram{ substate, label, name, startState } inh@Inherited{ctxt, nameMapping} =
   let
     here = ctxt ++ [label]
-    node = [i|N_#{address here}|]
+    node = [i|#{if kind == "Regions" then "R" else "N"}_#{address here}|]
     start = if null startState then Nothing else Just ([i|S_#{address here}|], here ++ startState)
     Synthesized {alloy, names, rootNodes, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
       renderInner eachWith substate
