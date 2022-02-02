@@ -54,7 +54,7 @@ bogusExample = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1
       a = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
       b = StateDiagram [InnerMostState 0 "" ""] 3 "" [] []
 
-foCheckCrossings1 :: UMLStateDiagram 
+foCheckCrossings1 :: UMLStateDiagram
 foCheckCrossings1 = StateDiagram [CombineDiagram [a,b] 1] 0 "" [Connection [1,2,0] [1,3,0] ""] [1,2,0]
     where
       a = StateDiagram [InnerMostState 0 "" ""] 2 "" [] []
@@ -68,7 +68,7 @@ forCheckTransition1 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",C
            c = InnerMostState  3 "Tasse absetzen" ""
            d = InnerMostState  4 "Zeitung lesen" ""
            e = Joint 5
-           f = Joint 6        
+           f = Joint 6
            g = EndState 7
 
 forCheckTransition2 :: UMLStateDiagram
@@ -160,7 +160,7 @@ forCheckMtoOne4 :: UMLStateDiagram
 forCheckMtoOne4 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] ""] [5]
       where
         a = CombineDiagram [e,f] 1
-          where 
+          where
             e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
         b = Joint 5
@@ -200,7 +200,7 @@ forCheckTransition5 :: UMLStateDiagram
 forCheckTransition5 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [1,2,1] "b"] [5]
       where
         a = CombineDiagram [e,f] 1
-          where 
+          where
             e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] []
         b = Joint 5
@@ -209,7 +209,7 @@ forAllgoIntoParallelRegions1 :: UMLStateDiagram
 forAllgoIntoParallelRegions1 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [1,1,2] "a"] [5]
       where
         a = CombineDiagram [e,f] 1
-          where 
+          where
             e = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" [] []
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
         b = Joint 5
@@ -218,11 +218,11 @@ forAllgoIntoParallelRegions2 :: UMLStateDiagram
 forAllgoIntoParallelRegions2 = StateDiagram [a,b,g] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [2,1,1] "a"] [5]
       where
         a = CombineDiagram [e,f] 1
-          where 
+          where
             e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
         b = CombineDiagram [c,d] 2
-          where 
+          where
             c = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
             d = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
         g = Joint 5
@@ -232,14 +232,14 @@ forAllcomeOutOfParallelRegions1 = StateDiagram [a,b] 1 "" [Connection[1,1,1] [5]
                                    Connection[5] [1,2,1] "a" ] [1,1,2]
       where
         a = CombineDiagram [e,f] 1
-          where 
+          where
             e = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" [] [1]
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] []
         b = Joint 5
 
 forCheckEndState1 :: UMLStateDiagram
 forCheckEndState1 = StateDiagram [b,e] 1 "" [Connection[7] [2] ""] [7]
-     where 
+     where
            b = InnerMostState  2 "Kaffee trinken" ""
            e = EndState 7
 
@@ -256,16 +256,16 @@ forCheckEndState2 = StateDiagram [a, b] 1 "" [Connection [1,3] [2] "a"] []
 
 forCheckEndState3 :: UMLStateDiagram
 forCheckEndState3 = StateDiagram [a,b] 1 "" [Connection[2] [1] ""] [2]
-     where 
+     where
            a = InnerMostState  1 "A" ""
            b = EndState 2
 
 forCheckSubS1 :: UMLStateDiagram
-forCheckSubS1 = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" 
+forCheckSubS1 = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 ""
  [Connection [1] [2] "",Connection [2] [1] ""] [1,2]
 
 forCheckSubS2 :: UMLStateDiagram
-forCheckSubS2 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,5,2]  
+forCheckSubS2 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,5,2]
   where
    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
      where d = InnerMostState 1 "NumLockOff" ""
@@ -347,14 +347,14 @@ forCheckStartToRegion2 ::UMLStateDiagram
 forCheckStartToRegion2 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1] [2] ""] []
     where
       a = StateDiagram [c,d] 3 "" [Connection [1] [2] ""] [1,1]
-        where 
+        where
           c = CombineDiagram [e,f] 1
-            where 
+            where
                 e = StateDiagram [InnerMostState 0 "" ""] 1 "" [] [0]
                 f = StateDiagram [InnerMostState 0 "" ""] 2 "" [] [0]
           d = InnerMostState  2 "" ""
       b = StateDiagram [InnerMostState 0 "" ""] 4 "" [] [0]
-      
+
 forCheckConnection1 :: UMLStateDiagram
 forCheckConnection1 = StateDiagram [a, b] 1 "" [Connection [5] [1] "a"] [2]
   where
@@ -485,9 +485,9 @@ forCheckConnFromToRegion3 ::UMLStateDiagram
 forCheckConnFromToRegion3 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [] [2]
     where
       a = StateDiagram [c,d] 3 "" [Connection [1,1] [2] ""] []
-        where 
+        where
           c = CombineDiagram [e,f] 1
-            where 
+            where
                 e = StateDiagram [InnerMostState 0 "" ""] 1 "" [] [0]
                 f = StateDiagram [InnerMostState 0 "" ""] 2 "" [] [0]
           d = InnerMostState  2 "" ""
@@ -497,9 +497,9 @@ forCheckConnFromToRegion4 ::UMLStateDiagram
 forCheckConnFromToRegion4 = StateDiagram [CombineDiagram [a,b] 1, InnerMostState  2 "" ""] 0 "" [Connection [1,3,1,1] [2] ""] []
     where
       a = StateDiagram [c,d] 3 "" [] [2]
-        where 
+        where
           c = CombineDiagram [e,f] 1
-            where 
+            where
                 e = StateDiagram [InnerMostState 0 "" ""] 1 "" [] [0]
                 f = StateDiagram [InnerMostState 0 "" ""] 2 "" [] [0]
           d = InnerMostState  2 "" ""
@@ -541,13 +541,13 @@ forCheckSubNameUniq2 :: UMLStateDiagram
 forCheckSubNameUniq2 = StateDiagram [a,b] 1 "" [Connection[1] [2] ""] [1]
      where
       a = InnerMostState 1 "A" ""
-      b = InnerMostState  2 "A" ""     
+      b = InnerMostState  2 "A" ""
 
 forCheckUniqueness1 :: UMLStateDiagram
 forCheckUniqueness1 = StateDiagram [a, b] 1 "" [] [1]
   where
     a = InnerMostState 1 "A" ""
-    b = InnerMostState 1 "B" "" 
+    b = InnerMostState 1 "B" ""
 
 
 forCheckUniqueness2 :: UMLStateDiagram
@@ -573,7 +573,7 @@ forCheckUniqueness3 :: UMLStateDiagram
 forCheckUniqueness3 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [4] "a"] [1]
         where
           a = InnerMostState 1 "A" ""
-          b = CombineDiagram [e, f] 1  
+          b = CombineDiagram [e, f] 1
             where
               e = StateDiagram [g, h, i] 1 "" [Connection [1] [2] "b", Connection
                   [2] [3] "c"] [1]
@@ -598,7 +598,7 @@ forCheckUniqueness4 = StateDiagram [a,b] 1 "" [] []
             where
              f = InnerMostState  1 "State 2a" ""
              g = InnerMostState  2 "State 2b" ""
-           e = History 2 Deep                     
+           e = History 2 Deep
        b = InnerMostState  2 "State 3" ""
 
 forCheckUniqueness5 ::UMLStateDiagram
@@ -620,7 +620,7 @@ forCheckUniqueness6 = StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[
       a = StateDiagram  [c,d,e] 1 "Composite State" [] [1]
           where
            c = InnerMostState  1 "State 1" ""
-           d = StateDiagram  [f,g] 1 "state 2" [Connection [1] [2] ""] [1] 
+           d = StateDiagram  [f,g] 1 "state 2" [Connection [1] [2] ""] [1]
             where
               f = InnerMostState  1 "State 2a" ""
               g = InnerMostState  2 "State 2b" ""
@@ -653,7 +653,7 @@ forCheckSubstateSD2::UMLStateDiagram
 forCheckSubstateSD2 = StateDiagram [a] 1 "" [] []
       where
         a = CombineDiagram [c,d] 1
-          where 
+          where
             c = StateDiagram [History 1 Deep] 1 "" [] [1]
             d = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
 
@@ -726,7 +726,7 @@ forCheckHistOutTransition3 = StateDiagram [a,b] 1 "" [Connection[1] [2] "error"]
       b = InnerMostState  2 "A" ""
 
 forCheckInEdge1 :: UMLStateDiagram
-forCheckInEdge1 = 
+forCheckInEdge1 =
   StateDiagram [a,b] 1 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
  where
   a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] "",Connection [2,1] [3] "a"] [1]
