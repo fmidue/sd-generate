@@ -6,13 +6,13 @@ import Datatype (globalise, localise)
 import Layout (checkWrapper)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
-import Control.Monad (void, forM_)
+import Control.Monad (forM_)
 import Data.Tuple.Extra ((***))
 
 spec :: Spec
 spec =
   forM_ allTheCheckers $ \(checkerName, checkerCode) ->
-    describe checkerName $ void $ sequence_
+    describe checkerName $ sequence_
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
           positiveExamples
