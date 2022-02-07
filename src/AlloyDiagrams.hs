@@ -72,7 +72,7 @@ fact{
   #{if forkNodes then "// some ForkNodes exist" else "no ForkNodes"}
   #{if joinNodes then "// some JoinNodes exist" else "no JoinNodes"}
 }
-run {} for ???
+run {} for #{show label}
 |]
 
 renderStart :: (String, [Int]) -> String
