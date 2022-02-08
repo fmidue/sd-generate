@@ -59,7 +59,7 @@ open uml_state_diagram
 #{unlines nameOutput}
 #{unlines transitionOutput}
 fact{
-  #{if null theFlows then "no Flows" else "Flows = " ++ intercalate " + " theFlows}
+  // #{if null theFlows then "no Flows" else "Flows = " ++ intercalate " + " theFlows}
   #{if endNodes then "// some EndNodes" else "no EndNodes"}
   #{if null startState && null theInnerStarts then "no StartNodes" else "// some StartNodes"}
   #{if null names then "no ComponentNames" else "// some ComponentNames"}
@@ -72,7 +72,7 @@ fact{
   #{if forkNodes then "// some ForkNodes" else "no ForkNodes"}
   #{if joinNodes then "// some JoinNodes" else "no JoinNodes"}
 }
-run {} #{name} // a temporary hack for manual scope setting
+run {} for #{show label} ProtoFlows, exactly #{show (length theFlows)} Flows // a temporary hack for manual scope setting
 |]
 
 renderStart :: (String, [Int]) -> String

@@ -12,7 +12,7 @@ verySmall :: UMLStateDiagram
 verySmall = StateDiagram [EndState 1] 0 "" [] [1]
 
 picture1 :: UMLStateDiagram
-picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "" [] [1,2,2]
+picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
   where
    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
      where d = InnerMostState 1 "NumLockOff" ""
@@ -25,7 +25,7 @@ picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "" [] [1,2,2]
           i = InnerMostState 2 "ScrollLockOn" ""
 
 picture2 :: UMLStateDiagram
-picture2 = StateDiagram [a,b,c,d,e,f] 1 "" [Connection [1] [2] "", Connection [2] [3] "Action",
+picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
    Connection [3] [4] "Confirm order(Event)", Connection [4] [5] "",Connection [2] [6] "exit",Connection [5] [6] "complete"] [1]
     where
       a = InnerMostState 1 "idle" ""
@@ -53,7 +53,7 @@ picture3 = StateDiagram [a,b,c,d] 1 "" [Connection[3] [1,1,1] "",Connection[1,1,
         d = EndState 5
 
 picture4 :: UMLStateDiagram
-picture4 = StateDiagram [a,b] 1 "for 14 but exactly 7 Flows" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
+picture4 = StateDiagram [a,b] 14 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
      where
       a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
           where
