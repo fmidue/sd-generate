@@ -26,8 +26,8 @@ pred theFlatteningStrategy{
                                 no newTo implies no pf.derived
                                    else flattenNonEmpty[pf.from, pf.derived, newTo])
                         else
-                // // It flattens flows from all states and the outermost start node to all states in regions, here end nodes are excluded, because coming to an end node means all end.
-                (pf.from in (sn + States - nodesInThisAndDeeper[(Regions <: contains).(pf.to)]) and pf.to in (Regions.contains & States) and pf not in to.(HistoryNodes + ForkNodes).derived)
+                // It flattens flows from all states and the outermost start node to all states in regions, here end nodes are excluded, because coming to an end node means all end.
+                (pf.from in (sn + States - nodesInThisAndDeeper[(Regions <: contains).(pf.to)]) and pf.to in (Regions.contains & States) and pf not in (to.(HistoryNodes + ForkNodes) + to.(nodesInOtherParallelRegions[(Regions <: contains).(pf.to)])).derived)
                         implies
                                (let newTo = from.(nodesInOtherParallelRegions[(Regions <: contains).(pf.to)] & StartNodes).to |
                                 no newTo implies no pf.derived
