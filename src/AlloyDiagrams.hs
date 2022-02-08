@@ -60,17 +60,17 @@ open uml_state_diagram
 #{unlines transitionOutput}
 fact{
   #{if null theFlows then "no Flows" else "Flows = " ++ intercalate " + " theFlows}
-  #{if endNodes then "// some EndNodes exist" else "no EndNodes"}
-  #{if null startState && null theInnerStarts then "no StartNodes" else "// some StartNodes exist"}
-  #{if null names then "no ComponentNames" else "// some ComponentNames exist"}
-  #{if null transitionMapping then "no TriggerNames" else "// some TriggerNames exist"}
-  #{if normalStates then "// some NormalStates exist" else "no NormalStates"}
-  #{if hierarchicalStates then "// some HierarchicalStates exist" else "no HierarchicalStates"}
-  #{if regionsStates then "// some RegionsStates exist" else "no RegionsStates"}
-  #{if deepHistoryNodes then "// some DeepHistoryNodes exist" else "no DeepHistoryNodes"}
-  #{if shallowHistoryNodes then "// some ShallowHistoryNodes exist" else "no ShallowHistoryNodes"}
-  #{if forkNodes then "// some ForkNodes exist" else "no ForkNodes"}
-  #{if joinNodes then "// some JoinNodes exist" else "no JoinNodes"}
+  #{if endNodes then "// some EndNodes" else "no EndNodes"}
+  #{if null startState && null theInnerStarts then "no StartNodes" else "// some StartNodes"}
+  #{if null names then "no ComponentNames" else "// some ComponentNames"}
+  #{if null transitionMapping then "no TriggerNames" else "// some TriggerNames"}
+  #{if normalStates then "// some NormalStates" else "no NormalStates"}
+  #{if hierarchicalStates then "// some HierarchicalStates" else "no HierarchicalStates"}
+  #{if regionsStates then "// some RegionsStates" else "no RegionsStates"}
+  #{if deepHistoryNodes then "// some DeepHistoryNodes" else "no DeepHistoryNodes"}
+  #{if shallowHistoryNodes then "// some ShallowHistoryNodes" else "no ShallowHistoryNodes"}
+  #{if forkNodes then "// some ForkNodes" else "no ForkNodes"}
+  #{if joinNodes then "// some JoinNodes" else "no JoinNodes"}
 }
 run {} #{name} // a temporary hack for manual scope setting
 |]
@@ -120,8 +120,7 @@ renderComposite kind eachWith StateDiagram{ substate, label, name, startState } 
   in
   Synthesized
   { alloy = unlines $
-            [i|one sig #{node} extends #{kind}{}{
-  #{if kind == "RegionsStates" then "" else if null name then "no name" else "name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
+            [i|one sig #{node} extends #{kind}{}{#{if kind == "RegionsStates" then "" else if null name then "\n  no name" else "\n  name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
   contains = #{intercalate " + " (maybe [] (\x -> [fst x]) start ++ rootNodes)}
 }|]
             : maybe id ((:) . renderStart) start
