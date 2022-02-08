@@ -16,4 +16,4 @@ spec = do
       forAll randomSD $ \(code,_) -> firstJust id (map (($ code) . snd) allTheCheckers) `shouldBe` Nothing
   describe "randomSD" $
     prop "doesn't retry too often" $
-      forAll randomSD $ \(_,attempts) -> attempts `shouldSatisfy` (< 60)
+      forAll randomSD $ \(_,attempts) -> attempts `shouldSatisfy` (< 90)
