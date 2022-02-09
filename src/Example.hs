@@ -11,8 +11,9 @@ import Datatype (
 verySmall :: UMLStateDiagram
 verySmall = StateDiagram [EndState 1] 0 "" [] [1]
 
+{- Accepted by Alloy directly -}
 picture1 :: UMLStateDiagram
-picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
+picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 12 "active" [] [1,2,2]
   where
    a = StateDiagram  [d,e] 1 ""  [Connection [1] [2] "EvNumLockPressed", Connection [2] [1] "EvNumLockPressed"] [1]
      where d = InnerMostState 1 "NumLockOff" ""
@@ -24,8 +25,9 @@ picture1 = StateDiagram [CombineDiagram [a,b,c] 1] 1 "active" [] [1,2,2]
     where h = InnerMostState 1 "ScrollLockOff" ""
           i = InnerMostState 2 "ScrollLockOn" ""
 
+{- Accepted by Alloy directly -}
 picture2 :: UMLStateDiagram
-picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
+picture2 = StateDiagram [a,b,c,d,e,f] 7 "order of management system" [Connection [1] [2] "", Connection [2] [3] "Action",
    Connection [3] [4] "Confirm order(Event)", Connection [4] [5] "",Connection [2] [6] "exit",Connection [5] [6] "complete"] [1]
     where
       a = InnerMostState 1 "idle" ""
@@ -35,8 +37,9 @@ picture2 = StateDiagram [a,b,c,d,e,f] 1 "order of management system" [Connection
       e = InnerMostState 5 "Dispatch order" ""
       f = EndState 6
 
+{- Accepted by Alloy directly -}
 picture3 :: UMLStateDiagram
-picture3 = StateDiagram [a,b,c,d] 1 "" [Connection[3] [1,1,1] "",Connection[1,1,1] [1,1,2] "",
+picture3 = StateDiagram [a,b,c,d] 12 "" [Connection[3] [1,1,1] "",Connection[1,1,1] [1,1,2] "",
        Connection[1,1,2] [1,1,3] "",Connection[1,1,3] [4] "",Connection[3] [1,2,1] "",
        Connection[1,2,1] [4] "",Connection[4] [5] "b"] [3]
        where
@@ -52,25 +55,28 @@ picture3 = StateDiagram [a,b,c,d] 1 "" [Connection[3] [1,1,1] "",Connection[1,1,
         c = Joint 4
         d = EndState 5
 
+{- After some changes, accepted by Alloy -}
 picture4 :: UMLStateDiagram
-picture4 = StateDiagram [a,b] 14 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] []
+picture4 = StateDiagram [a,b] 14 "" [Connection[1] [2] "t",Connection[2] [1,3] ""] [1]
      where
-      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] ""] [1]
+      a = StateDiagram  [c,d,e] 1 "Composite State" [Connection [1] [2] "a"] [1]
           where
            c = InnerMostState  1 "State 1" ""
-           d = StateDiagram  [f,g] 2 "state 2" [Connection [1] [2] ""] [1]
+           d = StateDiagram  [f,g] 2 "state 2" [Connection [1] [2] "b"] [1]
             where
               f = InnerMostState  1 "State 2a" ""
               g = InnerMostState  2 "State 2b" ""
            e = History 3 Deep
       b = InnerMostState  2 "State 3" ""
 
+{- Accepted by Alloy directly -}
 slide246 :: UMLStateDiagram
-slide246 = StateDiagram a 1 "" (map (\x -> Connection [x] [x+1]
+slide246 = StateDiagram a 86 "" (map (\x -> Connection [x] [x+1]
            "after(1min)") [1..59] ++ [Connection [60] [1] "after(1min)"]) [1]
   where
     a = map (\x -> InnerMostState x (show(x-1)) "") [1..60]
 
+{- Accepted by Alloy directly -}
 slide253 :: UMLStateDiagram
 slide253 = StateDiagram [CombineDiagram [a, b] 1] 1 "" [] []
   where
@@ -84,8 +90,9 @@ slide253 = StateDiagram [CombineDiagram [a, b] 1] 1 "" [] []
         d = InnerMostState 1 "0" "entry/beep" : map (\x -> InnerMostState x (show(x-1)) "")
           [2..60]
 
+{- Alloy analyzer cannot get results for this diagram in short time -}
 slide257 :: UMLStateDiagram
-slide257 = StateDiagram [a, b] 1 "" [Connection [1] [2] "a", Connection [2]
+slide257 = StateDiagram [a, b] 200 "" [Connection [1] [2] "a", Connection [2]
            [1] "a"] [2]
   where
     a = StateDiagram [c, d] 1 "Alarm" [Connection [1] [2] "b", Connection [2]
@@ -106,20 +113,22 @@ slide257 = StateDiagram [a, b] 1 "" [Connection [1] [2] "a", Connection [2]
             d = InnerMostState 1 "0" "entry/beep" :
               map (\x -> InnerMostState x (show(x-1)) "") [2..60]
 
+{- After some changes, accepted by Alloy -}
 slide267a :: UMLStateDiagram
-slide267a = StateDiagram [a, b] 1 "" [Connection [1] [2] "a"] []
+slide267a = StateDiagram [a, b] 11 "" [Connection [1] [2] "a"] [1]
   where
-    a = StateDiagram [c, d, e] 1 "A" [Connection [1] [2] "", Connection [2]
-        [3] "b", Connection [3] [2] "", Connection [2] [1] "a"] [1]
+    a = StateDiagram [c, d, e] 1 "A" [Connection [1] [2] "d", Connection [2]
+        [3] "b", Connection [3] [2] "e", Connection [2] [1] "c"] [1]
       where
         c = InnerMostState 1 "B" ""
         d = InnerMostState 2 "C" ""
         e = InnerMostState 3 "D" ""
     b = InnerMostState 2 "E" ""
 
+{- After some changes, accepted by Alloy -}
 slide267b :: UMLStateDiagram
-slide267b = StateDiagram [a, b] 1 "" [Connection [1,1] [2] "a", Connection
-            [1, 2] [2] "a", Connection [1, 3] [2] "a"] []
+slide267b = StateDiagram [a, b] 10 "" [Connection [1,1] [2] "a", Connection
+            [1, 2] [2] "a", Connection [1, 3] [2] "a"] [1]
   where
     a = StateDiagram [c, d, e] 1 "A" [Connection [1] [2] "b", Connection [2]
         [3] "c", Connection [3] [2] "b", Connection [2] [1] "b"] [1]
@@ -129,8 +138,9 @@ slide267b = StateDiagram [a, b] 1 "" [Connection [1,1] [2] "a", Connection
         e = InnerMostState 3 "D" ""
     b = InnerMostState 2 "E" ""
 
+{- Alloy analyzer cannot get results for this diagram in short time -}
 slide271 :: UMLStateDiagram
-slide271 = StateDiagram [a, b, c] 1 "" [Connection [3] [1, 0] "a",
+slide271 = StateDiagram [a, b, c] 200 "" [Connection [3] [1, 0] "a",
            Connection [1] [2] "a", Connection [2] [3, 1, 0] "", Connection [2]
            [3, 2, 0] ""] [3]
   where
@@ -158,8 +168,9 @@ slide271 = StateDiagram [a, b, c] 1 "" [Connection [3] [1, 0] "a",
               map (\x -> InnerMostState x (show(x-1)) "") [2..60]
             l = History 0 Shallow
 
+{- Alloy analyzer cannot get results for this diagram in short time -}
 slide273 :: UMLStateDiagram
-slide273 = StateDiagram [a, b, c] 1 "" [Connection [3] [1, 1] "a [al==1]",
+slide273 = StateDiagram [a, b, c] 200 "" [Connection [3] [1, 1] "a [al==1]",
            Connection [3] [1, 2] "a [al==0]", Connection [1] [2] "a",
            Connection [2] [3, 1, 0] "", Connection [2] [3, 2, 0] ""] [3]
   where
@@ -186,15 +197,17 @@ slide273 = StateDiagram [a, b, c] 1 "" [Connection [3] [1, 1] "a [al==1]",
               map (\x -> InnerMostState x (show(x-1)) "") [2..60]
             l = History 0 Shallow
 
+{- Alloy analyzer cannot get results for this diagram in short time -}
 slide275 :: UMLStateDiagram
-slide275 = StateDiagram [a, b] 1 "" [Connection [1] [2] "Batterie wird leer",
+slide275 = StateDiagram [a, b] 200 "" [Connection [1] [2] "Batterie wird leer",
            Connection [2] [1] "Neue Batterie wird eingesetzt / al=1"] [2]
   where
     a = slide273
     b = InnerMostState 2 "Batterie(fach) leer" ""
 
+{- Accepted by Alloy directly -}
 slide277 :: UMLStateDiagram
-slide277 = StateDiagram [a, b, c] 1 "" [Connection [1] [2] "f", Connection
+slide277 = StateDiagram [a, b, c] 11 "" [Connection [1] [2] "f", Connection
            [1] [3] "a", Connection [2] [3, 2] "b", Connection [3] [1] "e"] [1]
   where
     a = InnerMostState 1 "A" ""
@@ -205,8 +218,9 @@ slide277 = StateDiagram [a, b, c] 1 "" [Connection [1] [2] "f", Connection
         d = InnerMostState 1 "C" ""
         e = InnerMostState 2 "D" ""
 
+{- Accepted by Alloy directly -}
 slide278 :: UMLStateDiagram
-slide278 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Connection
+slide278 = StateDiagram [a, b, c, d] 8 "" [Connection [1] [3] "a", Connection
            [1] [2] "f", Connection [2] [4] "b", Connection [3] [4] "c",
            Connection [3] [1] "e", Connection [4] [3] "d", Connection [4] [1]
            "e"] [1]
@@ -216,8 +230,9 @@ slide278 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [3] "a", Connection
     c = InnerMostState 3 "C" ""
     d = InnerMostState 4 "D" ""
 
+{- Accepted by Alloy directly -}
 slide279 :: UMLStateDiagram
-slide279 = StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] "a", Connection
+slide279 = StateDiagram [a, b, c, d, l] 16 "" [Connection [1] [2] "a", Connection
            [2, 1, 2] [4] "h", Connection [2, 1, 3] [3] "", Connection [2, 2, 2]
            [3] "", Connection [3] [4] "g",Connection [4] [5] ""] [1]
   where
@@ -238,8 +253,9 @@ slide279 = StateDiagram [a, b, c, d, l] 1 "" [Connection [1] [2] "a", Connection
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
+{- Accepted by Alloy directly -}
 slide280 :: UMLStateDiagram
-slide280 = StateDiagram [a, b, c, d, e, f, g, h] 1 "" [Connection [1] [2]
+slide280 = StateDiagram [a, b, c, d, e, f, g, h] 12 "" [Connection [1] [2]
            "a", Connection [2] [3] "b", Connection [2] [5] "e", Connection [3]
            [4] "c", Connection [3] [6] "e", Connection [4] [7] "e", Connection
            [5] [6] "b", Connection [6] [7] "c", Connection [6] [8] "h",
@@ -254,8 +270,9 @@ slide280 = StateDiagram [a, b, c, d, e, f, g, h] 1 "" [Connection [1] [2]
     g = InnerMostState 7 "(D, F)" ""
     h = InnerMostState 8 "G" ""
 
+{- Accepted by Alloy directly -}
 slide281 :: UMLStateDiagram
-slide281 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
+slide281 = StateDiagram [a, b, c, d] 14 "" [Connection [1] [2] "a", Connection
            [2] [1] "f", Connection [2] [3, 0] "b", Connection [3] [1] "e",
            Connection [4] [3] "x"] [4]
   where
@@ -269,8 +286,9 @@ slide281 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection
         g = History 0 Shallow
     d = InnerMostState 4 "X" ""
 
+{- Accepted by Alloy directly -}
 slide283 :: UMLStateDiagram
-slide283 = StateDiagram [a, b, c, d, e, f, g] 1 "" [Connection [1] [2] "a",
+slide283 = StateDiagram [a, b, c, d, e, f, g] 12 "" [Connection [1] [2] "a",
            Connection [2] [1] "f", Connection [3] [4] "a", Connection [4] [3]
            "f", Connection [2] [5] "b", Connection [4] [6] "b", Connection [5]
            [6] "c", Connection [6] [5] "d", Connection [6] [3] "e", Connection
@@ -284,8 +302,9 @@ slide283 = StateDiagram [a, b, c, d, e, f, g] 1 "" [Connection [1] [2] "a",
     f = InnerMostState 6 "D" ""
     g = InnerMostState 7 "X()" ""
 
+{- Accepted by Alloy directly -}
 task26a :: UMLStateDiagram
-task26a = StateDiagram [a, b, c, d] 1 "" [Connection [1, 1, 3] [2] "e",
+task26a = StateDiagram [a, b, c, d] 23 "" [Connection [1, 1, 3] [2] "e",
           Connection [1, 2, 2] [2] "e", Connection [2] [3] "", Connection [3]
           [4] "c", Connection [3] [4, 2] "d", Connection [4, 2] [1, 2, 2] "a",
           Connection [4, 1] [1] "a"] [1, 1, 2]
@@ -310,8 +329,9 @@ task26a = StateDiagram [a, b, c, d] 1 "" [Connection [1, 1, 3] [2] "e",
         g = InnerMostState 1 "G" ""
         h = InnerMostState 2 "H" ""
 
+{- Accepted by Alloy directly -}
 task26b :: UMLStateDiagram
-task26b = StateDiagram [a, b, c, d, e, f, g, h, i] 1 "" [Connection [1] [2]
+task26b = StateDiagram [a, b, c, d, e, f, g, h, i] 17 "" [Connection [1] [2]
           "a", Connection [1] [4] "b", Connection [2] [6] "b", Connection [3]
           [6] "b", Connection [3] [1] "a", Connection [4] [1] "b", Connection
           [4] [5] "a", Connection [5] [3] "b", Connection [6] [3] "b",
@@ -329,8 +349,9 @@ task26b = StateDiagram [a, b, c, d, e, f, g, h, i] 1 "" [Connection [1] [2]
     h = InnerMostState 8 "G" ""
     i = InnerMostState 9 "H" ""
 
+{- Accepted by Alloy directly -}
 task27 :: UMLStateDiagram
-task27 = StateDiagram [a, b] 1 "" [Connection [1] [2, 0] "F", Connection [2]
+task27 = StateDiagram [a, b] 12 "" [Connection [1] [2, 0] "F", Connection [2]
          [1] "F"] [1]
   where
     a = InnerMostState 1 "CD" ""
@@ -345,8 +366,9 @@ task27 = StateDiagram [a, b] 1 "" [Connection [1] [2, 0] "F", Connection [2]
 
 -- task28 is the same as task26a
 
+{- Accepted by Alloy directly -}
 task85 :: UMLStateDiagram
-task85 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 1, 1, 1, 1] "",
+task85 = StateDiagram [Joint 1, a] 35 "" [Connection [1] [2, 1, 1, 1, 1] "",
          Connection [1] [2, 1, 1, 2, 1] ""] [1]
   where
     a = StateDiagram [b, c] 2 "A" [Connection [1, 1, 1, 1] [2] "i",
@@ -378,8 +400,9 @@ task85 = StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 1, 1, 1, 1] "",
             e = InnerMostState 2 "7" ""
             f = InnerMostState 3 "8" ""
 
+{- Accepted by Alloy directly -}
 task88 :: UMLStateDiagram
-task88 = StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", Connection [2]
+task88 = StateDiagram [a, b, c] 22 "" [Connection [1] [3] "k", Connection [2]
          [3] "k", Connection [3, 2] [2] "h", Connection [2] [1, 2, 2] "h"] [3]
   where
     a = CombineDiagram [d, e] 1
@@ -401,19 +424,22 @@ task88 = StateDiagram [a, b, c] 1 "" [Connection [1] [3] "k", Connection [2]
         f = InnerMostState 1 "F" ""
         g = InnerMostState 2 "G" ""
 
-
+{- After some changes, accepted by Alloy -}
 test2 :: UMLStateDiagram
-test2 = StateDiagram [a, b] 1 "" [Connection [1] [2, 2, 2] "a"] [1]
+test2 = StateDiagram [a, b] 7 "" [Connection [1] [2, 1] "a"] [1]
   where
     a = InnerMostState 1 "A" ""
     b = StateDiagram [c, d] 2 "B" [Connection [1] [2] "b"] [1]
-    c = InnerMostState 1 "C" ""
-    d = StateDiagram [e, f] 2 "D" [Connection [1] [2] "c"] [1]
-    e = InnerMostState 1 "E" ""
-    f = InnerMostState 2 "F" ""
+      where
+        c = InnerMostState 1 "C" ""
+        d = StateDiagram [e, f] 2 "D" [Connection [1] [2] "c"] [1]
+          where
+            e = InnerMostState 1 "E" ""
+            f = InnerMostState 2 "F" ""
 
+{- Accepted by Alloy directly -}
 test4 :: UMLStateDiagram
-test4 = StateDiagram [a] 1 "" [] [1, 1, 1]
+test4 = StateDiagram [a] 35 "" [] [1, 1, 1]
   where
     a = StateDiagram [b, c] 1 "A" [Connection [1, 2, 1, 1] [2] "i", Connection [1, 3] [2] "",
       Connection [2, 2] [1, 2, 2, 3] "e", Connection [1, 5, 2] [2, 2] "h",
