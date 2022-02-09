@@ -551,18 +551,13 @@ one sig Name60 extends ComponentNames{}
 
 one sig T1 extends TriggerNames{}
 
-fact{
-  // Flows = SFlow + Connection1 + Connection2 + Connection3 + Connection4 + Connection5 + Connection6 + Connection7 + Connection8 + Connection9 + Connection10 + Connection11 + Connection12 + Connection13 + Connection14 + Connection15 + Connection16 + Connection17 + Connection18 + Connection19 + Connection20 + Connection21 + Connection22 + Connection23 + Connection24 + Connection25 + Connection26 + Connection27 + Connection28 + Connection29 + Connection30 + Connection31 + Connection32 + Connection33 + Connection34 + Connection35 + Connection36 + Connection37 + Connection38 + Connection39 + Connection40 + Connection41 + Connection42 + Connection43 + Connection44 + Connection45 + Connection46 + Connection47 + Connection48 + Connection49 + Connection50 + Connection51 + Connection52 + Connection53 + Connection54 + Connection55 + Connection56 + Connection57 + Connection58 + Connection59 + Connection60
-  // no EndNodes
-  // some StartNodes
-  // some ComponentNames
-  // some TriggerNames
-  // some NormalStates
-  // no HierarchicalStates
-  // no RegionsStates
-  // no DeepHistoryNodes
-  // no ShallowHistoryNodes
-  // no ForkNodes
-  // no JoinNodes
-}
-run {} for 0 EndNodes, 0 HierarchicalStates, 0 RegionsStates, 0 Regions, 0 DeepHistoryNodes, 0 ShallowHistoryNodes, 0 ForkNodes, 0 JoinNodes, 86 ProtoFlows, exactly 61 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+run {} for
+  0 EndNodes,
+  0 HierarchicalStates,
+  0 RegionsStates,
+  0 Regions,
+  0 DeepHistoryNodes,
+  0 ShallowHistoryNodes,
+  0 ForkNodes,
+  0 JoinNodes,
+  86 ProtoFlows, exactly 61 Flows // concerning ProtoFlows, a temporary hack for manual scope setting

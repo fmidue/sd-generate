@@ -770,18 +770,11 @@ one sig Name62 extends ComponentNames{}
 one sig T1 extends TriggerNames{}
 one sig T2 extends TriggerNames{}
 
-fact{
-  // Flows = S_1_1Flow + S_1_2Flow + Connection1 + Connection2 + Connection3 + Connection4 + Connection5 + Connection6 + Connection7 + Connection8 + Connection9 + Connection10 + Connection11 + Connection12 + Connection13 + Connection14 + Connection15 + Connection16 + Connection17 + Connection18 + Connection19 + Connection20 + Connection21 + Connection22 + Connection23 + Connection24 + Connection25 + Connection26 + Connection27 + Connection28 + Connection29 + Connection30 + Connection31 + Connection32 + Connection33 + Connection34 + Connection35 + Connection36 + Connection37 + Connection38 + Connection39 + Connection40 + Connection41 + Connection42 + Connection43 + Connection44 + Connection45 + Connection46 + Connection47 + Connection48 + Connection49 + Connection50 + Connection51 + Connection52 + Connection53 + Connection54 + Connection55 + Connection56 + Connection57 + Connection58 + Connection59 + Connection60 + Connection61 + Connection62 + Connection63 + Connection64 + Connection65 + Connection66 + Connection67 + Connection68 + Connection69 + Connection70 + Connection71 + Connection72 + Connection73 + Connection74 + Connection75 + Connection76 + Connection77 + Connection78 + Connection79 + Connection80 + Connection81 + Connection82 + Connection83 + Connection84
-  // no EndNodes
-  // some StartNodes
-  // some ComponentNames
-  // some TriggerNames
-  // some NormalStates
-  // no HierarchicalStates
-  // some RegionsStates
-  // no DeepHistoryNodes
-  // no ShallowHistoryNodes
-  // no ForkNodes
-  // no JoinNodes
-}
-run {} for 0 EndNodes, 0 HierarchicalStates, 0 DeepHistoryNodes, 0 ShallowHistoryNodes, 0 ForkNodes, 0 JoinNodes, 86 ProtoFlows, exactly 86 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+run {} for
+  0 EndNodes,
+  0 HierarchicalStates,
+  0 DeepHistoryNodes,
+  0 ShallowHistoryNodes,
+  0 ForkNodes,
+  0 JoinNodes,
+  86 ProtoFlows, exactly 86 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
