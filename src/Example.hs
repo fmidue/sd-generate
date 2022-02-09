@@ -9,7 +9,7 @@ import Datatype (
 {-# ANN module "Hlint: ignore Reduce duplication" #-}
 
 verySmall :: UMLStateDiagram
-verySmall = StateDiagram [EndState 1] 0 "" [] [1]
+verySmall = StateDiagram [EndState 1] 1 "" [] [1]
 
 {- Accepted by Alloy directly -}
 picture1 :: UMLStateDiagram
@@ -78,7 +78,7 @@ slide246 = StateDiagram a 86 "" (map (\x -> Connection [x] [x+1]
 
 {- Accepted by Alloy directly -}
 slide253 :: UMLStateDiagram
-slide253 = StateDiagram [CombineDiagram [a, b] 1] 1 "" [] []
+slide253 = StateDiagram [CombineDiagram [a, b] 1] 86 "" [] []
   where
     a = StateDiagram c 1 "Stunden" (map (\x -> Connection [x] [x+1]
            "h") [1..23] ++ [Connection [24] [1] "h"]) [1]
@@ -202,7 +202,32 @@ slide275 :: UMLStateDiagram
 slide275 = StateDiagram [a, b] 200 "" [Connection [1] [2] "Batterie wird leer",
            Connection [2] [1] "Neue Batterie wird eingesetzt / al=1"] [2]
   where
-    a = slide273
+    a = StateDiagram [c, d, e] 1 "" [Connection [3] [1, 1] "a [al==1]",
+           Connection [3] [1, 2] "a [al==0]", Connection [1] [2] "a",
+           Connection [2] [3, 1, 0] "", Connection [2] [3, 2, 0] ""] [3]
+      where
+        c = StateDiagram [f, g] 1 "Alarm" [Connection [1] [2] "b", Connection
+            [2] [1] "b"] [1]
+          where
+            f = InnerMostState 1 "on" ""
+            g = InnerMostState 2 "off" ""
+        d = Joint 2
+        e = CombineDiagram [h, i] 3
+          where
+            h = StateDiagram (j ++ [k]) 1 "Stunden" (map (\x -> Connection [x]
+                [x+1] "h") [1..23] ++ [Connection [24] [1] "h", Connection [0] [1]
+                ""]) [1]
+              where
+                j = map (\x -> InnerMostState x (show(x-1)) "") [1..24]
+                k = History 0 Shallow
+
+            i = StateDiagram (l ++ [m]) 2 "Minuten" (map (\x -> Connection [x]
+                [x+1] "after(1min)") [1..59] ++ [Connection [60] [1] "after(1min)",
+                Connection [0] [1] ""]) [1]
+              where
+                l = InnerMostState 1 "0" "entry [al==1] / beep" :
+                  map (\x -> InnerMostState x (show(x-1)) "") [2..60]
+                m = History 0 Shallow
     b = InnerMostState 2 "Batterie(fach) leer" ""
 
 {- Accepted by Alloy directly -}

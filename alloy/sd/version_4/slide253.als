@@ -1,4 +1,4 @@
-module diagram // name: "", (irrelevant) label: 1
+module diagram // name: "", (irrelevant) label: 86
 open uml_state_diagram
 
 one sig N_1 extends RegionsStates{}{
@@ -784,4 +784,4 @@ fact{
   // no ForkNodes
   // no JoinNodes
 }
-run {} for 0 EndNodes, 0 HierarchicalStates, 0 DeepHistoryNodes, 0 ShallowHistoryNodes, 0 ForkNodes, 0 JoinNodes, 1 ProtoFlows, exactly 86 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+run {} for 0 EndNodes, 0 HierarchicalStates, 0 DeepHistoryNodes, 0 ShallowHistoryNodes, 0 ForkNodes, 0 JoinNodes, 86 ProtoFlows, exactly 86 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
