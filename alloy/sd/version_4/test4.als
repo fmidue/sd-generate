@@ -232,18 +232,7 @@ one sig T7 extends TriggerNames{}
 one sig T8 extends TriggerNames{}
 one sig T9 extends TriggerNames{}
 
-fact{
-  // Flows = SFlow + S_1_1_2_1Flow + S_1_1_2_2Flow + S_1_1_5Flow + S_1_2Flow + Connection1 + Connection2 + Connection3 + Connection4 + Connection5 + Connection6 + Connection7 + Connection8 + Connection9 + Connection10 + Connection11 + Connection12 + Connection13 + Connection14 + Connection15 + Connection16 + Connection17 + Connection18 + Connection19 + Connection20
-  // no EndNodes
-  // some StartNodes
-  // some ComponentNames
-  // some TriggerNames
-  // some NormalStates
-  // some HierarchicalStates
-  // some RegionsStates
-  // no DeepHistoryNodes
-  // some ShallowHistoryNodes
-  // some ForkNodes
-  // some JoinNodes
-}
-run {} for 0 EndNodes, 0 DeepHistoryNodes, 35 ProtoFlows, exactly 25 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+run {} for
+  0 EndNodes,
+  0 DeepHistoryNodes,
+  35 ProtoFlows, exactly 25 Flows // concerning ProtoFlows, a temporary hack for manual scope setting

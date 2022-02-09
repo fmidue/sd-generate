@@ -65,18 +65,12 @@ one sig T2 extends TriggerNames{}
 one sig T3 extends TriggerNames{}
 one sig T4 extends TriggerNames{}
 
-fact{
-  // Flows = SFlow + Connection1 + Connection2 + Connection3 + Connection4 + Connection5 + Connection6
-  // some EndNodes
-  // some StartNodes
-  // some ComponentNames
-  // some TriggerNames
-  // some NormalStates
-  // no HierarchicalStates
-  // no RegionsStates
-  // no DeepHistoryNodes
-  // no ShallowHistoryNodes
-  // no ForkNodes
-  // no JoinNodes
-}
-run {} for 0 HierarchicalStates, 0 RegionsStates, 0 Regions, 0 DeepHistoryNodes, 0 ShallowHistoryNodes, 0 ForkNodes, 0 JoinNodes, 7 ProtoFlows, exactly 7 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+run {} for
+  0 HierarchicalStates,
+  0 RegionsStates,
+  0 Regions,
+  0 DeepHistoryNodes,
+  0 ShallowHistoryNodes,
+  0 ForkNodes,
+  0 JoinNodes,
+  7 ProtoFlows, exactly 7 Flows // concerning ProtoFlows, a temporary hack for manual scope setting

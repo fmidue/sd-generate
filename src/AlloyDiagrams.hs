@@ -10,7 +10,7 @@ import Datatype (UMLStateDiagram, StateDiagram(..), Connection(..), HistoryType(
 import Data.String.Interpolate (i)
 import Data.List (intercalate)
 import Data.List.Extra (nubOrd)
-import Data.Maybe (fromJust, catMaybes)
+import Data.Maybe (isNothing, fromJust)
 
 data Inherited = Inherited
   { ctxt :: [Int]
@@ -22,7 +22,7 @@ data Synthesized = Synthesized
   { alloy :: String
   , names :: [String]
   , rootNodes :: [String]
-  , innerStarts :: [Maybe String]
+  , innerStarts :: Int
   , endNodes :: Bool
   , normalStates :: Bool
   , hierarchicalStates :: Bool
@@ -45,15 +45,11 @@ render (globalise -> StateDiagram{ substate, label, name, connection, startState
       transitionMapping = zipWith (\name -> (name,) . ("T" ++) . show) (nubOrd (filter (not . null) (map transition connection))) [1..]
       transitionOutput = map (\(_,trigger) -> [i|one sig #{trigger} extends TriggerNames{}|])
                          transitionMapping
-      theInnerStarts = catMaybes innerStarts
-      theFlows =
-        [ "SFlow" | not (null startState) ]
-        ++ map (++"Flow") theInnerStarts
-        ++ zipWith (const $ ("Connection"++) . show) connection [1..]
+      numberOfFlows = length connection + innerStarts + if null startState then 0 else 1
       nullScopes =
-        concatMap (("0 "++) . (++", ") . snd) . filter fst $
+        concatMap ((" 0 "++) . (++",\n ") . snd) . filter fst $
         [ (not endNodes, "EndNodes")
-        , (null startState && null theInnerStarts, "StartNodes")
+        , (null startState && innerStarts == 0, "StartNodes")
         , (null names, "ComponentNames")
         , (null transitionMapping, "TriggerNames")
         , (not normalStates, "NormalStates")
@@ -72,21 +68,8 @@ open uml_state_diagram
 #{unlines $ zipWith (renderConnection transitionMapping) connection [1..]}
 #{unlines nameOutput}
 #{unlines transitionOutput}
-fact{
-  // #{if null theFlows then "no Flows" else "Flows = " ++ intercalate " + " theFlows}
-  // #{if endNodes then "some EndNodes" else "no EndNodes"}
-  // #{if null startState && null theInnerStarts then "no StartNodes" else "some StartNodes"}
-  // #{if null names then "no ComponentNames" else "some ComponentNames"}
-  // #{if null transitionMapping then "no TriggerNames" else "some TriggerNames"}
-  // #{if normalStates then "some NormalStates" else "no NormalStates"}
-  // #{if hierarchicalStates then "some HierarchicalStates" else "no HierarchicalStates"}
-  // #{if regionsStates then "some RegionsStates" else "no RegionsStates"}
-  // #{if deepHistoryNodes then "some DeepHistoryNodes" else "no DeepHistoryNodes"}
-  // #{if shallowHistoryNodes then "some ShallowHistoryNodes" else "no ShallowHistoryNodes"}
-  // #{if forkNodes then "some ForkNodes" else "no ForkNodes"}
-  // #{if joinNodes then "some JoinNodes" else "no JoinNodes"}
-}
-run {} for #{nullScopes}#{show label} ProtoFlows, exactly #{show (length theFlows)} Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+run {} for
+ #{nullScopes} #{show label} ProtoFlows, exactly #{show numberOfFlows} Flows // concerning ProtoFlows, a temporary hack for manual scope setting
 |]
 
 renderStart :: (String, [Int]) -> String
@@ -112,7 +95,7 @@ renderInner recurse substate inherited =
       { alloy = unlines $ map alloy recursively
       , names = concatMap names recursively
       , rootNodes = concatMap rootNodes recursively
-      , innerStarts = concatMap innerStarts recursively
+      , innerStarts = sum (map innerStarts recursively)
       , endNodes = any endNodes recursively
       , normalStates = any normalStates recursively
       , hierarchicalStates = any hierarchicalStates recursively
@@ -141,7 +124,7 @@ renderComposite kind eachWith StateDiagram{ substate, label, name, startState } 
             [ alloy ]
   , names = if null name then names else name : names
   , rootNodes = [node]
-  , innerStarts = fmap fst start : innerStarts
+  , innerStarts = innerStarts + if isNothing start then 0 else 1
   , endNodes = endNodes
   , normalStates = normalStates
   , hierarchicalStates = kind == "HierarchicalStates" || hierarchicalStates
@@ -155,7 +138,7 @@ renderComposite kind eachWith StateDiagram{ substate, label, name, startState } 
 defaultSynthesized :: Synthesized
 defaultSynthesized = Synthesized
   { names = []
-  , innerStarts = []
+  , innerStarts = 0
   , endNodes = False
   , normalStates = False
   , hierarchicalStates = False
