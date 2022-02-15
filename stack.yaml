@@ -2,3 +2,5 @@ resolver: lts-16.31
 packages:
   - .
 extra-deps:
+  - git: https://github.com/marcellussiegburg/call-alloy.git
+    commit: 8f4aab19bc6e7a162c6136306c9df72285cc3567

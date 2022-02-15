@@ -99,7 +99,7 @@ data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
   SelfCR deriving (Show, Eq)
 
 data HistoryType = Shallow | Deep
-  deriving (Show, Eq)
+  deriving (Show, Eq, Ord)
 
 type UMLStateDiagram = StateDiagram [Connection]
 
