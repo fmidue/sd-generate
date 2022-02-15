@@ -14,10 +14,17 @@ pred atLeastOneExitFromCompositeStates{
 pred scenario1{
         no HistoryNodes
         no Regions
-        # Nodes > 8
-        # Flows > 8
-        some HierarchicalStates
-        atLeastOneExitFromCompositeStates
+        no EndNodes
+        no s : NormalStates | no s.name
+        no disjoint s1,s2 : NormalStates | s1.name = s2.name
+        EmptyTrigger not in from.NormalStates.label
+        all s : NormalStates | some (Flows <: from).s
+        one HierarchicalStates
+        let hs = HierarchicalStates, inner = hs + hs.contains |
+                some ((Flows <: from).hs.to & (Nodes - inner))
+                and mul[2,#inner] >= #Nodes
+        # Nodes = 8
+        # Flows < 10
 }
 
 // Some regions, no history nodes
