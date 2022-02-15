@@ -1,7 +1,7 @@
 module CounterExampleSpec (spec) where
 
 import CounterExample
-import Checkers (checkStructure, checkCrossings, checkUniqueness, checkDrawability)
+import Checkers (checkRepresentation, checkStructure, checkCrossings, checkUniqueness, checkDrawability)
 import ExampleSpec (allTheCheckers)
 import Datatype (globalise, localise, StateDiagram(substate))
 
@@ -13,9 +13,11 @@ import Data.Tuple.Extra ((***))
 
 spec :: Spec
 spec = do
+  describe "checkRepresentation" $
+    it "rejects forCheckOuterMostLayer" $
+      checkRepresentation forCheckOuterMostLayer `shouldSatisfy` isJust
   counterExamplesOnlyFor "checkRepresentation"
-     [ ("forCheckOuterMostLayer", forCheckOuterMostLayer)
-       ,("forCheckSubstateCD1", forCheckSubstateCD1)
+     [  ("forCheckSubstateCD1", forCheckSubstateCD1)
        ,("forCheckSubstateCD2", forCheckSubstateCD2)
        -- ,("forCheckEmptyConnPoint1", forCheckEmptyConnPoint1)
        -- ,("forCheckEmptyConnPoint2", forCheckEmptyConnPoint2)

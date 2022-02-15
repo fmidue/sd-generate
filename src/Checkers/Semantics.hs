@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
+
 module Checkers.Semantics ( checkSemantics ) where
 
 import Datatype (
@@ -26,7 +28,6 @@ checkSameConnection s@StateDiagram {} =
                           sub = substate global
                           conn = connection global
                           withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
-checkSameConnection _ = True
 
 checkEmptyTran :: UMLStateDiagram -> Bool
 checkEmptyTran s@StateDiagram {} =
