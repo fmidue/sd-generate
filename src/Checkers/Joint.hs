@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.Joint ( checkJoint ) where
@@ -52,7 +53,6 @@ checkMtoOne s@StateDiagram{} =
         fromOne       = fromOnlyJoint \\fromMany
         toNoConn = nub fromOnlyJoint \\ nub toOnlyJoint
         fromNoConn = nub toOnlyJoint \\ nub fromOnlyJoint
-checkMtoOne _ = True
 
 overOne :: [Int] -> [[Int]] -> Bool
 overOne a b =  length (filter( a ==) b) > 1
@@ -73,7 +73,6 @@ checkTransition s@StateDiagram {} =
       startOnlyJoint = filter (not.(`notJoint` sub)) start
       fromTranNonEmpty = map pointFrom (filter (not.(`checkOutTranEmpty` fromOnlyJoint)) fromOnlyJoint)
       toTranNonEmpty = map pointTo (filter (not.(`checkInTranEmpty` toOnlyJoint)) toOnlyJoint)
-checkTransition _ = True
 
 checkOutTran :: Connection -> [Connection] -> Bool
 checkOutTran a b = null tranNotSame

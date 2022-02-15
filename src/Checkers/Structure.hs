@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.Structure ( checkStructure ) where
@@ -49,4 +50,3 @@ checkReachablity s@StateDiagram{}
       conn   = connection global
       sub    = substate global
       stateNoCDSD = filter (not.(`isSDCD` sub)) (getAllElem s)
-checkReachablity _ = True

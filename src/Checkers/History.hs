@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.History ( checkHistory ) where
@@ -34,4 +35,3 @@ checkEdge out s@StateDiagram {} =
     global = globalise s
     sub    = substate global
     conn   = connection global
-checkEdge _ _ = True
