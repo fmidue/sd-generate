@@ -2,7 +2,7 @@ module ExampleSpec (spec, allTheCheckers) where
 
 import Example (positiveExamples)
 import Checkers
-import Datatype (globalise, localise)
+import Datatype (globalise)
 import Layout (checkWrapper)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
@@ -16,7 +16,6 @@ spec =
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
           positiveExamples
-          ++ map (("'localise' of " ++) *** localise) positiveExamples
           ++ map (("'globalise' of " ++) *** globalise) positiveExamples
       ]
 
