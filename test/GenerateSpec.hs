@@ -14,7 +14,7 @@ spec :: Spec
 spec = do
   describe "randomSD" $
     prop "generates valid diagram expressions" $
-      forAll randomSD $ \(code,_) -> firstJust id (map (($ code) . snd) allTheCheckers) `shouldBe` Nothing
+      forAll randomSD $ \(code,_) -> firstJust id (map (($ code) . snd) $ filter ((`notElem` ["checkSemantics", "checkDrawability"]) . fst) allTheCheckers) `shouldBe` Nothing
   describe "randomSD" $
     prop "generates valid diagram expressions after 'localise'" $
       forAll randomSD $ \(code,_) -> firstJust id (map (($ localise code) . snd) allTheCheckers) `shouldBe` Nothing
