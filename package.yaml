@@ -3,8 +3,10 @@ extra-source-files: []
 dependencies:
   - base
   - bytestring
+  - call-alloy
   - containers
   - ilist
+  - mtl
   - diagrams-lib
   - diagrams-svg
   - SVGFonts
@@ -27,6 +29,7 @@ library:
     - Example
     - CounterExample
     - Checkers
+    - Instance
     - Layout
     - Generate
     - AlloyDiagrams
@@ -40,6 +43,11 @@ executables:
     dependencies:
       - ba-zixin-wu
       - pretty-simple
+  draw:
+    main: draw.hs
+    source-dirs: app
+    dependencies:
+      - ba-zixin-wu
   drawing:
     main: drawing.hs
     source-dirs: app
