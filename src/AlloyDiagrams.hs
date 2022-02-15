@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-missing-fields -Wno-incomplete-patterns -Wno-missing-signatures -Wno-type-defaults -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-error=missing-fields -Wno-error=incomplete-patterns -Wno-error=missing-signatures -Wno-error=type-defaults -Wno-error=name-shadowing #-}
 {-# Language QuasiQuotes #-}
 {-# Language NamedFieldPuns #-}
 {-# Language ViewPatterns #-}
