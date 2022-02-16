@@ -50,20 +50,19 @@ fact{
         trueReachability
         // If there are history entries without default leaving transition, there must be a start state, because history nodes have neither record and a default leaving transition at the first entry
         all h1: HierarchicalStates, h2: HistoryNodes | let n1 = h1.contains |
-                no (Flows <: from).h2.to and h2 in (Flows <: from).(n1 & (Nodes - h1 - n1)).to
+                no (Flows <: from).h2.to and h2 in (Flows <: from).(Nodes - n1).to
                         implies one (StartNodes & h1.contains)
         all r1: Regions, h1: HistoryNodes | let n1 = r1.contains |
-                no (Flows <: from).h1 and h1 in (Flows <: from).(n1 & (Nodes - n1)).to
+                no (Flows <: from).h1 and h1 in (Flows <: from).(Nodes - n1).to
                         implies one (StartNodes & r1.contains)
         // If a composite state has regions and there are direct entries to one of the regions(except fork nodes), other regions must have start states
         all rs1: RegionsStates, disj r1, r2: rs1.contains |
                 let n1 = nodesInThisAndDeeper[r1] |
-                        some ((Flows <: from).(n1 & (Nodes - rs1 - n1 - ForkNodes)).to)
+                        some (n1 & (Flows <: from).(Nodes - n1 - ForkNodes).to)
                                 implies one (StartNodes & r2.contains)
         // If a composite state with regions has a fork entry, those parallel regions without the entry from the fork node will contain a start node.
         all rs1: RegionsStates, r1: rs1.contains, f1: ForkNodes |
                 some ((Flows <: from).f1.to & nodesInThisAndDeeper[rs1])
-                and f1 not in rs1.contains.contains
                 and no ((Flows <: from).f1.to & nodesInThisAndDeeper[r1])
                         implies one (StartNodes & r1.contains)
         // If a composite without regions has a standard entry, there must be a start state in it.
