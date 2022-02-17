@@ -7,17 +7,10 @@ These constraints are added:
 */
 open components_sig as components
 open startstate_rules // import constraints of start states
+open history_rules // import constraints of history nodes
 open endstate_rules // import constraints of end states
 open substate_rules // import constraints of "substates"
 open name_rules // import constraints of names
-
-// There should be at most one shallow/deep history node at each level (optional).
-pred atMostOneDeepAndShallowHistoryNodes{
-        all r1: Regions | lone (ShallowHistoryNodes & r1.contains) // In regions, there is at most one shallow history.
-        all h1: HierarchicalStates | lone (ShallowHistoryNodes & h1.contains) // In composite states, there is at most one shallow history.
-        all r1: Regions | lone (DeepHistoryNodes & r1.contains) // In regions, there is at most one deep history.
-        all h1: HierarchicalStates | lone (DeepHistoryNodes & h1.contains) // In composite states, there is at most one deep history.
-}
 
 // A composite state can't appear in in deeper level of itself
 pred acyclicContain{
