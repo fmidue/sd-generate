@@ -7,7 +7,6 @@ These constraints are added:
 */
 open components_sig as components
 open startstate_rules // import constraints of start states
-open history_rules // import constraints of history nodes
 open endstate_rules // import constraints of end states
 open substate_rules // import constraints of "substates"
 open name_rules // import constraints of names
