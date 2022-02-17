@@ -6,7 +6,7 @@ open uml_state_diagram
 pred atLeastOneExitFromCompositeStates{
         all c1: CompositeStates |
                 let n1 = nodesInThisAndDeeper[c1], n2 = Nodes - n1 |
-                        n2 in (Flows <: from).c1.to // Standard exit
+                        some (n2 & (Flows <: from).c1.to) // Standard exit
                         or some (n2 & (Flows <: from).n1.to) // Direct or join exit
 }
 
