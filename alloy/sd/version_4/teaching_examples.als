@@ -48,14 +48,23 @@ pred scenario2{
 
 // No regions, some history nodes
 pred scenario3{
-        some HistoryNodes
+        one HistoryNodes
         no Regions
-        # Nodes > 8
-        # Flows > 8
-        some HierarchicalStates
-        atLeastOneExitFromCompositeStates
+        no EndNodes
+        no s : NormalStates | no s.name
+        no disjoint s1,s2 : NormalStates | s1.name = s2.name
+        EmptyTrigger not in from.States.label
+        all s : States | some (Flows <: from).s
+        one HierarchicalStates
+        let hs = HierarchicalStates, inner = hs + hs.contains |
+                some ((Flows <: from).hs.to & (Nodes - inner))
+                and mul[3,#inner] >= #Nodes
+                and no hs.name
+        #Nodes >= 8
 }
 
 // run scenario1 for 10 but 6 Int, 0 EndNodes, 0 Regions, 0 RegionsStates, 0 ForkNodes, 0 JoinNodes, 0 HistoryNodes, exactly 1 HierarchicalStates
 
-run scenario2 for 15 but 6 Int, exactly 1 EndNodes, exactly 2 Regions, 0 HierarchicalStates, exactly 1 RegionsStates, 1 ForkNodes, 1 JoinNodes, 0 HistoryNodes
+// run scenario2 for 15 but 6 Int, exactly 1 EndNodes, exactly 2 Regions, 0 HierarchicalStates, exactly 1 RegionsStates, 1 ForkNodes, 1 JoinNodes, 0 HistoryNodes
+
+run scenario3 for 10 but 6 Int, 0 EndNodes, 0 Regions, 0 RegionsStates, 0 ForkNodes, 0 JoinNodes, exactly 1 HistoryNodes, exactly 1 HierarchicalStates
