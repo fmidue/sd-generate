@@ -3,16 +3,20 @@ module history_rules // Most constraints of history nodes, but some constraints 
 
 open components_sig as components // import all signatures
 
-//Four types of history nodes: shallow/deep history with/without a deafult outgoing tranistion.
+// In a same level there shouldn't be two history nodes that are of the same type (deep/shallow) and either both have no outgoing flow or both have exactly the same outgoing flow.
 pred noDuplicateTypeHistoryNodes{
         all r1: Regions, disj sh1, sh2: ShallowHistoryNodes & r1.contains |
-                some (Flows <: from).sh1 implies no (Flows <: from).sh2 else some (Flows <: from).sh2
+                some (Flows <: from).sh1 implies disj [(Flows <: from).sh1.to, (Flows <: from).sh2.to]
+                        else some (Flows <: from).sh2
         all h1: HierarchicalStates, disj sh1, sh2: ShallowHistoryNodes & h1.contains |
-                some (Flows <: from).sh1 implies no (Flows <: from).sh2 else some (Flows <: from).sh2
+                some (Flows <: from).sh1 implies disj [(Flows <: from).sh1.to, (Flows <: from).sh2.to]
+                        else some (Flows <: from).sh2
         all r1: Regions, disj dh1, dh2: DeepHistoryNodes & r1.contains |
-                some (Flows <: from).dh1 implies no (Flows <: from).dh2 else some (Flows <: from).dh2
+                some (Flows <: from).dh1 implies disj [(Flows <: from).dh1.to, (Flows <: from).dh2.to]
+                        else some (Flows <: from).dh2
         all h1: HierarchicalStates, disj dh1, dh2: DeepHistoryNodes & h1.contains |
-                some (Flows <: from).dh1 implies no (Flows <: from).dh2 else some (Flows <: from).dh2
+                some (Flows <: from).dh1 implies disj [(Flows <: from).dh1.to, (Flows <: from).dh2.to]
+                        else some (Flows <: from).dh2
 }
 
 pred noTransitionsBetweenHistoryNodesInSameLevel{
@@ -42,6 +46,6 @@ fact{
                 }
 
         HistoryNodes in allContainedNodes // No history nodes are at the outermost level of a state diagram
-        noDuplicateTypeHistoryNodes // In composite states and regions, there should be no history nodes with same types
+        noDuplicateTypeHistoryNodes
         noTransitionsBetweenHistoryNodesInSameLevel // A history node should rather not point to another history node in the same level.
 }
