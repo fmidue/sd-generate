@@ -29,5 +29,5 @@ fact{
                 }
 
         HistoryNodes in allContainedNodes // No history nodes are at the outermost level of a state diagram
-        atMostOneDeepAndShallowHistoryNodes // In composite states and regions, there is at most one shallow history and at most one deep history
+        // atMostOneDeepAndShallowHistoryNodes // In composite states and regions, there is at most one shallow history and at most one deep history
 }
