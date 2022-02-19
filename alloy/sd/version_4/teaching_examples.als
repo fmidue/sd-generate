@@ -63,8 +63,8 @@ pred scenario3{
         #Nodes >= 8
 }
 
-// run scenario1 for 10 but 6 Int, 0 EndNodes, 0 Regions, 0 RegionsStates, 0 ForkNodes, 0 JoinNodes, 0 HistoryNodes, exactly 1 HierarchicalStates
+run scenario1 for 10 but 6 Int, 0 EndNodes, 0 Regions, 0 RegionsStates, 0 ForkNodes, 0 JoinNodes, 0 HistoryNodes, exactly 1 HierarchicalStates
 
-// run scenario2 for 15 but 6 Int, exactly 1 EndNodes, exactly 2 Regions, 0 HierarchicalStates, exactly 1 RegionsStates, 1 ForkNodes, 1 JoinNodes, 0 HistoryNodes
+//run scenario2 for 15 but 6 Int, exactly 1 EndNodes, exactly 2 Regions, 0 HierarchicalStates, exactly 1 RegionsStates, 1 ForkNodes, 1 JoinNodes, 0 HistoryNodes
 
-run scenario3 for 10 but 6 Int, 0 EndNodes, 0 Regions, 0 RegionsStates, 0 ForkNodes, 0 JoinNodes, exactly 1 HistoryNodes, exactly 1 HierarchicalStates
+//run scenario3 for 10 but 6 Int, 0 EndNodes, 0 Regions, 0 RegionsStates, 0 ForkNodes, 0 JoinNodes, exactly 1 HistoryNodes, exactly 1 HierarchicalStates
