@@ -1,4 +1,4 @@
-name: ba-zixin-wu
+name: sd-generate
 extra-source-files: []
 dependencies:
   - base
@@ -41,30 +41,30 @@ executables:
     main: sampling.hs
     source-dirs: app
     dependencies:
-      - ba-zixin-wu
+      - sd-generate
       - pretty-simple
   draw:
     main: draw.hs
     source-dirs: app
     dependencies:
-      - ba-zixin-wu
+      - sd-generate
   drawing:
     main: drawing.hs
     source-dirs: app
     dependencies:
-      - ba-zixin-wu
+      - sd-generate
   default:
     main: default.hs
     source-dirs: app
     dependencies:
-      - ba-zixin-wu
+      - sd-generate
   transform:
     main: transform.hs
     source-dirs: app
     dependencies:
-      - ba-zixin-wu
+      - sd-generate
 tests:
-  ba-zixin-wu-test:
+  sd-generate-test:
     main: Spec.hs
     source-dirs:
       - test
@@ -73,5 +73,5 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - ba-zixin-wu
+      - sd-generate
       - hspec
