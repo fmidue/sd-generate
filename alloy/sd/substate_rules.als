@@ -9,4 +9,3 @@ fact{
         all h1: HierarchicalStates | some (h1.contains & (States + EndNodes)) // It constrains all composite states without regions
         all r1: Regions | some (r1.contains & (States + EndNodes)) // It constrains all region levels
 }
-
