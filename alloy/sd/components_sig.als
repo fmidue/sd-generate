@@ -82,6 +82,16 @@ abstract sig RegionsStates extends CompositeStates{
         not (one contains) // There can't be only one region in Region states
 }
 
+// A composite state can't appear in in deeper level of itself
+pred acyclicContain{
+        all c1: CompositeStates | c1 not in nodesInThisAndDeeper[c1] // A composite state can't appear in deeper level of itself
+}
+
+fact{
+        acyclicContain
+        disj[Regions.contains, HierarchicalStates.contains] // Regions and hierarchical states can't contain same nodes.
+}
+
 abstract sig ForkNodes extends Nodes{}
 {
         // It should be 1 to n(n > 1), n to n is not allowed

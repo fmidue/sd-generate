@@ -11,14 +11,5 @@ open transition_rules // import constraints of transition labels
 open substate_rules // import constraints of "substates"
 open name_rules // import constraints of names
 
-// A composite state can't appear in in deeper level of itself
-pred acyclicContain{
-        all c1: CompositeStates | c1 not in nodesInThisAndDeeper[c1] // A composite state can't appear in deeper level of itself
-}
-
-fact{
-        acyclicContain
-        disj[Regions.contains, HierarchicalStates.contains] // Regions and hierarchical states can't contain same nodes.
-}
 
 run {} for 6 but exactly 2 HierarchicalStates, exactly 1 EndNodes
