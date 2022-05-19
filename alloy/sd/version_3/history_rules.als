@@ -6,17 +6,13 @@ open components_sig as components // import all signatures
 // In a same level there shouldn't be two history nodes that are of the same type (deep/shallow) and either both have no outgoing flow or both have exactly the same outgoing flow.
 pred noDuplicateTypeHistoryNodes{
         all r1: Regions, disj sh1, sh2: ShallowHistoryNodes & r1.contains |
-                some (Flows <: from).sh1 implies disj [(Flows <: from).sh1.to, (Flows <: from).sh2.to]
-                        else some (Flows <: from).sh2
+                not ((Flows <: from).sh1.to = (Flows <: from).sh2.to)
         all h1: HierarchicalStates, disj sh1, sh2: ShallowHistoryNodes & h1.contains |
-                some (Flows <: from).sh1 implies disj [(Flows <: from).sh1.to, (Flows <: from).sh2.to]
-                        else some (Flows <: from).sh2
+                not ((Flows <: from).sh1.to = (Flows <: from).sh2.to)
         all r1: Regions, disj dh1, dh2: DeepHistoryNodes & r1.contains |
-                some (Flows <: from).dh1 implies disj [(Flows <: from).dh1.to, (Flows <: from).dh2.to]
-                        else some (Flows <: from).dh2
+                not ((Flows <: from).dh1.to = (Flows <: from).dh2.to)
         all h1: HierarchicalStates, disj dh1, dh2: DeepHistoryNodes & h1.contains |
-                some (Flows <: from).dh1 implies disj [(Flows <: from).dh1.to, (Flows <: from).dh2.to]
-                        else some (Flows <: from).dh2
+                not ((Flows <: from).dh1.to = (Flows <: from).dh2.to)
 }
 
 pred noTransitionsBetweenHistoryNodesInSameLevel{
