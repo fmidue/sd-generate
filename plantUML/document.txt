@@ -1,0 +1,12 @@
+All examples are transformed from Haskell examples. Code in txt files can be ran in PlantUML directly, but there are some restrictions in current.
+
+Restriction:
+1. Concurrent states (Regions States) in PlantUML can't have any non-standard (non-default) entry or exit. Currently, the code doen't implement the transformation about Concurrent states.
+
+2. Setting a name for regions, but not for a regions state seems infeasible.
+
+3. In a normal syntax to define history nodes in PlantUML, there can exist only one shallow history or deep history (a shallow and deep history can exist simultaneously) in a compound state (hierarchical states or regions) not completely like our rules, and it is not easy to implement the transformation. Therefore, a substitute method is used to show history nodes, which can solve the restriction and is easy to implement the transformation, but the effect of demonstration is not perfect.
+
+4. Two kinds of arrows "->" (right arrows) and "-->" (down arrows). "->" is priorly layouted in a horizontal(right) direction and "-->" is priorly layouted in a vertical(down) direction. In the transformation, if a transition has a label, then it uses "-->", else it uses "->".
+
+5. Two kinds of region layouts "--" and "||". It has no automatic selection rule like the Haskell tool, so we also possibly need to choose one. It seems that the choice has no big impact according to the observation, but "||" is prepared to be used (because -->" is priorly layouted in a vertical(down) direction).
