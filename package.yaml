@@ -33,6 +33,7 @@ library:
     - Layout
     - Generate
     - AlloyDiagrams
+    - PlantUMLDiagrams
   ghc-options:
     - -Wall
     - -Werror
@@ -58,8 +59,13 @@ executables:
     source-dirs: app
     dependencies:
       - sd-generate
-  transform:
-    main: transform.hs
+  transformAlloy:
+    main: transformAlloy.hs
+    source-dirs: app
+    dependencies:
+      - sd-generate
+  transformPlantUML:
+    main: transformPlantUML.hs
     source-dirs: app
     dependencies:
       - sd-generate

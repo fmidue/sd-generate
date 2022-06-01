@@ -1,7 +1,6 @@
 module Main where
 
 import AlloyDiagrams (render)
-
 import Example (positiveExamples)
 import Control.Monad (forM_)
 
