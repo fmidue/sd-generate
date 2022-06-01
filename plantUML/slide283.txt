@@ -1,0 +1,30 @@
+@startuml
+/'name: #{show name} (irrelevant) label: #{show label}'/
+skinparam state<<history>> {
+    backgroundColor transparent
+    borderColor transparent
+    fontSize 25
+}
+
+[*] -> N_7
+
+state "A(C)" as N_1
+state "B(C)" as N_2
+state "A(D)" as N_3
+state "B(D)" as N_4
+state "C" as N_5
+state "D" as N_6
+state "X()" as N_7
+
+N_1 --> N_2 : a
+N_2 --> N_1 : f
+N_3 --> N_4 : a
+N_4 --> N_3 : f
+N_2 --> N_5 : b
+N_4 --> N_6 : b
+N_5 --> N_6 : c
+N_6 --> N_5 : d
+N_6 --> N_3 : e
+N_5 --> N_1 : e
+N_7 --> N_5 : x
+
