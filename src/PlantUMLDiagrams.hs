@@ -24,19 +24,21 @@ renderAll sd =
   in
     [i|@startuml
 #{info}
+
 skinparam state<<history>> {
     backgroundColor transparent
     borderColor transparent
     fontSize 25
 }
 #{renderUML sd inherited}
+@enduml
 |]
 
 renderUML :: UMLStateDiagram -> Inherited -> String
 renderUML StateDiagram{substate, connection, startState} inherited =
   [i|
-#{renderStart startState inherited}
 #{renderSubState substate inherited}
+#{renderStart startState inherited}
 #{renderConnection connection inherited}|]
 
 renderSubState :: [UMLStateDiagram] -> Inherited -> String
