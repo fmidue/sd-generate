@@ -1,20 +1,19 @@
 @startuml
 /'name: #{show name} (irrelevant) label: #{show label}'/
+
 skinparam state<<history>> {
     backgroundColor transparent
     borderColor transparent
     fontSize 25
 }
 
-[*] -> N_1
-
 state "A" as N_1{
-
-[*] -> N_1_1
 
 state "B" as N_1_1
 state "C" as N_1_2
 state "D" as N_1_3
+
+[*] -> N_1_1
 
 N_1_1 --> N_1_2 : d
 N_1_2 --> N_1_3 : b
@@ -23,5 +22,8 @@ N_1_2 --> N_1_1 : c
 }
 state "E" as N_2
 
+[*] -> N_1
+
 N_1 --> N_2 : a
 
+@enduml
