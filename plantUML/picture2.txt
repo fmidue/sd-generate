@@ -1,12 +1,11 @@
 @startuml
 /'name: #{show name} (irrelevant) label: #{show label}'/
+
 skinparam state<<history>> {
     backgroundColor transparent
     borderColor transparent
     fontSize 25
 }
-
-[*] -> N_1
 
 state "idle" as N_1
 state "Send order request" as N_2
@@ -15,6 +14,8 @@ state "Order confirmation" as N_4
 state "Dispatch order" as N_5
 state N_6 <<end>>
 
+[*] -> N_1
+
 N_1 -> N_2 
 N_2 --> N_3 : Action
 N_3 --> N_4 : Confirm order(Event)
@@ -22,3 +23,4 @@ N_4 -> N_5
 N_2 --> N_6 : exit
 N_5 --> N_6 : complete
 
+@enduml
