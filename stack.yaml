@@ -4,3 +4,4 @@ packages:
 extra-deps:
   - git: https://github.com/marcellussiegburg/call-alloy.git
     commit: 8f4aab19bc6e7a162c6136306c9df72285cc3567
+  - call-plantuml-0.0.1@sha256:8a1ff92fef35729ed01db4201f7954127034ad6113224f579276d254dae2221b,1985

@@ -4,6 +4,7 @@ dependencies:
   - base
   - bytestring
   - call-alloy
+  - call-plantuml
   - containers
   - ilist
   - mtl
