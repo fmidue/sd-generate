@@ -1,0 +1,29 @@
+@startuml
+/'name: #{show name} (irrelevant) label: #{show label}'/
+
+
+state "Composite State" as N_1{
+
+state "State 1" as N_1_1
+state "state 2" as N_1_2{
+
+state "State 2a" as N_1_2_1
+state "State 2b" as N_1_2_2
+
+[*] -> N_1_2_1
+
+N_1_2_1 --> N_1_2_2 : b
+}
+
+[*] -> N_1_1
+
+N_1_1 --> N_1_2 : a
+}
+state "State 3" as N_2
+
+[*] -> N_1
+
+N_1 --> N_2 : t
+N_2 -> N_1[H*]
+
+@enduml

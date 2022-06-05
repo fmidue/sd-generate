@@ -1,11 +1,6 @@
 @startuml
 /'name: #{show name} (irrelevant) label: #{show label}'/
 
-skinparam state<<history>> {
-    backgroundColor transparent
-    borderColor transparent
-    fontSize 25
-}
 
 state "A(C)" as N_1
 state "B(C)" as N_2
