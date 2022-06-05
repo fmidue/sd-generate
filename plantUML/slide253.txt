@@ -1,0 +1,187 @@
+@startuml
+/'name: #{show name} (irrelevant) label: #{show label}'/
+
+
+state "RegionsState" as N_1{
+
+state "0" as N_1_1_1
+state "1" as N_1_1_2
+state "2" as N_1_1_3
+state "3" as N_1_1_4
+state "4" as N_1_1_5
+state "5" as N_1_1_6
+state "6" as N_1_1_7
+state "7" as N_1_1_8
+state "8" as N_1_1_9
+state "9" as N_1_1_10
+state "10" as N_1_1_11
+state "11" as N_1_1_12
+state "12" as N_1_1_13
+state "13" as N_1_1_14
+state "14" as N_1_1_15
+state "15" as N_1_1_16
+state "16" as N_1_1_17
+state "17" as N_1_1_18
+state "18" as N_1_1_19
+state "19" as N_1_1_20
+state "20" as N_1_1_21
+state "21" as N_1_1_22
+state "22" as N_1_1_23
+state "23" as N_1_1_24
+
+[*] -> N_1_1_1
+
+N_1_1_1 --> N_1_1_2 : h
+N_1_1_2 --> N_1_1_3 : h
+N_1_1_3 --> N_1_1_4 : h
+N_1_1_4 --> N_1_1_5 : h
+N_1_1_5 --> N_1_1_6 : h
+N_1_1_6 --> N_1_1_7 : h
+N_1_1_7 --> N_1_1_8 : h
+N_1_1_8 --> N_1_1_9 : h
+N_1_1_9 --> N_1_1_10 : h
+N_1_1_10 --> N_1_1_11 : h
+N_1_1_11 --> N_1_1_12 : h
+N_1_1_12 --> N_1_1_13 : h
+N_1_1_13 --> N_1_1_14 : h
+N_1_1_14 --> N_1_1_15 : h
+N_1_1_15 --> N_1_1_16 : h
+N_1_1_16 --> N_1_1_17 : h
+N_1_1_17 --> N_1_1_18 : h
+N_1_1_18 --> N_1_1_19 : h
+N_1_1_19 --> N_1_1_20 : h
+N_1_1_20 --> N_1_1_21 : h
+N_1_1_21 --> N_1_1_22 : h
+N_1_1_22 --> N_1_1_23 : h
+N_1_1_23 --> N_1_1_24 : h
+N_1_1_24 --> N_1_1_1 : h
+--
+
+state "0" as N_1_2_1
+state "1" as N_1_2_2
+state "2" as N_1_2_3
+state "3" as N_1_2_4
+state "4" as N_1_2_5
+state "5" as N_1_2_6
+state "6" as N_1_2_7
+state "7" as N_1_2_8
+state "8" as N_1_2_9
+state "9" as N_1_2_10
+state "10" as N_1_2_11
+state "11" as N_1_2_12
+state "12" as N_1_2_13
+state "13" as N_1_2_14
+state "14" as N_1_2_15
+state "15" as N_1_2_16
+state "16" as N_1_2_17
+state "17" as N_1_2_18
+state "18" as N_1_2_19
+state "19" as N_1_2_20
+state "20" as N_1_2_21
+state "21" as N_1_2_22
+state "22" as N_1_2_23
+state "23" as N_1_2_24
+state "24" as N_1_2_25
+state "25" as N_1_2_26
+state "26" as N_1_2_27
+state "27" as N_1_2_28
+state "28" as N_1_2_29
+state "29" as N_1_2_30
+state "30" as N_1_2_31
+state "31" as N_1_2_32
+state "32" as N_1_2_33
+state "33" as N_1_2_34
+state "34" as N_1_2_35
+state "35" as N_1_2_36
+state "36" as N_1_2_37
+state "37" as N_1_2_38
+state "38" as N_1_2_39
+state "39" as N_1_2_40
+state "40" as N_1_2_41
+state "41" as N_1_2_42
+state "42" as N_1_2_43
+state "43" as N_1_2_44
+state "44" as N_1_2_45
+state "45" as N_1_2_46
+state "46" as N_1_2_47
+state "47" as N_1_2_48
+state "48" as N_1_2_49
+state "49" as N_1_2_50
+state "50" as N_1_2_51
+state "51" as N_1_2_52
+state "52" as N_1_2_53
+state "53" as N_1_2_54
+state "54" as N_1_2_55
+state "55" as N_1_2_56
+state "56" as N_1_2_57
+state "57" as N_1_2_58
+state "58" as N_1_2_59
+state "59" as N_1_2_60
+
+[*] -> N_1_2_1
+
+N_1_2_1 --> N_1_2_2 : after(1min)
+N_1_2_2 --> N_1_2_3 : after(1min)
+N_1_2_3 --> N_1_2_4 : after(1min)
+N_1_2_4 --> N_1_2_5 : after(1min)
+N_1_2_5 --> N_1_2_6 : after(1min)
+N_1_2_6 --> N_1_2_7 : after(1min)
+N_1_2_7 --> N_1_2_8 : after(1min)
+N_1_2_8 --> N_1_2_9 : after(1min)
+N_1_2_9 --> N_1_2_10 : after(1min)
+N_1_2_10 --> N_1_2_11 : after(1min)
+N_1_2_11 --> N_1_2_12 : after(1min)
+N_1_2_12 --> N_1_2_13 : after(1min)
+N_1_2_13 --> N_1_2_14 : after(1min)
+N_1_2_14 --> N_1_2_15 : after(1min)
+N_1_2_15 --> N_1_2_16 : after(1min)
+N_1_2_16 --> N_1_2_17 : after(1min)
+N_1_2_17 --> N_1_2_18 : after(1min)
+N_1_2_18 --> N_1_2_19 : after(1min)
+N_1_2_19 --> N_1_2_20 : after(1min)
+N_1_2_20 --> N_1_2_21 : after(1min)
+N_1_2_21 --> N_1_2_22 : after(1min)
+N_1_2_22 --> N_1_2_23 : after(1min)
+N_1_2_23 --> N_1_2_24 : after(1min)
+N_1_2_24 --> N_1_2_25 : after(1min)
+N_1_2_25 --> N_1_2_26 : after(1min)
+N_1_2_26 --> N_1_2_27 : after(1min)
+N_1_2_27 --> N_1_2_28 : after(1min)
+N_1_2_28 --> N_1_2_29 : after(1min)
+N_1_2_29 --> N_1_2_30 : after(1min)
+N_1_2_30 --> N_1_2_31 : after(1min)
+N_1_2_31 --> N_1_2_32 : after(1min)
+N_1_2_32 --> N_1_2_33 : after(1min)
+N_1_2_33 --> N_1_2_34 : after(1min)
+N_1_2_34 --> N_1_2_35 : after(1min)
+N_1_2_35 --> N_1_2_36 : after(1min)
+N_1_2_36 --> N_1_2_37 : after(1min)
+N_1_2_37 --> N_1_2_38 : after(1min)
+N_1_2_38 --> N_1_2_39 : after(1min)
+N_1_2_39 --> N_1_2_40 : after(1min)
+N_1_2_40 --> N_1_2_41 : after(1min)
+N_1_2_41 --> N_1_2_42 : after(1min)
+N_1_2_42 --> N_1_2_43 : after(1min)
+N_1_2_43 --> N_1_2_44 : after(1min)
+N_1_2_44 --> N_1_2_45 : after(1min)
+N_1_2_45 --> N_1_2_46 : after(1min)
+N_1_2_46 --> N_1_2_47 : after(1min)
+N_1_2_47 --> N_1_2_48 : after(1min)
+N_1_2_48 --> N_1_2_49 : after(1min)
+N_1_2_49 --> N_1_2_50 : after(1min)
+N_1_2_50 --> N_1_2_51 : after(1min)
+N_1_2_51 --> N_1_2_52 : after(1min)
+N_1_2_52 --> N_1_2_53 : after(1min)
+N_1_2_53 --> N_1_2_54 : after(1min)
+N_1_2_54 --> N_1_2_55 : after(1min)
+N_1_2_55 --> N_1_2_56 : after(1min)
+N_1_2_56 --> N_1_2_57 : after(1min)
+N_1_2_57 --> N_1_2_58 : after(1min)
+N_1_2_58 --> N_1_2_59 : after(1min)
+N_1_2_59 --> N_1_2_60 : after(1min)
+N_1_2_60 --> N_1_2_1 : after(1min)
+}
+
+
+
+@enduml
