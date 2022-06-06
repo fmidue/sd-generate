@@ -11,10 +11,10 @@ state N_6 <<end>>
 
 [*] -> N_1
 
-N_1 -> N_2 
+N_1 --> N_2
 N_2 --> N_3 : Action
 N_3 --> N_4 : Confirm order(Event)
-N_4 -> N_5 
+N_4 --> N_5
 N_2 --> N_6 : exit
 N_5 --> N_6 : complete
 

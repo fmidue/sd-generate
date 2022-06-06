@@ -142,7 +142,7 @@ renderConnection [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@
     here_pointFrom = ctxt ++ pointFrom
     here_pointTo = ctxt ++ pointTo
   in
-    [i|N_#{address "" here_pointFrom} #{if null transition then "->" else "-->"} N_#{address "" here_pointTo} #{if null transition then "\n" else ": " ++ transition ++ "\n"}|]
+    [i|N_#{address "" here_pointFrom} --> N_#{address "" here_pointTo}#{if null transition then "\n" else " : " ++ transition ++ "\n"}|]
     ++ renderConnection [] cs inherited
 renderConnection hn@((History{ historyType },completeLabel):hs) cx@(Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt }
   | completeLabel == here_pointFrom    = from_hc ++ renderConnection hn cs inherited
@@ -154,11 +154,12 @@ renderConnection hn@((History{ historyType },completeLabel):hs) cx@(Connection{ 
     where
       here_pointFrom = ctxt ++ pointFrom
       here_pointTo = ctxt ++ pointTo
-      isNullTransition = if null transition then "->" else "-->"
+      isNullTransition = {-if null transition then "->" else-} "-->"
       isHistoryType = if historyType == Shallow then "[H]" else "[H*]"
-      oc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address "" here_pointTo} #{if null transition then "\n" else ": " ++ transition ++ "\n"}|]
-      from_hc = [i|#{isHistoryType} -> N_#{address "" here_pointTo}|] ++ "\n"
-      to_hc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address isHistoryType here_pointTo}|] ++ "\n"
+      transitionLabel = if null transition then "\n" else " : " ++ transition ++ "\n"
+      oc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address "" here_pointTo} #{transitionLabel}|]
+      from_hc = [i|#{isHistoryType} --> N_#{address "" here_pointTo}|] ++ "\n"
+      to_hc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address isHistoryType here_pointTo}#{transitionLabel}|] ++ "\n"
 
 address :: String -> [Int] -> String
 address "" as = intercalate "_" (map show as)

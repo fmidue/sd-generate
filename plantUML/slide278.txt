@@ -1,0 +1,20 @@
+@startuml
+/'name: #{show name} (irrelevant) label: #{show label}'/
+
+
+state "A" as N_1
+state "B" as N_2
+state "C" as N_3
+state "D" as N_4
+
+[*] -> N_1
+
+N_1 --> N_3 : a
+N_1 --> N_2 : f
+N_2 --> N_4 : b
+N_3 --> N_4 : c
+N_3 --> N_1 : e
+N_4 --> N_3 : d
+N_4 --> N_1 : e
+
+@enduml
