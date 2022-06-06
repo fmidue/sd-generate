@@ -157,7 +157,7 @@ renderConnection hn@((History{ historyType },completeLabel):hs) cx@(Connection{ 
       isNullTransition = {-if null transition then "->" else-} "-->"
       isHistoryType = if historyType == Shallow then "[H]" else "[H*]"
       transitionLabel = if null transition then "\n" else " : " ++ transition ++ "\n"
-      oc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address "" here_pointTo} #{transitionLabel}|]
+      oc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address "" here_pointTo}#{transitionLabel}|]
       from_hc = [i|#{isHistoryType} --> N_#{address "" here_pointTo}|] ++ "\n"
       to_hc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address isHistoryType here_pointTo}#{transitionLabel}|] ++ "\n"
 
