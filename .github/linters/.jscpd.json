@@ -4,7 +4,7 @@
     "consoleFull"
   ],
   "ignore": [
-    "**/__snapshots__/**"
+    "**/__snapshots__/**", "**/plantUML/**", "**/src/Example.hs"
   ],
   "minLines": 2,
   "max-lines": 2000,
