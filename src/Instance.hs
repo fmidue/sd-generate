@@ -177,8 +177,8 @@ extractStartNodes sMap prefix mnode hierarchy =
   (foldr insertStartTarget stMap starts, hierarchy')
   where
     (starts, subs) = partition (isStartNode . rootLabel) hierarchy
-    (stMap, hierarchy') = mconcat $ zipWith decend [1..] subs
-    decend n x = pure . Node (rootLabel x, prefix [n]) <$>
+    (stMap, hierarchy') = mconcat $ zipWith descend [1..] subs
+    descend n x = pure . Node (rootLabel x, prefix [n]) <$>
       extractStartNodes sMap (prefix . (n:)) (Just $ rootLabel x) (subForest x)
     insertStartTarget = M.insert mnode . (`M.lookup` sMap) . rootLabel
 
