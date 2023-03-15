@@ -42,7 +42,7 @@ ignore$
 \.zip$
 ^\.github/actions/spelling/
 ^\.github/linters/
-^\alloy/sd/examples_based_on_version_4/
+^alloy/sd/examples_based_on_version_4/
 ^\Qtest/Spec.hs\E$
 ^\Qsrc/Example.hs\E$
 ^\Qsrc/CounterExample.hs\E$
