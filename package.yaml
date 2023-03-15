@@ -1,5 +1,6 @@
+---
 name: sd-generate
-extra-source-files: []
+extra-source-files: [ ]
 dependencies:
   - base
   - bytestring
