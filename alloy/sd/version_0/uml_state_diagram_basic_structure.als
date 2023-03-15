@@ -1,6 +1,6 @@
 module uml_diagram_basic_structure
 /*
-  It implememnts a basic structure, only some constraints about the relation "contains", 
+  It implememnts a basic structure, only some constraints about the relation "contains",
   namely no cyclic containing. Other further constraints will be added progressively.
 */
 

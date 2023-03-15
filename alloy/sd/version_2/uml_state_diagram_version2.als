@@ -2,7 +2,7 @@ module uml_state_diagram_version2 // Show uml state diagrams
 /*
   except the reachability strategy and the visiability flag of StartNodes and some additional treatment like:
   1. History nodes should be in composite states/regions
-  2. Some special examples should be excluded. 
+  2. Some special examples should be excluded.
 */
 
 open components_sig as components // import all signatures
