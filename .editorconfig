@@ -8,6 +8,9 @@ indent_style = space
 indent_size = 2
 max_line_length = 150
 
+[**.hs]
+max_line_length = 200
+
 [**.als]
 max_line_length = 300
 
