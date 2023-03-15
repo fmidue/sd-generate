@@ -6,7 +6,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
 indent_size = 2
-max_line_length = 120
+max_line_length = 150
 
 [**.als]
 max_line_length = 300
@@ -18,4 +18,10 @@ max_line_length = unset
 max_line_length = unset
 
 [.github/linters/*]
+max_line_length = unset
+
+[alloyTestScript/*]
+max_line_length = unset
+
+[src/AlloyDiagrams.hs]
 max_line_length = unset
