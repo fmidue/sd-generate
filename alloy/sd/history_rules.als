@@ -3,7 +3,7 @@ module history_rules // Most constraints of history nodes, but some constraints 
 
 open components_sig as components // import all signatures
 
-// In a same level there shouldn't be two history nodes that are of the same type (deep/shallow).
+// In a same level there shouldn't be two history nodes that are of the same type (deep/shallow). To some extent, this is imposed in order to appease PlantUML.
 pred noDuplicateTypeHistoryNodes{
         all r1: Regions | lone (ShallowHistoryNodes & r1.contains)
                 and lone (DeepHistoryNodes & r1.contains)
