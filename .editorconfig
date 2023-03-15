@@ -1,0 +1,27 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+max_line_length = 150
+
+[**.hs]
+max_line_length = 200
+
+[**.als]
+max_line_length = 300
+
+[**.{yml,yaml,txt,md}]
+max_line_length = unset
+
+[alloy/sd/examples_based_on_version_4/*.{als,hs}]
+max_line_length = unset
+
+[.github/linters/*]
+max_line_length = unset
+
+[src/AlloyDiagrams.hs]
+max_line_length = unset

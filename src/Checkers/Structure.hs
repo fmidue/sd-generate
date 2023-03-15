@@ -18,7 +18,7 @@ checkStructure a
       Just "Error: Substate of StateDiagram constructor cannot be empty or just History/Joint"
   | not (checkHistOutTransition a) =
       Just "Error: Outgoing edges from a history node always have the empty transition"
-  | not (checkReachablity a) =
+  | not (checkReachability a) =
       Just "Should Not contain unreachable states (except Start states)"
   | otherwise =
       Nothing
@@ -42,8 +42,8 @@ checkHistOutTransition  _ = True
 checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
 checkHistConnTransition Connection { pointFrom,transition } a = null transition || notHistory pointFrom a
 
-checkReachablity :: UMLStateDiagram -> Bool
-checkReachablity s@StateDiagram{}
+checkReachability :: UMLStateDiagram -> Bool
+checkReachability s@StateDiagram{}
   = all (`elem` (map pointTo conn ++ globalStart s)) stateNoCDSD
     where
       global = globalise s

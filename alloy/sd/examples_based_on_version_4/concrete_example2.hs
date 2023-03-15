@@ -151,10 +151,10 @@ picture2 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2, 1, 1] "", Connecti
   After all labels are set, then all nodes have a label, such as a maps 1, b maps 2
   then translate Connection [a] [b] "c" into Connection [1] [2];
   of course, it is involved with relative address, which is easy to solve.
-  
+
 picture2 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2, 1, 1] "", Connection [1] [2, 2, 1] ""
   Connection [2, 1, 3] [3] "", Connection [2, 2, 2] [3] "", Connection [3] [4] ""] [1]
-  
+
 This is the outermost level, it is a default level when translating, [a, b, c, d] = Nodes - allContainedNodes - StartNodes;
 I think labels can be set in a sequence;
 "" is default
@@ -173,9 +173,9 @@ Regions.contains or HierarchicalStates.contains -> the first parameter of StateD
 Regions.name or HierarchicalStates.name -> the third parameter of StateDiagrams
 
 For example:
-e = StateDiagram [g, h, i] 1 "4" [Connection [1] [2, 1, 1] "", Connection [1] [2, 2, 1] "" 
+e = StateDiagram [g, h, i] 1 "4" [Connection [1] [2, 1, 1] "", Connection [1] [2, 2, 1] ""
   Connection [2, 1, 2] [3] "-2", Connection [2, 2, 1] [3] "-2"] []
-  
+
 "StateDiagram" is corresponding to HerarchicalStates or Regions, but it is under a "where" of CombineDiagram, so it is a Region.
 1 is a label, which should be set in sequence
 "4" is Region.name

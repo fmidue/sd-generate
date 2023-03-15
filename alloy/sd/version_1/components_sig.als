@@ -1,6 +1,6 @@
 module components_sig
 
-// All componets are a node, this is a super class
+// All components are a node, this is a super class
 abstract sig Nodes{}
 
 // The name space of all components
@@ -24,7 +24,7 @@ abstract sig Regions{
         contains: disj some Nodes
 }
 {
-        this in RegionsStates.contains // No regions exist independtly
+        this in RegionsStates.contains // No regions exist independently
 }
 
 // Composite states: HierarchicalState + RegionsState
