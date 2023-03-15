@@ -17,7 +17,7 @@ data Inherited = Inherited
 
 renderAll :: UMLStateDiagram -> String
 renderAll sd =
-  let 
+  let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
     StateDiagram{ connection=connection } = sd
     inherited = Inherited{ctxt = [], connectionFroms = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connection}
@@ -49,7 +49,7 @@ renderSubState (x:xs) inherited@Inherited{ ctxt, connectionFroms } =
         here = ctxt ++ [label]
         node = [i|N_#{address "" here}|] ++ ""
       in
-        [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{node}|] 
+        [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{node}|]
         ++ "{\n" ++ renderUML x Inherited{ctxt=here, connectionFroms} ++ "}\n"
 
     CombineDiagram{ substate, label } ->
@@ -60,7 +60,7 @@ renderSubState (x:xs) inherited@Inherited{ ctxt, connectionFroms } =
         [i|state "RegionsState" as #{node}|] ++ "{\n"
         ++ renderRegions substate Inherited{ctxt=here, connectionFroms} ++ "}\n"
 
-    EndState { label } -> 
+    EndState { label } ->
       let
         here = ctxt ++ [label]
         node = [i|N_#{address "" here}|] ++ ""
