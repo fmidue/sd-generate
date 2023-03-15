@@ -43,6 +43,17 @@ ignore$
 ^\.github/actions/spelling/
 ^\.github/linters/
 ^alloy/sd/examples_based_on_version_4/
+^\Qthesis/istitle.sty\E$
+^\Qthesis/natbib.cfg\E$
+^\Qthesis/linkcolors-colored.tex\E$
+^\Qthesis/linkcolors-pdf.tex\E$
+^\Qthesis/linkcolors-print.tex\E$
+^\Qthesis/Erklaerung.tex\E$
+^\Qthesis/Abschlussarbeit.tex\E$
+^\Qthesis/pdf.tex\E$
+^\Qthesis/README.txt\E$
+^\Qthesis/literatur.bib\E$
+^\QREADME.md\E$
 ^\Qtest/Spec.hs\E$
 ^\Qsrc/Example.hs\E$
 ^\Qsrc/CounterExample.hs\E$

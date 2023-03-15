@@ -1,5 +1,5 @@
 ---
-name: sd-generate
+name: ba-sergei-lestsenski
 extra-source-files: [ ]
 dependencies:
   - base
@@ -44,35 +44,35 @@ executables:
     main: sampling.hs
     source-dirs: app
     dependencies:
-      - sd-generate
+      - ba-sergei-lestsenski
       - pretty-simple
   draw:
     main: draw.hs
     source-dirs: app
     dependencies:
-      - sd-generate
+      - ba-sergei-lestsenski
   drawing:
     main: drawing.hs
     source-dirs: app
     dependencies:
-      - sd-generate
+      - ba-sergei-lestsenski
   default:
     main: default.hs
     source-dirs: app
     dependencies:
-      - sd-generate
+      - ba-sergei-lestsenski
   transformAlloy:
     main: transformAlloy.hs
     source-dirs: app
     dependencies:
-      - sd-generate
+      - ba-sergei-lestsenski
   transformPlantUML:
     main: transformPlantUML.hs
     source-dirs: app
     dependencies:
-      - sd-generate
+      - ba-sergei-lestsenski
 tests:
-  sd-generate-test:
+  ba-sergei-lestsenski-test:
     main: Spec.hs
     source-dirs:
       - test
@@ -81,5 +81,5 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - sd-generate
+      - ba-sergei-lestsenski
       - hspec

@@ -1,5 +1,6 @@
 .DS_Store
 *.cabal
+.vscode/
 .stack-work/
 stack.yaml.lock
 *.aux
@@ -18,3 +19,4 @@ stack.yaml.lock
 *.toc
 *~
 *.exe
+*.o
