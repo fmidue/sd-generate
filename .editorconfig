@@ -8,7 +8,13 @@ indent_style = space
 indent_size = 2
 max_line_length = 120
 
-[**.{yml,yaml,txt}]
+[**.als]
+max_line_length = 300
+
+[**.{yml,yaml,txt,md}]
+max_line_length = unset
+
+[alloy/sd/examples_based_on_version_4/*.{als,hs}]
 max_line_length = unset
 
 [.github/linters/*]
