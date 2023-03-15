@@ -10,7 +10,7 @@ fact{
 
         // If a composite state has a standard exit with a trigger, the trigger can't appear on leaving transitions from states in the composite state
         // If a composite state has a standard exit with an empty trigger, there are no leaving transitions from states in the composite state
-        // If a composite state has a standard exit with non-empty triggers, the empty trigger can't appear on leaving transitions from statesin the composite state
+        // If a composite state has a standard exit with non-empty triggers, the empty trigger can't appear on leaving transitions from states in the composite state
         all c1: CompositeStates |
                 EmptyTrigger in from.c1.label
                         implies

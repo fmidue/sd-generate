@@ -17,7 +17,7 @@ fact{
         no disj pf1, pf2: ProtoFlows | pf1.from = pf2.from and pf1.to = pf2.to and lone (pf1.label + pf2.label) // no duplicate flows
 }
 
-// All componets are a node, this is a super class
+// All components are a node, this is a super class
 abstract sig Nodes{}
 
 // The name space of all components
@@ -58,7 +58,7 @@ abstract sig Regions{
         contains: disj some Nodes
 }
 {
-        this in RegionsStates.contains // No regions exist independtly
+        this in RegionsStates.contains // No regions exist independently
         contains in (StartNodes + EndNodes) implies no (Flows <: from).(RegionsStates <: contains).this // If a region has only a start state or a end state, a leaving transition is superfluous for its regions state
 }
 
@@ -105,7 +105,7 @@ abstract sig JoinNodes extends Nodes{}
         // It should be n(n >= 2) to 1, n to n is not allowed
         one (Flows <: from).this // It constrains the number of leaving transition = 1
         not (lone (Flows <: to).this) // Each join node has two or more entering arrows
-        one to.this.label // For join nodes, comming transitions should all have same conditions
+        one to.this.label // For join nodes, coming transitions should all have same conditions
 }
 
 // HistoryNodes: ShallowHistoryNodes + DeepHistoryNodes

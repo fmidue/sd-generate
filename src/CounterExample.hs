@@ -8,8 +8,8 @@ import Datatype (
 
 {-# ANN module "Hlint: ignore Reduce duplication" #-}
 
-forCheckReachablity1 :: UMLStateDiagram
-forCheckReachablity1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection [1] [3] "b",
+forCheckReachability1 :: UMLStateDiagram
+forCheckReachability1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", Connection [1] [3] "b",
          Connection [4] [3] "d", Connection [3] [1] "e"] [1]
   where
     a = InnerMostState 1 "A" ""
@@ -17,8 +17,8 @@ forCheckReachablity1 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2] "a", C
     c = InnerMostState 3 "C" ""
     d = InnerMostState 4 "D" ""
 
-forCheckReachablity2 :: UMLStateDiagram
-forCheckReachablity2 = StateDiagram [a, b, c, d] 1 "" [Connection [1, 1, 3] [2] "e",
+forCheckReachability2 :: UMLStateDiagram
+forCheckReachability2 = StateDiagram [a, b, c, d] 1 "" [Connection [1, 1, 3] [2] "e",
           Connection [1, 2, 2] [2] "e", Connection [2] [3] "", Connection [3]
           [4] "c", Connection [3] [4, 2] "d", Connection [4, 2] [1, 2, 2] "a",
           Connection [4, 1] [1] "a"] [1, 1, 2]
@@ -43,8 +43,8 @@ forCheckReachablity2 = StateDiagram [a, b, c, d] 1 "" [Connection [1, 1, 3] [2] 
         g = InnerMostState 1 "G" ""
         h = InnerMostState 2 "H" ""
 
-forCheckReachablity3 :: UMLStateDiagram
-forCheckReachablity3 = StateDiagram [a] 1 "" [] []
+forCheckReachability3 :: UMLStateDiagram
+forCheckReachability3 = StateDiagram [a] 1 "" [] []
   where
     a = InnerMostState 1 "A" ""
 

@@ -12,7 +12,7 @@ import Data.List.Extra
 checkNameUniqueness :: UMLStateDiagram -> Maybe String
 checkNameUniqueness a
   | not (checkSubNameUniq a) =
-      Just "Error: At the same layer name Uniqueness is not fullfilled"
+      Just "Error: At the same layer name Uniqueness is not fulfilled"
   | not (checkSDNameUniq a) =
       Just "Error: In each StateDiagram, the name (if not empty) should be different from all names found arbitrarily deep inside the substates."
   | otherwise =

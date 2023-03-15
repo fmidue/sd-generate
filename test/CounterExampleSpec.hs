@@ -49,9 +49,9 @@ spec = do
        ,("forCheckHistOutTransition1", forCheckHistOutTransition1)
        ,("forCheckHistOutTransition2", forCheckHistOutTransition2)
        ,("forCheckHistOutTransition3", forCheckHistOutTransition3)
-       ,("forCheckReachablity1", forCheckReachablity1)
-       ,("forCheckReachablity2", forCheckReachablity2)
-       ,("forCheckReachablity3", forCheckReachablity3)
+       ,("forCheckReachability1", forCheckReachability1)
+       ,("forCheckReachability2", forCheckReachability2)
+       ,("forCheckReachability3", forCheckReachability3)
      ]
   counterExamplesOnlyFor "checkCrossings"
     [ ("bogusExample", bogusExample)

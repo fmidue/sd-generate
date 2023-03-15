@@ -12,8 +12,10 @@ foldl
 foldr
 fst
 github
+globalise
 hspec
 https
+localise
 oneof
 println
 scanl

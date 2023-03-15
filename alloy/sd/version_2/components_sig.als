@@ -11,7 +11,7 @@ fact{
         no disj f1, f2: Flows | f1.from = f2.from and f1.to = f2.to and f1.label = f2.label // no duplicate flows
 }
 
-// All componets are a node, this is a super class
+// All components are a node, this is a super class
 abstract sig Nodes{}
 
 // The name space of all components
@@ -49,7 +49,7 @@ abstract sig Regions{
         contains: disj some Nodes
 }
 {
-        this in RegionsStates.contains // No regions exist independtly
+        this in RegionsStates.contains // No regions exist independently
 }
 
 // Composite states: HierarchicalState + RegionsState

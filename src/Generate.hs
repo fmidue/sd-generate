@@ -34,7 +34,7 @@ checkSubType subNum outermost leastTwoLevels x =
       sdNum = filter (== Stat) x
       joinNum = filter (== Join) x
 
--- choose name fot each components in order to satify (checkSubNameUniq)
+-- choose name for each components in order to satisfy (checkSubNameUniq)
 chooseName :: [NodeType] -> [String] -> [[String]]
 chooseName (x:xs) str
   = if x == Comb
@@ -74,7 +74,7 @@ randomSD = do
       alphabet = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y"]
       l = 1
       mustCD = False
-      -- mustCD represents if a randoomSD' must have a CD
+      -- mustCD represents if a randomSD' must have a CD
       cdMaxNum = 1
       -- to ignore nested CD
   nm <- elements alphabet
@@ -167,8 +167,8 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
       innerElemNoRegionsJointSDCD = filter (not.(`isSDCD` subs)) innerElemNoRegionsJoint
       globalConns  = connection (globalise (StateDiagram subs l nm (conns++ connsExtraJoint) []))
       toElem       = map pointTo globalConns
-      reachabelStates = toElem ++ globalStarts
-      unreachedStates = (layerElemNoJoint ++ innerElemNoRegionsJointSDCD) \\ reachabelStates
+      reachableStates = toElem ++ globalStarts
+      unreachedStates = (layerElemNoJoint ++ innerElemNoRegionsJointSDCD) \\ reachableStates
   connsExtra
     <- (if outermost
           then

@@ -12,7 +12,7 @@ import Data.List.Extra
 checkUniqueness :: UMLStateDiagram -> Maybe String
 checkUniqueness a
   | not (checkSub a) =
-      Just "Error: Local Uniqueness not fullfilled"
+      Just "Error: Local Uniqueness not fulfilled"
   | otherwise =
       Nothing
 
