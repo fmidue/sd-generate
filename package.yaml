@@ -56,11 +56,6 @@ executables:
     source-dirs: app
     dependencies:
       - ba-sergei-lestsenski
-  default:
-    main: default.hs
-    source-dirs: app
-    dependencies:
-      - ba-sergei-lestsenski
   transformAlloy:
     main: transformAlloy.hs
     source-dirs: app
