@@ -51,11 +51,10 @@ checkParallelRegion _ [_] _ = True
 checkParallelRegion [_,_] _ _ = True
 checkParallelRegion _ [_,_] _ = True
 checkParallelRegion (x:xs) (y:ys) subs
-  = case [x == y, all (isNotCD x) subs] of
-     [True,True] -> checkParallelRegion xs ys (getSubstate x subs)
-     [True,False] -> head xs == head ys && checkParallelRegion xs ys (getSubstate x subs)
-     [False,_] -> True
-     _ -> error "not defined"
+  = case (x == y, all (isNotCD x) subs) of
+     (True, True) -> checkParallelRegion xs ys (getSubstate x subs)
+     (True, False) -> head xs == head ys && checkParallelRegion xs ys (getSubstate x subs)
+     (False, _) -> True
 
 --haveJoint:: UMLStateDiagram -> Bool
 --haveJoint a = any (\x -> not (notJoint x (substate a))) (getAllElem a)
@@ -234,9 +233,9 @@ randomConnection layerElem innerElem sub unreachedState = do
   tran <- elements (if not (null excludeTranNms) then fromSameNodeTranNms else transitionNms)
   let noParallelRegionFromElem2 = filter (\x -> checkParallelRegion to x sub ) (noEndState \\[to])
       noParallelRegionToElem2 = filter (\x -> checkParallelRegion from x sub ) (noOuterHistory \\ [from])
-  case [notHistory from sub,notHistory to sub] of
-    [True,True] -> return (Connection from to tran)
-    [False,True] ->  if null unreachedState then do
+  case (notHistory from sub, notHistory to sub) of
+    (True, True) -> return (Connection from to tran)
+    (False, True) -> if null unreachedState then do
                       historyTo <- elements (filter (inCompoundState from) noParallelRegionToElem2)
                       return (Connection from historyTo "")
                      else do
@@ -246,7 +245,7 @@ randomConnection layerElem innerElem sub unreachedState = do
                       unreachedStateFrom <- elements (noEndHist ++ validHistory)
                       -- if to is the unreachedState ,from must be not a History that inside the unreachedState
                       return (Connection unreachedStateFrom to "")
-    [_,False] -> do
+    (_, False) -> do
                   let onlyHistory = filter (not.(`notHistory` sub)) noParallelRegionFromElem2
                   historyFrom <- elements (filter (not . inCompoundState to) (noParallelRegionFromElem2 \\onlyHistory))
                   -- ignore the situation that when to is history and from is also history
@@ -254,7 +253,6 @@ randomConnection layerElem innerElem sub unreachedState = do
                     return (Connection historyFrom to tran)
                   else
                     return (Connection historyFrom to "")
-    _ -> error "not defined"
 
 randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen [Connection]
 randomJointConnection layerElem innerElem globalStarts subs joint = do
