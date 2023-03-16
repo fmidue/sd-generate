@@ -2,6 +2,7 @@
 {-# Language QuasiQuotes #-}
 {-# Language NamedFieldPuns #-}
 {-# Language ViewPatterns #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module PlantUMLDiagrams (renderAll) where
 
@@ -16,7 +17,7 @@ data Inherited = Inherited
   }
 
 renderAll :: UMLStateDiagram -> String
-renderAll sd =
+renderAll sd@(StateDiagram _ _ _ _ _) =
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
     StateDiagram{ connection=connection } = sd
@@ -28,17 +29,20 @@ renderAll sd =
 #{renderUML sd inherited}
 @enduml
 |]
+renderAll _ = error "not defined"
 
 renderUML :: UMLStateDiagram -> Inherited -> String
 renderUML sd@StateDiagram{ substate, connection, startState } inherited =
-  let
-    StateDiagram{ substate = substate1} = globalise sd
-    hn = getAllHistory substate1 inherited
-  in
-    [i|
-#{renderSubState substate inherited}
-#{renderStart startState inherited}
-#{renderConnection hn connection inherited}|]
+  case (globalise sd) of
+    (StateDiagram subst _ _ _ _) -> let substate1 = subst
+                                        hn = (getAllHistory substate1 inherited)
+                                    in
+                                    [i|
+                                     #{renderSubState substate inherited}
+                                     #{renderStart startState inherited}
+                                     #{renderConnection hn connection inherited}|]
+    _ -> error "not defined"
+    
 
 renderSubState :: [UMLStateDiagram] -> Inherited -> String
 renderSubState [] _ = []

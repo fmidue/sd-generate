@@ -55,6 +55,7 @@ checkParallelRegion (x:xs) (y:ys) subs
      [True,True] -> checkParallelRegion xs ys (getSubstate x subs)
      [True,False] -> head xs == head ys && checkParallelRegion xs ys (getSubstate x subs)
      [False,_] -> True
+     _ -> error "not defined"
 
 --haveJoint:: UMLStateDiagram -> Bool
 --haveJoint a = any (\x -> not (notJoint x (substate a))) (getAllElem a)
@@ -253,6 +254,7 @@ randomConnection layerElem innerElem sub unreachedState = do
                     return (Connection historyFrom to tran)
                   else
                     return (Connection historyFrom to "")
+    _ -> error "not defined"
 
 randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen [Connection]
 randomJointConnection layerElem innerElem globalStarts subs joint = do

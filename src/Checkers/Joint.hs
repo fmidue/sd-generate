@@ -1,5 +1,7 @@
 {-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Checkers.Joint ( checkJoint ) where
 
@@ -93,18 +95,19 @@ checkInTranEmpty :: Connection -> [Connection] -> Bool
 checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 
 checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool
-checkParallelRegionConnections into l s = all null . localise $ g {
-  connection = [ Connection a b "" | a <- insides, b <- insides, a < b ]
-  }
-  where
-    g = globalise s
-    insideCandidates = map inside . filter ((== l) . outside) $ connection g
-    insides
-      | xs@(_:_:_) <- insideCandidates = xs
-      | otherwise                      = []
-    (outside, inside)
-      | into      = (pointFrom, pointTo)
-      | otherwise = (pointTo, pointFrom)
+checkParallelRegionConnections into l s = all null . localise $
+                                            case g of
+                                              (StateDiagram _ _ _ _ _) -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
+                                              (CombineDiagram _ _) -> error "not defined"
+                                          where 
+                                            g = globalise s
+                                            insideCandidates = (map inside) . filter ((== l) . outside) $ connection g
+                                            insides
+                                             | xs@(_:_:_) <- insideCandidates = xs
+                                             | otherwise                      = []
+                                            (outside, inside)
+                                             | into      = (pointFrom, pointTo)
+                                             | otherwise = (pointTo, pointFrom)
 
 addressesOfJoints :: UMLStateDiagram -> [[Int]]
 addressesOfJoints s = case s of
