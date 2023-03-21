@@ -77,4 +77,6 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - ba-sergei-lestsenski
+      - directory
+      - filepath
       - hspec

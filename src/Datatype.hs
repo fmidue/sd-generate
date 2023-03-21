@@ -82,25 +82,28 @@ data Wrapper =
                  lengthXY :: Double,
                  rightC :: RightConnect,
                  outerLayout :: Layout
-               } deriving Show
+               }
+  deriving (Read, Show)
 
 data ConnectWithType = ConnectWithType { connecting :: Connection,
                                          connectType :: ConnectionType
-                                       } deriving Show
+                                       }
+  deriving (Read, Show)
 
 data Connection =  Connection {
   pointFrom :: [Int],
   pointTo :: [Int],
   transition :: String
   }
-  deriving (Show, Eq, Ord)
+  deriving (Eq, Ord, Read, Show)
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
-  SelfCR deriving (Show, Eq)
+  SelfCR
+  deriving (Eq, Read, Show)
 
 data HistoryType = Shallow | Deep
-  deriving (Show, Eq, Ord)
+  deriving (Eq, Ord, Read, Show)
 
 type UMLStateDiagram = StateDiagram [Connection]
 
@@ -125,11 +128,13 @@ data StateDiagram a = StateDiagram { substate :: [StateDiagram a],
                                         name :: String,
                                         operations :: String
                                       }
-  deriving (Eq, Functor, Foldable, Show, Traversable)
+  deriving (Eq, Foldable, Functor, Read, Show, Traversable)
 
-data Layout = Vertical | Horizontal | Unspecified deriving (Show, Eq)
+data Layout = Vertical | Horizontal | Unspecified
+  deriving (Eq, Read, Show)
 
-data RightConnect = WithArrowhead | WithoutArrowhead | NoConnection deriving (Show, Eq)
+data RightConnect = WithArrowhead | WithoutArrowhead | NoConnection
+  deriving (Eq, Read, Show)
 
 globalise :: UMLStateDiagram -> UMLStateDiagram
 globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
