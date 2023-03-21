@@ -138,7 +138,7 @@ parseInstance scope insta = do
     let (sd::UMLStateDiagram) = ([] <$ stateDia)
     in
       case sd of
-        (StateDiagram _ _ _ _ _) -> sd { connection = (uncurry3 Connection <$> S.toAscList conns') }
+        (StateDiagram {}) -> sd { connection = (uncurry3 Connection <$> S.toAscList conns') }
         _ -> error "not defined"
   where
     getAs

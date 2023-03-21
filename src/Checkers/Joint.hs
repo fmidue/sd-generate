@@ -1,7 +1,5 @@
 {-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE RecordWildCards #-}
 
 module Checkers.Joint ( checkJoint ) where
 
@@ -55,6 +53,7 @@ checkMtoOne s@StateDiagram{} =
         fromOne       = fromOnlyJoint \\fromMany
         toNoConn = nub fromOnlyJoint \\ nub toOnlyJoint
         fromNoConn = nub toOnlyJoint \\ nub fromOnlyJoint
+checkMtoOne _ = error "not defined"
 
 overOne :: [Int] -> [[Int]] -> Bool
 overOne a b =  length (filter( a ==) b) > 1
@@ -75,6 +74,7 @@ checkTransition s@StateDiagram {} =
       startOnlyJoint = filter (not.(`notJoint` sub)) start
       fromTranNonEmpty = map pointFrom (filter (not.(`checkOutTranEmpty` fromOnlyJoint)) fromOnlyJoint)
       toTranNonEmpty = map pointTo (filter (not.(`checkInTranEmpty` toOnlyJoint)) toOnlyJoint)
+checkTransition _ = error "not defined"
 
 checkOutTran :: Connection -> [Connection] -> Bool
 checkOutTran a b = null tranNotSame
@@ -97,8 +97,8 @@ checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool
 checkParallelRegionConnections into l s = all null . localise $
                                             case g of
-                                              (StateDiagram _ _ _ _ _) -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
-                                              (CombineDiagram _ _) -> error "not defined"
+                                              (StateDiagram {}) -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
+                                              _ -> error "not defined"
                                           where 
                                             g = globalise s
                                             insideCandidates = (map inside) . filter ((== l) . outside) $ connection g

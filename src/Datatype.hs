@@ -3,7 +3,6 @@
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE NamedFieldPuns            #-}
-{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module Datatype
   ( Wrapper(..)

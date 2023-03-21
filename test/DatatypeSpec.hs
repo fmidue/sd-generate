@@ -1,4 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
 module DatatypeSpec (spec) where
 
 import Datatype (StateDiagram(..), UMLStateDiagram, localise, globalise)
