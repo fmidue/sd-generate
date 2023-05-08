@@ -491,6 +491,41 @@ test4 = StateDiagram [a] 35 "" [] [1, 1, 1]
     g2 = InnerMostState 2 "4" ""
     g3 = InnerMostState 3 "5" ""
 
+testFlat1Input :: UMLStateDiagram
+testFlat1Input = let
+                 isH = InnerMostState 2 "H" ""
+                 isG = InnerMostState 1 "G" ""
+                 isA = InnerMostState 1 "A" ""
+                 isB = InnerMostState 2 "B" ""
+                 isC = InnerMostState 3 "C" ""
+                 isD = InnerMostState 1 "D" ""
+                 isE = InnerMostState 2 "E" ""
+                 isF = InnerMostState 2 "F" ""
+                 jn1 = Joint 5
+                 cd1 = CombineDiagram [cd1r1, cd1r2] 1
+                 cd1r1 = StateDiagram [isA, isB, isC] 1 "" 
+                        [ Connection [1] [2] "a"
+                        , Connection [2] [3] "b"
+                        , Connection [3] [1] "a"] 
+                        [1]
+                 cd1r2 = StateDiagram [isD, isE] 2 "" 
+                         [ Connection [1] [2] "b"
+                         , Connection [2] [1] "b"] 
+                         [1]
+                 sd2 = StateDiagram [isH, isG] 4 "" 
+                      [ Connection [2] [1] "d"] 
+                      [2]
+                 in
+                   StateDiagram [cd1, isF, sd2, jn1] 22 "" 
+                     [ Connection [2] [4] "c"
+                     , Connection [2] [4,2] "d"
+                     , Connection [4, 2] [1, 2, 2] "a"
+                     , Connection [4, 1] [1] "a"
+                     , Connection [1,1,3] [5] ""
+                     , Connection [1,2,2] [5] ""
+                     , Connection [5] [2] "c" ] 
+                     [1, 1, 1]
+
 positiveExamples :: [(String, UMLStateDiagram)]
 positiveExamples =
         [ ("verySmall", verySmall)
@@ -519,4 +554,27 @@ positiveExamples =
         , ("task88", task88)
         , ("test2", test2)
         , ("test4", test4)
+        ]
+
+{- because the integrated PlantUML front end renderer
+   doesn't support concurrent regions yet... -}
+posPlantUMLExamples :: [(String, UMLStateDiagram)]
+posPlantUMLExamples = [ ("verySmall", verySmall)
+                      , ("picture2", picture2)
+                      , ("picture4", picture4)
+                      , ("slide246", slide246)
+                      , ("slide253", slide253)
+                      , ("slide257", slide257)
+                      , ("slide267a", slide267a)
+                      , ("slide267b", slide267b)
+                      , ("slide271", slide271)
+                      , ("slide273", slide273)
+                      , ("slide277", slide277)
+                      , ("slide278", slide278)
+                      , ("slide280", slide280)
+                      , ("slide281", slide281)
+                      , ("slide283", slide283)
+                      , ("task26b", task26b)
+                      , ("task27", task27)
+                      , ("test2", test2)
         ]
