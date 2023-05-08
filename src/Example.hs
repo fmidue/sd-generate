@@ -491,6 +491,30 @@ test4 = StateDiagram [a] 35 "" [] [1, 1, 1]
     g2 = InnerMostState 2 "4" ""
     g3 = InnerMostState 3 "5" ""
 
+testFlatConReg1 :: UMLStateDiagram
+testFlatConReg1 = let
+                  isA = InnerMostState 1 "A" ""
+                  isB = InnerMostState 2 "B" ""
+                  isC = InnerMostState 3 "C" ""
+                  cd1r1 = StateDiagram [isA, isB, isC] 1 "" 
+                         [ Connection [1] [2] "a"
+                         , Connection [2] [3] "b"
+                         , Connection [3] [1] "a"] 
+                         [1]
+                  in
+                  cd1r1
+
+testFlatConReg2 :: UMLStateDiagram
+testFlatConReg2 = let
+                  isD = InnerMostState 1 "D" ""
+                  isE = InnerMostState 2 "E" ""
+                  cd1r2 = StateDiagram [isD, isE] 2 "" 
+                          [ Connection [1] [2] "b"
+                          , Connection [2] [1] "b"] 
+                          [1]
+                  in
+                  cd1r2
+
 testFlat1Input :: UMLStateDiagram
 testFlat1Input = let
                  isH = InnerMostState 2 "H" ""
@@ -525,6 +549,17 @@ testFlat1Input = let
                      , Connection [1,2,2] [5] ""
                      , Connection [5] [2] "c" ] 
                      [1, 1, 1]
+
+testFlat1Combine :: [[UMLStateDiagram]]
+testFlat1Combine = let
+                   isA = InnerMostState 1 "A" ""
+                   isB = InnerMostState 2 "B" ""
+                   isC = InnerMostState 3 "C" ""
+                   isD = InnerMostState 1 "D" ""
+                   isE = InnerMostState 2 "E" ""
+                   in
+                     [[isA, isB, isC],[isD, isE]]
+
 
 positiveExamples :: [(String, UMLStateDiagram)]
 positiveExamples =

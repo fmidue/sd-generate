@@ -1,53 +1,94 @@
 {-# LANGUAGE NamedFieldPuns            #-}
 
 module Flatten (
-   transitionLiterals
+  crossInms
+  ,unionTrns
+  ,mrgInmsCP
 ) where
 import Datatype (UMLStateDiagram
                 ,StateDiagram(..)
                 ,Connection (..))
-import Data.List (nub
-                 ,sort)
--- import Example (verySmall)
 
-{- performs a bfs reachability transform 
-   of a hierarchical state chart and flatten it
--}
-
-{- it is difficult to walk a structure that is not in some
-   sort of normal form to rely on                       -}
-
-{- wahrscheinlich etwas leichter mit eigenem Datentypen
-   anstatt Int, direkte Referenzen auf verbundene Objekte
-   reduziert total amount of queries required
+{-
 flatten :: UMLStateDiagram -> UMLStateDiagram
-flatten (StateDiagram {}) = verySmall
-flatten (CombineDiagram {}) = verySmall
-flatten (EndState {}) = verySmall
-flatten (Joint {}) = verySmall
-flatten (History {}) = verySmall
-flatten (InnerMostState {}) = verySmall
+flatten (StateDiagram { substate = (x:xs)}) = let
+                                              -- apply outermost transitions
+                                              in
+                                              
+flatten _ = error "invalid UMLStateDiagram"
+
+flatten' :: UMLStateDiagram
+flatten' sd@(StateDiagram { substate = (x:xs)}) | sd `withOnlyInms` = 
+flatten' (CombineDiagram {}) = error "invalid UMLStateDiagram"
+flatten' (EndState {}) = error "invalid UMLStateDiagram"
+flatten' (Joint {}) = error "invalid UMLStateDiagram"
+flatten' (History {}) = error "invalid UMLStateDiagram"
+flatten' (InnerMostState {}) = error "invalid UMLStateDiagram"
 -}
 
-{- use for simulation of diagram -}
-transitionLiterals :: UMLStateDiagram -> [String]
-transitionLiterals diag = sort [x |x <- nub $ getTransitionLiterals diag [""], x /= ""]
+{- arbitrarily long cp's of states -}
+data InmsCP = InmsCP UMLStateDiagram (Maybe InmsCP)
+     deriving (Eq)
 
-getTransitionLiterals :: UMLStateDiagram -> [String] -> [String]
-getTransitionLiterals (StateDiagram [] _ _ [] _) _ = [""]
-getTransitionLiterals sd@(StateDiagram (x:xs) _ _ [] _) lits =
-   getTransitionLiterals x lits ++ getTransitionLiterals (sd { substate = xs }) []
-getTransitionLiterals sd@(StateDiagram _ _ _ (c:cs) _) lits
-   = case c of
-         Connection {transition} -> getTransitionLiterals (sd { connection = cs }) [] ++ (transition:lits)
-getTransitionLiterals (CombineDiagram [] _) _ = [""]
-getTransitionLiterals cd@(CombineDiagram (x:xs) _) _
-   = getTransitionLiterals x [""] ++ getTransitionLiterals (cd {substate = xs}) [""]
-getTransitionLiterals _ lits = lits
+instance Show InmsCP where
+   show (InmsCP (InnerMostState {name}) (Just inmsCP)) = name ++ " " ++ show inmsCP
+   show (InmsCP (InnerMostState {name}) Nothing) = name ++ "\n"
+   show _ = "bad inmsCP instance"
 
-{- apply an inefficient but easy approach of using all available 
-   transitions -}
+{- form the cross product of substate regions.
+   should only be applied when substates only consist of InnerMostStates
+   hence the name Inms := InnerMostStates
+-}
+crossInms :: [[UMLStateDiagram]] -> [InmsCP]
+crossInms [] = []
+crossInms [x] = [InmsCP y Nothing | y <- x ]
+crossInms (x:xs) = [InmsCP y (Just z) | y <- x, z <- crossInms xs ]
 
--- data set of nodes
--- data set of connection
+{- unify the sets of transitions of two regions -}
+unionTrns :: [UMLStateDiagram] -> [Connection]
+unionTrns [] = []
+unionTrns (x:xs) = case x of
+                     (StateDiagram {connection}) -> connection ++ unionTrns xs
+                     _ -> []
 
+{- simple getter for labels on various data types
+   to avoid having to pattern match when its cumbersome -}
+class Labeled a where
+   getLabelStr :: a -> String
+
+instance Labeled UMLStateDiagram where
+    getLabelStr (StateDiagram {name}) = name
+    getLabelStr (CombineDiagram {}) = error "not defined"
+    getLabelStr (EndState {}) = error "not defined"
+    getLabelStr (Joint {}) = error "not defined"
+    getLabelStr (History {}) = error "not defined"
+    getLabelStr (InnerMostState {name}) = name
+
+instance Labeled InmsCP where
+    getLabelStr (InmsCP x Nothing) = getLabelStr x
+    getLabelStr (InmsCP x (Just s)) = getLabelStr x ++ ", " ++ getLabelStr s
+
+{- merge crossproducts of states that were obtained into
+   a visually representable form, redistributes ids -}
+mrgInmsCP :: [InmsCP] -> UMLStateDiagram
+mrgInmsCP xs = StateDiagram (mrgInmsCP' xs 1) 0 "" [] []
+
+mrgInmsCP' :: [InmsCP] -> Int -> [UMLStateDiagram]
+mrgInmsCP' [] _ = []
+mrgInmsCP' (x:xs) y = let i = InnerMostState y (getLabelStr x) ""
+                      in
+                      i:mrgInmsCP' xs (y+1)
+
+
+{-
+mapUTrnsToInmsCPs :: [Connection] -> [InmsCP] -> [InmsCP]
+mapUTrnsToInmsCPs trs ims = 
+-}
+
+{-
+   todo impl: create crossproducts of regions recursively from bottom up
+              remap their transitions to their new states
+              once at top level remap outermost transitions into cped states
+   might require another type for storing CPS with ID that has not been folded
+   into a visualizable state yet
+-}
