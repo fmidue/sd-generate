@@ -1,15 +1,11 @@
 import Diagrams.Backend.SVG.CmdLine
-import Example
 import Layout (drawDiagram)
-import Example (testFlat1Combine
-               ,testFlat1Input
-               ,testFlatConReg1
-               ,testFlatConReg2)
+import Example (testFlat1Input)
 import Datatype ( localise
                   ,globalise )
-import Flatten (flatten
-               ,getLabelStr)
+import Flatten (flatten)
 
+main :: IO ()
 main = do
   print (show $ globalise testFlat1Input)
   print (show $ localise testFlat1Input)
@@ -17,4 +13,3 @@ main = do
   print (show (flatten testFlat1Input))
   let sd = testFlat1Input
   mainWith (drawDiagram sd)
-

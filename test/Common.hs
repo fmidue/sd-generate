@@ -4,8 +4,7 @@ module Common (
   withUnitTests,
   ) where
 
-import Control.Monad                    (forM_, unless)
-import Control.Monad.Trans              (MonadTrans(lift))
+import Control.Monad                    (forM_)
 import Data.List                        (isPrefixOf, sort)
 import Data.List.Extra                  (replace)
 import System.Directory                 (getDirectoryContents)

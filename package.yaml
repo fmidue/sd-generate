@@ -47,32 +47,49 @@ executables:
     dependencies:
       - ba-sergei-lestsenski
       - pretty-simple
+    ghc-options:
+      - -Wall
+      - -Werror
   draw:
     main: draw.hs
     source-dirs: app
     dependencies:
       - ba-sergei-lestsenski
+    ghc-options:
+      - -Wall
+      - -Werror
   drawing:
     main: drawing.hs
     source-dirs: app
     dependencies:
       - ba-sergei-lestsenski
+    ghc-options:
+      - -Wall
+      - -Werror
   transformAlloy:
     main: transformAlloy.hs
     source-dirs: app
     dependencies:
       - ba-sergei-lestsenski
+    ghc-options:
+      - -Wall
+      - -Werror
   transformPlantUML:
     main: transformPlantUML.hs
     source-dirs: app
     dependencies:
       - ba-sergei-lestsenski
+    ghc-options:
+      - -Wall
+      - -Werror
 tests:
   ba-sergei-lestsenski-test:
     main: Spec.hs
     source-dirs:
       - test
     ghc-options:
+      - -Wall
+      - -Werror
       - -threaded
       - -rtsopts
       - -with-rtsopts=-N

@@ -11,9 +11,10 @@ import Data.Maybe
 
 import Text.Pretty.Simple (pPrint)
 
+main :: IO ()
 main = do
   sds <- sample' randomSD
-  forM_ (zip [1..] sds) $
+  forM_ (zip [1 :: Int ..] sds) $
     \(i,(sd,n)) ->
       do
         let file = "sample" ++ show i ++ ".svg"

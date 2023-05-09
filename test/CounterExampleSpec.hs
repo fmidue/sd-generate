@@ -3,7 +3,7 @@ module CounterExampleSpec (spec) where
 import CounterExample
 import Checkers (checkRepresentation, checkStructure, checkCrossings, checkUniqueness, checkDrawability)
 import ExampleSpec (allTheCheckers)
-import Datatype (globalise, localise, StateDiagram(substate))
+import Datatype (globalise, localise, UMLStateDiagram)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (forM_)
@@ -116,6 +116,7 @@ spec = do
     describe checkerName $
       it "isSuccessful for forCheckDrawability" $ checkerCode forCheckDrawability `shouldBe` Nothing
 
+counterExamplesOnlyFor :: String -> [(String, UMLStateDiagram)] -> Spec
 counterExamplesOnlyFor theChecker theExamples = do
   let
     (negative, positives) = partition ((theChecker ==) . fst) allTheCheckersExceptForBlackbox
@@ -141,5 +142,6 @@ counterExamplesOnlyFor theChecker theExamples = do
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 
+allTheCheckersExceptForBlackbox :: [(String, UMLStateDiagram -> Maybe String)]
 allTheCheckersExceptForBlackbox =
   filter ((`notElem` ["checkWrapper", "checkDrawability"]) . fst) allTheCheckers
