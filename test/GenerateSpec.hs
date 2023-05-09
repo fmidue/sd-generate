@@ -22,5 +22,5 @@ spec = do
     prop "generates valid diagram expressions after 'globalise'" $
       forAll randomSD $ \(code,_) -> firstJust id (map (($ globalise code) . snd) allTheCheckers) `shouldBe` Nothing
   describe "randomSD" $
-    prop "doesn't retry too often" $
+    prop "does not retry too often" $
       forAll randomSD $ \(_,attempts) -> attempts `shouldSatisfy` (< 90)

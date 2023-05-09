@@ -13,3 +13,6 @@
 
 # ignore urls
 https?://[-+0-9a-zA-Z?&=_\/%.]*
+
+# ignore option lines
+^.*\sOPTIONS_GHC\s.*$

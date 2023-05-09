@@ -47,4 +47,8 @@ ignore$
 ^\QREADME.md\E$
 ^\Qtest/Spec.hs\E$
 ^\Qsrc/Example.hs\E$
+^\Qsrc/Generate.hs\E$
+^\Qsrc/Instance.hs\E$
+^\Qsrc/Layout.hs\E$
 ^\Qsrc/CounterExample.hs\E$
+^src/Checkers/

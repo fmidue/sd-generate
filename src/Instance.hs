@@ -113,19 +113,19 @@ parseInstance scope insta = do
     <*> getAs "DeepHistoryNodes" (HistoryNode Deep)
   stnodes <- getAs "StartNodes" StartNode
   let nodes = Nodes composites ends forkJoins histories regions states stnodes
-  ccontains <- fmap (S.mapMonotonic $ first CNode) $ S.union
+  compositeContains <- fmap (S.mapMonotonic $ first CNode) $ S.union
     <$> getContains scope insta nodes "Regions" CompositeState
     <*> getContains scope insta nodes "HierarchicalStates" CompositeState
-  rcontains <- S.mapMonotonic (first RNode)
+  regionContains <- S.mapMonotonic (first RNode)
     <$> getContains scope insta nodes "RegionsStates" RegionState
-  cnames <- fmap (M.fromAscList . S.toAscList) . S.union
+  componentNames <- fmap (M.fromAscList . S.toAscList) . S.union
     <$> getNames scope insta nodes "States" ComponentName
     <*> getNames scope insta nodes "Regions" ComponentName
   let hierarchy = toForest
-        (S.toAscList $ S.union ccontains rcontains)
+        (S.toAscList $ S.union compositeContains regionContains)
         $ flip Node [] <$> S.toAscList (toSet nodes)
-      names = M.fromList $ zip (nubOrd $ M.elems cnames) $ pure <$> ['A'..]
-      getName x = fromMaybe "" $ M.lookup x cnames >>= (`M.lookup` names)
+      names = M.fromList $ zip (nubOrd $ M.elems componentNames) $ pure <$> ['A'..]
+      getName x = fromMaybe "" $ M.lookup x componentNames >>= (`M.lookup` names)
   (starts, conns) <- S.partition (isStartNode . (\(x, _, _) -> x))
     <$> getConnections scope insta nodes
   let sMap = M.fromAscList $ (\(x, y, _) -> (x, y)) <$> S.toAscList starts

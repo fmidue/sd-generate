@@ -1,4 +1,5 @@
 Autotool
+Bifunctor
 DSL
 GHC
 Graphviz
@@ -12,6 +13,7 @@ UML
 bigskip
 bigvee
 bigwedge
+blackbox
 blacktriangleright
 bottomrule
 captionpos
@@ -44,5 +46,6 @@ scanl
 snd
 subsubsection
 uncurry
+unlines
 usepackage
 varepsilon

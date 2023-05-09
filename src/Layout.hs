@@ -929,12 +929,12 @@ addCrossing2' layerBef fixedWrapper (b:xs) connectionList checkType totalCrossin
 --checkWrapper
 checkWrapper :: UMLStateDiagram -> Maybe String
 checkWrapper a
-  | not(checkOuterMostWrapper b) = Just ("Error: Outermost layer must be 'OrDe"
-    ++ "com' constructor")
-  | not(checkOrDecomSubstate b) = Just ("Error: Substate of OrDecom constructo"
-    ++ "r cannot be empty or just Hist/Fork/StartS/Dummy/Transition")
-  | not(checkAndDecomSubstate b) = Just ("Error: AndDecom constructor must con"
-    ++ "tain at least 2 OrDecom and no other type of constructor")
+  | not(checkOuterMostWrapper b) = Just ("Error: Outermost layer must be "
+    ++ "'OrDecom' constructor")
+  | not(checkOrDecomSubstate b) = Just ("Error: Substate of OrDecom "
+    ++ "constructor cannot be empty or just Hist/Fork/StartS/Dummy/Transition")
+  | not(checkAndDecomSubstate b) = Just ("Error: AndDecom constructor must "
+    ++ "contain at least 2 OrDecom and no other type of constructor")
   | not(checkLayout b) = Just ("Error: Horizontal slicing must be followed by "
     ++ "vertical layering or vise versa")
   | otherwise = Nothing
