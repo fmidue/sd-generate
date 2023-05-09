@@ -42,7 +42,7 @@ pred trueReachability{
         theFlatteningStrategy
 
         (Nodes - StartNodes - CompositeStates) in
-                (StartNodes - allContainedNodes).^(~from.to) // Starting from a outermost satrt node except start nodes and composite states, all nodes except start nodes and composite states can be reachable
+                (StartNodes - allContainedNodes).^(~from.to) // Starting from a outermost start node except start nodes and composite states, all nodes except start nodes and composite states can be reachable
 }
 
 fact{

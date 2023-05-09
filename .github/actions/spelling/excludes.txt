@@ -46,6 +46,7 @@ ignore$
 ^thesis/
 ^\QREADME.md\E$
 ^\Qtest/Spec.hs\E$
+^\Qsrc/Datatype.hs\E$
 ^\Qsrc/Example.hs\E$
 ^\Qsrc/Generate.hs\E$
 ^\Qsrc/Instance.hs\E$

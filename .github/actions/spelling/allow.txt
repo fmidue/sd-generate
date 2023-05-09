@@ -19,6 +19,10 @@ bottomrule
 captionpos
 clearpage
 concat
+ctxt
+disj
+endstate
+enduml
 firstline
 fmap
 foldl
@@ -31,6 +35,7 @@ hspec
 https
 includegraphics
 lastline
+layouted
 ldots
 localise
 lstinputlisting
@@ -44,7 +49,11 @@ println
 readerlatex
 scanl
 snd
+startstate
+startuml
+substates
 subsubsection
+uml
 uncurry
 unlines
 usepackage
