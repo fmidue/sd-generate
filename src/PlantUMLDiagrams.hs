@@ -43,17 +43,16 @@ renderUML sd@StateDiagram{ substate, connection, startState } inherited =
     _ -> error "not defined"
 
 
+
 renderSubState :: [UMLStateDiagram] -> Inherited -> String
 renderSubState [] _ = []
 renderSubState (x:xs) inherited@Inherited{ ctxt, connectionFroms } =
   case x of
+
     StateDiagram{ label, name } ->
-      let
-        here = ctxt ++ [label]
-        node = [i|N_#{address "" here}|] ++ ""
-      in
-        [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{node}|]
-        ++ "{\n" ++ renderUML x Inherited{ctxt=here, connectionFroms} ++ "}\n"
+      
+        [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{("N_" ++ (address "" (ctxt ++ [label])))}|]
+        ++ "{\n" ++ renderUML x Inherited{ctxt=(ctxt ++ [label]), connectionFroms} ++ "}\n"
 
     CombineDiagram{ substate, label } ->
       let
