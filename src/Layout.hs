@@ -46,7 +46,7 @@ drawSwimlane _ _ _ = []
 drawSwimlane' :: [Diagram B] -> Diagram B
 drawSwimlane' [a, b] = vcat [a, hrule c, b]
   where
-    c = if width a > width b then width a else width b
+    c = max (width a) (width b)
 drawSwimlane' _ = circle 1
 
 appendEdges :: Diagram B -> Double -> RightConnect -> Layout -> Diagram B
@@ -95,7 +95,7 @@ drawWrapper a (Dummy b Unspecified w) = ((rect w 0.5 # lcA transparent) <>
 drawWrapper a (Dummy b Horizontal w) = ((rect w 0.5 # lcA transparent) <>
   arrowAt' arrowStyle2 (p2 (-0.5 * w, 0)) (r2 (w, 0))) # named (a ++ [b])
 drawWrapper a (Dummy b Vertical h) = ((rect 0.5 h # lcA transparent) <>
-  arrowAt' arrowStyle2 (p2 (0, -0.5 * h)) (r2 (0, h))) # named (a ++ [b])
+  arrowAt' arrowStyle2 (p2 (0,-0.5 * h)) (r2 (0, h))) # named (a ++ [b])
 drawWrapper a (Transition b c l rightType layouts) = appendEdges
   (x <> rect (width x + 0.1) (height x + 0.1) # lcA transparent) l rightType
   layouts # named (a ++ [b])
@@ -114,7 +114,7 @@ drawWrapper a s@AndDecom {} = appendEdges (roundedRect (width f) (height f) 0.1
     f = if layout s == Vertical then e else d
 drawWrapper d s@OrDecom {} = appendEdges (roundedRect (width draw + 0.9)
   (height draw + 0.9) 0.1 # lc black <> text' # alignTL # translate
-  (r2(-0.5 * (width draw + 0.9) + 0.1 , 0.5 * (height draw + 0.9) - 0.1)) <> draw # centerXY) (lengthXY s) (rightC s)
+  (r2 (-0.5 * (width draw + 0.9) + 0.1 , 0.5 * (height draw + 0.9) - 0.1)) <> draw # centerXY) (lengthXY s) (rightC s)
   (outerLayout s) # named (d ++ [key s]) # applyAll (fmap (`drawConnection`
   layout s) connectList)
   where
@@ -125,7 +125,7 @@ drawWrapper d s@OrDecom {} = appendEdges (roundedRect (width draw + 0.9)
 drawWrapper' :: [Int] -> Wrapper -> Diagram B
 drawWrapper' d s@OrDecom {} = appendEdges (roundedRect (width draw + 0.9)
   (height draw + 0.9) 0.1 # lcA transparent <> alignedText 0 1 (strings s) #
-  translate (r2(-0.485 * (width draw + 0.9), 0.485 * (height draw + 0.9))) #
+  translate (r2 (-0.485 * (width draw + 0.9), 0.485 * (height draw + 0.9))) #
   fontSize (local 0.2) <> draw # centerXY) (lengthXY s) (rightC s)
   (outerLayout s) # named (d ++ [key s]) # applyAll (fmap (`drawConnection`
   layout s) connectList)
@@ -604,7 +604,7 @@ addDummyLeft ForwardH (x:xs) matchLabel b@AndDecom {} = if key b == matchLabel
 addDummyLeft BackwardWH [a] matchLabel b = if key b == matchLabel then
   OrDecom (insertDummyLeft b) (key b) (strings b) (
   ConnectWithType (Connection [a] [maxLabel b + 1] "") BackwardWH : connections
-  b) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b)(outerLayout b) else b
+  b) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b) (outerLayout b) else b
 addDummyLeft BackwardWH (x:xs) matchLabel b@OrDecom {} = if key b == matchLabel
   then OrDecom (fmap (fmap (addDummyLeft BackwardWH xs x)) (
   insertDummyLeft b)) (key b) (strings b) (ConnectWithType (Connection (
@@ -929,13 +929,13 @@ addCrossing2' layerBef fixedWrapper (b:xs) connectionList checkType totalCrossin
 --checkWrapper
 checkWrapper :: UMLStateDiagram -> Maybe String
 checkWrapper a
-  | not(checkOuterMostWrapper b) = Just ("Error: Outermost layer must be "
+  | not (checkOuterMostWrapper b) = Just ("Error: Outermost layer must be "
     ++ "'OrDecom' constructor")
-  | not(checkOrDecomSubstate b) = Just ("Error: Substate of OrDecom "
+  | not (checkOrDecomSubstate b) = Just ("Error: Substate of OrDecom "
     ++ "constructor cannot be empty or just Hist/Fork/StartS/Dummy/Transition")
-  | not(checkAndDecomSubstate b) = Just ("Error: AndDecom constructor must "
+  | not (checkAndDecomSubstate b) = Just ("Error: AndDecom constructor must "
     ++ "contain at least 2 OrDecom and no other type of constructor")
-  | not(checkLayout b) = Just ("Error: Horizontal slicing must be followed by "
+  | not (checkLayout b) = Just ("Error: Horizontal slicing must be followed by "
     ++ "vertical layering or vise versa")
   | otherwise = Nothing
     where

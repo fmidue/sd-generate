@@ -71,6 +71,7 @@ open uml_state_diagram
 run {} for
  #{nullScopes} #{show label} ProtoFlows, exactly #{show numberOfFlows} Flows // concerning ProtoFlows, a temporary hack for manual scope setting
 |]
+render _ = error "not defined"
 
 renderStart :: (String, [Int]) -> String
 renderStart (start, target) = [i|one sig #{start} extends StartNodes{}
@@ -87,6 +88,7 @@ renderConnection transitionMapping Connection{ pointFrom, pointTo, transition } 
   to = N_#{address pointTo}
 }|]
 
+renderInner :: (a -> p -> Synthesized) -> [a] -> p -> Synthesized
 renderInner recurse substate inherited =
   let
     recursively = map (`recurse` inherited) substate
@@ -106,6 +108,7 @@ renderInner recurse substate inherited =
       , joinNodes = any joinNodes recursively
       }
 
+renderComposite :: String -> (StateDiagram a -> Inherited -> Synthesized) -> StateDiagram a -> Inherited -> Synthesized
 renderComposite kind eachWith StateDiagram{ substate, label, name, startState } inh@Inherited{ctxt, nameMapping} =
   let
     here = ctxt ++ [label]
@@ -134,6 +137,7 @@ renderComposite kind eachWith StateDiagram{ substate, label, name, startState } 
   , forkNodes = forkNodes
   , joinNodes = joinNodes
   }
+renderComposite _ _ _ _ = error "not defined"
 
 defaultSynthesized :: Synthesized
 defaultSynthesized = Synthesized
@@ -169,7 +173,7 @@ renderNode InnerMostState { label, name } Inherited{ctxt, nameMapping} =
   { alloy = [i|one sig #{node} extends NormalStates{}{
   #{if null name then "no name" else "name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
 }|]
-  , names = if null name then [] else [name]
+  , names = [name | not (null name)]
   , rootNodes = [node]
   , normalStates = True
   }

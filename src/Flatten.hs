@@ -55,9 +55,9 @@ data ImsCp = ImsCp UMLStateDiagram (Maybe ImsCp)
 
 instance Show ImsCp where
    show (ImsCp (InnerMostState {name, label}) (Just inmsCP))
-    = name ++ " " ++ (show label) ++ " " ++ show inmsCP
+    = name ++ " " ++ show label ++ " " ++ show inmsCP
    show (ImsCp (InnerMostState {name, label}) Nothing)
-    = name ++ " " ++ (show label) ++ " " ++ "\n"
+    = name ++ " " ++ show label ++ " " ++ "\n"
    show _ = "bad inmsCP instance"
 
 imsCpCtr :: [UMLStateDiagram] -> ImsCp
@@ -102,5 +102,5 @@ instance Labeled ImsCp where
     getLabelStr (ImsCp x (Just s)) = getLabelStr x ++ ", " ++ getLabelStr s
 
 instance Labeled Connection where
-   getLabelStr (Connection {pointFrom, pointTo, transition}) = transition ++ (show pointFrom) ++ (show pointTo)
+   getLabelStr (Connection {pointFrom, pointTo, transition}) = transition ++ show pointFrom ++ show pointTo
 

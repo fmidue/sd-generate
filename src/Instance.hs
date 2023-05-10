@@ -134,11 +134,11 @@ parseInstance scope insta = do
       getStart x = maybeToList (join $ M.lookup x startsMap) >>= pathTo
       stateDia = forestToStateDiagram getName getStart hierarchy'
       conns' = S.map (\(x, y, z) -> (pathTo x, pathTo y, z)) conns
-  return $ localise $ 
+  return $ localise $
     let (sd::UMLStateDiagram) = ([] <$ stateDia)
     in
       case sd of
-        (StateDiagram {}) -> sd { connection = (uncurry3 Connection <$> S.toAscList conns') }
+        (StateDiagram {}) -> sd { connection = uncurry3 Connection <$> S.toAscList conns' }
         _ -> error "not defined"
   where
     getAs

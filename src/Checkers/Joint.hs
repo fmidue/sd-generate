@@ -56,7 +56,7 @@ checkMtoOne s@StateDiagram{} =
 checkMtoOne _ = error "not defined"
 
 overOne :: [Int] -> [[Int]] -> Bool
-overOne a b =  length (filter( a ==) b) > 1
+overOne a b =  length (filter ( a ==) b) > 1
 
 checkTransition :: UMLStateDiagram -> Bool
 checkTransition s@StateDiagram {} =
@@ -99,9 +99,9 @@ checkParallelRegionConnections into l s = all null . localise $
                                             case g of
                                               (StateDiagram {}) -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
                                               _ -> error "not defined"
-                                          where 
+                                          where
                                             g = globalise s
-                                            insideCandidates = (map inside) . filter ((== l) . outside) $ connection g
+                                            insideCandidates = map inside . filter ((== l) . outside) $ connection g
                                             insides
                                              | xs@(_:_:_) <- insideCandidates = xs
                                              | otherwise                      = []
