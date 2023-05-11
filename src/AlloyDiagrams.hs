@@ -9,7 +9,7 @@ import Datatype (UMLStateDiagram, StateDiagram(..), Connection(..), HistoryType(
 
 import Data.String.Interpolate (i)
 import Data.List (intercalate)
-import Data.List.Extra (nubOrd)
+import Data.List.Extra (nubOrd, notNull)
 import Data.Maybe (isNothing, fromJust)
 
 data Inherited = Inherited
@@ -88,7 +88,7 @@ renderConnection transitionMapping Connection{ pointFrom, pointTo, transition } 
   to = N_#{address pointTo}
 }|]
 
-renderInner :: (a -> p -> Synthesized) -> [a] -> p -> Synthesized
+renderInner :: (StateDiagram a -> Inherited -> Synthesized) -> [StateDiagram a] -> Inherited -> Synthesized
 renderInner recurse substate inherited =
   let
     recursively = map (`recurse` inherited) substate
@@ -173,7 +173,7 @@ renderNode InnerMostState { label, name } Inherited{ctxt, nameMapping} =
   { alloy = [i|one sig #{node} extends NormalStates{}{
   #{if null name then "no name" else "name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
 }|]
-  , names = [name | not (null name)]
+  , names = [name | notNull name]
   , rootNodes = [node]
   , normalStates = True
   }

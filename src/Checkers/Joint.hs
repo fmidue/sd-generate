@@ -97,7 +97,7 @@ checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool
 checkParallelRegionConnections into l s = all null . localise $
                                             case g of
-                                              (StateDiagram {}) -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
+                                              StateDiagram{} -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
                                               _ -> error "not defined"
                                           where
                                             g = globalise s

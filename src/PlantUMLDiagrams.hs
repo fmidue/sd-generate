@@ -18,7 +18,7 @@ data Inherited = Inherited { ctxt :: [Int]
                            , connectionFroms :: [String] }
 
 renderAll :: UMLStateDiagram -> String
-renderAll sd@(StateDiagram {}) =
+renderAll sd@StateDiagram{} =
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
     StateDiagram{ connection=connection } = sd
@@ -35,7 +35,7 @@ renderAll _ = error "not defined"
 renderUML :: UMLStateDiagram -> Inherited -> String
 renderUML sd@StateDiagram{ substate, connection, startState } inherited =
   case globalise sd of
-    (StateDiagram subst _ _ _ _) -> let substate1 = subst
+    StateDiagram subst _ _ _ _ ->   let substate1 = subst
                                         hn = getAllHistory substate1 inherited
                                     in
                                     [i|
@@ -99,7 +99,7 @@ renderRegions (r:rs) inherited@Inherited{ ctxt, connectionFroms } =
         node = "N_" ++ address "" (ctxt ++ [label])
         isFork = length (filter (node==) connectionFroms) > 1
       in
-        [i|state #{("N_" ++ (address "" (ctxt ++ [label])))} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
+        [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
   ++ renderRegions rs inherited
 
 renderStart :: [Int] -> Inherited -> String
