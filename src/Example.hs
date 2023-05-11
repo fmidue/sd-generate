@@ -496,10 +496,10 @@ testFlatConReg1 = let
                   isA = InnerMostState 1 "A" ""
                   isB = InnerMostState 2 "B" ""
                   isC = InnerMostState 3 "C" ""
-                  cd1r1 = StateDiagram [isA, isB, isC] 1 "" 
+                  cd1r1 = StateDiagram [isA, isB, isC] 1 ""
                          [ Connection [1] [2] "a"
                          , Connection [2] [3] "b"
-                         , Connection [3] [1] "a"] 
+                         , Connection [3] [1] "a"]
                          [1]
                   in
                   cd1r1
@@ -508,9 +508,9 @@ testFlatConReg2 :: UMLStateDiagram
 testFlatConReg2 = let
                   isD = InnerMostState 1 "D" ""
                   isE = InnerMostState 2 "E" ""
-                  cd1r2 = StateDiagram [isD, isE] 2 "" 
+                  cd1r2 = StateDiagram [isD, isE] 2 ""
                           [ Connection [1] [2] "b"
-                          , Connection [2] [1] "b"] 
+                          , Connection [2] [1] "b"]
                           [1]
                   in
                   cd1r2
@@ -527,27 +527,27 @@ testFlat1Input = let
                  isF = InnerMostState 2 "F" ""
                  jn1 = Joint 5
                  cd1 = CombineDiagram [cd1r1, cd1r2] 1
-                 cd1r1 = StateDiagram [isA, isB, isC] 1 "" 
+                 cd1r1 = StateDiagram [isA, isB, isC] 1 ""
                         [ Connection [1] [2] "a"
                         , Connection [2] [3] "b"
-                        , Connection [3] [1] "a"] 
+                        , Connection [3] [1] "a"]
                         [1]
-                 cd1r2 = StateDiagram [isD, isE] 2 "" 
+                 cd1r2 = StateDiagram [isD, isE] 2 ""
                          [ Connection [1] [2] "b"
-                         , Connection [2] [1] "b"] 
+                         , Connection [2] [1] "b"]
                          [1]
-                 sd2 = StateDiagram [isH, isG] 4 "" 
-                      [ Connection [2] [1] "d"] 
+                 sd2 = StateDiagram [isH, isG] 4 ""
+                      [ Connection [2] [1] "d"]
                       [2]
                  in
-                   StateDiagram [cd1, isF, sd2, jn1] 22 "" 
+                   StateDiagram [cd1, isF, sd2, jn1] 22 ""
                      [ Connection [2] [4] "c"
                      , Connection [2] [4,2] "d"
                      , Connection [4, 2] [1, 2, 2] "z"
                      , Connection [4, 1] [1] "z"
                      , Connection [1,1,3] [5] ""
                      , Connection [1,2,2] [5] ""
-                     , Connection [5] [2] "c" ] 
+                     , Connection [5] [2] "c" ]
                      [1, 1, 1]
 
 testFlat1Combine :: [[UMLStateDiagram]]
