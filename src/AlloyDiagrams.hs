@@ -15,7 +15,7 @@ import Data.Maybe (isNothing, fromJust)
 data Inherited = Inherited
   { ctxt :: [Int]
   , nameMapping :: [(String,String)]
-  , connectionFroms :: [String]
+  , connectionSources :: [String]
   }
 
 data Synthesized = Synthesized
@@ -38,7 +38,7 @@ render (globalise -> StateDiagram{ substate, label, name, connection, startState
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
         renderInner renderNode substate
           Inherited {ctxt = [], nameMapping = nameMapping
-                    , connectionFroms = map (\Connection{ pointFrom } -> [i|N_#{address pointFrom}|]) connection}
+                    , connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address pointFrom}|]) connection}
       nameMapping = zipWith (\name -> (name,) . ("Name" ++) . show) (nubOrd names) [1..]
       nameOutput = map (\(_,component) -> [i|one sig #{component} extends ComponentNames{}|])
                    nameMapping
@@ -109,14 +109,14 @@ renderInner recurse substate inherited =
       }
 
 renderComposite :: String -> (StateDiagram a -> Inherited -> Synthesized) -> StateDiagram a -> Inherited -> Synthesized
-renderComposite kind eachWith StateDiagram{ substate, label, name, startState } inh@Inherited{ctxt, nameMapping} =
+renderComposite kind eachWith StateDiagram{ substate, label, name, startState } inherited@Inherited{ctxt, nameMapping} =
   let
     here = ctxt ++ [label]
     node = [i|#{if kind == "Regions" then "R" else "N"}_#{address here}|]
     start = if null startState then Nothing else Just ([i|S_#{address here}|], here ++ startState)
     Synthesized {alloy, names, rootNodes, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
       renderInner eachWith substate
-        inh {ctxt = here}
+        inherited {ctxt = here}
   in
   Synthesized
   { alloy = unlines $
@@ -201,11 +201,11 @@ renderNode History { label, historyType } Inherited{ctxt} =
   , shallowHistoryNodes = historyType == Shallow
   }
 
-renderNode Joint { label } Inherited{ctxt, connectionFroms} =
+renderNode Joint { label } Inherited{ctxt, connectionSources} =
   let
     here = ctxt ++ [label]
     node = [i|N_#{address here}|]
-    isFork = length (filter (node==) connectionFroms) > 1
+    isFork = length (filter (node==) connectionSources) > 1
   in
   defaultSynthesized
   { alloy = [i|one sig #{node} extends #{if isFork then "Fork" else "Join"}Nodes{}|]

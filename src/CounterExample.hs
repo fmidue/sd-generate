@@ -82,8 +82,8 @@ forCheckTransition2 = StateDiagram [a,b,c,d,e,f,g] 1 "" [Connection[5] [1] "a",C
            f = Joint 6
            g = EndState 7
 
-forCheckMtoOne2 :: UMLStateDiagram
-forCheckMtoOne2 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[1] [5] "c",Connection[5] [4] "",
+forCheckManyToOne2 :: UMLStateDiagram
+forCheckManyToOne2 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[1] [5] "c",Connection[5] [4] "",
        Connection[2] [1] "a",Connection[1] [2] "a",Connection[1] [3] "b"  ] [5]
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
@@ -91,8 +91,8 @@ forCheckMtoOne2 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[1] [5] "c",Connecti
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne1 :: UMLStateDiagram
-forCheckMtoOne1 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "b",Connection[1] [5] "",Connection[5] [4] "a",
+forCheckManyToOne1 :: UMLStateDiagram
+forCheckManyToOne1 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "b",Connection[1] [5] "",Connection[5] [4] "a",
       Connection[5] [3] "a",Connection[2] [1] "a"] [2]
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
@@ -100,8 +100,8 @@ forCheckMtoOne1 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "b",Connecti
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne3 :: UMLStateDiagram
-forCheckMtoOne3 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "",Connection[2] [1] "a",
+forCheckManyToOne3 :: UMLStateDiagram
+forCheckManyToOne3 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "",Connection[2] [1] "a",
       Connection[1] [2] "a",Connection[1] [3] "b" ] [5]
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
@@ -109,8 +109,8 @@ forCheckMtoOne3 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "",Connectio
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne5 :: UMLStateDiagram
-forCheckMtoOne5 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[3] [5] "",Connection[2] [1] "a",
+forCheckManyToOne5 :: UMLStateDiagram
+forCheckManyToOne5 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[3] [5] "",Connection[2] [1] "a",
       Connection[1] [2] "a",Connection[1] [3] "b" ] [4]
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
@@ -118,8 +118,8 @@ forCheckMtoOne5 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connectio
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne6 :: UMLStateDiagram
-forCheckMtoOne6 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[5] [2] "",Connection[2] [1] "a",
+forCheckManyToOne6 :: UMLStateDiagram
+forCheckManyToOne6 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[5] [2] "",Connection[2] [1] "a",
       Connection[1] [4] "a",Connection[1] [3] "b" ] []
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
@@ -127,8 +127,8 @@ forCheckMtoOne6 =  StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connectio
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne7 :: UMLStateDiagram
-forCheckMtoOne7 = StateDiagram [a, b, c, d, l] 1 "" [ Connection [2, 1, 3] [3] "", Connection [2, 2, 2]
+forCheckManyToOne7 :: UMLStateDiagram
+forCheckManyToOne7 = StateDiagram [a, b, c, d, l] 1 "" [ Connection [2, 1, 3] [3] "", Connection [2, 2, 2]
            [3] "", Connection [3] [4] "g",Connection [3] [5] "g"] [1]
   where
     a = InnerMostState 1 "A" ""
@@ -147,8 +147,8 @@ forCheckMtoOne7 = StateDiagram [a, b, c, d, l] 1 "" [ Connection [2, 1, 3] [3] "
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
-forCheckMtoOne8 :: UMLStateDiagram
-forCheckMtoOne8 = StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [1] "a",
+forCheckManyToOne8 :: UMLStateDiagram
+forCheckManyToOne8 = StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [1] "a",
       Connection[1] [4] "a",Connection[1] [3] "b",Connection[1] [2] "c"] [5]
      where a = InnerMostState  1 "A" ""
            b = InnerMostState  2 "B" ""
@@ -156,8 +156,8 @@ forCheckMtoOne8 = StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [1] "a",
            d = InnerMostState  4 "D" ""
            e = Joint 5
 
-forCheckMtoOne4 :: UMLStateDiagram
-forCheckMtoOne4 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] ""] [5]
+forCheckManyToOne4 :: UMLStateDiagram
+forCheckManyToOne4 = StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] ""] [5]
       where
         a = CombineDiagram [e,f] 1
           where

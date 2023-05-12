@@ -11,81 +11,78 @@ import Datatype (UMLStateDiagram
 
 
 flatten :: UMLStateDiagram -> UMLStateDiagram
-flatten d = StateDiagram (bridge (toImsCp' (globalise d))) 0 "" [] [0]
-            -- currently flattens states one layer too high
-            -- transitions are not taken care of wip yet because id remap is required
-            -- which was the reason to introduce the ImsCp data type
+flatten d = StateDiagram (bridge (toInnerMostCp' (globalise d))) 0 "" [] [0]
 
-withOnlyIms :: UMLStateDiagram -> Bool
-withOnlyIms (StateDiagram {substate})
-    =  and (True:map withOnlyIms' substate)
-withOnlyIms _ = False
+withOnlyInnerMost :: UMLStateDiagram -> Bool
+withOnlyInnerMost (StateDiagram {substate})
+    =  and (True:map withOnlyInnerMost' substate)
+withOnlyInnerMost _ = False
 
-withOnlyIms' :: UMLStateDiagram -> Bool
-withOnlyIms' (InnerMostState {}) = True
-withOnlyIms' _ = False
+withOnlyInnerMost' :: UMLStateDiagram -> Bool
+withOnlyInnerMost' (InnerMostState {}) = True
+withOnlyInnerMost' _ = False
 
-bridge :: [ImsCp] -> [UMLStateDiagram]
-bridge imss = let
+bridge :: [InnerMostCp] -> [UMLStateDiagram]
+bridge innerMost = let
               in
-              [bridge' x | x <- imss]
+              [bridge' x | x <- innerMost]
 
-bridge' :: ImsCp -> UMLStateDiagram
+bridge' :: InnerMostCp -> UMLStateDiagram
 bridge' imscp = InnerMostState 0 (getLabelStr imscp) ""
 
-toImsCp' :: UMLStateDiagram -> [ImsCp]
-toImsCp' sd@(StateDiagram {label,name,substate})
-   | withOnlyIms sd =
+toInnerMostCp' :: UMLStateDiagram -> [InnerMostCp]
+toInnerMostCp' sd@(StateDiagram {label,name,substate})
+   | withOnlyInnerMost sd =
       let
       rt = InnerMostState label name ""
       in
       [imsCpCtr [rt,x]|x <- substate]
-   | otherwise = crsImsCps (map toImsCp' substate)
-toImsCp' (CombineDiagram {label, substate})
+   | otherwise = foldr (++) [] $ map toInnerMostCp' substate
+toInnerMostCp' (CombineDiagram {label, substate})
    =
-   let imss = crsImsCps (map toImsCp' substate)
-       rt = InnerMostState label "" ""
+   let innerMost = crsInnerMostCps (map toInnerMostCp' substate)
+       root = InnerMostState label "" ""
    in
-   [ImsCp rt (Just x) | x <- imss]
-toImsCp' ims@(InnerMostState {}) = [ImsCp ims Nothing]
-toImsCp' _ = []
+   [InnerMostCp root (Just x) | x <- innerMost]
+toInnerMostCp' ims@(InnerMostState {}) = [InnerMostCp ims Nothing]
+toInnerMostCp' _ = []
 
-data ImsCp = ImsCp UMLStateDiagram (Maybe ImsCp)
+data InnerMostCp = InnerMostCp UMLStateDiagram (Maybe InnerMostCp)
      deriving (Eq)
 
-instance Show ImsCp where
-   show (ImsCp (InnerMostState {name, label}) (Just inmsCP))
+instance Show InnerMostCp where
+   show (InnerMostCp (InnerMostState {name, label}) (Just inmsCP))
     = name ++ " " ++ show label ++ " " ++ show inmsCP
-   show (ImsCp (InnerMostState {name, label}) Nothing)
+   show (InnerMostCp (InnerMostState {name, label}) Nothing)
     = name ++ " " ++ show label ++ " " ++ "\n"
-   show _ = "bad inmsCP instance"
+   show _ = "bad instance"
 
-imsCpCtr :: [UMLStateDiagram] -> ImsCp
+imsCpCtr :: [UMLStateDiagram] -> InnerMostCp
 imsCpCtr [] = error "must provide states"
-imsCpCtr [x] = ImsCp x Nothing
-imsCpCtr (x:xs) = ImsCp x (Just (imsCpCtr xs))
+imsCpCtr [x] = InnerMostCp x Nothing
+imsCpCtr (x:xs) = InnerMostCp x (Just (imsCpCtr xs))
 
-getImss :: ImsCp -> [UMLStateDiagram]
-getImss (ImsCp x Nothing) = [x]
-getImss (ImsCp x (Just y)) = x:getImss y
+getInnerMosts :: InnerMostCp -> [UMLStateDiagram]
+getInnerMosts (InnerMostCp x Nothing) = [x]
+getInnerMosts (InnerMostCp x (Just y)) = x:getInnerMosts y
 
-crsImsCps :: [[ImsCp]] -> [ImsCp]
-crsImsCps [x] = x
-crsImsCps (x:y:xs) = crsImsCps (crsImsCps'' x y:xs)
-crsImsCps _ = error "shouldnt happen"
+crsInnerMostCps :: [[InnerMostCp]] -> [InnerMostCp]
+crsInnerMostCps [x] = x
+crsInnerMostCps (x:y:xs) = crsInnerMostCps (crsInnerMostCps'' x y:xs)
+crsInnerMostCps _ = error "shouldnt happen"
 
-crsImsCps' :: [UMLStateDiagram] -> ImsCp -> ImsCp
-crsImsCps' [] y = y
-crsImsCps' [x] y = ImsCp x (Just y)
-crsImsCps' (x:xs) y = ImsCp x (Just (crsImsCps' xs y))
+crsInnerMostCps' :: [UMLStateDiagram] -> InnerMostCp -> InnerMostCp
+crsInnerMostCps' [] y = y
+crsInnerMostCps' [x] y = InnerMostCp x (Just y)
+crsInnerMostCps' (x:xs) y = InnerMostCp x (Just (crsInnerMostCps' xs y))
 
-crsImsCps'' :: [ImsCp] -> [ImsCp] -> [ImsCp]
-crsImsCps'' [] ys = ys
-crsImsCps'' xs [] = xs
-crsImsCps'' xs ys = [crsImsCps' (getImss x) y | x <- xs, y <- ys]
+crsInnerMostCps'' :: [InnerMostCp] -> [InnerMostCp] -> [InnerMostCp]
+crsInnerMostCps'' [] ys = ys
+crsInnerMostCps'' xs [] = xs
+crsInnerMostCps'' xs ys = [crsInnerMostCps' (getInnerMosts x) y | x <- xs, y <- ys]
 
 
-
+{- TODO: replace w. getField polymorphic function from library -}
 class Labeled a where
    getLabelStr :: a -> String
 
@@ -97,9 +94,9 @@ instance Labeled UMLStateDiagram where
     getLabelStr (History {}) = error "not defined"
     getLabelStr (InnerMostState {name}) = name
 
-instance Labeled ImsCp where
-    getLabelStr (ImsCp x Nothing) = getLabelStr x
-    getLabelStr (ImsCp x (Just s)) = getLabelStr x ++ ", " ++ getLabelStr s
+instance Labeled InnerMostCp where
+    getLabelStr (InnerMostCp x Nothing) = getLabelStr x
+    getLabelStr (InnerMostCp x (Just s)) = getLabelStr x ++ ", " ++ getLabelStr s
 
 instance Labeled Connection where
    getLabelStr (Connection {pointFrom, pointTo, transition}) = transition ++ show pointFrom ++ show pointTo

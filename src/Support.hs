@@ -29,8 +29,8 @@ checkWrapperLayer CrossStateDummy {} = True
 checkWrapperLayer _ = False
 
 checkOrList' :: Wrapper -> Bool
-checkOrList' OrDecom {} = True
-checkOrList' AndDecom {} = True
+checkOrList' OrDecomposition {} = True
+checkOrList' AndDecomposition {} = True
 checkOrList' _ = False
 
 checkOrList :: [Wrapper] -> Bool
@@ -86,10 +86,10 @@ findLayer num (x:xs) layer
 
 getCompareList :: Bool -> Wrapper -> [[Int]]
 getCompareList checkType wrapper = case wrapper of
-  OrDecom {} -> if checkType then fmap ((\ a -> key wrapper : [a]) . key)
+  OrDecomposition {} -> if checkType then fmap ((\ a -> key wrapper : [a]) . key)
     (head $ layered wrapper) else fmap ((\ a -> key wrapper : [a]) . key)
     (last $ layered wrapper)
-  AndDecom {} -> fmap (key wrapper :) (concatMap (getCompareList checkType)
+  AndDecomposition {} -> fmap (key wrapper :) (concatMap (getCompareList checkType)
     (component wrapper))
   _ -> []
 
@@ -123,14 +123,14 @@ getConnectionWithLayerBefore3 wrapper (x:xs) connected
 getDeeperConnection :: [Int] -> Wrapper -> [Int]
 getDeeperConnection (a:b:_) wrapper = case returnState (concat $ layered
   wrapper) a of
-  s@OrDecom {} -> a : [maxLabel s + 1]
-  s@AndDecom {} -> a : b : [maxLabel (returnState (component s) b) + 1]
+  s@OrDecomposition {} -> a : [maxLabel s + 1]
+  s@AndDecomposition {} -> a : b : [maxLabel (returnState (component s) b) + 1]
   _ -> []
 getDeeperConnection _ _ = []
 
 getDeeperState :: Wrapper -> [Int] -> Wrapper -- given a wrapper and label within layered
 getDeeperState a [x] = returnState (concat $ layered a) x
-getDeeperState a@AndDecom {} (x:xs) = getDeeperState (returnState (component a)
+getDeeperState a@AndDecomposition {} (x:xs) = getDeeperState (returnState (component a)
   x) xs
 getDeeperState a (x:xs) = getDeeperState (returnState (concat $ layered a) x) xs
 getDeeperState _ [] = StartS (-1) 0 NoConnection Unspecified

@@ -22,7 +22,7 @@ module Datatype
 import Data.List                        (partition)
 
 data Wrapper =
-  OrDecom { layered :: [[Wrapper]],
+  OrDecomposition { layered :: [[Wrapper]],
             key :: Int,
             strings :: String,
             connections :: [ConnectWithType],
@@ -32,7 +32,7 @@ data Wrapper =
             rightC :: RightConnect,
             outerLayout :: Layout
           }
-  | AndDecom { component :: [Wrapper],
+  | AndDecomposition { component :: [Wrapper],
                key :: Int,
                layout :: Layout,
                lengthXY :: Double,

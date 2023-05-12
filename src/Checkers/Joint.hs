@@ -18,7 +18,7 @@ checkJoint :: UMLStateDiagram -> Maybe String
 checkJoint a
   | not (checkTransition a) =
       Just "transitions from/to some Joints are not in line with standards."
-  | not (checkMtoOne a) =
+  | not (checkManyToOne a) =
       Just "invalid number of Outgoing edges or ingoing edges of Joint node"
   | not (all goIntoParallelRegions joints) =
       Just "at least one Joint has connections to states that are not in distinct parallel regions"
@@ -31,8 +31,8 @@ checkJoint a
     goIntoParallelRegions    x = checkParallelRegionConnections True x a
     comeOutOfParallelRegions x = checkParallelRegionConnections False x a
 
-checkMtoOne :: UMLStateDiagram -> Bool
-checkMtoOne s@StateDiagram{} =
+checkManyToOne :: UMLStateDiagram -> Bool
+checkManyToOne s@StateDiagram{} =
    null (toMany `intersect` fromMany)
    && all (`notElem` toOnlyJoint) startOnlyJoint
    && all (`elem` fromMany) startOnlyJoint
@@ -53,7 +53,7 @@ checkMtoOne s@StateDiagram{} =
         fromOne       = fromOnlyJoint \\fromMany
         toNoConn = nub fromOnlyJoint \\ nub toOnlyJoint
         fromNoConn = nub toOnlyJoint \\ nub fromOnlyJoint
-checkMtoOne _ = error "not defined"
+checkManyToOne _ = error "not defined"
 
 overOne :: [Int] -> [[Int]] -> Bool
 overOne a b =  length (filter ( a ==) b) > 1

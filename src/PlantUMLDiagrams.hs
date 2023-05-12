@@ -15,14 +15,14 @@ import Data.String.Interpolate (i)
 import Data.List (intercalate)
 
 data Inherited = Inherited { ctxt :: [Int]
-                           , connectionFroms :: [String] }
+                           , connectionSources :: [String] }
 
 renderAll :: UMLStateDiagram -> String
 renderAll sd@StateDiagram{} =
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
     StateDiagram{ connection=connection } = sd
-    inherited = Inherited{ctxt = [], connectionFroms = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connection}
+    inherited = Inherited{ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connection}
   in
     [i|@startuml
 #{info}
@@ -48,16 +48,16 @@ renderUML _ _ = error "not defined"
 
 renderSubState :: [UMLStateDiagram] -> Inherited -> String
 renderSubState [] _ = []
-renderSubState (x:xs) inherited@Inherited{ ctxt, connectionFroms } =
+renderSubState (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of
 
     StateDiagram{ label, name } ->
         [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{("N_" ++ (address "" (ctxt ++ [label])))}|]
-        ++ "{\n" ++ renderUML x Inherited{ctxt=ctxt ++ [label], connectionFroms} ++ "}\n"
+        ++ "{\n" ++ renderUML x Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
 
     CombineDiagram{ substate, label } ->
         [i|state "RegionsState" as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "{\n"
-        ++ renderRegions substate Inherited{ctxt=ctxt ++ [label], connectionFroms} ++ "}\n"
+        ++ renderRegions substate Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
 
     EndState { label } ->
         [i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n"
@@ -70,21 +70,21 @@ renderSubState (x:xs) inherited@Inherited{ ctxt, connectionFroms } =
     Joint { label } ->
       let
         node = ("N_" ++ address "" (ctxt ++ [label]))
-        isFork = length (filter (node==) connectionFroms) > 1
+        isFork = length (filter (node==) connectionSources) > 1
       in
         [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
   ++ renderSubState xs inherited
 
 renderRegions :: [UMLStateDiagram] -> Inherited -> String
 renderRegions [] _ = []
-renderRegions (r:rs) inherited@Inherited{ ctxt, connectionFroms } =
+renderRegions (r:rs) inherited@Inherited{ ctxt, connectionSources } =
   case r of
     StateDiagram{ label } ->
-        renderUML r Inherited{ctxt=ctxt ++ [label], connectionFroms}
+        renderUML r Inherited{ctxt=ctxt ++ [label], connectionSources}
         ++ if null rs then "" else "--\n"
 
     CombineDiagram{ substate, label } ->
-        renderRegions substate Inherited{ctxt=ctxt ++ [label], connectionFroms}
+        renderRegions substate Inherited{ctxt=ctxt ++ [label], connectionSources}
 
     EndState { label } ->
         [i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n"
@@ -97,7 +97,7 @@ renderRegions (r:rs) inherited@Inherited{ ctxt, connectionFroms } =
     Joint { label } ->
       let
         node = "N_" ++ address "" (ctxt ++ [label])
-        isFork = length (filter (node==) connectionFroms) > 1
+        isFork = length (filter (node==) connectionSources) > 1
       in
         [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
   ++ renderRegions rs inherited
@@ -143,19 +143,19 @@ address h as = intercalate "_" (map show (init as)) ++ h
 
 getAllHistory :: [UMLStateDiagram] -> Inherited -> [(UMLStateDiagram, [Int])]
 getAllHistory [] _ = []
-getAllHistory (x:xs) inherited@Inherited{ ctxt, connectionFroms } =
+getAllHistory (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of
     StateDiagram{ substate, label } ->
       let
         here = ctxt ++ [label]
       in
-        getAllHistory substate Inherited{ctxt=here, connectionFroms}
+        getAllHistory substate Inherited{ctxt=here, connectionSources}
 
     CombineDiagram{ substate, label } ->
       let
         here = ctxt ++ [label]
       in
-        getAllHistory substate Inherited{ctxt=here, connectionFroms}
+        getAllHistory substate Inherited{ctxt=here, connectionSources}
 
     History{label} -> [(x, ctxt ++ [label])]
 

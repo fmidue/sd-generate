@@ -51,5 +51,6 @@ ignore$
 ^\Qsrc/Generate.hs\E$
 ^\Qsrc/Instance.hs\E$
 ^\Qsrc/Layout.hs\E$
+^\Qsrc/Arrows.hs\E$
 ^\Qsrc/CounterExample.hs\E$
 ^src/Checkers/
