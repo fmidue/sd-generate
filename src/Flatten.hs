@@ -37,7 +37,7 @@ toInnerMostCp' sd@(StateDiagram {label,name,substate})
       rt = InnerMostState label name ""
       in
       [innerMostCpCtr [rt,x]|x <- substate]
-   | otherwise = concat $ map toInnerMostCp' substate
+   | otherwise = concatMap toInnerMostCp' substate
 toInnerMostCp' (CombineDiagram {label, substate})
    =
    let innerMost = crsInnerMostCps (map toInnerMostCp' substate)
@@ -51,8 +51,8 @@ data InnerMostCp = InnerMostCp UMLStateDiagram (Maybe InnerMostCp)
      deriving (Eq)
 
 instance Show InnerMostCp where
-   show (InnerMostCp (InnerMostState {name, label}) (Just inmsCP))
-    = name ++ " " ++ show label ++ " " ++ show inmsCP
+   show (InnerMostCp (InnerMostState {name, label}) (Just innerMost))
+    = name ++ " " ++ show label ++ " " ++ show innerMost
    show (InnerMostCp (InnerMostState {name, label}) Nothing)
     = name ++ " " ++ show label ++ " " ++ "\n"
    show _ = "bad instance"
