@@ -28,7 +28,7 @@ bridge innerMost = let
               [bridge' x | x <- innerMost]
 
 bridge' :: InnerMostCp -> UMLStateDiagram
-bridge' imscp = InnerMostState 0 (getLabelStr imscp) ""
+bridge' innerMostCp = InnerMostState 0 (getLabelStr innerMostCp) ""
 
 toInnerMostCp' :: UMLStateDiagram -> [InnerMostCp]
 toInnerMostCp' sd@(StateDiagram {label,name,substate})
@@ -36,7 +36,7 @@ toInnerMostCp' sd@(StateDiagram {label,name,substate})
       let
       rt = InnerMostState label name ""
       in
-      [imsCpCtr [rt,x]|x <- substate]
+      [innerMostCpCtr [rt,x]|x <- substate]
    | otherwise = concat $ map toInnerMostCp' substate
 toInnerMostCp' (CombineDiagram {label, substate})
    =
@@ -44,7 +44,7 @@ toInnerMostCp' (CombineDiagram {label, substate})
        root = InnerMostState label "" ""
    in
    [InnerMostCp root (Just x) | x <- innerMost]
-toInnerMostCp' ims@(InnerMostState {}) = [InnerMostCp ims Nothing]
+toInnerMostCp' innerMost@(InnerMostState {}) = [InnerMostCp innerMost Nothing]
 toInnerMostCp' _ = []
 
 data InnerMostCp = InnerMostCp UMLStateDiagram (Maybe InnerMostCp)
@@ -57,10 +57,10 @@ instance Show InnerMostCp where
     = name ++ " " ++ show label ++ " " ++ "\n"
    show _ = "bad instance"
 
-imsCpCtr :: [UMLStateDiagram] -> InnerMostCp
-imsCpCtr [] = error "must provide states"
-imsCpCtr [x] = InnerMostCp x Nothing
-imsCpCtr (x:xs) = InnerMostCp x (Just (imsCpCtr xs))
+innerMostCpCtr :: [UMLStateDiagram] -> InnerMostCp
+innerMostCpCtr [] = error "must provide states"
+innerMostCpCtr [x] = InnerMostCp x Nothing
+innerMostCpCtr (x:xs) = InnerMostCp x (Just (innerMostCpCtr xs))
 
 getInnerMosts :: InnerMostCp -> [UMLStateDiagram]
 getInnerMosts (InnerMostCp x Nothing) = [x]
