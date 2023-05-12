@@ -37,7 +37,7 @@ toInnerMostCp' sd@(StateDiagram {label,name,substate})
       rt = InnerMostState label name ""
       in
       [imsCpCtr [rt,x]|x <- substate]
-   | otherwise = foldr (++) [] $ map toInnerMostCp' substate
+   | otherwise = concat $ map toInnerMostCp' substate
 toInnerMostCp' (CombineDiagram {label, substate})
    =
    let innerMost = crsInnerMostCps (map toInnerMostCp' substate)
