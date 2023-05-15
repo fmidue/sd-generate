@@ -1,17 +1,18 @@
 {-# LANGUAGE NamedFieldPuns            #-}
 
 module Flatten (
-    getLabelStr
-   ,flatten
+   flatten
+   ,mergeStates
+   ,truncateUpperLabels
 ) where
 import Datatype (UMLStateDiagram
                 ,StateDiagram(..)
-                ,Connection (..)
+
                 ,globalise)
 
 
-flatten :: UMLStateDiagram -> UMLStateDiagram
-flatten d = StateDiagram (bridge (toInnerMostCp' (globalise d))) 0 "" [] [0]
+flatten :: UMLStateDiagram -> [Flattened]
+flatten d = flatten' (globalise d)
 
 withOnlyInnerMost :: UMLStateDiagram -> Bool
 withOnlyInnerMost (StateDiagram {substate})
@@ -22,82 +23,56 @@ withOnlyInnerMost' :: UMLStateDiagram -> Bool
 withOnlyInnerMost' (InnerMostState {}) = True
 withOnlyInnerMost' _ = False
 
-bridge :: [InnerMostCp] -> [UMLStateDiagram]
-bridge innerMost = let
-              in
-              [bridge' x | x <- innerMost]
+type Flattened = ([[Int]],[UMLStateDiagram])
 
-bridge' :: InnerMostCp -> UMLStateDiagram
-bridge' innerMostCp = InnerMostState 0 (getLabelStr innerMostCp) ""
+castToInner :: StateDiagram a1 -> StateDiagram a2
+castToInner (StateDiagram {label, name}) = InnerMostState label name ""
+castToInner (CombineDiagram {label}) = InnerMostState label "" ""
+castToInner _ = InnerMostState 999 "unknown" "cast"
 
-toInnerMostCp' :: UMLStateDiagram -> [InnerMostCp]
-toInnerMostCp' sd@(StateDiagram {label,name,substate})
-   | withOnlyInnerMost sd =
-      let
-      rt = InnerMostState label name ""
-      in
-      [innerMostCpCtr [rt,x]|x <- substate]
-   | otherwise = concatMap toInnerMostCp' substate
-toInnerMostCp' (CombineDiagram {label, substate})
-   =
-   let innerMost = crsInnerMostCps (map toInnerMostCp' substate)
-       root = InnerMostState label "" ""
-   in
-   [InnerMostCp root (Just x) | x <- innerMost]
-toInnerMostCp' innerMost@(InnerMostState {}) = [InnerMostCp innerMost Nothing]
-toInnerMostCp' _ = []
+getLabel :: StateDiagram a -> Int
+getLabel (StateDiagram {label}) = label
+getLabel (CombineDiagram {label}) = label
+getLabel _ = 0
 
-data InnerMostCp = InnerMostCp UMLStateDiagram (Maybe InnerMostCp)
-     deriving (Eq)
+mergeStates :: [(a, [UMLStateDiagram])] -> [(a, UMLStateDiagram)]
+mergeStates flattened = [(xs, mergeStates' ys)|(xs,ys)<-flattened]
 
-instance Show InnerMostCp where
-   show (InnerMostCp (InnerMostState {name, label}) (Just innerMost))
-    = name ++ " " ++ show label ++ " " ++ show innerMost
-   show (InnerMostCp (InnerMostState {name, label}) Nothing)
-    = name ++ " " ++ show label ++ " " ++ "\n"
-   show _ = "bad instance"
+mergeStates' :: [UMLStateDiagram] -> UMLStateDiagram
+mergeStates' innerStates = InnerMostState 0 (concat [name ++ ", "| InnerMostState{name}<-innerStates,name /= ""]) ""
 
-innerMostCpCtr :: [UMLStateDiagram] -> InnerMostCp
-innerMostCpCtr [] = error "must provide states"
-innerMostCpCtr [x] = InnerMostCp x Nothing
-innerMostCpCtr (x:xs) = InnerMostCp x (Just (innerMostCpCtr xs))
+truncateUpperLabels :: [([[a]], b)] -> [([[a]], b)]
+truncateUpperLabels flattened = [([tail x|x<-xs],ys)|(xs,ys)<-flattened]
 
-getInnerMosts :: InnerMostCp -> [UMLStateDiagram]
-getInnerMosts (InnerMostCp x Nothing) = [x]
-getInnerMosts (InnerMostCp x (Just y)) = x:getInnerMosts y
+{-
+  next steps; redistribute fresh labels onto flattened states
+  now use [[Int]] ~ label as a lookup table to remap the transitions correctly
+-}
 
-crsInnerMostCps :: [[InnerMostCp]] -> [InnerMostCp]
-crsInnerMostCps [x] = x
-crsInnerMostCps (x:y:xs) = crsInnerMostCps (crsInnerMostCps'' x y:xs)
-crsInnerMostCps _ = error "shouldnt happen"
+flatten' :: UMLStateDiagram -> [Flattened]
+flatten' parent@(StateDiagram {substate = substates})
+    | withOnlyInnerMost parent = inheritFrom substates parent
+    | otherwise = inheritFrom' (concatMap flatten substates) parent
+flatten' parent@(CombineDiagram{substate = substates})
+    = inheritFrom' (cartesianProduct $ map flatten substates) parent
+flatten' innerMost@(InnerMostState {label}) = [([[label]],[innerMost])]
+flatten' _ = []
 
-crsInnerMostCps' :: [UMLStateDiagram] -> InnerMostCp -> InnerMostCp
-crsInnerMostCps' [] y = y
-crsInnerMostCps' [x] y = InnerMostCp x (Just y)
-crsInnerMostCps' (x:xs) y = InnerMostCp x (Just (crsInnerMostCps' xs y))
+inheritFrom :: [UMLStateDiagram] -> UMLStateDiagram -> [Flattened]
+inheritFrom substates outer
+    = [([[getLabel outer, label]], [castToInner outer, inner])|inner@InnerMostState{label}<-substates]
 
-crsInnerMostCps'' :: [InnerMostCp] -> [InnerMostCp] -> [InnerMostCp]
-crsInnerMostCps'' [] ys = ys
-crsInnerMostCps'' xs [] = xs
-crsInnerMostCps'' xs ys = [crsInnerMostCps' (getInnerMosts x) y | x <- xs, y <- ys]
+inheritFrom' :: [Flattened] -> UMLStateDiagram -> [Flattened]
+inheritFrom' substates outer
+    = [(map (getLabel outer:) labels, castToInner outer:innerStates)|(labels,innerStates)<-substates]
 
+cartesianProduct' :: [Flattened] -> [Flattened] -> [Flattened]
+cartesianProduct' [] _ = []
+cartesianProduct' _ [] = []
+cartesianProduct' ((label,states):xs) ys
+    = [ (label ++ label',states ++ states') | (label',states') <-ys ] ++ cartesianProduct' xs ys
 
-{- TODO: replace w. getField polymorphic function from library -}
-class Labeled a where
-   getLabelStr :: a -> String
-
-instance Labeled UMLStateDiagram where
-    getLabelStr (StateDiagram {name}) = name
-    getLabelStr (CombineDiagram {}) = error "not defined"
-    getLabelStr (EndState {}) = error "not defined"
-    getLabelStr (Joint {}) = error "not defined"
-    getLabelStr (History {}) = error "not defined"
-    getLabelStr (InnerMostState {name}) = name
-
-instance Labeled InnerMostCp where
-    getLabelStr (InnerMostCp x Nothing) = getLabelStr x
-    getLabelStr (InnerMostCp x (Just s)) = getLabelStr x ++ ", " ++ getLabelStr s
-
-instance Labeled Connection where
-   getLabelStr (Connection {pointFrom, pointTo, transition}) = transition ++ show pointFrom ++ show pointTo
-
+cartesianProduct :: [[Flattened]] -> [Flattened]
+cartesianProduct [] = []
+cartesianProduct [x] = x
+cartesianProduct (x:y:xs) = cartesianProduct (cartesianProduct' x y : xs)
