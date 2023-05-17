@@ -5,15 +5,18 @@ import Datatype (globalise )
 import Flatten (flatten
    ,groupSameConnections
    ,getConnections
+   ,FlatUMLStateDiagram
+   ,inFlatForm
                )
 
 main :: IO ()
 main = do
+  print "preparation: inFlatForm"
+  print (show ((inFlatForm testFlat1Input)::FlatUMLStateDiagram)) -- yes we need that bracket hlint
   print "group connections"
   print (show (groupSameConnections(getConnections (globalise testFlat1Input))))
   print "globalized input"
   print (show $ globalise testFlat1Input)
   print "flatten test"
-  print (show (flatten testFlat1Input))
   let sd = {- testFlat1Input -} flatten testFlat1Input
   mainWith (drawDiagram sd)

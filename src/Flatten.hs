@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns            #-}
+{-# LANGUAGE InstanceSigs              #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Flatten (
@@ -6,9 +7,12 @@ module Flatten (
    ,mergeStates
    ,truncateUpperLabels
    ,redistributeLabels
-   ,restoreConnections
    ,groupSameConnections
    ,getConnections
+   ,Flattable
+   ,FlatUMLStateDiagram
+   ,FlatConnection
+   ,inFlatForm
 ) where
 import Datatype (UMLStateDiagram
                 ,StateDiagram'(..)
@@ -18,6 +22,47 @@ import Datatype (UMLStateDiagram
                 ,Connection
                 )
 import Data.List
+
+type FlatUMLStateDiagram = StateDiagram' [[Int]] [FlatConnection]
+
+type FlatConnection = Connection' [[Int]] [[Int]]
+
+{- preperation for type change that will require conversion -}
+class Flattable a b where
+  inFlatForm :: a -> b
+  -- inCompositeForm :: b -> a
+
+instance Flattable UMLStateDiagram FlatUMLStateDiagram where
+  inFlatForm :: UMLStateDiagram -> FlatUMLStateDiagram
+  inFlatForm diagram
+    = case diagram of
+        (StateDiagram {substate, label, name, connection, startState})
+          -> StateDiagram { substate = map inFlatForm substate
+                         , label = [[label]]
+                         , name = name
+                         , connection = map inFlatForm connection
+                         , startState = startState }
+        (InnerMostState {label, name, operations})
+          -> InnerMostState { label = [[label]]
+                            , name = name
+                            , operations = operations }
+        (CombineDiagram {substate, label})
+          -> CombineDiagram { substate = map inFlatForm substate
+                            , label = [[label]] }
+        (EndState {label})
+          -> EndState { label = [[label]] }
+        (Joint {label})
+          -> Joint { label = [[label]] }
+        (History {label, historyType})
+          -> History { label = [[label]]
+                     , historyType = historyType }
+
+instance Flattable Connection FlatConnection where
+  inFlatForm :: Connection -> FlatConnection
+  inFlatForm (Connection {pointFrom, pointTo, transition })
+    = Connection { pointFrom = [pointFrom]
+                 , pointTo = [pointTo]
+                 , transition = transition}
 
 flatten :: UMLStateDiagram -> UMLStateDiagram
 flatten d = let
@@ -100,55 +145,32 @@ getConnections :: UMLStateDiagram -> [Connection]
 getConnections (StateDiagram {connection}) = connection
 getConnections _ = []
 
-restoreConnections :: [([[Int]], UMLStateDiagram)] -> [Connection] -> [Connection]
-restoreConnections flat cs
-    = [Connection
-         { pointFrom = [newSource]
-         , pointTo = [newTarget]
-         , transition = transition' } |
-         (Connection { pointFrom
-                     , pointTo
-                     , transition = transition' }) <- cs
-         , (srcLabels, InnerMostState {label = newSource}) <- flat
-         , (tgtLabels, InnerMostState {label = newTarget}) <- flat
-         , oldSource <- srcLabels
-         , oldTarget <- tgtLabels
-         , pointTo `notElem` srcLabels
-         , pointFrom == oldSource
-         , pointTo == oldTarget
-         , pointFrom `notElem` tgtLabels]
-
 restoreConnections' :: [([[Int]], UMLStateDiagram)] -> [Connection] -> [Connection]
 restoreConnections' flat connections
-    = let
-
-      in
-      [ Connection
-         { pointFrom = [newSource]
-         , pointTo = [newTarget]
-         , transition = extractTransitionName groupedSame } |
-         (srcLabels, InnerMostState {label = newSource}) <- flat
-         , groupedSame <- groupSameConnections connections
+    = [ Connection
+        { pointFrom = [newSource]
+        , pointTo = [newTarget]
+        , transition = extractTransitionName transitionGroup }
+       | (srcLabels, InnerMostState {label = newSource}) <- flat
+         , transitionGroup <- groupSameConnections connections
          , (_,InnerMostState {label = newTarget}) <- [tgt | tgt@(tgtLabels,_) <- flat
-         ,  areEqual tgtLabels (preciseTarget (retainIntersecting srcLabels groupedSame)) ] ]
+         , sort tgtLabels == sort (replaceMatching srcLabels (asSourceToTarget transitionGroup))
+         , replaceMatching srcLabels (asSourceToTarget transitionGroup) /= srcLabels ] ]
 
-areEqual :: [[Int]] -> [[Int]] -> Bool
-areEqual xs ys = (xs `intersect` ys) == xs
+replaceMatching :: [[Int]] -> [([Int],[Int])] -> [[Int]]
+replaceMatching [] _ = []
+replaceMatching (x:xs) ys = if null possibleTarget then x : replaceMatching xs ys
+                            else possibleTarget ++ replaceMatching xs ys
+                            where
+                            possibleTarget = [y'|(y,y')<-ys, x == y]
 
 extractTransitionName :: [Connection] -> String
 extractTransitionName [] = "should never happen"
 extractTransitionName ((Connection {transition}):_) = transition
 
-retainIntersecting :: [[Int]] -> [Connection] -> [Connection]
-retainIntersecting y x = [c|c<-x,y'<-y,hasOrigin y' c]
-
-hasOrigin :: [Int] -> Connection -> Bool
-hasOrigin y x = case x of
-            (Connection{pointFrom}) -> pointFrom == y
-
-preciseTarget :: [Connection] -> [[Int]]
-preciseTarget [] = []
-preciseTarget ((Connection {pointTo}):xs) = pointTo:preciseTarget xs
+asSourceToTarget :: [Connection] -> [([Int],[Int])]
+asSourceToTarget [] = []
+asSourceToTarget ((Connection {pointTo,pointFrom}):xs) = (pointFrom,pointTo):asSourceToTarget xs
 
 groupSameConnections :: [Connection] -> [[Connection]]
 groupSameConnections = groupBy transitionName' . sortBy transitionName
