@@ -5,7 +5,7 @@ module Checkers.Joint ( checkJoint ) where
 
 import Datatype (
   Connection(..),
-  StateDiagram(..),
+  StateDiagram'(..),
   UMLStateDiagram,
   globalise,
   localise,

@@ -2,7 +2,7 @@ module Example where
 import Datatype (
   Connection(..),
   HistoryType(..),
-  StateDiagram(..),
+  StateDiagram'(..),
   UMLStateDiagram,
   )
 

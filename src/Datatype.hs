@@ -13,7 +13,8 @@ module Datatype
   , UMLStateDiagram
   , Layout(..)
   , RightConnect(..)
-  , StateDiagram(..)
+  , StateDiagram'(..)
+  , StateDiagram
   , globalise
   , localise
   , hoistOutwards
@@ -106,28 +107,30 @@ data HistoryType = Shallow | Deep
 
 type UMLStateDiagram = StateDiagram [Connection]
 
-data StateDiagram a = StateDiagram { substate :: [StateDiagram a],
-                                      label :: Int,
+data StateDiagram' l a = StateDiagram { substate :: [StateDiagram' l a],
+                                      label :: l,
                                       name :: String,
                                       connection :: a,
                                       startState :: [Int]
                                     }
-                     | CombineDiagram { substate :: [StateDiagram a],
-                                        label :: Int
+                     | CombineDiagram { substate :: [StateDiagram' l a],
+                                        label :: l
                                       }
                      | EndState {
-                         label :: Int
+                         label :: l
                          }
-                     | Joint { label :: Int
+                     | Joint { label :: l
                              }
-                     | History { label :: Int,
+                     | History { label :: l,
                                  historyType :: HistoryType
                                }
-                     | InnerMostState { label :: Int,
+                     | InnerMostState { label :: l,
                                         name :: String,
                                         operations :: String
                                       }
   deriving (Eq, Foldable, Functor, Read, Show, Traversable)
+
+type StateDiagram = StateDiagram' Int
 
 data Layout = Vertical | Horizontal | Unspecified
   deriving (Eq, Read, Show)

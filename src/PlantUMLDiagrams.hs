@@ -6,10 +6,10 @@
 module PlantUMLDiagrams (renderAll) where
 
 import Datatype (UMLStateDiagram
-                ,StateDiagram(..)
+                ,StateDiagram'(..)
                 ,Connection(..)
                 ,HistoryType(..)
-                ,globalise)
+                ,globalise, StateDiagram' (StateDiagram))
 
 import Data.String.Interpolate (i)
 import Data.List (intercalate)

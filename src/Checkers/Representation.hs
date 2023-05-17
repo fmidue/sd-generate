@@ -4,7 +4,7 @@ module Checkers.Representation ( checkRepresentation ) where
 
 import Datatype (
   Connection(..),
-  StateDiagram(..),
+  StateDiagram'(..),
   UMLStateDiagram,
   )
 

@@ -10,7 +10,8 @@ import qualified Data.Set               as S (unions, mapMonotonic, union, toAsc
 import Datatype (
   localise,
   UMLStateDiagram,
-  StateDiagram (..),
+  StateDiagram'(..),
+  StateDiagram,
   Connection (Connection),
   HistoryType (..),
   )

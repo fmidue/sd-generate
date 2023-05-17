@@ -19,7 +19,7 @@ module Checkers.Helpers (
 
 import Datatype (
   Connection(..),
-  StateDiagram(..),
+  StateDiagram'(..),
   UMLStateDiagram,
   globalise
   )

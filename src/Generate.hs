@@ -2,7 +2,7 @@ module Generate (randomSD) where
 import Datatype (
   Connection(..),
   HistoryType(..),
-  StateDiagram(..),
+  StateDiagram'(..),
   UMLStateDiagram,
   globalise
   )
