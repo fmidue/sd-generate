@@ -1,6 +1,7 @@
 module Generate (randomSD) where
 import Datatype (
-  Connection(..),
+  Connection'(..),
+  Connection,
   HistoryType(..),
   StateDiagram'(..),
   UMLStateDiagram,

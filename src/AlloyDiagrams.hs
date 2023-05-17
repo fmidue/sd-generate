@@ -5,7 +5,13 @@
 
 module AlloyDiagrams (render) where
 
-import Datatype (UMLStateDiagram, StateDiagram'(..), StateDiagram, Connection(..), HistoryType(..), globalise)
+import Datatype (UMLStateDiagram
+                ,StateDiagram'(..)
+                ,StateDiagram
+                ,Connection'(..)
+                ,Connection
+                ,HistoryType(..)
+                ,globalise)
 
 import Data.String.Interpolate (i)
 import Data.List (intercalate)

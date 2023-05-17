@@ -4,7 +4,8 @@
 module Checkers.Structure ( checkStructure ) where
 
 import Datatype (
-  Connection(..),
+  Connection'(..),
+  Connection,
   StateDiagram'(..),
   UMLStateDiagram,
   globalise,

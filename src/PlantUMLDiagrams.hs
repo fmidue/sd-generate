@@ -7,7 +7,8 @@ module PlantUMLDiagrams (renderAll) where
 
 import Datatype (UMLStateDiagram
                 ,StateDiagram'(..)
-                ,Connection(..)
+                ,Connection'(..)
+                ,Connection
                 ,HistoryType(..)
                 ,globalise, StateDiagram' (StateDiagram))
 

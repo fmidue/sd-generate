@@ -12,7 +12,7 @@ import Datatype (
   UMLStateDiagram,
   StateDiagram'(..),
   StateDiagram,
-  Connection (Connection),
+  Connection'(..),
   HistoryType (..),
   )
 

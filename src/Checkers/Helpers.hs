@@ -18,7 +18,8 @@ module Checkers.Helpers (
   ) where
 
 import Datatype (
-  Connection(..),
+  Connection'(..),
+  Connection,
   StateDiagram'(..),
   UMLStateDiagram,
   globalise

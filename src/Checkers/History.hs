@@ -4,7 +4,7 @@
 module Checkers.History ( checkHistory ) where
 
 import Datatype (
-  Connection(..),
+  Connection'(..),
   StateDiagram'(..),
   UMLStateDiagram,
   globalise,

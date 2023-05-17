@@ -7,7 +7,8 @@
 module Datatype
   ( Wrapper(..)
   , ConnectWithType(..)
-  , Connection(..)
+  , Connection'(..)
+  , Connection
   , ConnectionType(..)
   , HistoryType(..)
   , UMLStateDiagram
@@ -90,12 +91,14 @@ data ConnectWithType = ConnectWithType { connecting :: Connection,
                                        }
   deriving (Read, Show)
 
-data Connection =  Connection {
-  pointFrom :: [Int],
-  pointTo :: [Int],
+data Connection' a b =  Connection {
+  pointFrom :: a,
+  pointTo :: b,
   transition :: String
   }
   deriving (Eq, Ord, Read, Show)
+
+type Connection = Connection' [Int] [Int]
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |

@@ -1,8 +1,5 @@
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Move guards forward" #-}
-{-# OPTIONS_GHC -Wno-unused-matches #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module Flatten (
    flatten
@@ -17,7 +14,8 @@ import Datatype (UMLStateDiagram
                 ,StateDiagram'(..)
                 ,StateDiagram
                 ,globalise
-                ,Connection(..)
+                ,Connection'(..)
+                ,Connection
                 )
 import Data.List
 
