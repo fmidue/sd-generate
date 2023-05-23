@@ -560,6 +560,23 @@ testFlat1Combine = let
                    in
                      [[isA, isB, isC],[isD, isE]]
 
+flatCase1 :: UMLStateDiagram
+flatCase1 = let
+            isA = InnerMostState 1 "A" ""
+            isB = InnerMostState 2 "B" ""
+            isC = InnerMostState 3 "C" ""
+            isG = InnerMostState 1 "G" ""
+            isH = InnerMostState 2 "H" ""
+            sd1 = StateDiagram [isG,isH] 4 ""
+                  [ Connection [2] [1] "b" ]
+                  [2]
+            in
+              StateDiagram [isA,isB,isC,sd1] 0 ""
+                [ Connection [1] [4] "a"
+                , Connection [4,1] [2] "c"
+                , Connection [2] [3] "d"
+                , Connection [3] [4,1] "e" ]
+                [1]
 
 positiveExamples :: [(String, UMLStateDiagram)]
 positiveExamples =

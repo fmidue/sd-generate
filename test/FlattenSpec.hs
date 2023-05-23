@@ -4,9 +4,30 @@ module FlattenSpec (
 
 import Test.Hspec
 import Test.Hspec.QuickCheck
+import Example (flatCase1)
+import Flatten (flatten)
+
+import Datatype (UMLStateDiagram
+                ,StateDiagram'(..)
+                ,Connection'(..))
+flattedCase1 :: UMLStateDiagram
+flattedCase1
+  = let
+    isA = InnerMostState 1 "A, " ""
+    isB = InnerMostState 2 "B, " ""
+    isC = InnerMostState 3 "C, " ""
+    isG = InnerMostState 4 "G, " ""
+    isH = InnerMostState 5 "H, " ""
+    in
+    StateDiagram [isA,isB,isC,isG,isH] 0 ""
+      [ Connection [2] [3] "d"
+      , Connection [3] [4] "e"
+      , Connection [4] [2] "c"
+      , Connection [5] [4] "b"]
+      [1]
 
 spec :: Spec
 spec = do
   describe "flatten regions" $
-    prop "flatten statediagram with only innermost" $
-      True `shouldBe` True
+    prop "flatten flatCase1" $
+      (flatten flatCase1) `shouldBe` flattedCase1
