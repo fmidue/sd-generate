@@ -4,41 +4,29 @@
 {-# LANGUAGE LambdaCase #-}
 
 module Flatten (
-   flatten
-   ,mergeStates
-   ,truncateUpperLabels
-   ,redistributeLabels
-   ,groupSameConnections
-   ,getConnections
-   ,Flattable
-   ,FlatUMLStateDiagram
-   ,FlatConnection
-   ,inFlatForm
-   ,removeJointConnection
+   flatten,
 ) where
 import Datatype (UMLStateDiagram
                 ,StateDiagram'(..)
                 ,StateDiagram
                 ,globalise
+                --,localise
                 ,Connection'(..)
                 ,Connection
                 )
-import Data.List
+-- import Data.List(groupBy
+--                ,sortBy, sort)
+import Data.Bifunctor(bimap
+                     ,Bifunctor(second))
+
+class Flattable a b where
+  inFlatForm :: a -> b
+  inCompositeForm :: b -> a
 
 type FlatUMLStateDiagram = StateDiagram' [[Int]] [FlatConnection]
 
 type FlatConnection = Connection' [[Int]] [[Int]]
 
-{- preperation for type change that will require conversion -}
-class Flattable a b where
-  inFlatForm :: a -> b
-  inCompositeForm :: b -> a
-
-{- composite form is wip, skeletton impl.
-   it could use hashing for transforming labels back into renderable form
-   through some "isomorphic" projection if few collisions occur but a
-   clean redistribution is preferable
-   [[Int]] -> Int  -}
 instance Flattable UMLStateDiagram FlatUMLStateDiagram where
   inFlatForm :: UMLStateDiagram -> FlatUMLStateDiagram
   inFlatForm diagram
@@ -99,57 +87,111 @@ instance Flattable Connection FlatConnection where
                  , pointTo = [sum x|x<-pointTo]
                  , transition = transition}
 
-{- Stream a diagram like a list for filtering purpose.
-   No internal ordering present, treat as a set.       -}
-asList :: StateDiagram' l a -> [StateDiagram' l a]
-asList diagram = case diagram of
-        sd@(StateDiagram {substate})
-          -> sd:concatMap asList substate
-        i@(InnerMostState {})
-          -> [i]
-        c@(CombineDiagram {substate})
-          -> c:concatMap asList substate
-        f@(EndState {})
-          -> [f]
-        j@(Joint {})
-          -> [j]
-        h@(History {})
-          -> [h]
-
-{-
-incoming :: FlatUMLStateDiagram -> [[Int]] -> [Connection] -> [Connection]
-incoming diagram [label:_] pool
-  =
-    [c|c@(Connection {pointTo})<-(\case
-             StateDiagram {connection} -> connection
-             _ -> []) diagram
-      ,pointTo == label]
-incoming _ _ _ = []
--}
-
 flatten :: UMLStateDiagram -> UMLStateDiagram
-flatten d = let
-            g = globalise d
-            newDiag = redistributeLabels $
-                      mergeStates $
-                      truncateUpperLabels $
-                      flatten' g
-            newCons = restoreConnections' (redistributeLabels (mergeStates (truncateUpperLabels (flatten' g)))) (getConnections g)
-            newStates = map snd newDiag
-            in
-            StateDiagram { substate = newStates, connection = newCons, label = 0, startState = [1], name = ""}
+flatten
+  = \case
+       s@(StateDiagram {})
+         -> s { substate = map inCompositeForm (snd (stomp target)) }
+            where
+            joinFreeConnections
+              = (case globalise s of
+                   (StateDiagram {connection})
+                     -> removeJointConnection' connection s
+                   _ -> error "not defined")
+            s' = s {connection = joinFreeConnections}
+            target = [inFlatForm s'::FlatUMLStateDiagram]
+       _ -> error "ill formed diagram, StateDiagram constructor must be root"
 
-withOnlyInnerMost :: StateDiagram' l a -> Bool
-withOnlyInnerMost d = all (\case
-    (InnerMostState {}) -> True
-    _ -> False ) (asList d)
+stomp :: [FlatUMLStateDiagram] -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
+stomp [] = ([],[])
+stomp (s:ks)
+  = case s of
+      (StateDiagram { substate
+                    , name = outerName
+                    , label = outerLabel
+                    {-, startState -}})
+        -> second (map (\case
+                       ims@(InnerMostState{ name = innerName
+                                          , label = innerLabel })
+                         -> ims{ name = outerName ++ ", " ++ innerName
+                               , label = map (head outerLabel ++) innerLabel}
+                       _ -> error "stomp expects only InnerMostStates internally" ))
+           stomped {- TODO the transition updates recursively along the structure -}
+           where
+           stomped = flatten'' (s:ks) substate
+      _ -> error "only StateDiagram can be stomped"
 
-type Flattened = ([[Int]],[UMLStateDiagram])
 
-castToInner :: StateDiagram a1 -> StateDiagram a2
-castToInner (StateDiagram {label, name}) = InnerMostState label name ""
-castToInner (CombineDiagram {label}) = InnerMostState label "" ""
-castToInner _ = InnerMostState 999 "unknown" "cast"
+cross :: [FlatUMLStateDiagram] -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
+cross (s:ks)
+  = case s of
+      (CombineDiagram {substate})
+        -> crossed
+           where
+           multiStomped = flatten''' (s:ks) (map (: []) substate)
+           crossed = second crossProduct multiStomped {- do transition updates recursively along the structure here -}
+      _ -> error "only CombineDiagram can be crossed"
+cross [] = ([],[])
+
+flatten' :: [FlatUMLStateDiagram] -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
+flatten' [] = ([],[])
+flatten' (s:ks)
+  = case s of
+      (StateDiagram {})
+        -> stomp (s:ks)
+      (CombineDiagram {})
+        -> cross (s:ks)
+      ims@(InnerMostState {})
+        -> (ks,[ims])
+      (EndState {})
+        -> error "([],[]) and remove while rewire"
+      (Joint {})
+        -> ([],[])
+          -- TODO: purge Joint constructors from structure
+          -- error "any Joint connections need to be converted and removed before flattening"
+      (History {})
+        -> error "not supported"
+
+flatten'' :: [FlatUMLStateDiagram] -> [FlatUMLStateDiagram] -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
+flatten'' sk [] = (sk,[])
+flatten'' sk (sub:substate)
+  = let
+    cur = flatten' (sub:sk)
+    next = flatten'' (fst cur) substate
+    in
+    bimap ([] ++) (snd cur ++) next
+
+flatten''' :: [FlatUMLStateDiagram] -> [[FlatUMLStateDiagram]] -> ([FlatUMLStateDiagram],[[FlatUMLStateDiagram]])
+flatten''' sk [] = (sk,[])
+flatten''' sk (sbl:substateLists)
+  = let
+    cur = flatten'' sk sbl
+    next = flatten''' (fst cur) substateLists
+    in
+    bimap ([] ++) (snd cur :) next
+
+crossStates :: FlatUMLStateDiagram -> FlatUMLStateDiagram -> FlatUMLStateDiagram
+crossStates (InnerMostState { label = leftLabel
+                            , name = leftName
+                            , operations = leftOperations })
+            (InnerMostState { label = rightLabel
+                            , name = rightName
+                            , operations = rightOperations  })
+  = InnerMostState { label = leftLabel ++ rightLabel
+                   , name = leftName ++ ", " ++ rightName
+                   , operations = leftOperations ++ "\n" ++ rightOperations }
+crossStates _ _
+  = error "only states that decayed into an InnerMostState can be crossed"
+
+crossProduct' :: [FlatUMLStateDiagram] -> [FlatUMLStateDiagram] -> [FlatUMLStateDiagram]
+crossProduct' xs ys
+  = [ crossStates x y | x <- xs, y <-ys ]
+
+crossProduct :: [[FlatUMLStateDiagram]] -> [FlatUMLStateDiagram]
+crossProduct [] = []
+crossProduct [x] = x
+crossProduct (x:y:xs) = crossProduct (crossProduct' x y : xs)
+
 
 getLabel :: StateDiagram a -> Int
 getLabel = \case
@@ -160,13 +202,9 @@ getLabel = \case
               (History {label}) -> label
               (EndState {label}) -> label
 
-
 walkTo :: [Int] -> UMLStateDiagram -> UMLStateDiagram
 walkTo xs diagram = foldl (flip followLabel) diagram xs
 
-{- there must always be a head in the result list, as otherwise
-   the diagram would be malformed; or the element to get to
-   doesn't exist, though error msg could be desirable later on -}
 followLabel :: Int -> UMLStateDiagram -> UMLStateDiagram
 followLabel i j
   = head $ filter (\case y -> getLabel y == i) substates
@@ -176,121 +214,48 @@ followLabel i j
         (CombineDiagram {substate}) -> substate
         _ -> []) j
 
-removeJointConnection :: UMLStateDiagram -> [Connection]
-removeJointConnection d@(StateDiagram {connection})
-  = removeJointConnection' connection d
-removeJointConnection _ = error "undefined"
 
-{- always hand in globalised set of connections!    -}
+{-
+replaceMatching :: [[Int]] -> [([[Int]],[[Int]])] -> [[Int]]
+replaceMatching [] _ = []
+replaceMatching (x:xs) ys = if null possibleTarget then x : replaceMatching xs ys
+                            else possibleTarget ++ replaceMatching xs ys
+                            where
+                            possibleTarget = [t|(y,y')<-ys, s <- y, t <- y', sort x == sort s]
+
+asSourceToTarget :: [FlatConnection] -> [([[Int]],[[Int]])]
+asSourceToTarget [] = []
+asSourceToTarget ((Connection {pointTo,pointFrom}):xs) = (pointFrom,pointTo):asSourceToTarget xs
+
+groupSameConnections :: [FlatConnection] -> [[FlatConnection]]
+groupSameConnections = groupBy transitionName' . sortBy transitionName
+
+transitionName :: FlatConnection -> FlatConnection -> Ordering
+transitionName (Connection{transition}) (Connection{transition=transition'})
+    | transition >= transition' = GT
+    | otherwise = LT
+
+transitionName' :: FlatConnection -> FlatConnection -> Bool
+transitionName' (Connection{transition}) (Connection{transition=transition'})
+    = transition == transition'
+-}
+
 removeJointConnection' :: [Connection] -> UMLStateDiagram -> [Connection]
-removeJointConnection' con diag
-  = [c|c@(Connection{}) <- con
-    , null $ conToJoint [c] diag
-    , null $ conFromJoint [c] diag ]
+removeJointConnection' connection diagram
+  = [c|c@(Connection{}) <- connection
+     , null $ conToJoint [c] diagram
+     , null $ conFromJoint [c] diagram ] -- hlinter breaks after this line for some reason
 
 conToJoint :: [Connection] -> UMLStateDiagram -> [Connection]
 conToJoint con diag = [c|c@Connection{pointTo}<-con
             , (\case
                   (Joint {}) -> True
-                  _ -> False) (walkTo pointTo diag) ]
+                  _ -> False)
+             (walkTo pointTo diag) ]
 
 conFromJoint :: [Connection] -> UMLStateDiagram -> [Connection]
 conFromJoint con diag = [c|c@Connection{pointFrom}<-con
             , (\case
                   (Joint {}) -> True
-                  _ -> False) (walkTo pointFrom diag) ]
-
-mergeStates :: [([[Int]], [UMLStateDiagram])] -> [([[Int]], UMLStateDiagram)]
-mergeStates flattened = [(xs, mergeStates' ys)|(xs,ys)<-flattened]
-
-mergeStates' :: [UMLStateDiagram] -> UMLStateDiagram -- op order is important! type change
-mergeStates' innerStates = InnerMostState 0 (concat [name ++ ", "| InnerMostState{name}<-innerStates,name /= ""]) ""
-
-truncateUpperLabels :: [Flattened] -> [Flattened]
-truncateUpperLabels flattened = [([tail x|x<-xs],ys)|(xs,ys)<-flattened]
-
-redistributeLabels :: [([[Int]], UMLStateDiagram)] -> [([[Int]], UMLStateDiagram)]
-redistributeLabels xs = redistributeLabels' xs 1
-
-redistributeLabels' :: [([[Int]], UMLStateDiagram)] -> Int -> [([[Int]], UMLStateDiagram)]
-redistributeLabels' ((x,y):xs) i = (x,(y {label = i})) : redistributeLabels' xs (i + 1)
-redistributeLabels' _ _ = []
-
-{- the current approach of flattening the states in one pass and then
-   re-assigning the connections to them could lead to trouble when
-   re-entering states through incoming transitions in parallel regions
-   that have initial entry points.
-   an evaluation of stepwise "total" recursive transformation from the bottom
-   of the diagram to its root is in progress, as lifting connections sequentially might
-   require less housekeeping -}
-flatten' :: UMLStateDiagram -> [Flattened]
-flatten' parent@(StateDiagram {substate})
-    | withOnlyInnerMost parent = inheritFrom substate parent
-    | otherwise = inheritFrom' (concatMap flatten' substate) parent
-flatten' parent@(CombineDiagram{substate})
-    = inheritFrom' (cartesianProduct $ map flatten' substate) parent
-flatten' innerMost@(InnerMostState {label}) = [([[label]],[innerMost])]
-flatten' _ = []
-
-inheritFrom :: [UMLStateDiagram] -> UMLStateDiagram -> [Flattened]
-inheritFrom substates outer
-    = [([[getLabel outer, label]], [castToInner outer, inner])|inner@InnerMostState{label}<-substates]
-
-inheritFrom' :: [Flattened] -> UMLStateDiagram -> [Flattened]
-inheritFrom' substates outer
-    = [(map (getLabel outer:) labels, castToInner outer:innerStates)|(labels,innerStates)<-substates]
-
-cartesianProduct' :: [Flattened] -> [Flattened] -> [Flattened]
-cartesianProduct' [] _ = []
-cartesianProduct' _ [] = []
-cartesianProduct' ((label,states):xs) ys
-    = [ (label ++ label',states ++ states') | (label',states') <-ys ] ++ cartesianProduct' xs ys
-
-cartesianProduct :: [[Flattened]] -> [Flattened]
-cartesianProduct [] = []
-cartesianProduct [x] = x
-cartesianProduct (x:y:xs) = cartesianProduct (cartesianProduct' x y : xs)
-
-getConnections :: UMLStateDiagram -> [Connection]
-getConnections (StateDiagram {connection}) = connection
-getConnections _ = []
-
-restoreConnections' :: [([[Int]], UMLStateDiagram)] -> [Connection] -> [Connection]
-restoreConnections' flat connections
-    = [ Connection
-        { pointFrom = [newSource]
-        , pointTo = [newTarget]
-        , transition = extractTransitionName transitionGroup }
-       | (srcLabels, InnerMostState {label = newSource}) <- flat
-         , transitionGroup <- groupSameConnections connections
-         , (_,InnerMostState {label = newTarget}) <- [tgt | tgt@(tgtLabels,_) <- flat
-         , sort tgtLabels == sort (replaceMatching srcLabels (asSourceToTarget transitionGroup))
-         , replaceMatching srcLabels (asSourceToTarget transitionGroup) /= srcLabels ] ]
-
-replaceMatching :: [[Int]] -> [([Int],[Int])] -> [[Int]]
-replaceMatching [] _ = []
-replaceMatching (x:xs) ys = if null possibleTarget then x : replaceMatching xs ys
-                            else possibleTarget ++ replaceMatching xs ys
-                            where
-                            possibleTarget = [y'|(y,y')<-ys, x == y]
-
-extractTransitionName :: [Connection] -> String
-extractTransitionName [] = "should never happen"
-extractTransitionName ((Connection {transition}):_) = transition
-
-asSourceToTarget :: [Connection] -> [([Int],[Int])]
-asSourceToTarget [] = []
-asSourceToTarget ((Connection {pointTo,pointFrom}):xs) = (pointFrom,pointTo):asSourceToTarget xs
-
-groupSameConnections :: [Connection] -> [[Connection]]
-groupSameConnections = groupBy transitionName' . sortBy transitionName
-
-transitionName :: Connection -> Connection -> Ordering
-transitionName (Connection{transition}) (Connection{transition=transition'})
-    | transition >= transition' = GT
-    | otherwise = LT
-
-transitionName' :: Connection -> Connection -> Bool
-transitionName' (Connection{transition}) (Connection{transition=transition'})
-    = transition == transition'
-
+                  _ -> False)
+              (walkTo pointFrom diag) ]
