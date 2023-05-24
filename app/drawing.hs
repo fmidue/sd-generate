@@ -1,15 +1,14 @@
 import Diagrams.Backend.SVG.CmdLine
 import Layout (drawDiagram)
-import Example (testFlat1Input)
-import Datatype (globalise )
-import Flatten (flatten
-   ,removeJointConnection
-               )
+import Example (flatCase1,
+                testFlat1Input)
+import Flatten (flatten)
 
 main :: IO ()
 main = do
-  print "remove joint"
-  print (show (removeJointConnection (globalise testFlat1Input)))
-  print "flatten test"
-  let sd = {- testFlat1Input -} flatten testFlat1Input
+  print "base format"
+  print (show flatCase1)
+  print "flatten format"
+  print (show (flatten testFlat1Input))
+  let sd = {- testFlat1Input -} flatten flatCase1
   mainWith (drawDiagram sd)
