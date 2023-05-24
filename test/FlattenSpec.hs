@@ -6,10 +6,11 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 -- import Example (flatCase1)
 -- import Flatten (flatten)
-
+{-
 import Datatype (UMLStateDiagram
                 ,StateDiagram'(..)
                 ,Connection'(..))
+
 flattedCase1 :: UMLStateDiagram
 flattedCase1
   = let
@@ -26,6 +27,7 @@ flattedCase1
       , Connection [5] [4] "b"
       , Connection [1] [5] "a"]
       [1]
+-}
 
 spec :: Spec
 spec = do

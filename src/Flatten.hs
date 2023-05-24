@@ -2,6 +2,9 @@
 {-# LANGUAGE InstanceSigs              #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE LambdaCase #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module Flatten (
    flatten,
@@ -14,8 +17,9 @@ import Datatype (UMLStateDiagram
                 ,Connection'(..)
                 ,Connection
                 )
--- import Data.List(groupBy
---                ,sortBy, sort)
+import Data.List(groupBy
+                ,sortBy
+                , sort)
 import Data.Bifunctor(bimap
                      ,Bifunctor(second))
 
@@ -91,7 +95,7 @@ flatten :: UMLStateDiagram -> UMLStateDiagram
 flatten
   = \case
        s@(StateDiagram {})
-         -> s { substate = map inCompositeForm (snd (stomp target)) }
+         -> head (map inCompositeForm (snd (stomp target)))
             where
             joinFreeConnections
               = (case globalise s of
@@ -104,34 +108,87 @@ flatten
 
 stomp :: [FlatUMLStateDiagram] -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
 stomp [] = ([],[])
+stomp [s]
+  = case s of
+      StateDiagram {substate}
+        -> if not $ foldr ((&&) . (\case
+                   (InnerMostState {}) -> True
+                   _ -> False)) True substate
+           then
+             case s of
+               (StateDiagram { substate = substate'
+                    , name = outerName
+                    , label = outerLabel })
+                -> ([] , [s { substate = snd inheritedParent }])
+                   where
+                   stomped = flatten'' [s] substate'
+                   inheritedParent
+                     = second (map
+                       (\case
+                           ims@(InnerMostState{ name = innerName
+                                              , label = innerLabel })
+                             -> ims{ name = outerName ++ ", " ++ innerName
+                                   , label = map (head outerLabel ++) innerLabel}
+                           _ -> error "stomp expects only InnerMostStates internally" ))
+                       stomped
+           else
+           ([s],[s])
+      _ -> error "nod defined"
+
 stomp (s:ks)
   = case s of
       (StateDiagram { substate
                     , name = outerName
                     , label = outerLabel
-                    {-, startState -}})
-        -> second (map (\case
-                       ims@(InnerMostState{ name = innerName
-                                          , label = innerLabel })
-                         -> ims{ name = outerName ++ ", " ++ innerName
-                               , label = map (head outerLabel ++) innerLabel}
-                       _ -> error "stomp expects only InnerMostStates internally" ))
-           stomped {- TODO the transition updates recursively along the structure -}
+                    , connection
+                    , startState })
+        -> case inheritedParent of
+             (_,z) -> (updatedStack,z)
            where
            stomped = flatten'' (s:ks) substate
+           inheritedParent
+             = second (map
+                 (\case
+                     ims@(InnerMostState{ name = innerName
+                                        , label = innerLabel })
+                       -> ims{ name = outerName ++ ", " ++ innerName
+                             , label = map (head outerLabel ++) innerLabel}
+                     _ -> error "stomp expects only InnerMostStates internally" ))
+               stomped
+           liftedConnections
+             = map (\case
+                       c@Connection {pointFrom,pointTo}
+                         -> c { pointFrom = map (head outerLabel ++) pointFrom
+                              , pointTo = map (head outerLabel ++) pointTo }) connection
+           updatedStack = pushToNextStateDiagram ks liftedConnections
       _ -> error "only StateDiagram can be stomped"
+
+pushToNextStateDiagram :: [FlatUMLStateDiagram] -> [FlatConnection] -> [FlatUMLStateDiagram]
+pushToNextStateDiagram (s@(StateDiagram{connection}):xs) con
+  = s {connection = connection ++ con} : pushToNextStateDiagram xs []
+pushToNextStateDiagram (i:xs) con
+  = i : pushToNextStateDiagram xs con
+pushToNextStateDiagram [] _ = []
+
+-- rewireStompedTransitions :: ([UMLStateDiagram],[UMLStateDiagram]) -> ([UMLStateDiagram],[UMLStateDiagram])
+-- rewireStompedTransitions
 
 
 cross :: [FlatUMLStateDiagram] -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
 cross (s:ks)
   = case s of
       (CombineDiagram {substate})
-        -> crossed
+        -> crossedInnerTransitions
            where
            multiStomped = flatten''' (s:ks) (map (: []) substate)
            crossed = second crossProduct multiStomped {- do transition updates recursively along the structure here -}
+           crossedInnerTransitions = crossInnerTransitions crossed
       _ -> error "only CombineDiagram can be crossed"
 cross [] = ([],[])
+
+crossInnerTransitions :: ([FlatUMLStateDiagram],[FlatUMLStateDiagram]) -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
+crossInnerTransitions (sk,states)
+  = (sk,states)
 
 flatten' :: [FlatUMLStateDiagram] -> ([FlatUMLStateDiagram],[FlatUMLStateDiagram])
 flatten' [] = ([],[])
@@ -192,7 +249,6 @@ crossProduct [] = []
 crossProduct [x] = x
 crossProduct (x:y:xs) = crossProduct (crossProduct' x y : xs)
 
-
 getLabel :: StateDiagram a -> Int
 getLabel = \case
               (StateDiagram {label}) -> label
@@ -215,13 +271,15 @@ followLabel i j
         _ -> []) j
 
 
-{-
 replaceMatching :: [[Int]] -> [([[Int]],[[Int]])] -> [[Int]]
 replaceMatching [] _ = []
-replaceMatching (x:xs) ys = if null possibleTarget then x : replaceMatching xs ys
-                            else possibleTarget ++ replaceMatching xs ys
-                            where
-                            possibleTarget = [t|(y,y')<-ys, s <- y, t <- y', sort x == sort s]
+replaceMatching (x:xs) ys
+  = if null possibleTarget then x : replaceMatching xs ys
+    else possibleTarget ++ replaceMatching xs ys
+    where
+    possibleTarget = [t | (y, y') <- ys, s <- y, sort x == sort s, t <- y']
+
+{-
 
 asSourceToTarget :: [FlatConnection] -> [([[Int]],[[Int]])]
 asSourceToTarget [] = []
