@@ -515,8 +515,8 @@ testFlatConReg2 = let
                   in
                   cd1r2
 
-testFlat1Input :: UMLStateDiagram
-testFlat1Input = let
+flatCase2 :: UMLStateDiagram
+flatCase2 = let
                  isH = InnerMostState 2 "H" ""
                  isG = InnerMostState 1 "G" ""
                  isA = InnerMostState 1 "A" ""
@@ -548,7 +548,7 @@ testFlat1Input = let
                      , Connection [1,1,3] [5] ""
                      , Connection [1,2,2] [5] ""
                      , Connection [5] [2] "c" ]
-                     [1, 1, 1]
+                     [1, 1, 2]
 
 testFlat1Combine :: [[UMLStateDiagram]]
 testFlat1Combine = let
@@ -567,7 +567,7 @@ flatCase1 = let
             isC = InnerMostState 3 "C" ""
             isG = InnerMostState 1 "G" ""
             isH = InnerMostState 2 "H" ""
-            sd1 = StateDiagram [isG,isH] 4 ""
+            sd1 = StateDiagram [isG,isH] 4 "P"
                   [ Connection [2] [1] "b" ]
                   [2]
             in
