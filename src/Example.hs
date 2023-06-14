@@ -543,8 +543,8 @@ flatCase2 = let
                    StateDiagram [cd1, isF, sd2, jn1] 22 ""
                      [ Connection [2] [4] "c"
                      , Connection [2] [4,2] "d"
-                     , Connection [4, 2] [1, 2, 2] "z"
-                     , Connection [4, 1] [1] "z"
+                     , Connection [4, 2] [1, 2, 2] "a"
+                     , Connection [4, 1] [1] "a"
                      , Connection [1,1,3] [5] ""
                      , Connection [1,2,2] [5] ""
                      , Connection [5] [2] "c" ]

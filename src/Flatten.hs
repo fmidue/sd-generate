@@ -201,20 +201,6 @@ hasFlatSDs
                     _ -> False)) True substate)
       _ -> error "only applicable to CombineDiagram"
 
-komp :: [Relabeled] -> State a ()
-komp x = do node <- get
-            return ()
-
-{- Eingabeparameter von links! Rückgabe muss gewrappt sein -}
-flomp :: Int -> State a [Relabeled]
-flomp x = do node <- get
-             return []
-
-tromp :: State a ()
-tromp = do
-        node <- get
-        return ()
-
 getFreeLabelsIn :: FlatDiagram -> Int -> State a [Int]
 getFreeLabelsIn x y = return (obtainFreeLabels x y)
 
@@ -306,7 +292,8 @@ labelPrefix
   = foldr (\case
              (StateDiagram {label}) -> (label:)
              (CombineDiagram {label}) -> (label:)
-             _ -> error "unsupported container type") []
+             _ -> error "unsupported container type")
+    []
 
 replaceMatching :: [[Int]] -> [([[Int]],[Int])] -> [[Int]]
 replaceMatching [] _ = []
@@ -406,7 +393,6 @@ replaceMulti (x:xs) w@(CombineDiagram{label=wLabel}) ys rs is
     withoutX = map (Data.Bifunctor.first (filter (/= x)) ) possibleTargets'
 
     finalTarget = filter (\(k,l) -> all (\k' -> isSDInitial k' (labelPrefix ys ++ [wLabel]) is) k) withoutX
-    -- finalTarget' = filter (\(k,l) -> ( ))
 
 globalUpdateFromCD :: FlatDiagram -> [FlatDiagram] -> [FlatDiagram] -> [[Int]] -> [Relabeled] -> State [FlatDiagram] ()
 globalUpdateFromCD w@(CombineDiagram{label=cLabel}) [] ys is rs
@@ -416,8 +402,6 @@ globalUpdateFromCD w@(CombineDiagram{label=cLabel}) [] ys is rs
 globalUpdateFromCD w@(CombineDiagram{label=wLabel}) (x@(StateDiagram{label=pLabel,startState=pStart,connection=pCons}):xs) ys is rs
   = globalUpdateFromCD w xs (x{connection=updCons,startState= head (replaceMulti [pStart] w ys rs is)}:ys) is rs
     where
-    -- idHit = map (\(k,l) -> ( map (wLabel:) k , l) ) (oldLabelsToNewLabels vs)
-    -- withoutHit = head $ filter (\(k,l) ->  `elem` k) idHit
     updCons
       = [ c { pointFrom = replaceMulti oldFrom w ys rs is
             , pointTo = replaceMulti oldTo  w ys rs is
@@ -482,9 +466,12 @@ stomp
            {- InnerMost is good already -}
            put (p{substate=psubs++[i]}:xs)
            stomp
-      ((Joint{label=cLabel}):xs) -> do {- convert to a multidim connector -}
-                        put (InnerMostState{label=cLabel,name="ich bin ein Vielfachverbinder, bitte enferne mich",operations=""}:xs)
-                        stomp
+      ((Joint{label=cLabel}):xs)
+        -> do
+           -- error "lets crash"
+           convertConnection
+           removeNode
+           stomp
       _ -> error "unknown constructor traversed"
     return () -- we just change the state, which is our pre-order traversal stack
 
@@ -508,10 +495,22 @@ getCDConnections
                                                 -> (i{ pointFrom = map (pLabel :) (oldFrom::[[Int]])
                                                      , pointTo = map (pLabel :) (oldTo::[[Int]]) })
                                            ) connection )
-                                   ) -- kein Plan warum ghci hier den Typ falsch erkannt hat
+                                   )
                    substate::[FlatCon])
               _ -> error ""
             )
+
+removeNode :: State [FlatDiagram] ()
+removeNode
+  = do
+    trav <- get
+    case trav of
+      (x:xs)
+        -> do
+           put (xs)
+           return ()
+      _ -> error "you likely dont want to do this and want to keep the head"
+    return ()
 
 extractTransitionName :: [FlatCon] -> String
 extractTransitionName [] = "should never happen"
@@ -555,3 +554,124 @@ restoreConnections flat connections
 
 flatten :: UMLStateDiagram -> UMLStateDiagram
 flatten x =  inCompositeForm (head (execState stomp' [inFlatForm x]))::UMLStateDiagram
+
+buildCon :: ([FlatCon],[FlatCon]) -> FlatCon
+buildCon
+  = (\(x,y@(Connection{ transition = t }):ys)
+       -> let
+          source
+            = foldr (\case
+                       (Connection {pointFrom})
+                         -> (pointFrom ++)
+                    )
+              [] x
+          target
+            = foldr (\case
+                       (Connection {pointTo})
+                         -> (pointTo ++)
+                    )
+              [] (y:ys)
+          in
+          (Connection { pointFrom = source
+                      , pointTo = target
+                      , transition = t })
+    )
+
+
+convertConnection :: State [FlatDiagram] ()
+convertConnection
+  = do
+    trav <- get
+    case trav of
+      (j@(Joint{label}):xs)
+        -> do
+           rs <- extractTargeting j xs [] ([],[])
+           case rs of
+             ([],[])
+               -> do
+                  return ()
+             _ -> do
+                  trav' <- get
+                  case (reverse trav') of
+                    (x@(StateDiagram{connection = pCons}):xs')
+                      -> do
+                         put (j:(reverse ((x{connection = (buildCon rs) : pCons}) : xs')))
+                         return ()
+                    _ -> error "SD must be diagram root"
+      _ -> error "invalid input"
+    return ()
+
+extractTargeting :: FlatDiagram -> [FlatDiagram] -> [FlatDiagram] -> ([FlatCon],[FlatCon]) -> State [FlatDiagram] ([FlatCon],[FlatCon])
+extractTargeting w@(Joint{label}) [] ys zs
+  = do
+    put (w : (reverse ys))
+    return zs
+extractTargeting w@(Joint{label=jLabel}) (x@(StateDiagram{label=pLabel}):xs) ys zs
+  = do
+    extractTargeting w xs ((stripOut $ stripInc x):ys) ((\(k,l) -> ( (collectInc x) ++ k, (collectOut x) ++ l ) ) (pullUp zs))
+  where
+  jointLabel = (jLabel : (labelPrefix ys))
+  stripInc {- vielleicht als Applikativ umsetzen -}
+    = (\case
+         n@(StateDiagram{connection = pCons})
+           -> n{connection
+                 = filter (\case
+                             Connection{ pointTo }
+                               -> (not (((labelPrefix ys) ++ jointLabel) `elem` pointTo)) )
+                   pCons}
+         _ -> error "node must contain connections"
+      )
+  stripOut
+    = (\case
+         n@(StateDiagram{connection = pCons})
+           -> n{connection
+                 = filter (\case
+                             Connection{pointFrom}
+                               -> (not (((labelPrefix ys) ++ jointLabel) `elem` pointFrom)) )
+                   pCons}
+         _ -> error "node must contain connections"
+      )
+  (collectInc::(FlatDiagram->[FlatCon]))
+    = (\case
+         n@(StateDiagram{connection})
+           -> (filter (\case
+                         Connection{pointTo}
+                           -> (((labelPrefix ys) ++ jointLabel) `elem` pointTo)
+                      )
+              connection)
+         _ -> error "node must contain connections"
+      )
+  (collectOut::(FlatDiagram->[FlatCon]))
+    = (\case
+         n@(StateDiagram{connection})
+           -> (filter (\case
+                         (Connection{pointFrom})
+                           -> (((labelPrefix ys) ++ jointLabel) `elem` pointFrom)
+                      )
+              connection)
+         _ -> error "node must contain connections"
+      )
+  (addLabel::(FlatCon->FlatCon))
+    = \case
+        c@(Connection{ pointFrom = pF
+                     , pointTo = pT } )
+          -> (c { pointFrom = (map (pLabel :) pF)
+                , pointTo = (map (pLabel :) pT) } )
+  (pullUp::(([FlatCon],[FlatCon])->([FlatCon],[FlatCon])))
+    = (\(k,l)
+          -> (map addLabel k, map addLabel l)
+      )
+extractTargeting w@(Joint{label}) (x@(CombineDiagram{label=pLabel}):xs) ys zs
+  = do
+    extractTargeting w xs (x:ys) (pullUp zs)
+    where
+    (addLabel::(FlatCon->FlatCon))
+      = \case
+          c@(Connection{ pointFrom = pF
+                       , pointTo = pT } )
+            -> (c { pointFrom = (map (pLabel :) pF)
+                  , pointTo = (map (pLabel :) pT) } )
+    (pullUp::(([FlatCon],[FlatCon])->([FlatCon],[FlatCon])))
+      = (\(k,l)
+            -> (map addLabel k, map addLabel l)
+        )
