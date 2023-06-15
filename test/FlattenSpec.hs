@@ -63,5 +63,3 @@ spec = do
   describe "flatten regions" $
     prop "flatten flatCase1" $
       flatten flatCase1 == flatCase1Res
-      -- (flatten flatCase2) `shouldBe` flattedCase2 (TODO: fix multidim rewire of converted joints)
-      -- in this case C, E must go to F and not C, D to F like observable right now
