@@ -1,5 +1,4 @@
 {-# LANGUAGE NamedFieldPuns            #-}
-{-# LANGUAGE InstanceSigs              #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
@@ -9,7 +8,7 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Flatten (
- flatten
+  flatten
 ) where
 import Datatype (UMLStateDiagram
                 ,StateDiagram'(..)
@@ -20,39 +19,71 @@ import Datatype (UMLStateDiagram
                 )
 import Data.List(groupBy
                 ,sortBy
-                , sort)
+                ,sort)
 import Data.Bifunctor(bimap
                      ,Bifunctor(second, first))
 
 flatten :: UMLStateDiagram -> UMLStateDiagram
-flatten = globalise
+flatten d
+  = fromFlat $ lift diagram
+    where
+    diagram = toFlat $ globalise d
+
+lift :: FlatDiagram -> FlatDiagram
+lift x@(StateDiagram{substate,connection})
+  = case target x of
+     Just StateDiagram { label
+                       , startState
+                       , substate = inner }
+       -> let
+          address = label
+          initial = map (\(Left y) -> Right y) startState
+          in
+          x { substate
+                = inner ++
+                  filter (\case
+                            InnerMostState {}
+                              -> True
+                            _ -> False
+                         ) substate
+            , connection = rewire connection address initial }
+     Nothing
+       -> error "scenario1 expects at least one hierarchical state"
+
+{- we could use a Maybe to handle the possiblity of a reduced scenario1
+   i.e. no hierarchical states at all to avoid failing there            -}
+target :: FlatDiagram -> Maybe FlatDiagram
+target
+  = \case
+      (StateDiagram {substate})
+        -> let
+           sd = filter (\case
+                   StateDiagram {}
+                     -> True
+                   _ -> False ) substate
+           in
+           if not (null sd)
+           then Just (head sd)
+           else Nothing
+
+rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatConnection]
+rewire r _ _
+  = r
 
 type FlatConnection = Connection' [Either Int Int] [Either Int Int]
 
 type FlatDiagram = StateDiagram' (Either Int Int) [FlatConnection]
 
-target :: [FlatDiagram] -> Maybe FlatDiagram
-target substate
-  = if not (null sd)
-    then Just (head sd)
-    else Nothing
-    where
-    sd = filter (\case
-                   StateDiagram {}
-                     -> True
-                   _ -> False ) substate
+toFlat :: UMLStateDiagram -> FlatDiagram
+toFlat x
+  = head $ diagramToFlat [x]
 
-convertToFlat :: UMLStateDiagram -> FlatDiagram
-convertToFlat x
-  = head $ convertDiagramToFlat [x]
+fromFlat :: FlatDiagram -> UMLStateDiagram
+fromFlat x
+  = head $ diagramFromFlat [x]
 
-{- all Either values have to be Right, otherwise the conversion will fail -}
-convertFromFlat :: FlatDiagram -> UMLStateDiagram
-convertFromFlat x
-  = head $ convertDiagramFromFlat [x]
-
-convertDiagramToFlat :: [UMLStateDiagram] -> [FlatDiagram]
-convertDiagramToFlat
+diagramToFlat :: [UMLStateDiagram] -> [FlatDiagram]
+diagramToFlat
   = map (\case
             (InnerMostState{ label
                            , name
@@ -67,15 +98,15 @@ convertDiagramToFlat
                          , connection
                          , startState })
               -> (StateDiagram { label = Left label
-                               , substate = convertDiagramToFlat substate
+                               , substate = diagramToFlat substate
                                , name = name
-                               , connection = convertConnectionToFlat connection
+                               , connection = connectionToFlat connection
                                , startState = map Left startState })
             _ -> error "not supported"
          )
 
-convertConnectionToFlat :: [Connection] -> [FlatConnection]
-convertConnectionToFlat
+connectionToFlat :: [Connection] -> [FlatConnection]
+connectionToFlat
   = map (\case
             (Connection{ pointFrom
                        , pointTo
@@ -84,8 +115,8 @@ convertConnectionToFlat
                             , pointTo = map Left pointTo
                             , transition = transition })
 
-convertDiagramFromFlat :: [FlatDiagram] -> [UMLStateDiagram]
-convertDiagramFromFlat
+diagramFromFlat :: [FlatDiagram] -> [UMLStateDiagram]
+diagramFromFlat
   = map (\case
             (StateDiagram { label = Right newLabel
                           , substate
@@ -93,9 +124,9 @@ convertDiagramFromFlat
                           , connection
                           , startState })
               -> (StateDiagram { label = newLabel
-                               , substate = convertDiagramFromFlat substate
+                               , substate = diagramFromFlat substate
                                , name = name
-                               , connection = convertConnectionFromFlat connection
+                               , connection = connectionFromFlat connection
                                , startState = foldr (\case Left x -> (x:) ) [] startState
                                })
             (InnerMostState { label = Right newLabel
@@ -107,8 +138,8 @@ convertDiagramFromFlat
             _ -> error "not supported"
          )
 
-convertConnectionFromFlat :: [FlatConnection] -> [Connection]
-convertConnectionFromFlat
+connectionFromFlat :: [FlatConnection] -> [Connection]
+connectionFromFlat
   = map (\case
             (Connection { pointFrom
                         , pointTo
