@@ -27,7 +27,7 @@ import Data.Bifunctor(bimap
 flatten :: UMLStateDiagram -> UMLStateDiagram
 flatten = globalise
 
-type FlatConnection = Connection' (Either [Int] [Int]) (Either [Int] [Int])
+type FlatConnection = Connection' [Either Int Int] [Either Int Int]
 
 type FlatDiagram = StateDiagram' (Either Int Int) [FlatConnection]
 
