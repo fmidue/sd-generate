@@ -110,13 +110,13 @@ data HistoryType = Shallow | Deep
 
 type UMLStateDiagram = StateDiagram [Connection]
 
-data StateDiagram' l a = StateDiagram { substate :: [StateDiagram' l a],
-                                      label :: l,
-                                      name :: String,
-                                      connection :: a,
-                                      startState :: [Int]
-                                    }
-                     | CombineDiagram { substate :: [StateDiagram' l a],
+data StateDiagram' l s a = StateDiagram { substate :: [StateDiagram' l s a],
+                                          label :: l,
+                                          name :: String,
+                                          connection :: a,
+                                          startState :: s
+                                        }
+                     | CombineDiagram { substate :: [StateDiagram' l s a],
                                         label :: l
                                       }
                      | EndState {
@@ -133,7 +133,7 @@ data StateDiagram' l a = StateDiagram { substate :: [StateDiagram' l a],
                                       }
   deriving (Eq, Foldable, Functor, Read, Show, Traversable)
 
-type StateDiagram = StateDiagram' Int
+type StateDiagram = StateDiagram' Int [Int]
 
 data Layout = Vertical | Horizontal | Unspecified
   deriving (Eq, Read, Show)
