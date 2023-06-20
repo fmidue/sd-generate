@@ -41,3 +41,81 @@ target substate
                    StateDiagram {}
                      -> True
                    _ -> False ) substate
+
+convertToFlat :: UMLStateDiagram -> FlatDiagram
+convertToFlat x
+  = head $ convertDiagramToFlat [x]
+
+{- all Either values have to be Right, otherwise the conversion will fail -}
+convertFromFlat :: FlatDiagram -> UMLStateDiagram
+convertFromFlat x
+  = head $ convertDiagramFromFlat [x]
+
+convertDiagramToFlat :: [UMLStateDiagram] -> [FlatDiagram]
+convertDiagramToFlat
+  = map (\case
+            (InnerMostState{ label
+                           , name
+                           , operations })
+              -> (InnerMostState { label = Left label
+                                 , name = name
+                                 , operations = operations
+                                 })
+            (StateDiagram{ label
+                         , substate
+                         , name
+                         , connection
+                         , startState })
+              -> (StateDiagram { label = Left label
+                               , substate = convertDiagramToFlat substate
+                               , name = name
+                               , connection = convertConnectionToFlat connection
+                               , startState = map Left startState })
+            _ -> error "not supported"
+         )
+
+convertConnectionToFlat :: [Connection] -> [FlatConnection]
+convertConnectionToFlat
+  = map (\case
+            (Connection{ pointFrom
+                       , pointTo
+                       , transition })
+              -> Connection { pointFrom = map Left pointFrom
+                            , pointTo = map Left pointTo
+                            , transition = transition })
+
+convertDiagramFromFlat :: [FlatDiagram] -> [UMLStateDiagram]
+convertDiagramFromFlat
+  = map (\case
+            (StateDiagram { label = Right newLabel
+                          , substate
+                          , name
+                          , connection
+                          , startState })
+              -> (StateDiagram { label = newLabel
+                               , substate = convertDiagramFromFlat substate
+                               , name = name
+                               , connection = convertConnectionFromFlat connection
+                               , startState = foldr (\case Left x -> (x:) ) [] startState
+                               })
+            (InnerMostState { label = Right newLabel
+                            , name
+                            , operations })
+              -> (InnerMostState { label = newLabel
+                                 , name = name
+                                 , operations = operations })
+            _ -> error "not supported"
+         )
+
+convertConnectionFromFlat :: [FlatConnection] -> [Connection]
+convertConnectionFromFlat
+  = map (\case
+            (Connection { pointFrom
+                        , pointTo
+                        , transition
+                        })
+              -> (Connection { pointFrom = foldr (\case Left x -> (x:)) [] pointFrom
+                             , pointTo = foldr (\case Left x -> (x:)) [] pointTo
+                             , transition = transition
+                             })
+         )
