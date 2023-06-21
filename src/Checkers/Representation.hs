@@ -3,8 +3,8 @@
 module Checkers.Representation ( checkRepresentation ) where
 
 import Datatype (
-  Connection'(..),
-  StateDiagram'(..),
+  Connection(..),
+  StateDiagram(..),
   UMLStateDiagram,
   )
 

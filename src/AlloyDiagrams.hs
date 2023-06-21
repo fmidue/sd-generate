@@ -6,10 +6,8 @@
 module AlloyDiagrams (render) where
 
 import Datatype (UMLStateDiagram
-                ,StateDiagram'(..)
-                ,StateDiagram
-                ,Connection'(..)
-                ,Connection
+                ,StateDiagram(..)
+                ,Connection(..)
                 ,HistoryType(..)
                 ,globalise)
 
@@ -87,14 +85,14 @@ one sig #{start}Flow extends Flows{}{
   to = N_#{address target}
 }|]
 
-renderConnection :: [(String, String)] -> Connection -> Int -> String
+renderConnection :: [(String, String)] -> Connection [Int] -> Int -> String
 renderConnection transitionMapping Connection{ pointFrom, pointTo, transition } n = [i|one sig Connection#{n} extends Flows{}{
   from = N_#{address pointFrom}
   label = #{if null transition then "EmptyTrigger" else fromJust (lookup transition transitionMapping) ++ " // " ++ show transition}
   to = N_#{address pointTo}
 }|]
 
-renderInner :: (StateDiagram a -> Inherited -> Synthesized) -> [StateDiagram a] -> Inherited -> Synthesized
+renderInner :: (StateDiagram Int a -> Inherited -> Synthesized) -> [StateDiagram Int a] -> Inherited -> Synthesized
 renderInner recurse substate inherited =
   let
     recursively = map (`recurse` inherited) substate
@@ -114,7 +112,7 @@ renderInner recurse substate inherited =
       , joinNodes = any joinNodes recursively
       }
 
-renderComposite :: String -> (StateDiagram a -> Inherited -> Synthesized) -> StateDiagram a -> Inherited -> Synthesized
+renderComposite :: String -> (StateDiagram Int a -> Inherited -> Synthesized) -> StateDiagram Int a -> Inherited -> Synthesized
 renderComposite kind eachWith StateDiagram{ substate, label, name, startState } inherited@Inherited{ctxt, nameMapping} =
   let
     here = ctxt ++ [label]
@@ -159,7 +157,7 @@ defaultSynthesized = Synthesized
   , joinNodes = False
   }
 
-renderNode :: StateDiagram a -> Inherited -> Synthesized
+renderNode :: StateDiagram Int a -> Inherited -> Synthesized
 
 renderNode d@StateDiagram{} inherited =
   renderComposite "HierarchicalStates" renderNode d inherited

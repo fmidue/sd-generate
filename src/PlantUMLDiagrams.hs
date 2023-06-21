@@ -6,11 +6,10 @@
 module PlantUMLDiagrams (renderAll) where
 
 import Datatype (UMLStateDiagram
-                ,StateDiagram'(..)
-                ,Connection'(..)
-                ,Connection
+                ,StateDiagram(..)
+                ,Connection(..)
                 ,HistoryType(..)
-                ,globalise, StateDiagram' (StateDiagram))
+                ,globalise)
 
 import Data.String.Interpolate (i)
 import Data.List (intercalate)
@@ -111,7 +110,7 @@ renderStart target Inherited{ctxt} =
   in
     [i|[*] -> N_#{address "" here_target}|] ++ "\n"
 
-renderConnection :: [(UMLStateDiagram, [Int])] -> [Connection] -> Inherited -> String
+renderConnection :: [(UMLStateDiagram, [Int])] -> [Connection [Int]] -> Inherited -> String
 renderConnection _ [] _ = []
 renderConnection [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt } =
   let

@@ -11,11 +11,9 @@ module Flatten (
   flatten
 ) where
 import Datatype (UMLStateDiagram
-                ,StateDiagram'(..)
-                ,StateDiagram
+                ,StateDiagram(..)
                 ,globalise
-                ,Connection'(..)
-                ,Connection
+                ,Connection(..)
                 )
 import Data.List(groupBy
                 ,sortBy
@@ -70,9 +68,9 @@ rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatConnect
 rewire r _ _
   = r
 
-type FlatConnection = Connection' [Either Int Int]
+type FlatConnection = Connection [Either Int Int]
 
-type FlatDiagram = StateDiagram' (Either Int Int) [FlatConnection]
+type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
 
 toFlat :: UMLStateDiagram -> FlatDiagram
 toFlat x
@@ -105,7 +103,7 @@ diagramToFlat
             _ -> error "not supported"
          )
 
-connectionToFlat :: [Connection] -> [FlatConnection]
+connectionToFlat :: [Connection [Int]] -> [FlatConnection]
 connectionToFlat
   = map (\case
             (Connection{ pointFrom
@@ -138,7 +136,7 @@ diagramFromFlat
             _ -> error "not supported"
          )
 
-connectionFromFlat :: [FlatConnection] -> [Connection]
+connectionFromFlat :: [FlatConnection] -> [Connection [Int]]
 connectionFromFlat
   = map (\case
             (Connection { pointFrom

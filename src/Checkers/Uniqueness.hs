@@ -3,7 +3,7 @@
 module Checkers.Uniqueness ( checkUniqueness ) where
 
 import Datatype (
-  StateDiagram'(..),
+  StateDiagram(..),
   UMLStateDiagram,
   )
 

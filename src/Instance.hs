@@ -10,9 +10,8 @@ import qualified Data.Set               as S (unions, mapMonotonic, union, toAsc
 import Datatype (
   localise,
   UMLStateDiagram,
-  StateDiagram'(..),
-  StateDiagram,
-  Connection'(..),
+  StateDiagram(..),
+  Connection(..),
   HistoryType (..),
   )
 
@@ -190,7 +189,7 @@ forestToStateDiagram
   :: (Node -> String)
   -> (Maybe Node -> [Int])
   -> [Tree (Node, [Int])]
-  -> StateDiagram ()
+  -> StateDiagram Int ()
 forestToStateDiagram getName getStart ts = StateDiagram {
   label = 1,
   substate = treeToStateDiagram getName (stail . getStart) <$> ts,
@@ -210,7 +209,7 @@ treeToStateDiagram
   :: (Node -> String)
   -> (Maybe Node -> [Int])
   -> Tree (Node, [Int])
-  -> StateDiagram ()
+  -> StateDiagram Int ()
 treeToStateDiagram getName getStart n = case node of
   CNode {} -> StateDiagram {
     label = l,

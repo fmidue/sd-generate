@@ -1,8 +1,8 @@
 module Example where
 import Datatype (
-  Connection'(..),
+  Connection(..),
   HistoryType(..),
-  StateDiagram'(..),
+  StateDiagram(..),
   UMLStateDiagram,
   )
 

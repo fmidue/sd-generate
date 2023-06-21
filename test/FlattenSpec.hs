@@ -6,7 +6,7 @@ module FlattenSpec (
 
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Datatype (StateDiagram'(..), Connection' (..), UMLStateDiagram)
+import Datatype (StateDiagram(..), Connection (..), UMLStateDiagram)
 import Example (flatCase2, flatCase1)
 import Flatten (flatten)
 

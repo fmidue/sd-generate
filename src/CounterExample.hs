@@ -1,10 +1,9 @@
 module CounterExample where
 import Datatype (
-  Connection'(..),
+  Connection(..),
   HistoryType(..),
-  StateDiagram'(..),
+  StateDiagram(..),
   UMLStateDiagram,
-  StateDiagram' (..)
   )
 
 {-# ANN module "Hlint: ignore Reduce duplication" #-}

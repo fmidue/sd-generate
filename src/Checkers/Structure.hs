@@ -4,9 +4,8 @@
 module Checkers.Structure ( checkStructure ) where
 
 import Datatype (
-  Connection'(..),
-  Connection,
-  StateDiagram'(..),
+  Connection(..),
+  StateDiagram(..),
   UMLStateDiagram,
   globalise,
   )
@@ -40,7 +39,7 @@ checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistCo
 checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition substate
 checkHistOutTransition  _ = True
 
-checkHistConnTransition :: Connection -> [UMLStateDiagram] -> Bool
+checkHistConnTransition :: Connection [Int] -> [UMLStateDiagram] -> Bool
 checkHistConnTransition Connection { pointFrom,transition } a = null transition || notHistory pointFrom a
 
 checkReachability :: UMLStateDiagram -> Bool

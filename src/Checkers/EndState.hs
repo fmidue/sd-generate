@@ -3,8 +3,8 @@
 module Checkers.EndState ( checkEndState ) where
 
 import Datatype (
-  Connection'(..),
-  StateDiagram'(..),
+  Connection(..),
+  StateDiagram(..),
   UMLStateDiagram,
   )
 

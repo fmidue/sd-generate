@@ -662,7 +662,7 @@ insertDummyRight a = if all checkWrapperLayer (last $ layered a) then init (
   layered a) ++ [last (layered a) ++ [CrossStateDummy (maxLabel a + 1) csdWidth]] else
   layered a ++ [[CrossStateDummy (maxLabel a + 1) csdWidth]]
 
-changeConnectionType :: [Connection] -> [[Wrapper]] -> [ConnectWithType]
+changeConnectionType :: [Connection [Int]] -> [[Wrapper]] -> [ConnectWithType]
   -> [ConnectWithType]
 changeConnectionType [] _ withType = withType
 changeConnectionType (x:xs) layers withType = changeConnectionType xs layers

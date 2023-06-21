@@ -8,15 +8,13 @@
 module Datatype
   ( Wrapper(..)
   , ConnectWithType(..)
-  , Connection'(..)
-  , Connection
+  , Connection(..)
   , ConnectionType(..)
   , HistoryType(..)
   , UMLStateDiagram
   , Layout(..)
   , RightConnect(..)
-  , StateDiagram'(..)
-  , StateDiagram
+  , StateDiagram(..)
   , globalise
   , localise
   , hoistOutwards
@@ -92,19 +90,17 @@ data Wrapper =
                }
   deriving (Read, Show)
 
-data ConnectWithType = ConnectWithType { connecting :: Connection,
+data ConnectWithType = ConnectWithType { connecting :: Connection [Int],
                                          connectType :: ConnectionType
                                        }
   deriving (Read, Show)
 
-data Connection' label =  Connection {
+data Connection label =  Connection {
   pointFrom :: label,
   pointTo :: label,
   transition :: String
   }
   deriving (Eq, Foldable, Functor, Ord, Read, Show, Traversable)
-
-type Connection = Connection' [Int]
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
@@ -114,15 +110,15 @@ data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
 data HistoryType = Shallow | Deep
   deriving (Eq, Ord, Read, Show)
 
-type UMLStateDiagram = StateDiagram [Connection]
+type UMLStateDiagram = StateDiagram Int [Connection [Int]]
 
-data StateDiagram' l a = StateDiagram { substate :: [StateDiagram' l a],
+data StateDiagram l a = StateDiagram { substate :: [StateDiagram l a],
                                           label :: l,
                                           name :: String,
                                           connection :: a,
                                           startState :: [l]
                                         }
-                     | CombineDiagram { substate :: [StateDiagram' l a],
+                     | CombineDiagram { substate :: [StateDiagram l a],
                                         label :: l
                                       }
                      | EndState {
@@ -139,17 +135,15 @@ data StateDiagram' l a = StateDiagram { substate :: [StateDiagram' l a],
                                       }
   deriving (Eq, Foldable, Functor, Read, Show, Traversable)
 
-type StateDiagram = StateDiagram' Int
-
 data Layout = Vertical | Horizontal | Unspecified
   deriving (Eq, Read, Show)
 
 data RightConnect = WithArrowhead | WithoutArrowhead | NoConnection
   deriving (Eq, Read, Show)
 
-$(deriveBifunctor ''StateDiagram')
-$(deriveBifoldable ''StateDiagram')
-$(deriveBitraversable ''StateDiagram')
+$(deriveBifunctor ''StateDiagram)
+$(deriveBifoldable ''StateDiagram)
+$(deriveBitraversable ''StateDiagram)
 
 globalise :: UMLStateDiagram -> UMLStateDiagram
 globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
@@ -157,19 +151,19 @@ globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
 globalise c@CombineDiagram{ substate } = c { substate = map globalise substate }
 globalise d = d
 
-hoistOutwards :: UMLStateDiagram -> [Connection]
+hoistOutwards :: UMLStateDiagram -> [Connection [Int]]
 hoistOutwards StateDiagram{ substate, connection }
   = connection ++ concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
 hoistOutwards CombineDiagram{ substate }
   = concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
 hoistOutwards _ = []
 
-prependL :: Int -> [Connection] -> [Connection]
+prependL :: Int -> [Connection [Int]] -> [Connection [Int]]
 prependL l =
     map (\c@Connection{ pointFrom, pointTo }
           -> c { pointFrom = l : pointFrom, pointTo = l : pointTo })
 
-localiseConnection :: Connection -> ([Int], Connection)
+localiseConnection :: Connection [Int] -> ([Int], Connection [Int])
 localiseConnection c = commonPrefix (pointFrom c) (pointTo c)
   where
     commonPrefix []  _  = error "connection has no source"
@@ -186,7 +180,7 @@ localiseConnection c = commonPrefix (pointFrom c) (pointTo c)
 localise :: UMLStateDiagram -> UMLStateDiagram
 localise = localiseStateDiagram []
 
-localiseStateDiagram :: [([Int], Connection)] -> UMLStateDiagram -> UMLStateDiagram
+localiseStateDiagram :: [([Int], Connection [Int])] -> UMLStateDiagram -> UMLStateDiagram
 localiseStateDiagram cs s = case s of
   StateDiagram {}   -> s {
     connection = map snd local,

@@ -3,8 +3,8 @@
 module Checkers.Semantics ( checkSemantics ) where
 
 import Datatype (
-  Connection'(..),
-  StateDiagram'(..),
+  Connection(..),
+  StateDiagram(..),
   UMLStateDiagram,
   globalise,
   )
