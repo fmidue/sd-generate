@@ -3,6 +3,7 @@ name: ba-sergei-lestsenski
 extra-source-files: [ ]
 dependencies:
   - base
+  - bifunctors
   - bytestring
   - call-alloy
   - call-plantuml

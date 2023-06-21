@@ -70,7 +70,7 @@ rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatConnect
 rewire r _ _
   = r
 
-type FlatConnection = Connection' [Either Int Int] [Either Int Int]
+type FlatConnection = Connection' [Either Int Int]
 
 type FlatDiagram = StateDiagram' (Either Int Int) [FlatConnection]
 

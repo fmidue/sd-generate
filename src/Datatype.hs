@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveTraversable         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE TemplateHaskell           #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE NamedFieldPuns            #-}
 
@@ -21,6 +22,11 @@ module Datatype
   , hoistOutwards
   ) where
 
+import Data.Bifunctor.TH (
+  deriveBifoldable,
+  deriveBifunctor,
+  deriveBitraversable,
+  )
 import Data.List                        (partition)
 
 data Wrapper =
@@ -91,14 +97,14 @@ data ConnectWithType = ConnectWithType { connecting :: Connection,
                                        }
   deriving (Read, Show)
 
-data Connection' a b =  Connection {
-  pointFrom :: a,
-  pointTo :: b,
+data Connection' label =  Connection {
+  pointFrom :: label,
+  pointTo :: label,
   transition :: String
   }
-  deriving (Eq, Ord, Read, Show)
+  deriving (Eq, Foldable, Functor, Ord, Read, Show, Traversable)
 
-type Connection = Connection' [Int] [Int]
+type Connection = Connection' [Int]
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
@@ -140,6 +146,10 @@ data Layout = Vertical | Horizontal | Unspecified
 
 data RightConnect = WithArrowhead | WithoutArrowhead | NoConnection
   deriving (Eq, Read, Show)
+
+$(deriveBifunctor ''StateDiagram')
+$(deriveBifoldable ''StateDiagram')
+$(deriveBitraversable ''StateDiagram')
 
 globalise :: UMLStateDiagram -> UMLStateDiagram
 globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
