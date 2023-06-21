@@ -199,7 +199,7 @@ randomCD counter cdMaxNum ns alphabet l s exclude = do
   subs   <- mapM (\x -> randomSD' False counter cdMaxNum' False ns alphabet x exclude) cond
   return (CombineDiagram subs l)
 
-randomConnection :: [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen (Connection [Int])
+randomConnection :: [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen (Connection Int)
 randomConnection layerElem innerElem sub unreachedState = do
   let points = layerElem ++ innerElem
       endState  = filter (not.(`isNotEnd` sub)) points
@@ -254,7 +254,7 @@ randomConnection layerElem innerElem sub unreachedState = do
                   else
                     return (Connection historyFrom to "")
 
-randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen [Connection [Int]]
+randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen [Connection Int]
 randomJointConnection layerElem innerElem globalStarts subs joint = do
     fromNum <- if joint `elem` globalStarts then return 2 else choose (1,2)
     -- if condition satisfy rules when the start node pointing to the joint

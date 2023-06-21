@@ -58,7 +58,7 @@ decideConnectionType startLayer endLayer
   | startLayer < endLayer = ForwardH
   | otherwise = SelfCL
 
-filterConnection :: [Connection [a]] -> [Connection [a]] -> [Connection [a]] -- connection within same depth
+filterConnection :: [Connection a] -> [Connection a] -> [Connection a] -- connection within same depth
 filterConnection [] [] = []
 filterConnection a@(_:_) [] = a
 filterConnection [] (x:xs)
@@ -207,7 +207,7 @@ mapWithIndex (x:xs) ind ys = mapWithIndex xs (ind + 1) (Map.insert x ind ys)
 mapWithLabel :: [UMLStateDiagram] -> Map.Map Int UMLStateDiagram
 mapWithLabel a = Map.fromList (fmap (\ x -> (label x, x)) a)
 
-mapWithConnection :: Ord a => [Connection [a]] -> Map.Map a [a]
+mapWithConnection :: Ord a => [Connection a] -> Map.Map a [a]
 mapWithConnection
   = foldl (\ a x -> Map.insertWith (++) (head (pointFrom x)) (pointTo x) a)
     Map.empty

@@ -90,14 +90,14 @@ data Wrapper =
                }
   deriving (Read, Show)
 
-data ConnectWithType = ConnectWithType { connecting :: Connection [Int],
+data ConnectWithType = ConnectWithType { connecting :: Connection Int,
                                          connectType :: ConnectionType
                                        }
   deriving (Read, Show)
 
 data Connection label =  Connection {
-  pointFrom :: label,
-  pointTo :: label,
+  pointFrom :: [label],
+  pointTo :: [label],
   transition :: String
   }
   deriving (Eq, Foldable, Functor, Ord, Read, Show, Traversable)
@@ -110,7 +110,7 @@ data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
 data HistoryType = Shallow | Deep
   deriving (Eq, Ord, Read, Show)
 
-type UMLStateDiagram = StateDiagram Int [Connection [Int]]
+type UMLStateDiagram = StateDiagram Int [Connection Int]
 
 data StateDiagram l a = StateDiagram { substate :: [StateDiagram l a],
                                           label :: l,
@@ -145,25 +145,25 @@ $(deriveBifunctor ''StateDiagram)
 $(deriveBifoldable ''StateDiagram)
 $(deriveBitraversable ''StateDiagram)
 
-globalise :: StateDiagram a [Connection [a]] -> StateDiagram a [Connection [a]]
+globalise :: StateDiagram a [Connection a] -> StateDiagram a [Connection a]
 globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
                                          , substate = map (fmap (const [])) substate }
 globalise c@CombineDiagram{ substate } = c { substate = map globalise substate }
 globalise d = d
 
-hoistOutwards :: StateDiagram a [Connection [a]] -> [Connection [a]]
+hoistOutwards :: StateDiagram a [Connection a] -> [Connection a]
 hoistOutwards StateDiagram{ substate, connection }
   = connection ++ concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
 hoistOutwards CombineDiagram{ substate }
   = concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
 hoistOutwards _ = []
 
-prependL :: a -> [Connection [a]] -> [Connection [a]]
+prependL :: a -> [Connection a] -> [Connection a]
 prependL l =
     map (\c@Connection{ pointFrom, pointTo }
           -> c { pointFrom = l : pointFrom, pointTo = l : pointTo })
 
-localiseConnection :: Eq a => Connection [a] -> ([a], Connection [a])
+localiseConnection :: Eq a => Connection a -> ([a], Connection a)
 localiseConnection c = commonPrefix (pointFrom c) (pointTo c)
   where
     commonPrefix []  _  = error "connection has no source"
@@ -177,10 +177,10 @@ localiseConnection c = commonPrefix (pointFrom c) (pointTo c)
       | otherwise
       = ([], c { pointFrom = x:xs, pointTo = y:ys })
 
-localise :: Eq a => StateDiagram a [Connection [a]] -> StateDiagram a [Connection [a]]
+localise :: Eq a => StateDiagram a [Connection a] -> StateDiagram a [Connection a]
 localise = localiseStateDiagram []
 
-localiseStateDiagram :: Eq a => [([a], Connection [a])] -> StateDiagram a [Connection [a]] -> StateDiagram a [Connection [a]]
+localiseStateDiagram :: Eq a => [([a], Connection a)] -> StateDiagram a [Connection a] -> StateDiagram a [Connection a]
 localiseStateDiagram cs s = case s of
   StateDiagram {}   -> s {
     connection = map snd local,

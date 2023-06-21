@@ -110,7 +110,7 @@ renderStart target Inherited{ctxt} =
   in
     [i|[*] -> N_#{address "" here_target}|] ++ "\n"
 
-renderConnection :: [(UMLStateDiagram, [Int])] -> [Connection [Int]] -> Inherited -> String
+renderConnection :: [(UMLStateDiagram, [Int])] -> [Connection Int] -> Inherited -> String
 renderConnection _ [] _ = []
 renderConnection [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt } =
   let

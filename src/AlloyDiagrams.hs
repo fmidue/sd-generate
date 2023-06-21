@@ -85,7 +85,7 @@ one sig #{start}Flow extends Flows{}{
   to = N_#{address target}
 }|]
 
-renderConnection :: [(String, String)] -> Connection [Int] -> Int -> String
+renderConnection :: [(String, String)] -> Connection Int -> Int -> String
 renderConnection transitionMapping Connection{ pointFrom, pointTo, transition } n = [i|one sig Connection#{n} extends Flows{}{
   from = N_#{address pointFrom}
   label = #{if null transition then "EmptyTrigger" else fromJust (lookup transition transitionMapping) ++ " // " ++ show transition}

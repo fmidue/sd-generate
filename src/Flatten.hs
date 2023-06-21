@@ -68,7 +68,7 @@ rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatConnect
 rewire r _ _
   = r
 
-type FlatConnection = Connection [Either Int Int]
+type FlatConnection = Connection (Either Int Int)
 
 type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
 
@@ -103,7 +103,7 @@ diagramToFlat
             _ -> error "not supported"
          )
 
-connectionToFlat :: [Connection [Int]] -> [FlatConnection]
+connectionToFlat :: [Connection Int] -> [FlatConnection]
 connectionToFlat
   = map (\case
             (Connection{ pointFrom
@@ -136,7 +136,7 @@ diagramFromFlat
             _ -> error "not supported"
          )
 
-connectionFromFlat :: [FlatConnection] -> [Connection [Int]]
+connectionFromFlat :: [FlatConnection] -> [Connection Int]
 connectionFromFlat
   = map (\case
             (Connection { pointFrom

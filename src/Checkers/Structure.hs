@@ -39,7 +39,7 @@ checkHistOutTransition StateDiagram { substate, connection } = all (`checkHistCo
 checkHistOutTransition CombineDiagram {substate} = all checkHistOutTransition substate
 checkHistOutTransition  _ = True
 
-checkHistConnTransition :: Connection [Int] -> [UMLStateDiagram] -> Bool
+checkHistConnTransition :: Connection Int -> [UMLStateDiagram] -> Bool
 checkHistConnTransition Connection { pointFrom,transition } a = null transition || notHistory pointFrom a
 
 checkReachability :: UMLStateDiagram -> Bool
