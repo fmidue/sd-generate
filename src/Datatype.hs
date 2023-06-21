@@ -145,25 +145,25 @@ $(deriveBifunctor ''StateDiagram)
 $(deriveBifoldable ''StateDiagram)
 $(deriveBitraversable ''StateDiagram)
 
-globalise :: UMLStateDiagram -> UMLStateDiagram
+globalise :: StateDiagram a [Connection [a]] -> StateDiagram a [Connection [a]]
 globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
                                          , substate = map (fmap (const [])) substate }
 globalise c@CombineDiagram{ substate } = c { substate = map globalise substate }
 globalise d = d
 
-hoistOutwards :: UMLStateDiagram -> [Connection [Int]]
+hoistOutwards :: StateDiagram a [Connection [a]] -> [Connection [a]]
 hoistOutwards StateDiagram{ substate, connection }
   = connection ++ concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
 hoistOutwards CombineDiagram{ substate }
   = concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
 hoistOutwards _ = []
 
-prependL :: Int -> [Connection [Int]] -> [Connection [Int]]
+prependL :: a -> [Connection [a]] -> [Connection [a]]
 prependL l =
     map (\c@Connection{ pointFrom, pointTo }
           -> c { pointFrom = l : pointFrom, pointTo = l : pointTo })
 
-localiseConnection :: Connection [Int] -> ([Int], Connection [Int])
+localiseConnection :: Eq a => Connection [a] -> ([a], Connection [a])
 localiseConnection c = commonPrefix (pointFrom c) (pointTo c)
   where
     commonPrefix []  _  = error "connection has no source"
@@ -177,10 +177,10 @@ localiseConnection c = commonPrefix (pointFrom c) (pointTo c)
       | otherwise
       = ([], c { pointFrom = x:xs, pointTo = y:ys })
 
-localise :: UMLStateDiagram -> UMLStateDiagram
+localise :: Eq a => StateDiagram a [Connection [a]] -> StateDiagram a [Connection [a]]
 localise = localiseStateDiagram []
 
-localiseStateDiagram :: [([Int], Connection [Int])] -> UMLStateDiagram -> UMLStateDiagram
+localiseStateDiagram :: Eq a => [([a], Connection [a])] -> StateDiagram a [Connection [a]] -> StateDiagram a [Connection [a]]
 localiseStateDiagram cs s = case s of
   StateDiagram {}   -> s {
     connection = map snd local,

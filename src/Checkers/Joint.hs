@@ -76,22 +76,22 @@ checkTransition s@StateDiagram {} =
       toTranNonEmpty = map pointTo (filter (not.(`checkInTranEmpty` toOnlyJoint)) toOnlyJoint)
 checkTransition _ = error "not defined"
 
-checkOutTran :: Connection [Int] -> [Connection [Int]] -> Bool
+checkOutTran :: Eq a => Connection a -> [Connection a] -> Bool
 checkOutTran a b = null tranNotSame
                 where
                   fromSame    = filter ((pointFrom a ==).pointFrom) b
                   tranNotSame = filter ((transition a /=).transition) fromSame
 
-checkInTran :: Connection [Int] -> [Connection [Int]] -> Bool
+checkInTran :: Eq a => Connection a -> [Connection a] -> Bool
 checkInTran a b = null tranNotSame
                 where
                   toSame    = filter ((pointTo a ==).pointTo) b
                   tranNotSame = filter ((transition a /=).transition) toSame
 
-checkOutTranEmpty :: Connection [Int] -> [Connection [Int]] -> Bool
+checkOutTranEmpty :: Eq a => Connection a -> [Connection a] -> Bool
 checkOutTranEmpty a b = any (null.transition) (filter ((pointFrom a ==).pointFrom) b)
 
-checkInTranEmpty :: Connection [Int] -> [Connection [Int]] -> Bool
+checkInTranEmpty :: Eq a => Connection a -> [Connection a] -> Bool
 checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 
 checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool

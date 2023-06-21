@@ -26,13 +26,13 @@ import Datatype (
 
 import Data.List (find)
 
-checkSameOutTran :: Connection [Int] -> [Connection [Int]] -> Bool
+checkSameOutTran :: Eq a => Connection a -> [Connection a] -> Bool
 checkSameOutTran a b = length tranSame == 1
                 where
                   fromSame  = filter ((pointFrom a ==).pointFrom) b
                   tranSame = filter ((transition a ==).transition) fromSame
 
-checkEmptyOutTran :: Connection [Int] -> [Connection [Int]] -> Bool
+checkEmptyOutTran :: Eq a => Connection a -> [Connection a] -> Bool
 checkEmptyOutTran a b = length fromSame == 1|| not (null (transition a))
                 where
                   fromSame  = filter ((pointFrom a ==).pointFrom) b
