@@ -114,7 +114,7 @@ data HistoryType = Shallow | Deep
 newtype UMLStateDiagram l = UMLStateDiagram {unUML :: StateDiagram l [Connection l]}
   deriving (Eq, Show)
 
-umlStateDiagram :: StateDiagram Int [Connection Int] -> UMLStateDiagram Int
+umlStateDiagram :: StateDiagram a [Connection a] -> UMLStateDiagram a
 umlStateDiagram s@StateDiagram{} = UMLStateDiagram s
 umlStateDiagram _ = error "should never happen"
 

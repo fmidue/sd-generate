@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE LambdaCase #-}
@@ -22,11 +23,14 @@ import Data.List(groupBy
 import Data.Bifunctor(bimap
                      ,Bifunctor(second, first))
 
+instance Functor UMLStateDiagram where
+  fmap f = umlStateDiagram . bimap f (map (fmap f)) . unUML
+
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
   = umlStateDiagram . fromFlat $ lift diagram
     where
-    diagram = toFlat . unUML $ globalise d
+    diagram = toFlat $ globalise d
 
 lift :: FlatDiagram -> FlatDiagram
 lift x@(StateDiagram{substate,connection})
@@ -73,60 +77,23 @@ type FlatConnection = Connection (Either Int Int)
 
 type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
 
-toFlat :: StateDiagram Int [Connection Int] -> FlatDiagram
-toFlat x
-  = head $ diagramToFlat [x]
+toFlat :: UMLStateDiagram Int -> FlatDiagram
+toFlat
+  = unUML . fmap Left
 
 fromFlat :: FlatDiagram -> StateDiagram Int [Connection Int]
-fromFlat x
-  = head $ diagramFromFlat [x]
-
-diagramToFlat :: [StateDiagram Int [Connection Int]] -> [FlatDiagram]
-diagramToFlat
-  = map (\case
-            (InnerMostState{ label
-                           , name
-                           , operations })
-              -> (InnerMostState { label = Left label
-                                 , name = name
-                                 , operations = operations
-                                 })
-            (StateDiagram{ label
-                         , substate
-                         , name
-                         , connection
-                         , startState })
-              -> (StateDiagram { label = Left label
-                               , substate = diagramToFlat substate
-                               , name = name
-                               , connection = connectionToFlat connection
-                               , startState = map Left startState })
-            _ -> error "not supported"
-         )
-
-connectionToFlat :: [Connection Int] -> [FlatConnection]
-connectionToFlat
-  = map (\case
-            (Connection{ pointFrom
-                       , pointTo
-                       , transition })
-              -> Connection { pointFrom = map Left pointFrom
-                            , pointTo = map Left pointTo
-                            , transition = transition })
-
-diagramFromFlat :: [FlatDiagram] -> [StateDiagram Int [Connection Int]]
-diagramFromFlat
-  = map (\case
+fromFlat =
+        (\case
             (StateDiagram { label = Right newLabel
                           , substate
                           , name
                           , connection
                           , startState })
               -> (StateDiagram { label = newLabel
-                               , substate = diagramFromFlat substate
+                               , substate = map fromFlat substate
                                , name = name
-                               , connection = connectionFromFlat connection
-                               , startState = foldr (\case Left x -> (x:) ) [] startState
+                               , connection = map (fmap (\case Left x -> x)) connection
+                               , startState = map (\case Left x -> x) startState
                                })
             (InnerMostState { label = Right newLabel
                             , name
@@ -135,17 +102,4 @@ diagramFromFlat
                                  , name = name
                                  , operations = operations })
             _ -> error "not supported"
-         )
-
-connectionFromFlat :: [FlatConnection] -> [Connection Int]
-connectionFromFlat
-  = map (\case
-            (Connection { pointFrom
-                        , pointTo
-                        , transition
-                        })
-              -> (Connection { pointFrom = foldr (\case Left x -> (x:)) [] pointFrom
-                             , pointTo = foldr (\case Left x -> (x:)) [] pointTo
-                             , transition = transition
-                             })
          )
