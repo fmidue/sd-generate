@@ -11,7 +11,8 @@ module Datatype
   , Connection(..)
   , ConnectionType(..)
   , HistoryType(..)
-  , UMLStateDiagram
+  , UMLStateDiagram(unUML)
+  , umlStateDiagram
   , Layout(..)
   , RightConnect(..)
   , StateDiagram(..)
@@ -110,7 +111,12 @@ data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
 data HistoryType = Shallow | Deep
   deriving (Eq, Ord, Read, Show)
 
-type UMLStateDiagram = StateDiagram Int [Connection Int]
+newtype UMLStateDiagram l = UMLStateDiagram {unUML :: StateDiagram l [Connection l]}
+  deriving (Eq, Show)
+
+umlStateDiagram :: StateDiagram Int [Connection Int] -> UMLStateDiagram Int
+umlStateDiagram s@StateDiagram{} = UMLStateDiagram s
+umlStateDiagram _ = error "should never happen"
 
 data StateDiagram l a = StateDiagram { substate :: [StateDiagram l a],
                                           label :: l,
@@ -145,11 +151,11 @@ $(deriveBifunctor ''StateDiagram)
 $(deriveBifoldable ''StateDiagram)
 $(deriveBitraversable ''StateDiagram)
 
-globalise :: StateDiagram a [Connection a] -> StateDiagram a [Connection a]
-globalise s@StateDiagram{ substate } = s { connection = hoistOutwards s
+globalise :: UMLStateDiagram a -> UMLStateDiagram a
+globalise (UMLStateDiagram s@StateDiagram{ substate }) = UMLStateDiagram $
+                                       s { connection = hoistOutwards s
                                          , substate = map (fmap (const [])) substate }
-globalise c@CombineDiagram{ substate } = c { substate = map globalise substate }
-globalise d = d
+globalise _ = error "should never happen"
 
 hoistOutwards :: StateDiagram a [Connection a] -> [Connection a]
 hoistOutwards StateDiagram{ substate, connection }

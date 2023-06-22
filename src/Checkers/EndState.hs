@@ -5,19 +5,19 @@ module Checkers.EndState ( checkEndState ) where
 import Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram,
+  UMLStateDiagram(unUML),
   )
 
 import Checkers.Helpers (isNotEnd)
 
-checkEndState :: UMLStateDiagram -> Maybe String
+checkEndState :: UMLStateDiagram Int -> Maybe String
 checkEndState a
-  | not (checkEndOutEdges a) =
+  | not (checkEndOutEdges $ unUML a) =
       Just "Error: no EndState should have outgoing edges"
   | otherwise =
       Nothing
 
-checkEndOutEdges :: UMLStateDiagram -> Bool
+checkEndOutEdges :: StateDiagram Int [Connection Int] -> Bool
 checkEndOutEdges StateDiagram { substate, connection } = all ((`isNotEnd` substate) . pointFrom) connection
                                                          && all checkEndOutEdges substate
 checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate

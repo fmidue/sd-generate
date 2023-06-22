@@ -1,7 +1,7 @@
 module GenerateSpec (spec) where
 
 import Generate
-import Datatype (localise, globalise)
+import Datatype (localise, globalise, UMLStateDiagram(unUML), umlStateDiagram)
 import ExampleSpec (allTheCheckers)
 
 import Test.QuickCheck
@@ -17,7 +17,7 @@ spec = do
       forAll randomSD $ \(code,_) -> firstJust id (map (($ code) . snd) $ filter ((`notElem` ["checkSemantics", "checkDrawability"]) . fst) allTheCheckers) `shouldBe` Nothing
   describe "randomSD" $
     prop "generates valid diagram expressions after 'localise'" $
-      forAll randomSD $ \(code,_) -> firstJust id (map (($ localise code) . snd) allTheCheckers) `shouldBe` Nothing
+      forAll randomSD $ \(code,_) -> firstJust id (map (($ umlStateDiagram (localise (unUML code))) . snd) allTheCheckers) `shouldBe` Nothing
   describe "randomSD" $
     prop "generates valid diagram expressions after 'globalise'" $
       forAll randomSD $ \(code,_) -> firstJust id (map (($ globalise code) . snd) allTheCheckers) `shouldBe` Nothing

@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.History ( checkHistory ) where
@@ -6,13 +5,13 @@ module Checkers.History ( checkHistory ) where
 import Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram,
+  UMLStateDiagram(unUML),
   globalise,
   )
 
 import Checkers.Helpers (inCompoundState, notHistory)
 
-checkHistory :: UMLStateDiagram -> Maybe String
+checkHistory :: UMLStateDiagram Int -> Maybe String
 checkHistory a
   | not (checkEdge False a) =
       Just "History should never be reached from (somewhere, possibly nested) inside their own compound state"
@@ -21,8 +20,8 @@ checkHistory a
   | otherwise =
       Nothing
 
-checkEdge :: Bool -> UMLStateDiagram -> Bool
-checkEdge out s@StateDiagram {} =
+checkEdge :: Bool -> UMLStateDiagram Int -> Bool
+checkEdge out s =
   if out then
     all (\Connection{pointFrom, pointTo} ->
             inCompoundState pointFrom pointTo)
@@ -32,6 +31,6 @@ checkEdge out s@StateDiagram {} =
             not (inCompoundState pointTo pointFrom))
     $ filter (not.(`notHistory` sub).pointTo) conn
   where
-    global = globalise s
+    global = unUML $ globalise s
     sub    = substate global
     conn   = connection global

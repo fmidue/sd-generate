@@ -3,7 +3,8 @@ import Datatype (
   Connection(..),
   HistoryType(..),
   StateDiagram(..),
-  UMLStateDiagram,
+  UMLStateDiagram(unUML),
+  umlStateDiagram,
   globalise
   )
 
@@ -43,7 +44,7 @@ chooseName (x:xs) str
 chooseName [] _ = []
 
 --to check if connection violate checkCrossings
-checkParallelRegion :: [Int] -> [Int] -> [UMLStateDiagram]-> Bool
+checkParallelRegion :: [Int] -> [Int] -> [StateDiagram Int [Connection Int]]-> Bool
 checkParallelRegion [] _ _ = True
 checkParallelRegion _ [] _ = True
 checkParallelRegion [_] _ _ = True
@@ -56,7 +57,7 @@ checkParallelRegion (x:xs) (y:ys) subs
      (True, False) -> head xs == head ys && checkParallelRegion xs ys (getSubstate x subs)
      (False, _) -> True
 
---haveJoint:: UMLStateDiagram -> Bool
+--haveJoint:: StateDiagram Int [Connection Int] -> Bool
 --haveJoint a = any (\x -> not (notJoint x (substate a))) (getAllElem a)
 
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
@@ -66,7 +67,7 @@ suchThatWhileCounting gen p = tryWith 0
       a <- gen
       if p a then return (a, i) else tryWith (i + 1)
 
-randomSD :: Gen (UMLStateDiagram, Int)
+randomSD :: Gen (UMLStateDiagram Int, Int)
 randomSD = do
   let outermost = True
       counter = 4
@@ -79,7 +80,7 @@ randomSD = do
       -- to ignore nested CD
   nm <- elements alphabet
   leastTwoLevels <- frequency [(2,return False),(8,return True)]
-  randomSD' outermost counter cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) []
+  (umlStateDiagram <$> randomSD' outermost counter cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) [])
    `suchThatWhileCounting` (\sd -> isNothing (checkSemantics sd) && isNothing (checkDrawability sd))
   -- here outermost layer must be StateDigram (checkOutMostLayer)
 
@@ -87,7 +88,7 @@ chooseRandomMustCD' :: NodeType -> Gen Bool
 chooseRandomMustCD' Stat = choose (True,False)
 chooseRandomMustCD' _ =  return False
 
-randomSD' :: Bool -> Int -> Int -> Bool -> [Int] -> [String] -> (Int,String,Bool)-> [String] -> Gen UMLStateDiagram
+randomSD' :: Bool -> Int -> Int -> Bool -> [Int] -> [String] -> (Int,String,Bool)-> [String] -> Gen (StateDiagram Int [Connection Int])
 randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude = do
   n <- elements ns
   -- number of substates
@@ -165,7 +166,7 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
        else return []
   let connsExtraJoint = concat connsExtraJoint1
       innerElemNoRegionsJointSDCD = filter (not.(`isSDCD` subs)) innerElemNoRegionsJoint
-      globalConns  = connection (globalise (StateDiagram subs l nm (conns++ connsExtraJoint) []))
+      globalConns  = connection (unUML (globalise (umlStateDiagram (StateDiagram subs l nm (conns++ connsExtraJoint) []))))
       toElem       = map pointTo globalConns
       reachableStates = toElem ++ globalStarts
       unreachedStates = (layerElemNoJoint ++ innerElemNoRegionsJointSDCD) \\ reachableStates
@@ -178,7 +179,7 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
             (\x -> all (`checkSameOutTran` x) x && all (`checkEmptyOutTran` x) x)
   return (StateDiagram subs l nm (conns ++ connsExtra ++ connsExtraJoint ) start)
 
-randomInnerSD :: Int -> Int -> [Int] -> [String] -> (Int,NodeType,[String],Bool) -> [String]-> Gen UMLStateDiagram
+randomInnerSD :: Int -> Int -> [Int] -> [String] -> (Int,NodeType,[String],Bool) -> [String]-> Gen (StateDiagram Int [Connection Int])
 randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
   let nm = head s
   case t of
@@ -189,7 +190,7 @@ randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
        Stat -> randomSD' False counter cdMaxNum False ns alphabet (l,nm,mustCD) exclude
        Join -> return (Joint l)
 
-randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen UMLStateDiagram
+randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen (StateDiagram Int [Connection Int])
 randomCD counter cdMaxNum ns alphabet l s exclude = do
   n      <- elements [2 .. 3]
   labels <- shuffle [1..n]
@@ -199,7 +200,7 @@ randomCD counter cdMaxNum ns alphabet l s exclude = do
   subs   <- mapM (\x -> randomSD' False counter cdMaxNum' False ns alphabet x exclude) cond
   return (CombineDiagram subs l)
 
-randomConnection :: [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen (Connection Int)
+randomConnection :: [[Int]] -> [[Int]] -> [StateDiagram Int [Connection Int]] -> [Int] -> Gen (Connection Int)
 randomConnection layerElem innerElem sub unreachedState = do
   let points = layerElem ++ innerElem
       endState  = filter (not.(`isNotEnd` sub)) points
@@ -254,7 +255,7 @@ randomConnection layerElem innerElem sub unreachedState = do
                   else
                     return (Connection historyFrom to "")
 
-randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [UMLStateDiagram] -> [Int] -> Gen [Connection Int]
+randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [StateDiagram Int [Connection Int]] -> [Int] -> Gen [Connection Int]
 randomJointConnection layerElem innerElem globalStarts subs joint = do
     fromNum <- if joint `elem` globalStarts then return 2 else choose (1,2)
     -- if condition satisfy rules when the start node pointing to the joint
@@ -289,7 +290,7 @@ checkDistinctRegion cd points
     where
        headOfPointsInsideCD = map (last . take (length cd + 1)) points
 
-notCD :: [Int] -> [UMLStateDiagram] -> Bool
+notCD :: [Int] -> [StateDiagram Int [Connection Int]] -> Bool
 notCD [] _ = True
 notCD [x] a = all (isNotCD x) a
 notCD (x:xs) a = notCD xs (getSubstate x a)

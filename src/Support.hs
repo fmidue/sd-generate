@@ -174,7 +174,7 @@ getSecondFromTuple3 (_, b, _) = b
 getThirdFromTuple3 :: (a, b, c) -> c
 getThirdFromTuple3 (_, _, c) = c
 
-getOrderedList :: [UMLStateDiagram] -> [Int]
+getOrderedList :: [StateDiagram Int [Connection Int]] -> [Int]
 getOrderedList a = originalOrderIndex
   where
     originalOrder = fmap label a
@@ -182,8 +182,8 @@ getOrderedList a = originalOrderIndex
     mapIndex = mapWithIndex ascOrder 0 Map.empty
     originalOrderIndex = fmap (mapIndex Map.!) originalOrder
 
-getUMLStateDiagram :: Int -> (Graph, Vertex -> (UMLStateDiagram, Int, [Int]),
-  Int -> Maybe Vertex) -> UMLStateDiagram
+getUMLStateDiagram :: Int -> (Graph, Vertex -> (StateDiagram Int [Connection Int], Int, [Int]),
+  Int -> Maybe Vertex) -> StateDiagram Int [Connection Int]
 getUMLStateDiagram vertex graphFE = getFirstFromTuple3 (getSecondFromTuple3
   graphFE vertex)
 
@@ -204,7 +204,7 @@ mapWithIndex :: [Int] -> Int -> Map.Map Int Int -> Map.Map Int Int
 mapWithIndex [] _ a = a
 mapWithIndex (x:xs) ind ys = mapWithIndex xs (ind + 1) (Map.insert x ind ys)
 
-mapWithLabel :: [UMLStateDiagram] -> Map.Map Int UMLStateDiagram
+mapWithLabel :: [StateDiagram Int [Connection Int]] -> Map.Map Int (StateDiagram Int [Connection Int])
 mapWithLabel a = Map.fromList (fmap (\ x -> (label x, x)) a)
 
 mapWithConnection :: Ord a => [Connection a] -> Map.Map a [a]
@@ -212,7 +212,7 @@ mapWithConnection
   = foldl (\ a x -> Map.insertWith (++) (head (pointFrom x)) (pointTo x) a)
     Map.empty
 
-mapWithConnection' :: [UMLStateDiagram] -> Map.Map Int [Int] -> Map.Map Int
+mapWithConnection' :: [StateDiagram Int [Connection Int]] -> Map.Map Int [Int] -> Map.Map Int
   [Int]
 mapWithConnection' [] a = a
 mapWithConnection' (x:xs) a
@@ -221,8 +221,8 @@ mapWithConnection' (x:xs) a
       a)
   | otherwise = Map.empty
 
-moveToFirst :: [UMLStateDiagram] -> Int -> [UMLStateDiagram] ->
-  [UMLStateDiagram]
+moveToFirst :: [StateDiagram Int [Connection Int]] -> Int -> [StateDiagram Int [Connection Int]] ->
+  [StateDiagram Int [Connection Int]]
 moveToFirst [] _ _ = []
 moveToFirst (x:xs) a newOrder
   | a == label x = [x] ++ newOrder ++ xs

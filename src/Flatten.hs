@@ -10,7 +10,8 @@
 module Flatten (
   flatten
 ) where
-import Datatype (UMLStateDiagram
+import Datatype (UMLStateDiagram(unUML)
+                ,umlStateDiagram
                 ,StateDiagram(..)
                 ,globalise
                 ,Connection(..)
@@ -21,11 +22,11 @@ import Data.List(groupBy
 import Data.Bifunctor(bimap
                      ,Bifunctor(second, first))
 
-flatten :: UMLStateDiagram -> UMLStateDiagram
+flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
-  = fromFlat $ lift diagram
+  = umlStateDiagram . fromFlat $ lift diagram
     where
-    diagram = toFlat $ globalise d
+    diagram = toFlat . unUML $ globalise d
 
 lift :: FlatDiagram -> FlatDiagram
 lift x@(StateDiagram{substate,connection})
@@ -72,15 +73,15 @@ type FlatConnection = Connection (Either Int Int)
 
 type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
 
-toFlat :: UMLStateDiagram -> FlatDiagram
+toFlat :: StateDiagram Int [Connection Int] -> FlatDiagram
 toFlat x
   = head $ diagramToFlat [x]
 
-fromFlat :: FlatDiagram -> UMLStateDiagram
+fromFlat :: FlatDiagram -> StateDiagram Int [Connection Int]
 fromFlat x
   = head $ diagramFromFlat [x]
 
-diagramToFlat :: [UMLStateDiagram] -> [FlatDiagram]
+diagramToFlat :: [StateDiagram Int [Connection Int]] -> [FlatDiagram]
 diagramToFlat
   = map (\case
             (InnerMostState{ label
@@ -113,7 +114,7 @@ connectionToFlat
                             , pointTo = map Left pointTo
                             , transition = transition })
 
-diagramFromFlat :: [FlatDiagram] -> [UMLStateDiagram]
+diagramFromFlat :: [FlatDiagram] -> [StateDiagram Int [Connection Int]]
 diagramFromFlat
   = map (\case
             (StateDiagram { label = Right newLabel

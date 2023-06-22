@@ -1,11 +1,12 @@
-{-# OPTIONS_GHC -Wno-error=missing-fields -Wno-error=incomplete-patterns -Wno-error=missing-signatures -Wno-error=type-defaults -Wno-error=name-shadowing #-}
+{-# OPTIONS_GHC -Wno-error=missing-fields -Wno-error=incomplete-patterns -Wno-error=incomplete-uni-patterns -Wno-error=missing-signatures -Wno-error=type-defaults -Wno-error=name-shadowing #-}
 {-# Language QuasiQuotes    #-}
 {-# Language NamedFieldPuns #-}
 {-# Language ViewPatterns   #-}
 
 module PlantUMLDiagrams (renderAll) where
 
-import Datatype (UMLStateDiagram
+import Datatype (UMLStateDiagram(unUML)
+                ,umlStateDiagram
                 ,StateDiagram(..)
                 ,Connection(..)
                 ,HistoryType(..)
@@ -17,11 +18,11 @@ import Data.List (intercalate)
 data Inherited = Inherited { ctxt :: [Int]
                            , connectionSources :: [String] }
 
-renderAll :: UMLStateDiagram -> String
-renderAll sd@StateDiagram{} =
+renderAll :: UMLStateDiagram Int -> String
+renderAll sd =
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
-    StateDiagram{ connection=connection } = sd
+    StateDiagram{ connection=connection } = unUML sd
     inherited = Inherited{ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connection}
   in
     [i|@startuml
@@ -30,11 +31,13 @@ renderAll sd@StateDiagram{} =
 #{renderUML sd inherited}
 @enduml
 |]
-renderAll _ = error "not defined"
 
-renderUML :: UMLStateDiagram -> Inherited -> String
-renderUML sd@StateDiagram{ substate, connection, startState } inherited =
-  case globalise sd of
+renderUML :: UMLStateDiagram Int -> Inherited -> String
+renderUML sd inherited =
+  let
+    StateDiagram{ substate, connection, startState } = unUML sd
+  in
+  case unUML (globalise sd) of
     StateDiagram subst _ _ _ _ ->   let substate1 = subst
                                         hn = getAllHistory substate1 inherited
                                     in
@@ -43,17 +46,15 @@ renderUML sd@StateDiagram{ substate, connection, startState } inherited =
 #{renderStart startState inherited}
 #{renderConnection hn connection inherited}|]
     _ -> error "not defined"
-renderUML _ _ = error "not defined"
 
-
-renderSubState :: [UMLStateDiagram] -> Inherited -> String
+renderSubState :: [StateDiagram Int [Connection Int]] -> Inherited -> String
 renderSubState [] _ = []
 renderSubState (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of
 
     StateDiagram{ label, name } ->
         [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{("N_" ++ (address "" (ctxt ++ [label])))}|]
-        ++ "{\n" ++ renderUML x Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
+        ++ "{\n" ++ renderUML (umlStateDiagram x) Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
 
     CombineDiagram{ substate, label } ->
         [i|state "RegionsState" as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "{\n"
@@ -75,12 +76,12 @@ renderSubState (x:xs) inherited@Inherited{ ctxt, connectionSources } =
         [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
   ++ renderSubState xs inherited
 
-renderRegions :: [UMLStateDiagram] -> Inherited -> String
+renderRegions :: [StateDiagram Int [Connection Int]] -> Inherited -> String
 renderRegions [] _ = []
 renderRegions (r:rs) inherited@Inherited{ ctxt, connectionSources } =
   case r of
     StateDiagram{ label } ->
-        renderUML r Inherited{ctxt=ctxt ++ [label], connectionSources}
+        renderUML (umlStateDiagram r) Inherited{ctxt=ctxt ++ [label], connectionSources}
         ++ if null rs then "" else "--\n"
 
     CombineDiagram{ substate, label } ->
@@ -110,7 +111,7 @@ renderStart target Inherited{ctxt} =
   in
     [i|[*] -> N_#{address "" here_target}|] ++ "\n"
 
-renderConnection :: [(UMLStateDiagram, [Int])] -> [Connection Int] -> Inherited -> String
+renderConnection :: [(StateDiagram Int [Connection Int], [Int])] -> [Connection Int] -> Inherited -> String
 renderConnection _ [] _ = []
 renderConnection [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt } =
   let
@@ -141,7 +142,7 @@ address :: String -> [Int] -> String
 address "" as = intercalate "_" (map show as)
 address h as = intercalate "_" (map show (init as)) ++ h
 
-getAllHistory :: [UMLStateDiagram] -> Inherited -> [(UMLStateDiagram, [Int])]
+getAllHistory :: [StateDiagram Int [Connection Int]] -> Inherited -> [(StateDiagram Int [Connection Int], [Int])]
 getAllHistory [] _ = []
 getAllHistory (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of

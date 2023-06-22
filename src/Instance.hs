@@ -10,6 +10,7 @@ import qualified Data.Set               as S (unions, mapMonotonic, union, toAsc
 import Datatype (
   localise,
   UMLStateDiagram,
+  umlStateDiagram,
   StateDiagram(..),
   Connection(..),
   HistoryType (..),
@@ -97,7 +98,7 @@ parseInstance
   :: (MonadError s m, IsString s)
   => String
   -> AlloyInstance
-  -> m UMLStateDiagram
+  -> m (UMLStateDiagram Int)
 parseInstance scope insta = do
   states <- getAs "NormalStates" State
   composites <- S.union
@@ -134,8 +135,8 @@ parseInstance scope insta = do
       getStart x = maybeToList (join $ M.lookup x startsMap) >>= pathTo
       stateDia = forestToStateDiagram getName getStart hierarchy'
       conns' = S.map (\(x, y, z) -> (pathTo x, pathTo y, z)) conns
-  return $ localise $
-    let (sd::UMLStateDiagram) = ([] <$ stateDia)
+  return $ umlStateDiagram . localise $
+    let (sd :: StateDiagram Int [Connection Int]) = ([] <$ stateDia)
     in
       case sd of
         StateDiagram{} -> sd { connection = uncurry3 Connection <$> S.toAscList conns' }

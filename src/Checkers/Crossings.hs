@@ -1,12 +1,12 @@
 module Checkers.Crossings ( checkCrossings ) where
 
 import Datatype (
-  UMLStateDiagram,
+  UMLStateDiagram(unUML),
   localise,
   )
 
-checkCrossings :: UMLStateDiagram -> Maybe String
-checkCrossings s = case connections s - connections (localise s) of
+checkCrossings :: UMLStateDiagram Int -> Maybe String
+checkCrossings s = case connections (unUML s) - connections (localise (unUML s)) of
   0 -> Nothing
   n -> Just $ "Has " ++ show n ++ " illegal crossing(s) between regions"
   where

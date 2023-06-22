@@ -6,7 +6,7 @@ module Checkers.Joint ( checkJoint ) where
 import Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram,
+  UMLStateDiagram(unUML),
   globalise,
   localise,
   )
@@ -14,7 +14,7 @@ import Datatype (
 import Checkers.Helpers (globalStart, notJoint)
 import Data.List.Extra
 
-checkJoint :: UMLStateDiagram -> Maybe String
+checkJoint :: UMLStateDiagram Int -> Maybe String
 checkJoint a
   | not (checkTransition a) =
       Just "transitions from/to some Joints are not in line with standards."
@@ -31,8 +31,8 @@ checkJoint a
     goIntoParallelRegions    x = checkParallelRegionConnections True x a
     comeOutOfParallelRegions x = checkParallelRegionConnections False x a
 
-checkManyToOne :: UMLStateDiagram -> Bool
-checkManyToOne s@StateDiagram{} =
+checkManyToOne :: UMLStateDiagram Int -> Bool
+checkManyToOne s =
    null (toMany `intersect` fromMany)
    && all (`notElem` toOnlyJoint) startOnlyJoint
    && all (`elem` fromMany) startOnlyJoint
@@ -40,7 +40,7 @@ checkManyToOne s@StateDiagram{} =
    && null fromNoConn
    && null (toOne `intersect` fromOne)
       where
-        global = globalise s
+        global = unUML $ globalise s
         sub    = substate global
         conn   = connection global
         start  = globalStart global
@@ -53,19 +53,18 @@ checkManyToOne s@StateDiagram{} =
         fromOne       = fromOnlyJoint \\fromMany
         toNoConn = nub fromOnlyJoint \\ nub toOnlyJoint
         fromNoConn = nub toOnlyJoint \\ nub fromOnlyJoint
-checkManyToOne _ = error "not defined"
 
 overOne :: [Int] -> [[Int]] -> Bool
 overOne a b =  length (filter ( a ==) b) > 1
 
-checkTransition :: UMLStateDiagram -> Bool
-checkTransition s@StateDiagram {} =
+checkTransition :: UMLStateDiagram Int -> Bool
+checkTransition s =
   all (`checkOutTran` fromOnlyJoint) fromOnlyJoint
   && all (`checkInTran` toOnlyJoint) toOnlyJoint
   && null (fromTranNonEmpty `intersect` toTranNonEmpty)
   && all (`notElem` fromTranNonEmpty) startOnlyJoint
     where
-      global = globalise s
+      global = unUML $ globalise s
       sub = substate global
       conn = connection global
       start  = globalStart global
@@ -74,7 +73,6 @@ checkTransition s@StateDiagram {} =
       startOnlyJoint = filter (not.(`notJoint` sub)) start
       fromTranNonEmpty = map pointFrom (filter (not.(`checkOutTranEmpty` fromOnlyJoint)) fromOnlyJoint)
       toTranNonEmpty = map pointTo (filter (not.(`checkInTranEmpty` toOnlyJoint)) toOnlyJoint)
-checkTransition _ = error "not defined"
 
 checkOutTran :: Eq a => Connection a -> [Connection a] -> Bool
 checkOutTran a b = null tranNotSame
@@ -94,13 +92,13 @@ checkOutTranEmpty a b = any (null.transition) (filter ((pointFrom a ==).pointFro
 checkInTranEmpty :: Eq a => Connection a -> [Connection a] -> Bool
 checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 
-checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram -> Bool
+checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram Int -> Bool
 checkParallelRegionConnections into l s = all null . localise $
                                             case g of
                                               StateDiagram{} -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
                                               _ -> error "not defined"
                                           where
-                                            g = globalise s
+                                            g = unUML $ globalise s
                                             insideCandidates = map inside . filter ((== l) . outside) $ connection g
                                             insides
                                              | xs@(_:_:_) <- insideCandidates = xs
@@ -109,10 +107,8 @@ checkParallelRegionConnections into l s = all null . localise $
                                              | into      = (pointFrom, pointTo)
                                              | otherwise = (pointTo, pointFrom)
 
-addressesOfJoints :: UMLStateDiagram -> [[Int]]
-addressesOfJoints s = case s of
-  StateDiagram {} -> map tail $ addressesOfJoints' s
-  _               -> []
+addressesOfJoints :: UMLStateDiagram Int -> [[Int]]
+addressesOfJoints s = map tail $ addressesOfJoints' (unUML s)
   where
     addressesOfJoints' Joint {label} = [[label]]
     addressesOfJoints' StateDiagram {label, substate}   =

@@ -6,13 +6,13 @@ module FlattenSpec (
 
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Datatype (StateDiagram(..), Connection (..), UMLStateDiagram)
+import Datatype (StateDiagram(..), Connection (..), UMLStateDiagram, umlStateDiagram)
 import Example (flatCase2, flatCase1)
 import Flatten (flatten)
 
-flatCase1Res :: UMLStateDiagram
+flatCase1Res :: UMLStateDiagram Int
 flatCase1Res
-  = StateDiagram {substate =
+  = umlStateDiagram $ StateDiagram {substate =
     [InnerMostState {label = 1, name = "A", operations = ""}
     ,InnerMostState {label = 2, name = "B", operations = ""}
     ,InnerMostState {label = 3, name = "C", operations = ""}
@@ -27,9 +27,9 @@ flatCase1Res
     ,Connection {pointFrom = [5], pointTo = [4], transition = "b"}]
     , startState = [1]}
 
-flatCase2Res :: UMLStateDiagram
+flatCase2Res :: UMLStateDiagram Int
 flatCase2Res
-  = StateDiagram {substate =
+  = umlStateDiagram $ StateDiagram {substate =
     [InnerMostState {label = 1, name = "A, D", operations = "\n"}
     ,InnerMostState {label = 3, name = "A, E", operations = "\n"}
     ,InnerMostState {label = 6, name = "B, D", operations = "\n"}

@@ -13,8 +13,8 @@ import Data.List.Index
 import Arrows
 import Support
 
-drawDiagram :: UMLStateDiagram -> Diagram B
-drawDiagram = drawWrapper' [] . orderFunction
+drawDiagram :: UMLStateDiagram Int -> Diagram B
+drawDiagram = drawWrapper' [] . orderFunction . unUML
 
 textBox :: String -> [String] -> [String]
 textBox a stringList
@@ -179,10 +179,10 @@ decideAndLayout a = if areaV < areaH then Vertical else Horizontal
     areaH = width (drawWrapper [] h) * height (drawWrapper [] h)
 -}
 
-getWrapper :: UMLStateDiagram -> Wrapper
+getWrapper :: StateDiagram Int [Connection Int] -> Wrapper
 getWrapper = toWrapper . localise
 
-toWrapper :: UMLStateDiagram -> Wrapper
+toWrapper :: StateDiagram Int [Connection Int] -> Wrapper
 toWrapper (EndState a ) = EndS a 0 NoConnection Unspecified
 toWrapper (History a b) = Hist a b 0 NoConnection Unspecified
 toWrapper (InnerMostState a b c) = Leaf a b c 0 NoConnection Unspecified
@@ -208,21 +208,21 @@ toWrapper s@StateDiagram {} = OrDecomposition toWrapper' (label s) (name s)
     convertedConnection = changeConnectionType newConnection toWrapper' []
     maxKey = maximum (Map.keys $ mapWithLabel $ substate s)
 
-createGraph :: Map.Map Int [Int] -> [UMLStateDiagram] -> [(UMLStateDiagram,
-  Int, [Int])] -> (Graph, Vertex -> (UMLStateDiagram, Int, [Int]), Int -> Maybe
+createGraph :: Map.Map Int [Int] -> [StateDiagram Int [Connection Int]] -> [(StateDiagram Int [Connection Int],
+  Int, [Int])] -> (Graph, Vertex -> (StateDiagram Int [Connection Int], Int, [Int]), Int -> Maybe
   Vertex)
 createGraph _ [] a = graphFromEdges a
 createGraph c1 (x:xs) a = createGraph c1 xs (a ++ [(x, label
   x, c1 Map.! label x)])
 
-returnNodeFromVertex :: [Int] -> (Graph, Vertex -> (UMLStateDiagram, Int, [Int]
-  ), Int -> Maybe Vertex) -> [UMLStateDiagram] -> [UMLStateDiagram]
+returnNodeFromVertex :: [Int] -> (Graph, Vertex -> (StateDiagram Int [Connection Int], Int, [Int]
+  ), Int -> Maybe Vertex) -> [StateDiagram Int [Connection Int]] -> [StateDiagram Int [Connection Int]]
 returnNodeFromVertex [] _ a = a
 returnNodeFromVertex (x:xs) graphFE listSD = returnNodeFromVertex xs graphFE
   (listSD ++ [getUMLStateDiagram x graphFE])
 
-nodeFromVertex :: [[Int]] -> (Graph, Vertex -> (UMLStateDiagram, Int, [Int]),
-  Int -> Maybe Vertex) -> [[UMLStateDiagram]] -> [[UMLStateDiagram]]
+nodeFromVertex :: [[Int]] -> (Graph, Vertex -> (StateDiagram Int [Connection Int], Int, [Int]),
+  Int -> Maybe Vertex) -> [[StateDiagram Int [Connection Int]]] -> [[StateDiagram Int [Connection Int]]]
 nodeFromVertex [] _ a = a
 nodeFromVertex (x:xs) graphFE listSD = nodeFromVertex xs graphFE (listSD ++
   [returnNodeFromVertex x graphFE []])
@@ -230,7 +230,7 @@ nodeFromVertex (x:xs) graphFE listSD = nodeFromVertex xs graphFE (listSD ++
 layering :: Forest Vertex -> [[Vertex]]
 layering = foldl (\ b x -> b ++ levels x) []
 
-convertUMLStateDiagramToWrapper :: [[UMLStateDiagram]] -> [[Wrapper]] ->
+convertUMLStateDiagramToWrapper :: [[StateDiagram Int [Connection Int]]] -> [[Wrapper]] ->
   [[Wrapper]]
 convertUMLStateDiagramToWrapper [] x = x
 convertUMLStateDiagramToWrapper (x:xs) layers =
@@ -390,7 +390,7 @@ connectionsByLayers (x:xs) layers connectionLayers =
           endLayer = findLayer b layers 0
     (_, _) -> connectionsByLayers xs layers connectionLayers
 
-startStateFirst :: UMLStateDiagram -> [Int] -> UMLStateDiagram
+startStateFirst :: StateDiagram Int [Connection Int] -> [Int] -> StateDiagram Int [Connection Int]
 startStateFirst a [] = a
 startStateFirst a@StateDiagram {} (x:xs) =
   StateDiagram (loopOrder : tail newOrder) (label a) (name a) (connection a)
@@ -405,7 +405,7 @@ startStateFirst a@CombineDiagram {} (x:xs) =
     loopOrder = startStateFirst (head newOrder) xs
 startStateFirst a _ = a
 
-rearrangeSubstate :: UMLStateDiagram -> UMLStateDiagram
+rearrangeSubstate :: StateDiagram Int [Connection Int] -> StateDiagram Int [Connection Int]
 rearrangeSubstate s@StateDiagram {} = case startState s of
   [] -> StateDiagram (fmap rearrangeSubstate (substate s)) (label s) (name s)
     (connection s) (startState s)
@@ -812,7 +812,7 @@ assignLength s@AndDecomposition {} = AndDecomposition (fmap assignLength (compon
   (layout s) (lengthXY s) (rightC s) (outerLayout s)
 assignLength s = s
 
-orderFunction :: UMLStateDiagram -> Wrapper
+orderFunction :: StateDiagram Int [Connection Int] -> Wrapper
 orderFunction a = loopEdgeRed 5 $
   modifyRightConnection $ assignLength $
   addDummy $
@@ -927,7 +927,7 @@ addCrossing2' layerBef fixedWrapper (b:xs) connectionList checkType totalCrossin
       getListLayerBef1, y <- getListLayerBef2]
 
 --checkWrapper
-checkWrapper :: UMLStateDiagram -> Maybe String
+checkWrapper :: StateDiagram Int [Connection Int] -> Maybe String
 checkWrapper a
   | not (checkOuterMostWrapper b) = Just ("Error: Outermost layer must be "
     ++ "'OrDecomposition' constructor")

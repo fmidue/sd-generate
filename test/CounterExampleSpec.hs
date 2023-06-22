@@ -1,9 +1,9 @@
 module CounterExampleSpec (spec) where
 
 import CounterExample
-import Checkers (checkRepresentation, checkStructure, checkCrossings, checkUniqueness, checkDrawability)
+import Checkers (checkStructure, checkCrossings, checkUniqueness, checkDrawability)
 import ExampleSpec (allTheCheckers)
-import Datatype (globalise, localise, UMLStateDiagram)
+import Datatype (globalise, localise, UMLStateDiagram(unUML), umlStateDiagram)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (forM_)
@@ -13,9 +13,6 @@ import Data.Tuple.Extra ((***))
 
 spec :: Spec
 spec = do
-  describe "checkRepresentation" $
-    it "rejects forCheckOuterMostLayer" $
-      checkRepresentation forCheckOuterMostLayer `shouldSatisfy` isJust
   counterExamplesOnlyFor "checkRepresentation"
      [  ("forCheckSubstateCD1", forCheckSubstateCD1)
        ,("forCheckSubstateCD2", forCheckSubstateCD2)
@@ -116,7 +113,7 @@ spec = do
     describe checkerName $
       it "isSuccessful for forCheckDrawability" $ checkerCode forCheckDrawability `shouldBe` Nothing
 
-counterExamplesOnlyFor :: String -> [(String, UMLStateDiagram)] -> Spec
+counterExamplesOnlyFor :: String -> [(String, UMLStateDiagram Int)] -> Spec
 counterExamplesOnlyFor theChecker theExamples = do
   let
     (negative, positives) = partition ((theChecker ==) . fst) allTheCheckersExceptForBlackbox
@@ -130,18 +127,18 @@ counterExamplesOnlyFor theChecker theExamples = do
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
           theExamples `passing` [checkStructure]
-          ++ map (("'localise' of " ++) *** localise) (theExamples `passing` [checkUniqueness, checkCrossings])
+          ++ map (("'localise' of " ++) *** (umlStateDiagram . localise . unUML)) (theExamples `passing` [checkUniqueness, checkCrossings])
           ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
       ]
   describe "localise/globalise" $ sequence_
-    [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (globalise code)) `shouldBe` fmap sort (localise code)
+    [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (unUML (globalise code))) `shouldBe` fmap sort (localise (unUML code))
     | (name, code) <- theExamples `passing` [checkUniqueness] ]
   describe "globalise/localise" $ sequence_
-    [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (globalise (localise code)) `shouldBe` fmap sort (globalise code)
+    [ it ("are each others' inverses in a sense, on " ++ name) $ (fmap sort . unUML) (globalise (umlStateDiagram (localise (unUML code)))) `shouldBe` (fmap sort . unUML) (globalise code)
     | (name, code) <- theExamples `passing` [checkCrossings] ]
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 
-allTheCheckersExceptForBlackbox :: [(String, UMLStateDiagram -> Maybe String)]
+allTheCheckersExceptForBlackbox :: [(String, UMLStateDiagram Int -> Maybe String)]
 allTheCheckersExceptForBlackbox =
   filter ((`notElem` ["checkWrapper", "checkDrawability"]) . fst) allTheCheckers

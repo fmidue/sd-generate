@@ -5,7 +5,7 @@
 
 module AlloyDiagrams (render) where
 
-import Datatype (UMLStateDiagram
+import Datatype (UMLStateDiagram(unUML)
                 ,StateDiagram(..)
                 ,Connection(..)
                 ,HistoryType(..)
@@ -37,8 +37,8 @@ data Synthesized = Synthesized
   , joinNodes :: Bool
   }
 
-render :: UMLStateDiagram -> String
-render (globalise -> StateDiagram{ substate, label, name, connection, startState }) =
+render :: UMLStateDiagram Int -> String
+render (unUML . globalise -> StateDiagram{ substate, label, name, connection, startState }) =
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
         renderInner renderNode substate
           Inherited {ctxt = [], nameMapping = nameMapping

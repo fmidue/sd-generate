@@ -2,7 +2,7 @@ module ExampleSpec (spec, allTheCheckers) where
 
 import Example (positiveExamples)
 import Checkers
-import Datatype (UMLStateDiagram, globalise)
+import Datatype (UMLStateDiagram(unUML), globalise)
 import Layout (checkWrapper)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
@@ -19,7 +19,7 @@ spec =
           ++ map (("'globalise' of " ++) *** globalise) positiveExamples
       ]
 
-allTheCheckers :: [(String, UMLStateDiagram -> Maybe String)]
+allTheCheckers :: [(String, UMLStateDiagram Int -> Maybe String)]
 allTheCheckers =
   [ ("checkRepresentation", checkRepresentation)
   , ("checkStructure", checkStructure)
@@ -30,6 +30,6 @@ allTheCheckers =
   , ("checkJoint", checkJoint)
   , ("checkHistory", checkHistory)
   , ("checkSemantics", checkSemantics)
-  , ("checkWrapper", checkWrapper)
+  , ("checkWrapper", checkWrapper . unUML)
   , ("checkDrawability", checkDrawability)
   ]
