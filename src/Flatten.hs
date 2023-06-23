@@ -80,10 +80,11 @@ rewire connections address initial inner
     concatMap (updateCompoundExits address []) connections
 
 updateByRule :: Either Int Int -> [Either Int Int] -> [Either Int Int] -> [Either Int Int]
-updateByRule (Left address) initial ((Left x):xs)
+updateByRule address initial (x:xs)
   | x == address = xs
-updateByRule (Left address) initial [Left x]
+updateByRule address initial [x]
   | x == address = initial
+updateByRule _ _ labels = labels
 
 updateLifted :: Either Int Int -> [Either Int Int] -> FlatConnection -> FlatConnection
 updateLifted address initial c@(Connection{pointFrom,pointTo})
