@@ -80,10 +80,13 @@ rewire connections address initial
         , pointTo = update (pointFrom c)
         } |c@Connection{} <- connections ]
     where
-    update x {- update con if begins or ends at old sd address -}
-      = if length x > 1 && address == head x
-        then map (\case Left y -> Right y) (tail x)
-        else x
+    update x = map (\case Left y -> Right y) $ updateByRule address initial x
+
+updateByRule :: Either Int Int -> [Either Int Int] -> [Either Int Int] -> [Either Int Int]
+updateByRule (Left address) initial ((Left x):xs)
+  | x == address = xs
+updateByRule (Left address) initial [Left x]
+  | x == address = initial
 
 type FlatConnection = Connection (Either Int Int)
 
