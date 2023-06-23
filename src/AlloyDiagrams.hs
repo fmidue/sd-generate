@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# OPTIONS_GHC -Wno-error=missing-fields -Wno-error=incomplete-patterns -Wno-error=missing-signatures -Wno-error=type-defaults -Wno-error=name-shadowing #-}
 {-# Language QuasiQuotes #-}
 {-# Language NamedFieldPuns #-}
@@ -6,7 +5,8 @@
 
 module AlloyDiagrams (render) where
 
-import Datatype (UMLStateDiagram(unUML')
+import Datatype (UMLStateDiagram
+                ,unUML
                 ,StateDiagram(..)
                 ,Connection(..)
                 ,HistoryType(..)
@@ -38,8 +38,9 @@ data Synthesized = Synthesized
   , joinNodes :: Bool
   }
 
-render :: UMLStateDiagram Int -> String
-render (unUML' . globalise -> StateDiagram{ substate, label, name, connection, startState }) =
+render :: Int -> UMLStateDiagram Int -> String
+render protoFlowScope =
+  unUML (\name substate connection startState ->
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
         renderInner renderNode substate
           Inherited {ctxt = [], nameMapping = nameMapping
@@ -66,7 +67,7 @@ render (unUML' . globalise -> StateDiagram{ substate, label, name, connection, s
         , (not forkNodes, "ForkNodes")
         , (not joinNodes, "JoinNodes") ]
   in
-  [i|module diagram // name: #{show name}, (irrelevant) label: #{show label}
+  [i|module diagram // name: #{show name}
 open uml_state_diagram
 #{if null startState then "" else renderStart ("S", startState)}
 #{alloy}
@@ -74,9 +75,10 @@ open uml_state_diagram
 #{unlines nameOutput}
 #{unlines transitionOutput}
 run {} for
- #{nullScopes} #{show label} ProtoFlows, exactly #{show numberOfFlows} Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+ #{nullScopes} #{show protoFlowScope} ProtoFlows, exactly #{show numberOfFlows} Flows
 |]
-render _ = error "not defined"
+        )
+  . globalise
 
 renderStart :: (String, [Int]) -> String
 renderStart (start, target) = [i|one sig #{start} extends StartNodes{}
