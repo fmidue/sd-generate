@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-error=incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.Joint ( checkJoint ) where
@@ -6,7 +7,8 @@ module Checkers.Joint ( checkJoint ) where
 import Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram(unUML'),
+  unUML,
   globalise,
   localise,
   )
@@ -40,7 +42,7 @@ checkManyToOne s =
    && null fromNoConn
    && null (toOne `intersect` fromOne)
       where
-        global = unUML $ globalise s
+        global = unUML' $ globalise s
         sub    = substate global
         conn   = connection global
         start  = globalStart global
@@ -64,7 +66,7 @@ checkTransition s =
   && null (fromTranNonEmpty `intersect` toTranNonEmpty)
   && all (`notElem` fromTranNonEmpty) startOnlyJoint
     where
-      global = unUML $ globalise s
+      global = unUML' $ globalise s
       sub = substate global
       conn = connection global
       start  = globalStart global
@@ -98,7 +100,7 @@ checkParallelRegionConnections into l s = all null . localise $
                                               StateDiagram{} -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
                                               _ -> error "not defined"
                                           where
-                                            g = unUML $ globalise s
+                                            g = unUML' $ globalise s
                                             insideCandidates = map inside . filter ((== l) . outside) $ connection g
                                             insides
                                              | xs@(_:_:_) <- insideCandidates = xs
@@ -108,7 +110,7 @@ checkParallelRegionConnections into l s = all null . localise $
                                              | otherwise = (pointTo, pointFrom)
 
 addressesOfJoints :: UMLStateDiagram Int -> [[Int]]
-addressesOfJoints s = map tail $ addressesOfJoints' (unUML s)
+addressesOfJoints = unUML (\_ substate _ _ -> concatMap addressesOfJoints' substate)
   where
     addressesOfJoints' Joint {label} = [[label]]
     addressesOfJoints' StateDiagram {label, substate}   =

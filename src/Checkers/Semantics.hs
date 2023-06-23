@@ -4,8 +4,8 @@ module Checkers.Semantics ( checkSemantics ) where
 
 import Datatype (
   Connection(..),
-  StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram,
+  unUML,
   globalise,
   )
 
@@ -21,19 +21,21 @@ checkSemantics a
       Nothing
 
 checkSameConnection :: UMLStateDiagram Int -> Bool
-checkSameConnection s =
-                        all (`checkSameOutTran` withoutJoint) withoutJoint
-                        where
-                          global = unUML $ globalise s
-                          sub = substate global
-                          conn = connection global
-                          withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
+checkSameConnection =
+  unUML (\_ sub conn _ ->
+           let
+             withoutJoint = filter ((`notJoint` sub) . pointFrom) conn
+           in
+             all (`checkSameOutTran` withoutJoint) withoutJoint
+        )
+  . globalise
 
 checkEmptyTran :: UMLStateDiagram Int -> Bool
-checkEmptyTran s =
-                         all (`checkEmptyOutTran` withoutJoint) withoutJoint
-                        where
-                             global = unUML $ globalise s
-                             sub = substate global
-                             conn = connection global
-                             withoutJoint = filter ((`notJoint ` sub).pointFrom) conn
+checkEmptyTran =
+  unUML (\_ sub conn _ ->
+           let
+             withoutJoint = filter ((`notJoint` sub) . pointFrom) conn
+           in
+             all (`checkEmptyOutTran` withoutJoint) withoutJoint
+         )
+  . globalise

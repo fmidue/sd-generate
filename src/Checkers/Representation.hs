@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.Representation ( checkRepresentation ) where
@@ -5,24 +6,24 @@ module Checkers.Representation ( checkRepresentation ) where
 import Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram(unUML'),
   )
 
 import Checkers.Helpers (getSubstate, lastSecNotCD)
 
 checkRepresentation :: UMLStateDiagram Int -> Maybe String
 checkRepresentation a
-  | not (checkSubstateCD $ unUML a) =
+  | not (checkSubstateCD $ unUML' a) =
       Just "Error: CombineDiagram constructor must contain at least 2 StateDiagram and no other type of constructor"
-  | not (checkEmptyConnPoint $ unUML a) =
+  | not (checkEmptyConnPoint $ unUML' a) =
       Just "Error: Neither the pointFrom nor the pointTo of a connection is an empty list"
-  | not (checkSubC $ unUML a) =
+  | not (checkSubC $ unUML' a) =
       Just "Error: Connection Points"
-  | not (checkConnFromToRegion $ unUML a) =
+  | not (checkConnFromToRegion $ unUML' a) =
       Just "connections from/to regions themselves"
-  | not (checkSubS $ unUML a) =
+  | not (checkSubS $ unUML' a) =
       Just "Error: invalid start state"
-  | not (checkStartToRegion $ unUML a) =
+  | not (checkStartToRegion $ unUML' a) =
       Just "Start to regions themselves"
   | otherwise =
       Nothing

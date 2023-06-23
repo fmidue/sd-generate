@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.EndState ( checkEndState ) where
@@ -5,14 +6,14 @@ module Checkers.EndState ( checkEndState ) where
 import Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram(unUML'),
   )
 
 import Checkers.Helpers (isNotEnd)
 
 checkEndState :: UMLStateDiagram Int -> Maybe String
 checkEndState a
-  | not (checkEndOutEdges $ unUML a) =
+  | not (checkEndOutEdges $ unUML' a) =
       Just "Error: no EndState should have outgoing edges"
   | otherwise =
       Nothing

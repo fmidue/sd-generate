@@ -1,9 +1,11 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
+
 module CounterExampleSpec (spec) where
 
 import CounterExample
 import Checkers (checkStructure, checkCrossings, checkUniqueness, checkDrawability)
 import ExampleSpec (allTheCheckers)
-import Datatype (globalise, localise, UMLStateDiagram(unUML), umlStateDiagram)
+import Datatype (globalise, localise, UMLStateDiagram(unUML'), umlStateDiagram)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
 import Control.Monad (forM_)
@@ -127,14 +129,14 @@ counterExamplesOnlyFor theChecker theExamples = do
       [ it ("isSuccessful for " ++ name) $ checkerCode code `shouldBe` Nothing
       | (name, code) <-
           theExamples `passing` [checkStructure]
-          ++ map (("'localise' of " ++) *** (umlStateDiagram . localise . unUML)) (theExamples `passing` [checkUniqueness, checkCrossings])
+          ++ map (("'localise' of " ++) *** (umlStateDiagram . localise . unUML')) (theExamples `passing` [checkUniqueness, checkCrossings])
           ++ map (("'globalise' of " ++) *** globalise) (theExamples `passing` [checkUniqueness])
       ]
   describe "localise/globalise" $ sequence_
-    [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (unUML (globalise code))) `shouldBe` fmap sort (localise (unUML code))
+    [ it ("are each others' inverses in a sense, on " ++ name) $ fmap sort (localise (unUML' (globalise code))) `shouldBe` fmap sort (localise (unUML' code))
     | (name, code) <- theExamples `passing` [checkUniqueness] ]
   describe "globalise/localise" $ sequence_
-    [ it ("are each others' inverses in a sense, on " ++ name) $ (fmap sort . unUML) (globalise (umlStateDiagram (localise (unUML code)))) `shouldBe` (fmap sort . unUML) (globalise code)
+    [ it ("are each others' inverses in a sense, on " ++ name) $ (fmap sort . unUML') (globalise (umlStateDiagram (localise (unUML' code)))) `shouldBe` (fmap sort . unUML') (globalise code)
     | (name, code) <- theExamples `passing` [checkCrossings] ]
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)

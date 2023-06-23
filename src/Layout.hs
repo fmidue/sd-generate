@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
+
 module Layout
   ( drawDiagram
   , checkWrapper
@@ -14,7 +16,7 @@ import Arrows
 import Support
 
 drawDiagram :: UMLStateDiagram Int -> Diagram B
-drawDiagram = drawWrapper' [] . orderFunction . unUML
+drawDiagram = drawWrapper' [] . orderFunction . unUML'
 
 textBox :: String -> [String] -> [String]
 textBox a stringList

@@ -3,7 +3,8 @@ import Datatype (
   Connection(..),
   HistoryType(..),
   StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram,
+  unUML,
   umlStateDiagram,
   globalise
   )
@@ -166,8 +167,8 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
        else return []
   let connsExtraJoint = concat connsExtraJoint1
       innerElemNoRegionsJointSDCD = filter (not.(`isSDCD` subs)) innerElemNoRegionsJoint
-      globalConns  = connection (unUML (globalise (umlStateDiagram (StateDiagram subs l nm (conns++ connsExtraJoint) []))))
-      toElem       = map pointTo globalConns
+      toElem = unUML (\_ _ conn _ -> map pointTo conn)
+        $ globalise (umlStateDiagram (StateDiagram subs l nm (conns ++ connsExtraJoint) []))
       reachableStates = toElem ++ globalStarts
       unreachedStates = (layerElemNoJoint ++ innerElemNoRegionsJointSDCD) \\ reachableStates
   connsExtra

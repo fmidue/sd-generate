@@ -12,8 +12,9 @@
 module Flatten (
   flatten
 ) where
-import Datatype (UMLStateDiagram(unUML)
+import Datatype (UMLStateDiagram
                 ,umlStateDiagram
+                ,unUML
                 ,StateDiagram(..)
                 ,globalise
                 ,Connection(..)
@@ -30,13 +31,10 @@ deriving via GenericFunctor UMLStateDiagram instance Functor UMLStateDiagram
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
-  = umlStateDiagram . fromFlat $ lift diagram
-    where
-    diagram = toFlat $ globalise d
-
-lift :: FlatDiagram -> FlatDiagram
-lift x@(StateDiagram{substate,connection})
-  = case target x of
+ = umlStateDiagram . fromFlat $ unUML lift (fmap Left (globalise d))
+   where
+   lift name substate connection outerStartState =
+    case target substate of
      Just StateDiagram { label
                        , startState
                        , substate = inner }
@@ -44,7 +42,11 @@ lift x@(StateDiagram{substate,connection})
           address = label
           initial = map (\(Left y) -> Right y) startState
           in
-          x { substate
+          StateDiagram
+            { name = name
+            , startState = outerStartState
+            , label = Left $ error "There seems no good reason why this outermost label should be relevant."
+            , substate
                 = inner ++
                   filter (\case
                             InnerMostState {}
@@ -57,11 +59,9 @@ lift x@(StateDiagram{substate,connection})
 
 {- we could use a Maybe to handle the possiblity of a reduced scenario1
    i.e. no hierarchical states at all to avoid failing there            -}
-target :: FlatDiagram -> Maybe FlatDiagram
-target
-  = \case
-      (StateDiagram {substate})
-        -> let
+target :: [FlatDiagram] -> Maybe FlatDiagram
+target substate
+         = let
            sd = filter (\case
                    StateDiagram {}
                      -> True
@@ -78,10 +78,6 @@ rewire r _ _
 type FlatConnection = Connection (Either Int Int)
 
 type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
-
-toFlat :: UMLStateDiagram Int -> FlatDiagram
-toFlat
-  = unUML . fmap Left
 
 fromFlat :: FlatDiagram -> StateDiagram Int [Connection Int]
 fromFlat =

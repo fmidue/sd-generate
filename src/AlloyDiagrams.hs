@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# OPTIONS_GHC -Wno-error=missing-fields -Wno-error=incomplete-patterns -Wno-error=missing-signatures -Wno-error=type-defaults -Wno-error=name-shadowing #-}
 {-# Language QuasiQuotes #-}
 {-# Language NamedFieldPuns #-}
@@ -5,7 +6,7 @@
 
 module AlloyDiagrams (render) where
 
-import Datatype (UMLStateDiagram(unUML)
+import Datatype (UMLStateDiagram(unUML')
                 ,StateDiagram(..)
                 ,Connection(..)
                 ,HistoryType(..)
@@ -38,7 +39,7 @@ data Synthesized = Synthesized
   }
 
 render :: UMLStateDiagram Int -> String
-render (unUML . globalise -> StateDiagram{ substate, label, name, connection, startState }) =
+render (unUML' . globalise -> StateDiagram{ substate, label, name, connection, startState }) =
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
         renderInner renderNode substate
           Inherited {ctxt = [], nameMapping = nameMapping

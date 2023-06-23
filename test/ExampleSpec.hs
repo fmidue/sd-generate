@@ -1,8 +1,10 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
+
 module ExampleSpec (spec, allTheCheckers) where
 
 import Example (positiveExamples)
 import Checkers
-import Datatype (UMLStateDiagram(unUML), globalise)
+import Datatype (UMLStateDiagram(unUML'), globalise)
 import Layout (checkWrapper)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
@@ -30,6 +32,6 @@ allTheCheckers =
   , ("checkJoint", checkJoint)
   , ("checkHistory", checkHistory)
   , ("checkSemantics", checkSemantics)
-  , ("checkWrapper", checkWrapper . unUML)
+  , ("checkWrapper", checkWrapper . unUML')
   , ("checkDrawability", checkDrawability)
   ]

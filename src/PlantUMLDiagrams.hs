@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# OPTIONS_GHC -Wno-error=missing-fields -Wno-error=incomplete-patterns -Wno-error=incomplete-uni-patterns -Wno-error=missing-signatures -Wno-error=type-defaults -Wno-error=name-shadowing #-}
 {-# Language QuasiQuotes    #-}
 {-# Language NamedFieldPuns #-}
@@ -5,7 +6,7 @@
 
 module PlantUMLDiagrams (renderAll) where
 
-import Datatype (UMLStateDiagram(unUML)
+import Datatype (UMLStateDiagram(unUML')
                 ,umlStateDiagram
                 ,StateDiagram(..)
                 ,Connection(..)
@@ -22,7 +23,7 @@ renderAll :: UMLStateDiagram Int -> String
 renderAll sd =
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
-    StateDiagram{ connection=connection } = unUML sd
+    StateDiagram{ connection=connection } = unUML' sd
     inherited = Inherited{ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connection}
   in
     [i|@startuml
@@ -35,9 +36,9 @@ renderAll sd =
 renderUML :: UMLStateDiagram Int -> Inherited -> String
 renderUML sd inherited =
   let
-    StateDiagram{ substate, connection, startState } = unUML sd
+    StateDiagram{ substate, connection, startState } = unUML' sd
   in
-  case unUML (globalise sd) of
+  case unUML' (globalise sd) of
     StateDiagram subst _ _ _ _ ->   let substate1 = subst
                                         hn = getAllHistory substate1 inherited
                                     in

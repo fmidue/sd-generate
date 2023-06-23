@@ -20,8 +20,9 @@ module Checkers.Helpers (
 import Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram,
   umlStateDiagram,
+  unUML,
   globalise
   )
 
@@ -46,11 +47,9 @@ getSameFromTran (x:xs) CombineDiagram{label,substate}
 getSameFromTran _ _ = []
 
 getSameFromTran1 :: [Int] -> UMLStateDiagram Int -> [String]
-getSameFromTran1 x s
-  = map transition (filter ((== x).pointFrom) conn)
-      where
-          global = unUML $ globalise s
-          conn   = connection global
+getSameFromTran1 x
+  = unUML (\_ _ conn _ -> map transition (filter ((== x) . pointFrom) conn))
+    . globalise
 
 inCompoundState :: [Int] -> [Int] -> Bool
 inCompoundState a b = init (take (length a) b) == init a

@@ -12,8 +12,9 @@ module Datatype
   , Connection(..)
   , ConnectionType(..)
   , HistoryType(..)
-  , UMLStateDiagram(unUML)
+  , UMLStateDiagram(unUML')
   , umlStateDiagram
+  , unUML
   , Layout(..)
   , RightConnect(..)
   , StateDiagram(..)
@@ -114,8 +115,19 @@ data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
 data HistoryType = Shallow | Deep
   deriving (Eq, Ord, Read, Show)
 
-newtype UMLStateDiagram l = UMLStateDiagram {unUML :: StateDiagram l [Connection l]}
+{-# DEPRECATED unUML' "Use unUML instead" #-}
+newtype UMLStateDiagram l = UMLStateDiagram {unUML' :: StateDiagram l [Connection l]}
   deriving (Eq, Show, Generic)
+
+unUML ::
+  (String ->
+   [StateDiagram a [Connection a]] ->
+   [Connection a] ->
+   [a] ->
+   b)
+  -> UMLStateDiagram a -> b
+unUML c (UMLStateDiagram StateDiagram{substate, name, connection, startState}) = c name substate connection startState
+unUML _ _ = error "should never happen"
 
 umlStateDiagram :: StateDiagram Int [Connection Int] -> UMLStateDiagram Int
 umlStateDiagram s@StateDiagram{} = UMLStateDiagram s

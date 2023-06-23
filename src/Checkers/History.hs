@@ -4,8 +4,8 @@ module Checkers.History ( checkHistory ) where
 
 import Datatype (
   Connection(..),
-  StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram,
+  unUML,
   globalise,
   )
 
@@ -21,16 +21,15 @@ checkHistory a
       Nothing
 
 checkEdge :: Bool -> UMLStateDiagram Int -> Bool
-checkEdge out s =
-  if out then
-    all (\Connection{pointFrom, pointTo} ->
-            inCompoundState pointFrom pointTo)
-    $ filter (not.(`notHistory` sub).pointFrom) conn
-  else
-    all (\Connection{pointFrom, pointTo} ->
-            not (inCompoundState pointTo pointFrom))
-    $ filter (not.(`notHistory` sub).pointTo) conn
-  where
-    global = unUML $ globalise s
-    sub    = substate global
-    conn   = connection global
+checkEdge out =
+  unUML (\_ sub conn _ ->
+           if out then
+             all (\Connection{pointFrom, pointTo} ->
+                    inCompoundState pointFrom pointTo)
+           $ filter (not . (`notHistory` sub) . pointFrom) conn
+           else
+             all (\Connection{pointFrom, pointTo} ->
+                    not (inCompoundState pointTo pointFrom))
+           $ filter (not . (`notHistory` sub) . pointTo) conn
+        )
+  . globalise

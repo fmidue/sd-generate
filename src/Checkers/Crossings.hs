@@ -1,12 +1,14 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
+
 module Checkers.Crossings ( checkCrossings ) where
 
 import Datatype (
-  UMLStateDiagram(unUML),
+  UMLStateDiagram(unUML'),
   localise,
   )
 
 checkCrossings :: UMLStateDiagram Int -> Maybe String
-checkCrossings s = case connections (unUML s) - connections (localise (unUML s)) of
+checkCrossings s = case connections (unUML' s) - connections (localise (unUML' s)) of
   0 -> Nothing
   n -> Just $ "Has " ++ show n ++ " illegal crossing(s) between regions"
   where

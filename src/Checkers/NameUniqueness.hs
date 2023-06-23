@@ -1,10 +1,11 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Checkers.NameUniqueness ( checkNameUniqueness ) where
 
 import Datatype (
   StateDiagram(..),
-  UMLStateDiagram(unUML),
+  UMLStateDiagram(unUML'),
   Connection,
   )
 
@@ -12,9 +13,9 @@ import Data.List.Extra
 
 checkNameUniqueness :: UMLStateDiagram Int -> Maybe String
 checkNameUniqueness a
-  | not (checkSubNameUniq $ unUML a) =
+  | not (checkSubNameUniq $ unUML' a) =
       Just "Error: At the same layer name Uniqueness is not fulfilled"
-  | not (checkSDNameUniq $ unUML a) =
+  | not (checkSDNameUniq $ unUML' a) =
       Just "Error: In each StateDiagram, the name (if not empty) should be different from all names found arbitrarily deep inside the substates."
   | otherwise =
       Nothing
