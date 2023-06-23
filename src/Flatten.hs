@@ -46,7 +46,6 @@ flatten d
             { name = name
             , startState = outerStartState
             , label = Left $ error "There seems no good reason why this outermost label should be relevant."
-                                   {- if no label is assigned at conversion, rendering will be difficult though -}
             , substate
                 = map (\i@InnerMostState{ name = innerName
                                         , label = Left innerLabel }
@@ -63,8 +62,6 @@ flatten d
      Nothing
        -> error "scenario1 expects at least one hierarchical state"
 
-{- we could use a Maybe to handle the possiblity of a reduced scenario1
-   i.e. no hierarchical states at all to avoid failing there            -}
 target :: [FlatDiagram] -> Maybe FlatDiagram
 target substate
          = let
@@ -78,8 +75,15 @@ target substate
            else Nothing
 
 rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatConnection]
-rewire r _ _
-  = r
+rewire connections address initial
+  = [ c { pointFrom = update (pointFrom c)
+        , pointTo = update (pointFrom c)
+        } |c@Connection{} <- connections ]
+    where
+    update x {- update con if begins or ends at old sd address -}
+      = if length x > 1 && address == head x
+        then map (\case Left y -> Right y) (tail x)
+        else x
 
 type FlatConnection = Connection (Either Int Int)
 
