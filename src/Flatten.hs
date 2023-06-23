@@ -1,10 +1,7 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE StandaloneDeriving, DerivingVia #-}
 {-# LANGUAGE NamedFieldPuns            #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE LambdaCase #-}
-{-# OPTIONS_GHC -Wno-unused-imports #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Flatten (
@@ -17,11 +14,6 @@ import Datatype (UMLStateDiagram
                 ,globalise
                 ,Connection(..)
                 )
-import Data.List(groupBy
-                ,sortBy
-                ,sort)
-import Data.Bifunctor(bimap
-                     ,Bifunctor(second, first))
 
 import Generic.Functor (GenericFunctor(..))
 
