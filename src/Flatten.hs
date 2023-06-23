@@ -46,8 +46,14 @@ flatten d
             { name = name
             , startState = outerStartState
             , label = Left $ error "There seems no good reason why this outermost label should be relevant."
+                                   {- if no label is assigned at conversion, rendering will be difficult though -}
             , substate
-                = inner ++
+                = map (\i@InnerMostState{ name = innerName
+                                        , label = Left innerLabel }
+                    -> i { name = name ++ " , " ++ innerName
+                         , label = Right innerLabel }
+                      ) inner
+                  ++
                   filter (\case
                             InnerMostState {}
                               -> True
@@ -81,7 +87,7 @@ type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
 
 fromFlat :: FlatDiagram -> StateDiagram Int [Connection Int]
 fromFlat =
-        (\case
+        \case
             (StateDiagram { label = Right newLabel
                           , substate
                           , name
@@ -100,4 +106,3 @@ fromFlat =
                                  , name = name
                                  , operations = operations })
             _ -> error "not supported"
-         )
