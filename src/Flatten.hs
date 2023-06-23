@@ -49,7 +49,7 @@ flatten d
             , substate
                 = map (\i@InnerMostState{ name = innerName
                                         , label = Left innerLabel }
-                    -> i { name = name ++ " , " ++ innerName
+                    -> i { name = name ++ "_" ++ innerName
                          , label = Right innerLabel }
                       ) inner
                   ++
@@ -58,7 +58,7 @@ flatten d
                               -> True
                             _ -> False
                          ) substate
-            , connection = rewire connection address initial }
+            , connection = rewire connection address initial inner }
      Nothing
        -> error "scenario1 expects at least one hierarchical state"
 
@@ -74,19 +74,32 @@ target substate
            then Just (head sd)
            else Nothing
 
-rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatConnection]
-rewire connections address initial
-  = [ c { pointFrom = update (pointFrom c)
-        , pointTo = update (pointFrom c)
-        } |c@Connection{} <- connections ]
-    where
-    update x = map (\case Left y -> Right y) $ updateByRule address initial x
+rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatDiagram] -> [FlatConnection]
+rewire connections address initial inner
+  = map (updateLifted address initial) $
+    concatMap (updateCompoundExits address []) connections
 
 updateByRule :: Either Int Int -> [Either Int Int] -> [Either Int Int] -> [Either Int Int]
 updateByRule (Left address) initial ((Left x):xs)
   | x == address = xs
 updateByRule (Left address) initial [Left x]
   | x == address = initial
+
+updateLifted :: Either Int Int -> [Either Int Int] -> FlatConnection -> FlatConnection
+updateLifted address initial c@(Connection{pointFrom,pointTo})
+  = c { pointFrom = updateByRule address initial pointFrom
+      , pointTo = updateByRule address initial pointTo }
+
+updateCompoundExits :: Either Int Int -> [FlatDiagram] -> FlatConnection -> [FlatConnection]
+updateCompoundExits address inner c@Connection{ pointFrom
+                                              , pointTo
+                                              , transition }
+  | pointFrom == [address]
+  = [ Connection { pointFrom = [label]
+                 , pointTo = pointTo
+                 , transition = transition
+                 } | i@InnerMostState{label} <- inner ]
+  | otherwise = [c]
 
 type FlatConnection = Connection (Either Int Int)
 
