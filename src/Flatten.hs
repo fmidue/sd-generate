@@ -5,8 +5,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
-{-# OPTIONS_GHC -Wno-unused-matches #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Flatten (
@@ -45,7 +43,8 @@ flatten d
           StateDiagram
             { name = name
             , startState = outerStartState
-            , label = Left $ error "There seems no good reason why this outermost label should be relevant."
+            , -- label = Left $ error "There seems no good reason why this outermost label should be relevant."
+              label = Left 999 {- dirty workaround for bad conversion impl. that would crash on error function because it does access this field/function -}
             , substate
                 = map (\i@InnerMostState{ name = innerName
                                         , label = Left innerLabel }
@@ -59,6 +58,8 @@ flatten d
                             _ -> False
                          ) substate
             , connection = rewire connection address initial inner }
+     Just _
+       -> error "we dont exepect anything else than StateDiagram or Nothing here"
      Nothing
        -> error "scenario1 expects at least one hierarchical state"
 
@@ -77,14 +78,18 @@ target substate
 rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatDiagram] -> [FlatConnection]
 rewire connections address initial inner
   = map (updateLifted address initial) $
-    concatMap (updateCompoundExits address []) connections
+    concatMap (updateCompoundExits address inner) connections
 
 updateByRule :: Either Int Int -> [Either Int Int] -> [Either Int Int] -> [Either Int Int]
-updateByRule address initial (x:xs)
-  | x == address = fmap (\case Left y -> Right y) xs {- labels changed must be right now -}
 updateByRule address initial [x]
-  | x == address = fmap (\case Left y -> Right y) initial {- initials should be right because they have been lifted -}
-updateByRule _ _ labels = labels {- otherwise dont touch and leave as is -}
+  | x == address = map (\case
+                          Left y -> Right y
+                          Right y -> Right y) initial
+updateByRule address _ (x:xs)
+  | x == address = map (\case
+                          Left y -> Right y
+                          _ -> error "input should be Left" ) xs
+updateByRule _ _ labels = labels
 
 updateLifted :: Either Int Int -> [Either Int Int] -> FlatConnection -> FlatConnection
 updateLifted address initial c@(Connection{pointFrom,pointTo})
@@ -96,10 +101,13 @@ updateCompoundExits address inner c@Connection{ pointFrom
                                               , pointTo
                                               , transition }
   | pointFrom == [address]
-  = [ Connection { pointFrom = [label]
+  = [ Connection { pointFrom
+                     = [(\case
+                           Left y -> Right y
+                           _ -> error "input should be Left" ) label]
                  , pointTo = pointTo
                  , transition = transition
-                 } | i@InnerMostState{label} <- inner ]
+                 } | InnerMostState{label} <- inner ]
   | otherwise = [c]
 
 type FlatConnection = Connection (Either Int Int)
@@ -109,21 +117,37 @@ type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
 fromFlat :: FlatDiagram -> StateDiagram Int [Connection Int]
 fromFlat =
         \case
-            (StateDiagram { label = Right newLabel
+            (StateDiagram { label = newLabel
                           , substate
                           , name
                           , connection
                           , startState })
-              -> (StateDiagram { label = newLabel
+              -> (StateDiagram { label
+                                   = (\case
+                                        Right x -> x
+                                        Left x -> x
+                                     ) newLabel
                                , substate = map fromFlat substate
                                , name = name
-                               , connection = map (fmap (\case Left x -> x)) connection
-                               , startState = map (\case Left x -> x) startState
+                               , connection
+                                   = map (fmap (\case
+                                                  Left x -> x
+                                                  Right x -> x)
+                                        ) connection
+                               , startState
+                                   = map (\case
+                                            Left x -> x
+                                            Right x -> x
+                                         ) startState
                                })
-            (InnerMostState { label = Right newLabel
+            (InnerMostState { label = newLabel
                             , name
                             , operations })
-              -> (InnerMostState { label = newLabel
+              -> (InnerMostState { label
+                                     = (\case
+                                          Right x -> x
+                                          Left x -> x
+                                       ) newLabel
                                  , name = name
                                  , operations = operations })
             _ -> error "not supported"
