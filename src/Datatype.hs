@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric             #-}
 {-# LANGUAGE DeriveTraversable         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE FlexibleContexts          #-}
@@ -20,6 +21,8 @@ module Datatype
   , localise
   , hoistOutwards
   ) where
+
+import GHC.Generics (Generic)
 
 import Data.Bifunctor.TH (
   deriveBifoldable,
@@ -112,9 +115,9 @@ data HistoryType = Shallow | Deep
   deriving (Eq, Ord, Read, Show)
 
 newtype UMLStateDiagram l = UMLStateDiagram {unUML :: StateDiagram l [Connection l]}
-  deriving (Eq, Show)
+  deriving (Eq, Show, Generic)
 
-umlStateDiagram :: StateDiagram a [Connection a] -> UMLStateDiagram a
+umlStateDiagram :: StateDiagram Int [Connection Int] -> UMLStateDiagram Int
 umlStateDiagram s@StateDiagram{} = UMLStateDiagram s
 umlStateDiagram _ = error "should never happen"
 

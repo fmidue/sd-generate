@@ -4,6 +4,7 @@ extra-source-files: [ ]
 dependencies:
   - base
   - bifunctors
+  - generic-functor
   - bytestring
   - call-alloy
   - call-plantuml

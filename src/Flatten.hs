@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE StandaloneDeriving, DerivingVia #-}
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE LambdaCase #-}
@@ -23,8 +24,9 @@ import Data.List(groupBy
 import Data.Bifunctor(bimap
                      ,Bifunctor(second, first))
 
-instance Functor UMLStateDiagram where
-  fmap f = umlStateDiagram . bimap f (map (fmap f)) . unUML
+import Generic.Functor (GenericFunctor(..))
+
+deriving via GenericFunctor UMLStateDiagram instance Functor UMLStateDiagram
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
