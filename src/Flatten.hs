@@ -2,7 +2,6 @@
 {-# LANGUAGE StandaloneDeriving, DerivingVia #-}
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE LambdaCase #-}
-{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 
 module Flatten (
   flatten
@@ -16,6 +15,7 @@ import Datatype (UMLStateDiagram
                 )
 
 import Generic.Functor (GenericFunctor(..))
+import Data.Either.Extra (fromLeft')
 
 deriving via GenericFunctor UMLStateDiagram instance Functor UMLStateDiagram
 
@@ -30,18 +30,20 @@ flatten d
                        , substate = inner }
        -> let
           address = label
-          initial = map (\(Left y) -> Right y) startState
+          initial
+            = map (Right . fromLeft') startState
           in
           StateDiagram
             { name = name
             , startState = outerStartState
-            , -- label = Left $ error "There seems no good reason why this outermost label should be relevant."
-              label = Left 999 {- dirty workaround for bad conversion impl. that would crash on error function because it does access this field/function -}
+            , label = Left $ error "There seems no good reason why this outermost label should be relevant. TODO: fix conversion impl."
             , substate
-                = map (\i@InnerMostState{ name = innerName
+                = map (\case
+                         i@InnerMostState{ name = innerName
                                         , label = Left innerLabel }
-                    -> i { name = name ++ "_" ++ innerName
-                         , label = Right innerLabel }
+                           -> i { name = name ++ "_" ++ innerName
+                                , label = Right innerLabel }
+                         _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
                       ) inner
                   ++
                   filter (\case
@@ -78,9 +80,7 @@ updateByRule address initial [x]
                           Left y -> Right y
                           Right y -> Right y) initial
 updateByRule address _ (x:xs)
-  | x == address = map (\case
-                          Left y -> Right y
-                          _ -> error "input should be Left" ) xs
+  | x == address = map (Right . fromLeft') xs
 updateByRule _ _ labels = labels
 
 updateLifted :: Either Int Int -> [Either Int Int] -> FlatConnection -> FlatConnection
