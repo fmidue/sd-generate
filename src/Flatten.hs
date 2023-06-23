@@ -81,10 +81,10 @@ rewire connections address initial inner
 
 updateByRule :: Either Int Int -> [Either Int Int] -> [Either Int Int] -> [Either Int Int]
 updateByRule address initial (x:xs)
-  | x == address = xs
+  | x == address = fmap (\case Left y -> Right y) xs {- labels changed must be right now -}
 updateByRule address initial [x]
-  | x == address = initial
-updateByRule _ _ labels = labels
+  | x == address = fmap (\case Left y -> Right y) initial {- initials should be right because they have been lifted -}
+updateByRule _ _ labels = labels {- otherwise dont touch and leave as is -}
 
 updateLifted :: Either Int Int -> [Either Int Int] -> FlatConnection -> FlatConnection
 updateLifted address initial c@(Connection{pointFrom,pointTo})
