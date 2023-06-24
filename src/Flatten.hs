@@ -11,17 +11,14 @@ import Datatype (UMLStateDiagram
                 ,globalise
                 ,Connection(..)
                 )
-
-import Generic.Functor (GenericFunctor(..))
+import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
                          --,mapRight
                          )
 
-deriving via GenericFunctor UMLStateDiagram instance Functor UMLStateDiagram
-
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
- = umlStateDiagram . fromFlat $ unUML lift (fmap Left (globalise d))
+ = umlStateDiagram . fromFlat $ distinctLabels $ unUML lift (fmap Left (globalise d))
    where
    lift name substate connection outerStartState =
     case target substate of
