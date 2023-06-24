@@ -11,6 +11,8 @@ import Data.Maybe
 
 import Text.Pretty.Simple (pPrint)
 
+import Datatype.ClassInstances ()
+
 main :: IO ()
 main = do
   sds <- sample' randomSD

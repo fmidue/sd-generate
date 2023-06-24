@@ -18,6 +18,7 @@ dependencies:
   - svg-builder
   - QuickCheck
   - string-interpolate
+  - pretty-simple
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
@@ -30,6 +31,7 @@ library:
   source-dirs: src
   exposed-modules:
     - Datatype
+    - Datatype.ClassInstances
     - Example
     - CounterExample
     - Checkers

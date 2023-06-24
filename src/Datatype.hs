@@ -117,7 +117,7 @@ data HistoryType = Shallow | Deep
 
 {-# DEPRECATED unUML' "Use unUML instead" #-}
 newtype UMLStateDiagram l = UMLStateDiagram {unUML' :: StateDiagram l [Connection l]}
-  deriving (Eq, Show, Generic)
+  deriving Generic
 
 unUML ::
   (String ->

@@ -4,6 +4,7 @@ module GenerateSpec (spec) where
 
 import Generate
 import Datatype (localise, globalise, UMLStateDiagram(unUML'), umlStateDiagram)
+import Datatype.ClassInstances ()
 import ExampleSpec (allTheCheckers)
 
 import Test.QuickCheck

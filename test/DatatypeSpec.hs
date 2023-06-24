@@ -3,6 +3,7 @@
 module DatatypeSpec (spec) where
 
 import Datatype (localise, globalise, UMLStateDiagram(unUML'), umlStateDiagram)
+import Datatype.ClassInstances ()
 import Example (positiveExamples)
 
 import Test.Hspec (Spec, describe, it, shouldBe)

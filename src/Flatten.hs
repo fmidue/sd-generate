@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE StandaloneDeriving, DerivingVia #-}
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE LambdaCase #-}
 
@@ -14,10 +12,8 @@ import Datatype (UMLStateDiagram
                 ,Connection(..)
                 )
 
-import Generic.Functor (GenericFunctor(..))
+import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft')
-
-deriving via GenericFunctor UMLStateDiagram instance Functor UMLStateDiagram
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
@@ -36,7 +32,7 @@ flatten d
           StateDiagram
             { name = name
             , startState = outerStartState
-            , label = Left $ error "There seems no good reason why this outermost label should be relevant. TODO: fix conversion impl."
+            , label = undefined
             , substate
                 = map (\case
                          i@InnerMostState{ name = innerName
