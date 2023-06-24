@@ -12,8 +12,12 @@ import Datatype (UMLStateDiagram
                 ,Connection(..)
                 )
 
-import Datatype.ClassInstances ()
-import Data.Either.Extra (fromLeft')
+import Generic.Functor (GenericFunctor(..))
+import Data.Either.Extra (fromLeft'
+                         --,mapRight
+                         )
+
+deriving via GenericFunctor UMLStateDiagram instance Functor UMLStateDiagram
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
@@ -32,7 +36,7 @@ flatten d
           StateDiagram
             { name = name
             , startState = outerStartState
-            , label = undefined
+            , label = Left $ error "There seems no good reason why this outermost label should be relevant."
             , substate
                 = map (\case
                          i@InnerMostState{ name = innerName
@@ -97,6 +101,56 @@ updateCompoundExits address inner c@Connection{ pointFrom
                  , transition = transition
                  } | InnerMostState{label} <- inner ]
   | otherwise = [c]
+
+distinctLabels :: FlatDiagram -> FlatDiagram
+distinctLabels root@StateDiagram{substate, connection}
+  = root { substate
+             = zipWith ($) uniqueLabel substate
+         , connection
+             = {- TODO: sort the substates so one can always guarantee [Left,...Left(n),Right,...Right(n)] ordering -}
+               foldr (\x y
+                       -> (\(u,v)
+                            -> (case v of {- v carries the old label -}
+                                 InnerMostState {label = Right n}
+                                   -> (case u v of {- u applied to v yields the new label -}
+                                        InnerMostState {label = Left n'}
+                                          -> map (\case
+                                                     {- unlikely but in case some1 builds a transition to a state itself -}
+                                                     con@Connection { pointFrom = [Right rF]
+                                                                   , pointTo = [Right rT] }
+                                                       -> if n == rF && n == rT
+                                                          then con { pointFrom = [Right n']
+                                                                   , pointTo = [Right n'] }
+                                                          else con
+                                                     con@Connection { pointFrom = [Right rF] }
+                                                       -> if n == rF
+                                                          then con { pointFrom = [Left n']}
+                                                          else con
+                                                     con@Connection { pointTo = [Right rT] }
+                                                       -> if n == rT
+                                                          then con { pointTo = [Left n']}
+                                                          else con
+                                                     con -> con {- no need to update Lefts, as they didnt change -}
+                                                    ) y
+                                        _ -> error "not supported"
+                                      )
+                                 InnerMostState {label = Left _}
+                                   -> y {- no change do nothing -}
+                                 _ -> error "not supported"
+                                 )
+                           ) x
+                     ) connection (zip uniqueLabel substate)
+         }
+distinctLabels _ = error "we only have one layer and its root must be a StateDiagram"
+
+uniqueLabel :: [FlatDiagram -> FlatDiagram]
+uniqueLabel
+  = map (\i node
+           -> case node of
+               InnerMostState{}
+                 -> node {label = Left i}
+               _ -> error "ensuring unique labels in scenario1 doesnt go beyond 1 layer"
+            ) [1..]
 
 type FlatConnection = Connection (Either Int Int)
 
