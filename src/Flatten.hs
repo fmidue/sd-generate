@@ -33,7 +33,7 @@ flatten d
           StateDiagram
             { name = name
             , startState = outerStartState
-            , label = Left $ error "There seems no good reason why this outermost label should be relevant."
+            , label = undefined
             , substate
                 = map (\case
                          i@InnerMostState{ name = innerName
