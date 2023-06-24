@@ -15,6 +15,7 @@ import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
                          --,mapRight
                          )
+import Data.List.Extra (replace)
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten d
@@ -104,35 +105,20 @@ distinctLabels root@StateDiagram{substate, connection}
   = root { substate
              = zipWith ($) uniqueLabel substate
          , connection
-             = {- TODO: sort the substates so one can always guarantee [Left,...Left(n),Right,...Right(n)] ordering -}
-               foldr (\x y
+             = foldr (\x y
                        -> (\(u,v)
                             -> (case v of {- v carries the old label -}
-                                 InnerMostState {label = Right n}
+                                 InnerMostState {label = oldLabel}
                                    -> (case u v of {- u applied to v yields the new label -}
-                                        InnerMostState {label = Left n'}
+                                        InnerMostState {label = newLabel}
                                           -> map (\case
-                                                     {- unlikely but in case some1 builds a transition to a state itself -}
-                                                     con@Connection { pointFrom = [Right rF]
-                                                                   , pointTo = [Right rT] }
-                                                       -> if n == rF && n == rT
-                                                          then con { pointFrom = [Right n']
-                                                                   , pointTo = [Right n'] }
-                                                          else con
-                                                     con@Connection { pointFrom = [Right rF] }
-                                                       -> if n == rF
-                                                          then con { pointFrom = [Left n']}
-                                                          else con
-                                                     con@Connection { pointTo = [Right rT] }
-                                                       -> if n == rT
-                                                          then con { pointTo = [Left n']}
-                                                          else con
-                                                     con -> con {- no need to update Lefts, as they didnt change -}
-                                                    ) y
+                                                    con@Connection { pointFrom
+                                                                   , pointTo }
+                                                      -> con { pointFrom = replace [oldLabel] [newLabel] pointFrom
+                                                             , pointTo = replace [oldLabel] [newLabel] pointTo }
+                                                 ) y
                                         _ -> error "not supported"
                                       )
-                                 InnerMostState {label = Left _}
-                                   -> y {- no change do nothing -}
                                  _ -> error "not supported"
                                  )
                            ) x
