@@ -13,18 +13,18 @@ import Flatten (flatten)
 flatCase1Res :: UMLStateDiagram Int
 flatCase1Res
   = umlStateDiagram $ StateDiagram {substate =
-    [InnerMostState {label = 1, name = "A", operations = ""}
-    ,InnerMostState {label = 2, name = "B", operations = ""}
-    ,InnerMostState {label = 3, name = "C", operations = ""}
-    ,InnerMostState {label = 4, name = ", G", operations = ""}
-    ,InnerMostState {label = 5, name = ", H", operations = ""}]
+    [InnerMostState {label = 1, name = "_G", operations = ""}
+    ,InnerMostState {label = 2, name = "_H", operations = ""}
+    ,InnerMostState {label = 3, name = "A", operations = ""}
+    ,InnerMostState {label = 4, name = "B", operations = ""}
+    ,InnerMostState {label = 5, name = "C", operations = ""}]
     , label = 0, name = ""
     , connection =
-    [Connection {pointFrom = [1], pointTo = [5], transition = "a"}
-    ,Connection {pointFrom = [4], pointTo = [2], transition = "c"}
-    ,Connection {pointFrom = [2], pointTo = [3], transition = "d"}
-    ,Connection {pointFrom = [3], pointTo = [4], transition = "e"}
-    ,Connection {pointFrom = [5], pointTo = [4], transition = "b"}]
+    [Connection {pointFrom = [3], pointTo = [2], transition = "a"}
+    ,Connection {pointFrom = [1], pointTo = [4], transition = "c"}
+    ,Connection {pointFrom = [4], pointTo = [5], transition = "d"}
+    ,Connection {pointFrom = [5], pointTo = [1], transition = "e"}
+    ,Connection {pointFrom = [2], pointTo = [1], transition = "b"}]
     , startState = [1]}
 
 flatCase2Res :: UMLStateDiagram Int
@@ -59,7 +59,43 @@ flatCase2Res
     , startState = [1]}
 
 spec :: Spec
-spec = do
-  describe "flatten regions" $
-    prop "flatten flatCase1" $
-      flatten flatCase1 == flatCase1Res
+spec
+  = do
+    describe "flatten tests" $ do
+      it "flatten flatCase1" $ do
+        let result = flatten flatCase1
+        result `shouldBe` flatCase1Res
+
+{-
+      it "@pre: all left and right labels on nodes are unique" $ do
+        let result = True
+        result `shouldBe` True
+
+      it "@post all nodes have unique Left labels" $ do
+        let result = True
+        result `shouldBe` True
+
+      it "@post all connections pointFrom, pointTo references are build of lefts" $ do
+        let result = True
+        result `shouldBe` True
+
+      it "@post quantity of connections remains unchanged" $ do
+        let result = True
+        result `shouldBe` True
+
+      it "@post nodes remain in relation" $ do
+        let result = True
+        result `shouldBe` True
+-}
+
+
+{-
+   concept to verify that making labels unique across a layer works as expected
+   pre: both Left and Right labels might be present at nodes and used within connections
+        all Left and Right labels on nodes are unique
+   post: nodes and connections only have Left labels
+         every node has its own, unique Left label (i.e. no Left label is used more than once)
+         nodes that have been in relation to each other through their labels remain in relation to each other.
+         the total ammount of connections stays unchanged, (i.e. there are no new relations between nodes)
+         (or any relations lost)
+ -}

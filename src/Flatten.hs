@@ -15,7 +15,6 @@ import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
                          --,mapRight
                          )
-import Data.List.Extra (replace)
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten
@@ -108,37 +107,26 @@ updateCompoundExits address inner c@Connection{ pointFrom
 distinctLabels :: FlatDiagram -> FlatDiagram
 distinctLabels root@StateDiagram{substate, connection}
   = root { substate
-             = zipWith ($) uniqueLabel substate
+             = zipWith ($) relabelToLeft substate
          , connection
-             = foldr (\x y
-                       -> (\(u,v)
-                            -> (case v of {- v carries the old label -}
-                                 InnerMostState {label = oldLabel}
-                                   -> (case u v of {- u applied to v yields the new label -}
-                                        InnerMostState {label = newLabel}
-                                          -> map (\case
-                                                    con@Connection { pointFrom
-                                                                   , pointTo }
-                                                      -> con { pointFrom = replace [oldLabel] [newLabel] pointFrom
-                                                             , pointTo = replace [oldLabel] [newLabel] pointTo }
-                                                 ) y
-                                        _ -> error "not supported"
-                                      )
-                                 _ -> error "not supported"
-                                 )
-                           ) x
-                     ) connection (zip uniqueLabel substate)
+             = [ c { pointFrom = matchRelabledNode (pointFrom c)
+                   , pointTo = matchRelabledNode (pointTo c)
+                   } |c<-connection ]
          }
-distinctLabels _ = error "we only have one layer and its root must be a StateDiagram"
-
-uniqueLabel :: [FlatDiagram -> FlatDiagram]
-uniqueLabel
-  = map (\i node
+    where
+    relabelToLeft
+      = map (\i node
            -> case node of
                InnerMostState{}
                  -> node {label = Left i}
                _ -> error "ensuring unique labels in scenario1 doesnt go beyond 1 layer"
             ) [1..]
+    matchRelabledNode x
+      = [snd $
+        head $
+        filter (\(old,_) -> [old] == x)
+        (zip (map label substate) (map label $ zipWith ($) relabelToLeft substate))]
+distinctLabels _ = error "we only have one layer and its root must be a StateDiagram"
 
 type FlatConnection = Connection (Either Int Int)
 
