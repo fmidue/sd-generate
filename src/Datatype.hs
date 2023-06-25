@@ -129,7 +129,7 @@ unUML ::
 unUML c (UMLStateDiagram StateDiagram{substate, name, connection, startState}) = c name substate connection startState
 unUML _ _ = error "should never happen"
 
-umlStateDiagram :: StateDiagram Int [Connection Int] -> UMLStateDiagram Int
+umlStateDiagram :: StateDiagram a [Connection a] -> UMLStateDiagram a
 umlStateDiagram s@StateDiagram{} = UMLStateDiagram s
 umlStateDiagram _ = error "should never happen"
 

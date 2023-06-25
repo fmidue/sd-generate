@@ -18,8 +18,13 @@ import Data.Either.Extra (fromLeft'
 import Data.List.Extra (replace)
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
-flatten d
- = umlStateDiagram . fromFlat $ distinctLabels $ unUML lift (fmap Left (globalise d))
+flatten
+ = fmap (either id id)
+  . umlStateDiagram
+  . distinctLabels
+  . unUML lift
+  . fmap Left
+  . globalise
    where
    lift name substate connection outerStartState =
     case target substate of
@@ -138,41 +143,3 @@ uniqueLabel
 type FlatConnection = Connection (Either Int Int)
 
 type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
-
-fromFlat :: FlatDiagram -> StateDiagram Int [Connection Int]
-fromFlat =
-        \case
-            (StateDiagram { label = newLabel
-                          , substate
-                          , name
-                          , connection
-                          , startState })
-              -> (StateDiagram { label
-                                   = (\case
-                                        Right x -> x
-                                        Left x -> x
-                                     ) newLabel
-                               , substate = map fromFlat substate
-                               , name = name
-                               , connection
-                                   = map (fmap (\case
-                                                  Left x -> x
-                                                  Right x -> x)
-                                        ) connection
-                               , startState
-                                   = map (\case
-                                            Left x -> x
-                                            Right x -> x
-                                         ) startState
-                               })
-            (InnerMostState { label = newLabel
-                            , name
-                            , operations })
-              -> (InnerMostState { label
-                                     = (\case
-                                          Right x -> x
-                                          Left x -> x
-                                       ) newLabel
-                                 , name = name
-                                 , operations = operations })
-            _ -> error "not supported"
