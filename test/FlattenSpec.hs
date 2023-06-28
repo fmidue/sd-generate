@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 module FlattenSpec (
   spec
@@ -8,7 +7,8 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 import Datatype (StateDiagram(..), Connection (..), UMLStateDiagram, umlStateDiagram)
 import Example (flatCase2, flatCase1)
-import Flatten (flatten)
+import Flatten (flatten
+               ,FlatDiagram)
 
 flatCase1Res :: UMLStateDiagram Int
 flatCase1Res
@@ -27,6 +27,7 @@ flatCase1Res
     ,Connection {pointFrom = [2], pointTo = [1], transition = "b"}]
     , startState = [1]}
 
+{- unused
 flatCase2Res :: UMLStateDiagram Int
 flatCase2Res
   = umlStateDiagram $ StateDiagram {substate =
@@ -57,6 +58,7 @@ flatCase2Res
     ,Connection {pointFrom = [9], pointTo = [8], transition = "b"}
     ,Connection {pointFrom = [4], pointTo = [10], transition = "d"}]
     , startState = [1]}
+-}
 
 spec :: Spec
 spec
@@ -65,6 +67,17 @@ spec
       it "flatten flatCase1" $ do
         let result = flatten flatCase1
         result `shouldBe` flatCase1Res
+{-
+      it "TODO: relabel connections by relation" $ do
+        let result = True
+        result `shouldBe` True
+-}
+
+{-
+isStructurallySameAs :: UMLStateDiagram a -> UMLStateDiagram b -> Bool
+isStructurallySameAs _ _
+  = error "todo: impl."
+-}
 
 {-
       it "@pre: all left and right labels on nodes are unique" $ do

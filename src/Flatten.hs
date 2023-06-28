@@ -3,6 +3,8 @@
 
 module Flatten (
   flatten
+ ,FlatDiagram
+ ,FlatConnection
 ) where
 import Datatype (UMLStateDiagram
                 ,umlStateDiagram
@@ -104,29 +106,57 @@ updateCompoundExits address inner c@Connection{ pointFrom
                  } | InnerMostState{label} <- inner ]
   | otherwise = [c]
 
+{- makes the labels distinct on one layer, i.e. adjusts present substates and connections accordingly
+   TODO: must also touch startState (it doesnt right now) -}
 distinctLabels :: FlatDiagram -> FlatDiagram
 distinctLabels root@StateDiagram{substate, connection}
   = root { substate
-             = zipWith ($) relabelToLeft substate
+             = matchNodesToRelation substate
+               (mixedLabelToFullLeftRelation substate)
          , connection
-             = [ c { pointFrom = matchRelabledNode (pointFrom c)
-                   , pointTo = matchRelabledNode (pointTo c)
-                   } |c<-connection ]
+             = matchConnectionToRelation connection
+               (mixedLabelToFullLeftRelation substate)
          }
+distinctLabels _
+  = error "we only have one layer and its root must be a StateDiagram"
+
+{- replaces labels according to a mapping provided from a relation of change -}
+matchNodesToRelation :: Eq a1 => [StateDiagram a1 a2] -> [(a1, a1)] -> [StateDiagram a1 a2]
+matchNodesToRelation substate r
+  = map (\case
+           inner@InnerMostState{label}
+             -> inner{label= replace [label]}
+           _ -> error "only InnerMostStates are allowed at this point")
+    substate
     where
-    relabelToLeft
-      = map (\i node
-           -> case node of
-               InnerMostState{}
-                 -> node {label = Left i}
-               _ -> error "ensuring unique labels in scenario1 doesnt go beyond 1 layer"
-            ) [1..]
-    matchRelabledNode x
-      = [snd $
-        head $
-        filter (\(old,_) -> [old] == x)
-        (zip (map label substate) (map label $ zipWith ($) relabelToLeft substate))]
-distinctLabels _ = error "we only have one layer and its root must be a StateDiagram"
+    replace x = snd $ head (filter (\(old,_) -> [old] == x) r)
+
+{- replaces labels used within connections according to a mapping provided from a relation of change
+   , this function was isolated to be used in testing -}
+matchConnectionToRelation :: Eq a => [Connection a] -> [(a, label)] -> [Connection label]
+matchConnectionToRelation connection r
+  = [ c { pointFrom = replace (pointFrom c)
+        , pointTo = replace (pointTo c)
+        } |c<-connection ]
+    where
+    replace x = [ snd $ head (filter (\(old,_) -> [old] == x) r) ]
+
+{- builds a relation; which is a list of tuples, wherein the old mixed labels of substates are mapped towards new Left labels  -}
+mixedLabelToFullLeftRelation :: [StateDiagram (Either Int b) a] -> [(Either Int b, Either Int b)]
+mixedLabelToFullLeftRelation substate
+  = zip
+    (map label substate)
+    (map label (zipWith
+               ($)
+               (map (\i node
+                      -> case node of
+                          InnerMostState{}
+                            -> node {label = Left i}
+                          _ -> error "ensuring unique labels in scenario1 doesnt go beyond 1 layer"
+                    ) [1..]
+               ) substate
+               )
+    )
 
 type FlatConnection = Connection (Either Int Int)
 
