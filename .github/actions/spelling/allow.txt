@@ -9,6 +9,7 @@ Leftrightarrow
 Modellierung
 Programmierparadigmen
 Rightarrow
+Standalone
 UML
 bigskip
 bigvee
