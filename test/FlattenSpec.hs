@@ -109,6 +109,6 @@ isStructurallySameAs _ _
    post: nodes and connections only have Left labels
          every node has its own, unique Left label (i.e. no Left label is used more than once)
          nodes that have been in relation to each other through their labels remain in relation to each other.
-         the total ammount of connections stays unchanged, (i.e. there are no new relations between nodes)
+         the total amount of connections stays unchanged, (i.e. there are no new relations between nodes)
          (or any relations lost)
  -}

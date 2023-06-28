@@ -57,7 +57,7 @@ flatten
                          ) substate
             , connection = rewire connection address initial inner }
      Just _
-       -> error "we dont exepect anything else than StateDiagram or Nothing here"
+       -> error "we dont expect anything else than StateDiagram or Nothing here"
      Nothing
        -> error "scenario1 expects at least one hierarchical state"
 
