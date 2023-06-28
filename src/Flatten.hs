@@ -17,6 +17,7 @@ import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
                          --,mapRight
                          )
+import Data.List (find)
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten
@@ -125,11 +126,15 @@ matchNodesToRelation :: Eq a1 => [StateDiagram a1 a2] -> [(a1, a1)] -> [StateDia
 matchNodesToRelation substate r
   = map (\case
            inner@InnerMostState{label}
-             -> inner{label= replace [label]}
+             -> inner { label
+                          = case find (\(old,_) -> [old] == [label]) r of
+                             Just (_,u)
+                               -> u
+                             Nothing
+                               -> error "no matching node label can be found for update"
+                      }
            _ -> error "only InnerMostStates are allowed at this point")
     substate
-    where
-    replace x = snd $ head (filter (\(old,_) -> [old] == x) r)
 
 {- replaces labels used within connections according to a mapping provided from a relation of change
    , this function was isolated to be used in testing -}
@@ -139,24 +144,19 @@ matchConnectionToRelation connection r
         , pointTo = replace (pointTo c)
         } |c<-connection ]
     where
-    replace x = [ snd $ head (filter (\(old,_) -> [old] == x) r) ]
+    replace x = case find (\(old,_) -> [old] == x) r of
+                  Just (_,u)
+                    -> [u]
+                  Nothing
+                    -> error "no matching connection label can be found for update"
 
 {- builds a relation; which is a list of tuples, wherein the old mixed labels of substates are mapped towards new Left labels  -}
 mixedLabelToFullLeftRelation :: [StateDiagram (Either Int b) a] -> [(Either Int b, Either Int b)]
 mixedLabelToFullLeftRelation substate
   = zip
     (map label substate)
-    (map label (zipWith
-               ($)
-               (map (\i node
-                      -> case node of
-                          InnerMostState{}
-                            -> node {label = Left i}
-                          _ -> error "ensuring unique labels in scenario1 doesnt go beyond 1 layer"
-                    ) [1..]
-               ) substate
-               )
-    )
+    (map Left [1..])
+
 
 type FlatConnection = Connection (Either Int Int)
 
