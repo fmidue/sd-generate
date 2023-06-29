@@ -21,12 +21,12 @@ import Data.List (find)
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten
- = fmap (either id id)
-  . umlStateDiagram
-  . distinctLabels
-  . unUML lift
-  . fmap Left
-  . globalise
+ = -- no fmap (either id id) required anymore because distinctLabels yields only "Left" Int, so Left can be omitted as proposed
+   distinctLabels -- if unUML and rewrapping with umlStateDiagram is done within the called functions things read a bit easier
+   . umlStateDiagram
+   . unUML lift
+   . fmap Left
+   . globalise
    where
    lift name substate connection outerStartState =
     case target substate of
@@ -62,7 +62,7 @@ flatten
      Nothing
        -> error "scenario1 expects at least one hierarchical state"
 
-target :: [FlatDiagram] -> Maybe FlatDiagram
+target :: [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> Maybe (StateDiagram (Either Int Int) [Connection (Either Int Int)])
 target substate
          = let
            sd = filter (\case
@@ -74,7 +74,7 @@ target substate
            then Just (head sd)
            else Nothing
 
-rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatDiagram] -> [FlatConnection]
+rewire :: [Connection (Either Int Int)] -> Either Int Int -> [Either Int Int] -> [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> [Connection (Either Int Int)]
 rewire connections address initial inner
   = map (updateLifted address initial) $
     concatMap (updateCompoundExits address inner) connections
@@ -88,12 +88,12 @@ updateByRule address _ (x:xs)
   | x == address = map (Right . fromLeft') xs
 updateByRule _ _ labels = labels
 
-updateLifted :: Either Int Int -> [Either Int Int] -> FlatConnection -> FlatConnection
+updateLifted :: Either Int Int -> [Either Int Int] -> Connection (Either Int Int) -> Connection (Either Int Int)
 updateLifted address initial c@(Connection{pointFrom,pointTo})
   = c { pointFrom = updateByRule address initial pointFrom
       , pointTo = updateByRule address initial pointTo }
 
-updateCompoundExits :: Either Int Int -> [FlatDiagram] -> FlatConnection -> [FlatConnection]
+updateCompoundExits :: Either Int Int -> [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> Connection (Either Int Int) -> [Connection (Either Int Int)]
 updateCompoundExits address inner c@Connection{ pointFrom
                                               , pointTo
                                               , transition }
@@ -109,36 +109,51 @@ updateCompoundExits address inner c@Connection{ pointFrom
 
 {- makes the labels distinct on one layer, i.e. adjusts present substates and connections accordingly
    TODO: must also touch startState (it doesnt right now) -}
-distinctLabels :: FlatDiagram -> FlatDiagram
-distinctLabels root@StateDiagram{substate, connection}
-  = root { substate
-             = matchNodesToRelation substate
-               (mixedLabelToFullLeftRelation substate)
-         , connection
-             = matchConnectionToRelation connection
-               (mixedLabelToFullLeftRelation substate)
-         }
-distinctLabels _
-  = error "we only have one layer and its root must be a StateDiagram"
 
-{- replaces labels according to a mapping provided from a relation of change -}
-matchNodesToRelation :: Eq a1 => [StateDiagram a1 a2] -> [(a1, a1)] -> [StateDiagram a1 a2]
+
+distinctLabels :: UMLStateDiagram (Either Int Int) -> UMLStateDiagram Int
+distinctLabels
+  = umlStateDiagram . unUML buildDistinct
+    where
+    buildDistinct name substate connection startState
+      = StateDiagram { substate
+                        = matchNodesToRelation substate
+                          (eitherLabelToLeftRelation substate)
+                     , connection
+                        = matchConnectionToRelation connection
+                          (eitherLabelToLeftRelation substate)
+                    , name = name
+                    , startState = [matchToRelation startState (eitherLabelToLeftRelation substate)]
+                    , label = error "not relevant"
+                     }
+
+matchToRelation :: (Foldable t, Eq a) => [a] -> t (a, b) -> b
+matchToRelation x r
+  = case find (\(old,_) -> [old] == x) r of
+     Just (_,u)
+       -> u
+     Nothing
+       -> error "no matching node label can be found for update"
+
+matchNodesToRelation :: (Eq a) => [StateDiagram a [Connection a]] -> [(a, b)] -> [StateDiagram b [Connection b]]
 matchNodesToRelation substate r
   = map (\case
-           inner@InnerMostState{label}
-             -> inner { label
-                          = case find (\(old,_) -> [old] == [label]) r of
-                             Just (_,u)
-                               -> u
-                             Nothing
-                               -> error "no matching node label can be found for update"
+           InnerMostState{ label, name, operations }
+             -> InnerMostState { label
+                                   = case find (\(old,_) -> [old] == [label]) r of
+                                      Just (_,u)
+                                        -> u
+                                      Nothing
+                                        -> error "no matching node label can be found for update"
+                                , name = name
+                                , operations = operations
                       }
            _ -> error "only InnerMostStates are allowed at this point")
     substate
 
 {- replaces labels used within connections according to a mapping provided from a relation of change
    , this function was isolated to be used in testing -}
-matchConnectionToRelation :: Eq a => [Connection a] -> [(a, label)] -> [Connection label]
+matchConnectionToRelation :: Eq a => [Connection a] -> [(a, b)] -> [Connection b]
 matchConnectionToRelation connection r
   = [ c { pointFrom = replace (pointFrom c)
         , pointTo = replace (pointTo c)
@@ -151,11 +166,11 @@ matchConnectionToRelation connection r
                     -> error "no matching connection label can be found for update"
 
 {- builds a relation; which is a list of tuples, wherein the old mixed labels of substates are mapped towards new Left labels  -}
-mixedLabelToFullLeftRelation :: [StateDiagram (Either Int b) a] -> [(Either Int b, Either Int b)]
-mixedLabelToFullLeftRelation substate
+eitherLabelToLeftRelation :: [StateDiagram (Either a b) [Connection (Either a b)]] -> [(Either a b, Int)]
+eitherLabelToLeftRelation substate
   = zip
     (map label substate)
-    (map Left [1..])
+    [1..]
 
 
 type FlatConnection = Connection (Either Int Int)
