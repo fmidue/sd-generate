@@ -21,8 +21,7 @@ import Data.List (find)
 
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten
- = -- no fmap (either id id) required anymore because distinctLabels yields only "Left" Int, so Left can be omitted as proposed
-   distinctLabels -- if unUML and rewrapping with umlStateDiagram is done within the called functions things read a bit easier
+ = distinctLabels
    . umlStateDiagram
    . unUML lift
    . fmap Left
@@ -107,25 +106,21 @@ updateCompoundExits address inner c@Connection{ pointFrom
                  } | InnerMostState{label} <- inner ]
   | otherwise = [c]
 
-{- makes the labels distinct on one layer, i.e. adjusts present substates and connections accordingly
-   TODO: must also touch startState (it doesnt right now) -}
-
-
 distinctLabels :: UMLStateDiagram (Either Int Int) -> UMLStateDiagram Int
 distinctLabels
-  = umlStateDiagram . unUML buildDistinct
-    where
-    buildDistinct name substate connection startState
-      = StateDiagram { substate
+  = umlStateDiagram . unUML
+    (\name substate connection startState ->
+       StateDiagram { substate
                         = matchNodesToRelation substate
                           (eitherLabelToLeftRelation substate)
-                     , connection
+                    , connection
                         = matchConnectionToRelation connection
                           (eitherLabelToLeftRelation substate)
                     , name = name
                     , startState = [matchToRelation startState (eitherLabelToLeftRelation substate)]
                     , label = error "not relevant"
-                     }
+                    }
+    )
 
 matchToRelation :: (Foldable t, Eq a) => [a] -> t (a, b) -> b
 matchToRelation x r
