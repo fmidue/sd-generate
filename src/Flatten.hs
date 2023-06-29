@@ -22,12 +22,13 @@ import Data.List (find)
 flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
 flatten
  = distinctLabels
-   . umlStateDiagram
-   . unUML lift
+   . lift
    . fmap Left
    . globalise
-   where
-   lift name substate connection outerStartState =
+
+lift :: UMLStateDiagram (Either Int Int) -> UMLStateDiagram (Either Int Int)
+lift
+  = umlStateDiagram . unUML (\name substate connection outerStartState ->
     case target substate of
      Just StateDiagram { label
                        , startState
@@ -59,7 +60,7 @@ flatten
      Just _
        -> error "we dont expect anything else than StateDiagram or Nothing here"
      Nothing
-       -> error "scenario1 expects at least one hierarchical state"
+       -> error "scenario1 expects at least one hierarchical state")
 
 target :: [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> Maybe (StateDiagram (Either Int Int) [Connection (Either Int Int)])
 target = find (\case
