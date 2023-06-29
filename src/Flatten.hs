@@ -142,7 +142,7 @@ matchNodesToRelation substate r
                                         -> error "no matching node label can be found for update"
                                 , name = name
                                 , operations = operations
-                      }
+                               }
            _ -> error "only InnerMostStates are allowed at this point")
     substate
 
