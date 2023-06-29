@@ -62,16 +62,11 @@ flatten
        -> error "scenario1 expects at least one hierarchical state"
 
 target :: [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> Maybe (StateDiagram (Either Int Int) [Connection (Either Int Int)])
-target substate
-         = let
-           sd = filter (\case
-                   StateDiagram {}
-                     -> True
-                   _ -> False ) substate
-           in
-           if not (null sd)
-           then Just (head sd)
-           else Nothing
+target = find (\case
+                 StateDiagram {}
+                   -> True
+                 _ -> False)
+
 
 rewire :: [Connection (Either Int Int)] -> Either Int Int -> [Either Int Int] -> [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> [Connection (Either Int Int)]
 rewire connections address initial inner
@@ -128,7 +123,7 @@ matchToRelation x r
      Just (_,u)
        -> u
      Nothing
-       -> error "no matching node label can be found for update"
+       -> error "no matching label can be found for update"
 
 matchNodesToRelation :: (Eq a) => [StateDiagram a [Connection a]] -> [(a, b)] -> [StateDiagram b [Connection b]]
 matchNodesToRelation substate r
@@ -146,17 +141,10 @@ matchNodesToRelation substate r
    , this function was isolated to be used in testing -}
 matchConnectionToRelation :: Eq a => [Connection a] -> [(a, b)] -> [Connection b]
 matchConnectionToRelation connection r
-  = [ c { pointFrom = replace (pointFrom c)
-        , pointTo = replace (pointTo c)
+  = [ c { pointFrom = [matchToRelation (pointFrom c) r]
+        , pointTo = [matchToRelation (pointTo c) r]
         } |c<-connection ]
-    where
-    replace x = case find (\(old,_) -> [old] == x) r of
-                  Just (_,u)
-                    -> [u]
-                  Nothing
-                    -> error "no matching connection label can be found for update"
 
-{- builds a relation; which is a list of tuples, wherein the old mixed labels of substates are mapped towards new Left labels  -}
 eitherLabelToLeftRelation :: [StateDiagram (Either a b) [Connection (Either a b)]] -> [(Either a b, Int)]
 eitherLabelToLeftRelation substate
   = zip
