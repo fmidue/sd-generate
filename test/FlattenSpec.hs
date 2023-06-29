@@ -13,8 +13,8 @@ import Flatten (flatten
 flatCase1Res :: UMLStateDiagram Int
 flatCase1Res
   = umlStateDiagram $ StateDiagram {substate =
-    [InnerMostState {label = 1, name = "_G", operations = ""}
-    ,InnerMostState {label = 2, name = "_H", operations = ""}
+    [InnerMostState {label = 1, name = "P_G", operations = ""}
+    ,InnerMostState {label = 2, name = "P_H", operations = ""}
     ,InnerMostState {label = 3, name = "A", operations = ""}
     ,InnerMostState {label = 4, name = "B", operations = ""}
     ,InnerMostState {label = 5, name = "C", operations = ""}]
