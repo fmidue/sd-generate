@@ -32,7 +32,8 @@ lift
     case target substate of
      Just StateDiagram { label
                        , startState
-                       , substate = inner }
+                       , substate = inner
+                       , name = parentName }
        -> let
           address = label
           initial
@@ -46,7 +47,7 @@ lift
                 = map (\case
                          i@InnerMostState{ name = innerName
                                          , label = Left innerLabel }
-                           -> i { name = name ++ "_" ++ innerName
+                           -> i { name = parentName ++ "_" ++ innerName
                                 , label = Right innerLabel }
                          _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
                       ) inner
@@ -112,14 +113,14 @@ distinctLabels
                         = matchConnectionToRelation connection
                           (eitherLabelToLeftRelation substate)
                     , name = name
-                    , startState = [matchToRelation startState (eitherLabelToLeftRelation substate)]
+                    , startState = map (\x -> matchToRelation x (eitherLabelToLeftRelation substate)) startState
                     , label = error "not relevant"
                     }
     )
 
-matchToRelation :: (Foldable t, Eq a) => [a] -> t (a, b) -> b
+matchToRelation :: (Foldable t, Eq a) => a -> t (a, b) -> b
 matchToRelation x r
-  = case find (\(old,_) -> [old] == x) r of
+  = case find (\(old,_) -> [old] == [x]) r of
      Just (_,u)
        -> u
      Nothing
@@ -130,19 +131,17 @@ matchNodesToRelation substate r
   = map (\case
            InnerMostState{ label, name, operations }
              -> InnerMostState { label
-                                   = matchToRelation [label] r
+                                   = matchToRelation label r
                                 , name = name
                                 , operations = operations
                                }
            _ -> error "only InnerMostStates are allowed at this point")
     substate
 
-{- replaces labels used within connections according to a mapping provided from a relation of change
-   , this function was isolated to be used in testing -}
 matchConnectionToRelation :: Eq a => [Connection a] -> [(a, b)] -> [Connection b]
 matchConnectionToRelation connection r
-  = [ c { pointFrom = [matchToRelation (pointFrom c) r]
-        , pointTo = [matchToRelation (pointTo c) r]
+  = [ c { pointFrom = map  (`matchToRelation` r) (pointFrom c)
+        , pointTo = map (`matchToRelation` r) (pointTo c)
         } |c<-connection ]
 
 eitherLabelToLeftRelation :: [StateDiagram (Either a b) [Connection (Either a b)]] -> [(Either a b, Int)]
