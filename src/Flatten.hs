@@ -15,7 +15,6 @@ import Datatype (UMLStateDiagram
                 )
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
-                         --,mapRight
                          )
 import Data.List (find)
 
@@ -28,7 +27,8 @@ flatten
 
 lift :: UMLStateDiagram (Either Int Int) -> UMLStateDiagram (Either Int Int)
 lift
-  = umlStateDiagram . unUML (\name substate connection outerStartState ->
+  = umlStateDiagram . unUML
+    (\name substate connection outerStartState ->
     case target substate of
      Just StateDiagram { label
                        , startState
@@ -45,7 +45,7 @@ lift
             , substate
                 = map (\case
                          i@InnerMostState{ name = innerName
-                                        , label = Left innerLabel }
+                                         , label = Left innerLabel }
                            -> i { name = name ++ "_" ++ innerName
                                 , label = Right innerLabel }
                          _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
@@ -62,14 +62,13 @@ lift
      Nothing
        -> error "scenario1 expects at least one hierarchical state")
 
-target :: [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> Maybe (StateDiagram (Either Int Int) [Connection (Either Int Int)])
+target :: [FlatDiagram] -> Maybe FlatDiagram
 target = find (\case
                  StateDiagram {}
                    -> True
                  _ -> False)
 
-
-rewire :: [Connection (Either Int Int)] -> Either Int Int -> [Either Int Int] -> [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> [Connection (Either Int Int)]
+rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatDiagram] -> [FlatConnection]
 rewire connections address initial inner
   = map (updateLifted address initial) $
     concatMap (updateCompoundExits address inner) connections
@@ -83,12 +82,12 @@ updateByRule address _ (x:xs)
   | x == address = map (Right . fromLeft') xs
 updateByRule _ _ labels = labels
 
-updateLifted :: Either Int Int -> [Either Int Int] -> Connection (Either Int Int) -> Connection (Either Int Int)
+updateLifted :: Either Int Int -> [Either Int Int] -> FlatConnection -> FlatConnection
 updateLifted address initial c@(Connection{pointFrom,pointTo})
   = c { pointFrom = updateByRule address initial pointFrom
       , pointTo = updateByRule address initial pointTo }
 
-updateCompoundExits :: Either Int Int -> [StateDiagram (Either Int Int) [Connection (Either Int Int)]] -> Connection (Either Int Int) -> [Connection (Either Int Int)]
+updateCompoundExits :: Either Int Int -> [FlatDiagram] -> FlatConnection -> [FlatConnection]
 updateCompoundExits address inner c@Connection{ pointFrom
                                               , pointTo
                                               , transition }
