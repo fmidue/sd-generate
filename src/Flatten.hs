@@ -94,9 +94,7 @@ updateCompoundExits address inner c@Connection{ pointFrom
                                               , transition }
   | pointFrom == [address]
   = [ Connection { pointFrom
-                     = [(\case
-                           Left y -> Right y
-                           _ -> error "input should be Left" ) label]
+                     = [(Right . fromLeft') label]
                  , pointTo = pointTo
                  , transition = transition
                  } | InnerMostState{label} <- inner ]
