@@ -135,11 +135,7 @@ matchNodesToRelation substate r
   = map (\case
            InnerMostState{ label, name, operations }
              -> InnerMostState { label
-                                   = case find (\(old,_) -> [old] == [label]) r of
-                                      Just (_,u)
-                                        -> u
-                                      Nothing
-                                        -> error "no matching node label can be found for update"
+                                   = matchToRelation [label] r
                                 , name = name
                                 , operations = operations
                                }
