@@ -15,6 +15,7 @@ import Datatype (UMLStateDiagram
                 )
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
+                         ,fromRight'
                          )
 import Data.List (find)
 
@@ -76,9 +77,7 @@ rewire connections address initial inner
 
 updateByRule :: Either Int Int -> [Either Int Int] -> [Either Int Int] -> [Either Int Int]
 updateByRule address initial [x]
-  | x == address = map (\case
-                          Left y -> Right y
-                          Right y -> Right y) initial
+  | x == address = map (Right . fromRight') initial
 updateByRule address _ (x:xs)
   | x == address = map (Right . fromLeft') xs
 updateByRule _ _ labels = labels
