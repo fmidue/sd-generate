@@ -25,7 +25,7 @@ flatCase1Res
     ,Connection {pointFrom = [4], pointTo = [5], transition = "d"}
     ,Connection {pointFrom = [5], pointTo = [1], transition = "e"}
     ,Connection {pointFrom = [2], pointTo = [1], transition = "b"}]
-    , startState = [3]}
+    , startState = [2]}
 
 {- unused
 flatCase2Res :: UMLStateDiagram Int
