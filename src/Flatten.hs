@@ -117,15 +117,15 @@ distinctLabels
                     }
     )
 
-matchToRelation :: (Eq a) => a -> [(a, b)] -> b
+matchToRelation :: (Eq a, Show a) => a -> [(a, b)] -> b
 matchToRelation x r
   = case lookup x r of
      Just u
        -> u
      Nothing
-       -> error "no matching label can be found for update"
+       -> error $ "no matching label can be found for " ++ show x ++ " while updating"
 
-matchNodesToRelation :: (Eq a) => [StateDiagram n a [Connection a]] -> [(a, b)] -> [StateDiagram n b [Connection b]]
+matchNodesToRelation :: (Eq a, Show a) => [StateDiagram n a [Connection a]] -> [(a, b)] -> [StateDiagram n b [Connection b]]
 matchNodesToRelation substate r
   = map (\case
            InnerMostState{ label, name, operations }
@@ -137,7 +137,7 @@ matchNodesToRelation substate r
            _ -> error "only InnerMostStates are allowed at this point")
     substate
 
-matchConnectionToRelation :: Eq a => [Connection a] -> [(a, b)] -> [Connection b]
+matchConnectionToRelation :: (Eq a, Show a) => [Connection a] -> [(a, b)] -> [Connection b]
 matchConnectionToRelation connection r
   = [ c { pointFrom = map  (`matchToRelation` r) (pointFrom c)
         , pointTo = map (`matchToRelation` r) (pointTo c)
