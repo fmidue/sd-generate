@@ -577,7 +577,7 @@ flatCase1 = let
                 , Connection [4,1] [2] "c"
                 , Connection [2] [3] "d"
                 , Connection [3] [4,1] "e" ]
-                [4,2]
+                [4]
 
 positiveExamples :: [(String, UMLStateDiagram String Int)]
 positiveExamples =
