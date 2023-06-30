@@ -105,18 +105,20 @@ distinctLabels :: UMLStateDiagram a (Either Int Int) -> UMLStateDiagram a Int
 distinctLabels
   = umlStateDiagram . unUML
     (\name substate connection startState ->
+       let
+       r = eitherLabelToLeftRelation substate
+       in
        StateDiagram { substate
-                        = matchNodesToRelation substate
-                          (eitherLabelToLeftRelation substate)
+                        = matchNodesToRelation substate r
                     , connection
-                        = matchConnectionToRelation connection
-                          (eitherLabelToLeftRelation substate)
+                        = matchConnectionToRelation connection r
                     , name = name
                     , startState
                         = map (\x -> matchToRelation x (eitherLabelToLeftRelation substate)) startState -- flip?
                     , label = error "not relevant"
                     }
     )
+
 
 matchToRelation :: (Eq a, Show a) => a -> [(a, b)] -> b
 matchToRelation x r
