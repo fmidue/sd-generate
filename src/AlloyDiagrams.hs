@@ -38,7 +38,7 @@ data Synthesized = Synthesized
   , joinNodes :: Bool
   }
 
-render :: Int -> UMLStateDiagram Int -> String
+render :: Int -> UMLStateDiagram String Int -> String
 render protoFlowScope =
   unUML (\name substate connection startState ->
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
@@ -95,7 +95,7 @@ renderConnection transitionMapping Connection{ pointFrom, pointTo, transition } 
   to = N_#{address pointTo}
 }|]
 
-renderInner :: (StateDiagram Int a -> Inherited -> Synthesized) -> [StateDiagram Int a] -> Inherited -> Synthesized
+renderInner :: (StateDiagram String Int a -> Inherited -> Synthesized) -> [StateDiagram String Int a] -> Inherited -> Synthesized
 renderInner recurse substate inherited =
   let
     recursively = map (`recurse` inherited) substate
@@ -115,7 +115,7 @@ renderInner recurse substate inherited =
       , joinNodes = any joinNodes recursively
       }
 
-renderComposite :: String -> (StateDiagram Int a -> Inherited -> Synthesized) -> StateDiagram Int a -> Inherited -> Synthesized
+renderComposite :: String -> (StateDiagram String Int a -> Inherited -> Synthesized) -> StateDiagram String Int a -> Inherited -> Synthesized
 renderComposite kind eachWith StateDiagram{ substate, label, name, startState } inherited@Inherited{ctxt, nameMapping} =
   let
     here = ctxt ++ [label]
@@ -160,7 +160,7 @@ defaultSynthesized = Synthesized
   , joinNodes = False
   }
 
-renderNode :: StateDiagram Int a -> Inherited -> Synthesized
+renderNode :: StateDiagram String Int a -> Inherited -> Synthesized
 
 renderNode d@StateDiagram{} inherited =
   renderComposite "HierarchicalStates" renderNode d inherited

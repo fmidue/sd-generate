@@ -24,12 +24,12 @@ import System.IO.Unsafe                 (unsafePerformIO)
 Tries to draw the 'UMLStateDiagram' by performing the drawing algorithm.
 Returns 'True' if no exception occurs.
 -}
-checkDrawability :: UMLStateDiagram Int -> Maybe String
+checkDrawability :: UMLStateDiagram String Int -> Maybe String
 checkDrawability x = unsafePerformIO $ recover <$> try (evaluate $ draws x)
   where
     recover :: Either SomeException Bool -> Maybe String
     recover e = if fromRight False e then Nothing else Just "drawDiagram crashed"
-    draws :: UMLStateDiagram Int -> Bool
+    draws :: UMLStateDiagram String Int -> Bool
     draws = (>= 0) . LBS.length . renderBS
       . renderDia SVG (SVGOptions (mkWidth 500) Nothing "" [] True)
       . drawDiagram

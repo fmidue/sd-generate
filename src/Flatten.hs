@@ -12,6 +12,7 @@ import Datatype (UMLStateDiagram
                 ,StateDiagram(..)
                 ,globalise
                 ,Connection(..)
+                ,rename
                 )
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
@@ -19,14 +20,15 @@ import Data.Either.Extra (fromLeft'
                          )
 import Data.List (find)
 
-flatten :: UMLStateDiagram Int -> UMLStateDiagram Int
+flatten :: UMLStateDiagram n Int -> UMLStateDiagram [n] Int
 flatten
  = distinctLabels
    . lift
    . fmap Left
    . globalise
+   . rename (\n -> [n])
 
-lift :: UMLStateDiagram (Either Int Int) -> UMLStateDiagram (Either Int Int)
+lift :: UMLStateDiagram [n] (Either Int Int) -> UMLStateDiagram [n] (Either Int Int)
 lift
   = umlStateDiagram . unUML
     (\name substate connection outerStartState ->
@@ -48,7 +50,7 @@ lift
                 = map (\case
                          i@InnerMostState{ name = innerName
                                          , label = Left innerLabel }
-                           -> i { name = parentName ++ "_" ++ innerName
+                           -> i { name = parentName ++ innerName
                                 , label = Right innerLabel }
                          _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
                       ) inner
@@ -64,13 +66,13 @@ lift
      Nothing
        -> error "scenario1 expects at least one hierarchical state")
 
-target :: [FlatDiagram] -> Maybe FlatDiagram
+target :: [FlatDiagram a] -> Maybe (FlatDiagram a)
 target = find (\case
                  StateDiagram {}
                    -> True
                  _ -> False)
 
-rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatDiagram] -> [FlatConnection]
+rewire :: [FlatConnection] -> Either Int Int -> [Either Int Int] -> [FlatDiagram a] -> [FlatConnection]
 rewire connections address initial inner
   = map (updateLifted address initial) $
     concatMap (updateCompoundExits address inner) connections
@@ -87,7 +89,7 @@ updateLifted address initial c@(Connection{pointFrom,pointTo})
   = c { pointFrom = updateByRule address initial pointFrom
       , pointTo = updateByRule address initial pointTo }
 
-updateCompoundExits :: Either Int Int -> [FlatDiagram] -> FlatConnection -> [FlatConnection]
+updateCompoundExits :: Either Int Int -> [FlatDiagram a] -> FlatConnection -> [FlatConnection]
 updateCompoundExits address inner c@Connection{ pointFrom
                                               , pointTo
                                               , transition }
@@ -99,7 +101,7 @@ updateCompoundExits address inner c@Connection{ pointFrom
                  } | InnerMostState{label} <- inner ]
   | otherwise = [c]
 
-distinctLabels :: UMLStateDiagram (Either Int Int) -> UMLStateDiagram Int
+distinctLabels :: UMLStateDiagram a (Either Int Int) -> UMLStateDiagram a Int
 distinctLabels
   = umlStateDiagram . unUML
     (\name substate connection startState ->
@@ -123,7 +125,7 @@ matchToRelation x r
      Nothing
        -> error "no matching label can be found for update"
 
-matchNodesToRelation :: (Eq a) => [StateDiagram a [Connection a]] -> [(a, b)] -> [StateDiagram b [Connection b]]
+matchNodesToRelation :: (Eq a) => [StateDiagram n a [Connection a]] -> [(a, b)] -> [StateDiagram n b [Connection b]]
 matchNodesToRelation substate r
   = map (\case
            InnerMostState{ label, name, operations }
@@ -141,7 +143,7 @@ matchConnectionToRelation connection r
         , pointTo = map (`matchToRelation` r) (pointTo c)
         } |c<-connection ]
 
-eitherLabelToLeftRelation :: [StateDiagram (Either a b) [Connection (Either a b)]] -> [(Either a b, Int)]
+eitherLabelToLeftRelation :: [StateDiagram n (Either a b) [Connection (Either a b)]] -> [(Either a b, Int)]
 eitherLabelToLeftRelation substate
   = zip
     (map label substate)
@@ -150,4 +152,4 @@ eitherLabelToLeftRelation substate
 
 type FlatConnection = Connection (Either Int Int)
 
-type FlatDiagram = StateDiagram (Either Int Int) [FlatConnection]
+type FlatDiagram n = StateDiagram n (Either Int Int) [FlatConnection]

@@ -11,7 +11,7 @@ import Datatype (
 
 import Checkers.Helpers (inCompoundState, notHistory)
 
-checkHistory :: UMLStateDiagram Int -> Maybe String
+checkHistory :: UMLStateDiagram n Int -> Maybe String
 checkHistory a
   | not (checkEdge False a) =
       Just "History should never be reached from (somewhere, possibly nested) inside their own compound state"
@@ -20,7 +20,7 @@ checkHistory a
   | otherwise =
       Nothing
 
-checkEdge :: Bool -> UMLStateDiagram Int -> Bool
+checkEdge :: Bool -> UMLStateDiagram n Int -> Bool
 checkEdge out =
   unUML (\_ sub conn _ ->
            if out then

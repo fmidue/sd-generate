@@ -16,7 +16,7 @@ import Datatype (
 import Checkers.Helpers (globalStart, notJoint)
 import Data.List.Extra
 
-checkJoint :: UMLStateDiagram Int -> Maybe String
+checkJoint :: UMLStateDiagram n Int -> Maybe String
 checkJoint a
   | not (checkTransition a) =
       Just "transitions from/to some Joints are not in line with standards."
@@ -33,7 +33,7 @@ checkJoint a
     goIntoParallelRegions    x = checkParallelRegionConnections True x a
     comeOutOfParallelRegions x = checkParallelRegionConnections False x a
 
-checkManyToOne :: UMLStateDiagram Int -> Bool
+checkManyToOne :: UMLStateDiagram n Int -> Bool
 checkManyToOne s =
    null (toMany `intersect` fromMany)
    && all (`notElem` toOnlyJoint) startOnlyJoint
@@ -59,7 +59,7 @@ checkManyToOne s =
 overOne :: [Int] -> [[Int]] -> Bool
 overOne a b =  length (filter ( a ==) b) > 1
 
-checkTransition :: UMLStateDiagram Int -> Bool
+checkTransition :: UMLStateDiagram n Int -> Bool
 checkTransition s =
   all (`checkOutTran` fromOnlyJoint) fromOnlyJoint
   && all (`checkInTran` toOnlyJoint) toOnlyJoint
@@ -94,7 +94,7 @@ checkOutTranEmpty a b = any (null.transition) (filter ((pointFrom a ==).pointFro
 checkInTranEmpty :: Eq a => Connection a -> [Connection a] -> Bool
 checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 
-checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram Int -> Bool
+checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram n Int -> Bool
 checkParallelRegionConnections into l s = all null . localise $
                                             case g of
                                               StateDiagram{} -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
@@ -109,7 +109,7 @@ checkParallelRegionConnections into l s = all null . localise $
                                              | into      = (pointFrom, pointTo)
                                              | otherwise = (pointTo, pointFrom)
 
-addressesOfJoints :: UMLStateDiagram Int -> [[Int]]
+addressesOfJoints :: UMLStateDiagram n Int -> [[Int]]
 addressesOfJoints = unUML (\_ substate _ _ -> concatMap addressesOfJoints' substate)
   where
     addressesOfJoints' Joint {label} = [[label]]

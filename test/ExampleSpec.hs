@@ -21,7 +21,7 @@ spec =
           ++ map (("'globalise' of " ++) *** globalise) positiveExamples
       ]
 
-allTheCheckers :: [(String, UMLStateDiagram Int -> Maybe String)]
+allTheCheckers :: [(String, UMLStateDiagram String Int -> Maybe String)]
 allTheCheckers =
   [ ("checkRepresentation", checkRepresentation)
   , ("checkStructure", checkStructure)

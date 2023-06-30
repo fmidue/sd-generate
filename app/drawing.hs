@@ -4,6 +4,8 @@ import Example (--flatCase1
                flatCase2, flatCase1
                )
 import Flatten (flatten)
+import Datatype (rename)
+import Data.List (intercalate)
 
 main :: IO ()
 main = do
@@ -12,4 +14,4 @@ main = do
   print "flattened format"
   print (show (flatten flatCase1 ) )
   let sd = flatten flatCase2
-  mainWith (drawDiagram sd)
+  mainWith (drawDiagram (rename (intercalate "_") sd))

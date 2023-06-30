@@ -19,7 +19,7 @@ import Data.List (intercalate)
 data Inherited = Inherited { ctxt :: [Int]
                            , connectionSources :: [String] }
 
-renderAll :: UMLStateDiagram Int -> String
+renderAll :: UMLStateDiagram String Int -> String
 renderAll sd =
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
@@ -33,7 +33,7 @@ renderAll sd =
 @enduml
 |]
 
-renderUML :: UMLStateDiagram Int -> Inherited -> String
+renderUML :: UMLStateDiagram String Int -> Inherited -> String
 renderUML sd inherited =
   let
     StateDiagram{ substate, connection, startState } = unUML' sd
@@ -48,7 +48,7 @@ renderUML sd inherited =
 #{renderConnection hn connection inherited}|]
     _ -> error "not defined"
 
-renderSubState :: [StateDiagram Int [Connection Int]] -> Inherited -> String
+renderSubState :: [StateDiagram String Int [Connection Int]] -> Inherited -> String
 renderSubState [] _ = []
 renderSubState (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of
@@ -77,7 +77,7 @@ renderSubState (x:xs) inherited@Inherited{ ctxt, connectionSources } =
         [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
   ++ renderSubState xs inherited
 
-renderRegions :: [StateDiagram Int [Connection Int]] -> Inherited -> String
+renderRegions :: [StateDiagram String Int [Connection Int]] -> Inherited -> String
 renderRegions [] _ = []
 renderRegions (r:rs) inherited@Inherited{ ctxt, connectionSources } =
   case r of
@@ -112,7 +112,7 @@ renderStart target Inherited{ctxt} =
   in
     [i|[*] -> N_#{address "" here_target}|] ++ "\n"
 
-renderConnection :: [(StateDiagram Int [Connection Int], [Int])] -> [Connection Int] -> Inherited -> String
+renderConnection :: [(StateDiagram String Int [Connection Int], [Int])] -> [Connection Int] -> Inherited -> String
 renderConnection _ [] _ = []
 renderConnection [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt } =
   let
@@ -143,7 +143,7 @@ address :: String -> [Int] -> String
 address "" as = intercalate "_" (map show as)
 address h as = intercalate "_" (map show (init as)) ++ h
 
-getAllHistory :: [StateDiagram Int [Connection Int]] -> Inherited -> [(StateDiagram Int [Connection Int], [Int])]
+getAllHistory :: [StateDiagram String Int [Connection Int]] -> Inherited -> [(StateDiagram String Int [Connection Int], [Int])]
 getAllHistory [] _ = []
 getAllHistory (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of

@@ -98,7 +98,7 @@ parseInstance
   :: (MonadError s m, IsString s)
   => String
   -> AlloyInstance
-  -> m (UMLStateDiagram Int)
+  -> m (UMLStateDiagram String Int)
 parseInstance scope insta = do
   states <- getAs "NormalStates" State
   composites <- S.union
@@ -136,7 +136,7 @@ parseInstance scope insta = do
       stateDia = forestToStateDiagram getName getStart hierarchy'
       conns' = S.map (\(x, y, z) -> (pathTo x, pathTo y, z)) conns
   return $ umlStateDiagram . localise $
-    let (sd :: StateDiagram Int [Connection Int]) = ([] <$ stateDia)
+    let (sd :: StateDiagram String Int [Connection Int]) = ([] <$ stateDia)
     in
       case sd of
         StateDiagram{} -> sd { connection = uncurry3 Connection <$> S.toAscList conns' }
@@ -190,7 +190,7 @@ forestToStateDiagram
   :: (Node -> String)
   -> (Maybe Node -> [Int])
   -> [Tree (Node, [Int])]
-  -> StateDiagram Int ()
+  -> StateDiagram String Int ()
 forestToStateDiagram getName getStart ts = StateDiagram {
   label = 1,
   substate = treeToStateDiagram getName (stail . getStart) <$> ts,
@@ -210,7 +210,7 @@ treeToStateDiagram
   :: (Node -> String)
   -> (Maybe Node -> [Int])
   -> Tree (Node, [Int])
-  -> StateDiagram Int ()
+  -> StateDiagram String Int ()
 treeToStateDiagram getName getStart n = case node of
   CNode {} -> StateDiagram {
     label = l,

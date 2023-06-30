@@ -11,7 +11,7 @@ import Datatype (
 
 import Checkers.Helpers (checkEmptyOutTran, checkSameOutTran, notJoint)
 
-checkSemantics :: UMLStateDiagram Int -> Maybe String
+checkSemantics :: UMLStateDiagram n Int -> Maybe String
 checkSemantics a
   | not (checkSameConnection a) =
       Just "Error: No two connections are allowed leaving the same source and and having the same label (except From Joint Node)."
@@ -20,7 +20,7 @@ checkSemantics a
   | otherwise =
       Nothing
 
-checkSameConnection :: UMLStateDiagram Int -> Bool
+checkSameConnection :: UMLStateDiagram n Int -> Bool
 checkSameConnection =
   unUML (\_ sub conn _ ->
            let
@@ -30,7 +30,7 @@ checkSameConnection =
         )
   . globalise
 
-checkEmptyTran :: UMLStateDiagram Int -> Bool
+checkEmptyTran :: UMLStateDiagram n Int -> Bool
 checkEmptyTran =
   unUML (\_ sub conn _ ->
            let

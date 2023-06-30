@@ -115,7 +115,7 @@ spec = do
     describe checkerName $
       it "isSuccessful for forCheckDrawability" $ checkerCode forCheckDrawability `shouldBe` Nothing
 
-counterExamplesOnlyFor :: String -> [(String, UMLStateDiagram Int)] -> Spec
+counterExamplesOnlyFor :: String -> [(String, UMLStateDiagram String Int)] -> Spec
 counterExamplesOnlyFor theChecker theExamples = do
   let
     (negative, positives) = partition ((theChecker ==) . fst) allTheCheckersExceptForBlackbox
@@ -141,6 +141,6 @@ counterExamplesOnlyFor theChecker theExamples = do
   where
     passing = flip $ \checkers -> filter (all isNothing . (`map` checkers) . flip ($) . snd)
 
-allTheCheckersExceptForBlackbox :: [(String, UMLStateDiagram Int -> Maybe String)]
+allTheCheckersExceptForBlackbox :: [(String, UMLStateDiagram String Int -> Maybe String)]
 allTheCheckersExceptForBlackbox =
   filter ((`notElem` ["checkWrapper", "checkDrawability"]) . fst) allTheCheckers

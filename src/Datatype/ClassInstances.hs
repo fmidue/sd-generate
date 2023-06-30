@@ -7,9 +7,9 @@ module Datatype.ClassInstances () where
 import Datatype (UMLStateDiagram, unUML, StateDiagram(..))
 import Generic.Functor (GenericFunctor(..))
 
-deriving via GenericFunctor UMLStateDiagram instance Functor UMLStateDiagram
+deriving via GenericFunctor (UMLStateDiagram n) instance Functor (UMLStateDiagram n)
 
-instance Eq a => Eq (UMLStateDiagram a) where
+instance (Eq n, Eq a) => Eq (UMLStateDiagram n a) where
   sd1 == sd2
     =
     unUML
@@ -20,7 +20,7 @@ instance Eq a => Eq (UMLStateDiagram a) where
         sd2)
     sd1
 
-instance Show a => Show (UMLStateDiagram a) where
+instance (Show n, Show a) => Show (UMLStateDiagram n a) where
   show d =
     unUML
     (\name substate connection startState ->

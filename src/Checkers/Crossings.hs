@@ -7,7 +7,7 @@ import Datatype (
   localise,
   )
 
-checkCrossings :: UMLStateDiagram Int -> Maybe String
+checkCrossings :: UMLStateDiagram n Int -> Maybe String
 checkCrossings s = case connections (unUML' s) - connections (localise (unUML' s)) of
   0 -> Nothing
   n -> Just $ "Has " ++ show n ++ " illegal crossing(s) between regions"
