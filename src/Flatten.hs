@@ -114,7 +114,7 @@ distinctLabels
                         = matchConnectionToRelation connection r
                     , name = name
                     , startState
-                        = map (\x -> matchToRelation x (eitherLabelToLeftRelation substate)) startState -- flip?
+                        = map (`matchToRelation` eitherLabelToLeftRelation substate) startState
                     , label = error "not relevant"
                     }
     )
