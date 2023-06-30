@@ -74,7 +74,7 @@ spec
 -}
 
 {-
-isStructurallySameAs :: UMLStateDiagram n a -> UMLStateDiagram n b -> Bool
+isStructurallySameAs :: Eq n => UMLStateDiagram n a -> UMLStateDiagram n b -> Bool
 isStructurallySameAs _ _
   = error "todo: impl."
 -}

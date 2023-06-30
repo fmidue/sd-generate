@@ -26,7 +26,7 @@ flatten
    . lift
    . fmap Left
    . globalise
-   . rename (\n -> [n])
+   . rename (:[])
 
 lift :: UMLStateDiagram [n] (Either Int Int) -> UMLStateDiagram [n] (Either Int Int)
 lift
