@@ -18,7 +18,7 @@ import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
                          ,fromRight'
                          )
-import Data.List (find)
+import Data.List (find, isPrefixOf)
 
 flatten :: UMLStateDiagram n Int -> UMLStateDiagram [n] Int
 flatten
@@ -44,7 +44,7 @@ lift
           in
           StateDiagram
             { name = name
-            , startState = outerStartState
+            , startState = if [label] `isPrefixOf` outerStartState then map (Right . fromLeft') $ tail outerStartState else outerStartState
             , label = undefined
             , substate
                 = map (\case
@@ -112,7 +112,8 @@ distinctLabels
                         = matchConnectionToRelation connection
                           (eitherLabelToLeftRelation substate)
                     , name = name
-                    , startState = map (\x -> matchToRelation x (eitherLabelToLeftRelation substate)) startState
+                    , startState
+                        = map (\x -> matchToRelation x (eitherLabelToLeftRelation substate)) startState -- flip?
                     , label = error "not relevant"
                     }
     )
