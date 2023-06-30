@@ -106,7 +106,9 @@ distinctLabels
   = umlStateDiagram . unUML
     (\name substate connection startState ->
        let
-       r = eitherLabelToLeftRelation substate
+       r = zip {- if ever need for unit testing this relation can be extracted into a function again -}
+           (map label substate)
+           [1..]
        in
        StateDiagram { substate
                         = matchNodesToRelation substate r
@@ -114,11 +116,10 @@ distinctLabels
                         = matchConnectionToRelation connection r
                     , name = name
                     , startState
-                        = map (`matchToRelation` eitherLabelToLeftRelation substate) startState
+                        = map (`matchToRelation` r) startState
                     , label = error "not relevant"
                     }
     )
-
 
 matchToRelation :: (Eq a, Show a) => a -> [(a, b)] -> b
 matchToRelation x r
@@ -145,12 +146,6 @@ matchConnectionToRelation connection r
   = [ c { pointFrom = map  (`matchToRelation` r) (pointFrom c)
         , pointTo = map (`matchToRelation` r) (pointTo c)
         } |c<-connection ]
-
-eitherLabelToLeftRelation :: [StateDiagram n (Either a b) [Connection (Either a b)]] -> [(Either a b, Int)]
-eitherLabelToLeftRelation substate
-  = zip
-    (map label substate)
-    [1..]
 
 
 type FlatConnection = Connection (Either Int Int)
