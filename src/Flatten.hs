@@ -117,10 +117,10 @@ distinctLabels
                     }
     )
 
-matchToRelation :: (Foldable t, Eq a) => a -> t (a, b) -> b
+matchToRelation :: (Eq a) => a -> [(a, b)] -> b
 matchToRelation x r
-  = case find (\(old,_) -> [old] == [x]) r of
-     Just (_,u)
+  = case lookup x r of
+     Just u
        -> u
      Nothing
        -> error "no matching label can be found for update"
