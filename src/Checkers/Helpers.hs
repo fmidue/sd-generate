@@ -4,7 +4,7 @@ module Checkers.Helpers (
   getAllElem,
   getAllElem1,
   getSameFromTran,
-  getSubstate,
+  getSubstates,
   globalStart,
   inCompoundState,
   isNotCD,
@@ -42,8 +42,8 @@ checkEmptyOutTran a b = length fromSame == 1|| not (null (transition a))
 getSameFromTran :: [Int] -> StateDiagram n Int [Connection Int] -> [String]
 getSameFromTran (x:xs) s@StateDiagram{label}
   = if x == label then getSameFromTran1 xs (umlStateDiagram s) else return []
-getSameFromTran (x:xs) CombineDiagram{label,substate}
-  = if x == label then concatMap (getSameFromTran xs) substate else return []
+getSameFromTran (x:xs) CombineDiagram{label, substates}
+  = if x == label then concatMap (getSameFromTran xs) substates else return []
 getSameFromTran _ _ = []
 
 getSameFromTran1 :: [Int] -> UMLStateDiagram n Int -> [String]
@@ -55,44 +55,44 @@ inCompoundState :: [Int] -> [Int] -> Bool
 inCompoundState a b = init (take (length a) b) == init a
 
 getAllElem :: StateDiagram n Int [Connection Int] -> [[Int]]
-getAllElem StateDiagram{substate}
-  = map (\x -> [label x]) substate
-   ++ concatMap (getAllElem1 []) substate
-getAllElem CombineDiagram{substate}
-  = map (\x -> [label x]) substate
-  ++ concatMap (getAllElem1 []) substate
+getAllElem StateDiagram{substates}
+  = map (\x -> [label x]) substates
+   ++ concatMap (getAllElem1 []) substates
+getAllElem CombineDiagram{substates}
+  = map (\x -> [label x]) substates
+  ++ concatMap (getAllElem1 []) substates
 getAllElem _ = []
 
 getAllElem1 :: [Int] -> StateDiagram n Int [Connection Int] -> [[Int]]
-getAllElem1 prepend s@StateDiagram {substate}
-  = map (\x -> newPrepend ++ [label x]) substate
-    ++ concatMap (getAllElem1 newPrepend) substate
+getAllElem1 prepend s@StateDiagram {substates}
+  = map (\x -> newPrepend ++ [label x]) substates
+    ++ concatMap (getAllElem1 newPrepend) substates
       where
        newPrepend = prepend ++ [label s]
-getAllElem1 prepend c@CombineDiagram {substate}
-  = map (\x -> newPrepend ++ [label x]) substate
-    ++ concatMap (getAllElem1 newPrepend) substate
+getAllElem1 prepend c@CombineDiagram {substates}
+  = map (\x -> newPrepend ++ [label x]) substates
+    ++ concatMap (getAllElem1 newPrepend) substates
       where
         newPrepend = prepend ++ [label c]
 getAllElem1 _ _ = []
 
 globalStart :: StateDiagram n Int [Connection Int] -> [[Int]]
-globalStart StateDiagram{ substate,startState}
- = startState : concatMap (`globalStart1` []) substate
+globalStart StateDiagram{ substates, startState }
+ = startState : concatMap (`globalStart1` []) substates
 globalStart _ = []
 
 globalStart1 :: StateDiagram n Int [Connection Int] -> [Int] -> [[Int]]
-globalStart1 StateDiagram{ substate, startState, label} p
+globalStart1 StateDiagram{ substates, startState, label } p
  =  ((p ++ [label]) ++ startState)
-    : concatMap (`globalStart1` (p ++ [label])) substate
-globalStart1 CombineDiagram{ substate ,label} p
-  = concatMap (`globalStart1` (p ++ [label])) substate
+    : concatMap (`globalStart1` (p ++ [label])) substates
+globalStart1 CombineDiagram{ substates ,label } p
+  = concatMap (`globalStart1` (p ++ [label])) substates
 globalStart1 _ _ = []
 
 isSDCD :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
 isSDCD [] _ = False
 isSDCD [x] a = any (isSDCD1 x) a
-isSDCD (x:xs) a = isSDCD xs (getSubstate x a)
+isSDCD (x:xs) a = isSDCD xs (getSubstates x a)
 
 isSDCD1 :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isSDCD1 a StateDiagram {label}  = a == label
@@ -102,7 +102,7 @@ isSDCD1 _ _ = False
 isNotEnd :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
 isNotEnd [] _ = True
 isNotEnd [x] a = all (isNotEnd1 x) a
-isNotEnd (x:xs) a = isNotEnd xs (getSubstate x a)
+isNotEnd (x:xs) a = isNotEnd xs (getSubstates x a)
 
 isNotEnd1 :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isNotEnd1 a EndState {label}  = a /= label
@@ -111,7 +111,7 @@ isNotEnd1 _ _ = True
 notHistory :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
 notHistory [] _ = True
 notHistory [x] a = all (isNotHistory x) a
-notHistory (x:xs) a = notHistory xs (getSubstate x a)
+notHistory (x:xs) a = notHistory xs (getSubstates x a)
 
 isNotHistory :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isNotHistory a History {label}  = a /= label
@@ -120,7 +120,7 @@ isNotHistory _ _ = True
 notJoint  :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
 notJoint  [] _ = True
 notJoint  [x] a = all (isNotJoint x) a
-notJoint (x:xs) a = notJoint  xs (getSubstate x a)
+notJoint  (x:xs) a = notJoint xs (getSubstates x a)
 
 isNotJoint :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isNotJoint a Joint {label}  = a /= label
@@ -129,16 +129,16 @@ isNotJoint _ _ = True
 lastSecNotCD :: [Int] -> [StateDiagram n Int [Connection Int]]-> Bool
 lastSecNotCD [] _ = True
 lastSecNotCD [x, _] a = all (isNotCD x) a
-lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstate x a)
+lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstates x a)
 
 isNotCD :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isNotCD a CombineDiagram{label} = a /= label
 isNotCD _ _ = True
 
-getSubstate :: Int -> [StateDiagram n Int [Connection Int]] -> [StateDiagram n Int [Connection Int]]
-getSubstate a xs = maybe [] getSubstate1 (find ((a ==) . label) xs)
+getSubstates :: Int -> [StateDiagram n Int [Connection Int]] -> [StateDiagram n Int [Connection Int]]
+getSubstates a xs = maybe [] getSubstates1 (find ((a ==) . label) xs)
 
-getSubstate1 :: StateDiagram n Int [Connection Int] -> [StateDiagram n Int [Connection Int]]
-getSubstate1 (StateDiagram a _ _ _ _) = a
-getSubstate1 (CombineDiagram a _) = a
-getSubstate1 _ = []
+getSubstates1 :: StateDiagram n Int [Connection Int] -> [StateDiagram n Int [Connection Int]]
+getSubstates1 (StateDiagram a _ _ _ _) = a
+getSubstates1 (CombineDiagram a _) = a
+getSubstates1 _ = []

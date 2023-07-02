@@ -23,7 +23,7 @@ instance (Eq n, Eq a) => Eq (UMLStateDiagram n a) where
 instance (Show n, Show a) => Show (UMLStateDiagram n a) where
   show d =
     unUML
-    (\name substate connection startState ->
+    (\name substates connections startState ->
         show $ StateDiagram { label = Hidden, .. }
     )
     (fmap Visible d)

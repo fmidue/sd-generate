@@ -139,7 +139,7 @@ parseInstance scope insta = do
     let (sd :: StateDiagram String Int [Connection Int]) = ([] <$ stateDia)
     in
       case sd of
-        StateDiagram{} -> sd { connection = uncurry3 Connection <$> S.toAscList conns' }
+        StateDiagram{} -> sd { connections = uncurry3 Connection <$> S.toAscList conns' }
         _ -> error "not defined"
   where
     getAs
@@ -193,9 +193,9 @@ forestToStateDiagram
   -> StateDiagram String Int ()
 forestToStateDiagram getName getStart ts = StateDiagram {
   label = 1,
-  substate = treeToStateDiagram getName (stail . getStart) <$> ts,
+  substates = treeToStateDiagram getName (stail . getStart) <$> ts,
   name = "",
-  connection = (), -- TODO
+  connections = (), -- TODO
   startState = getStart Nothing
   }
 
@@ -214,8 +214,8 @@ treeToStateDiagram
 treeToStateDiagram getName getStart n = case node of
   CNode {} -> StateDiagram {
     label = l,
-    substate = fromTree <$> subForest n,
-    connection = (),
+    substates = fromTree <$> subForest n,
+    connections = (),
     name = getName node,
     startState = getStart (Just node)
     }
@@ -227,7 +227,7 @@ treeToStateDiagram getName getStart n = case node of
     }
   RNode {} -> CombineDiagram {
     label = l,
-    substate = fromTree <$> subForest n
+    substates = fromTree <$> subForest n
     }
   SNode {} -> InnerMostState {
     label = l,

@@ -19,7 +19,7 @@ checkEndState a
       Nothing
 
 checkEndOutEdges :: StateDiagram n Int [Connection Int] -> Bool
-checkEndOutEdges StateDiagram { substate, connection } = all ((`isNotEnd` substate) . pointFrom) connection
-                                                         && all checkEndOutEdges substate
-checkEndOutEdges CombineDiagram {substate} = all checkEndOutEdges substate
+checkEndOutEdges StateDiagram { substates, connections } = all ((`isNotEnd` substates) . pointFrom) connections
+                                                         && all checkEndOutEdges substates
+checkEndOutEdges CombineDiagram { substates } = all checkEndOutEdges substates
 checkEndOutEdges  _ = True

@@ -122,7 +122,7 @@ drawWrapper d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
   where
     text' = drawTextBox (strings s)
     draw = drawLayers (layout s == Vertical) (d ++ [key s]) (layered s)
-    connectList = getConnection (d ++ [key s]) (connections s)
+    connectList = getConnection (d ++ [key s]) (typedConnections s)
 
 drawWrapper' :: [Int] -> Wrapper -> Diagram B
 drawWrapper' d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
@@ -133,7 +133,7 @@ drawWrapper' d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9
   layout s) connectList)
   where
     draw = drawLayers (layout s == Vertical) (d ++ [key s]) (layered s)
-    connectList = getConnection (d ++ [key s]) (connections s)
+    connectList = getConnection (d ++ [key s]) (typedConnections s)
 drawWrapper' _ _ = mempty
 
 drawLayer :: Bool -> [Int] -> [Wrapper] -> Diagram B
@@ -189,26 +189,26 @@ toWrapper (EndState a ) = EndS a 0 NoConnection Unspecified
 toWrapper (History a b) = Hist a b 0 NoConnection Unspecified
 toWrapper (InnerMostState a b c) = Leaf a b c 0 NoConnection Unspecified
 toWrapper (Joint a) = Fork a Unspecified 0 NoConnection
-toWrapper s@CombineDiagram {} = AndDecomposition (fmap toWrapper (substate s)) (label
+toWrapper s@CombineDiagram {} = AndDecomposition (fmap toWrapper (substates s)) (label
   s) Unspecified 0 NoConnection Unspecified
 toWrapper s@StateDiagram {} = OrDecomposition toWrapper' (label s) (name s)
   convertedConnection Unspecified maxKey 0 NoConnection
   Unspecified
   where
-    vertexOrder = getOrderedList (substate s)
-    mapConnection = mapWithConnection' (substate s) (mapWithConnection
-      (filterConnection [] (connection s)))
-    graphWithInfo = createGraph mapConnection (substate s) []
+    vertexOrder = getOrderedList (substates s)
+    mapConnection = mapWithConnection' (substates s) (mapWithConnection
+      (filterConnection [] (connections s)))
+    graphWithInfo = createGraph mapConnection (substates s) []
     graph = getFirstFromTuple3 graphWithInfo
     getLayers = layering $ dfs graph vertexOrder
     layers = nodeFromVertex getLayers graphWithInfo []
     toWrapper' = if null (startState s) then convertUMLStateDiagramToWrapper
       layers [] else placeStartState (convertUMLStateDiagramToWrapper layers
       []) (startState s)
-    newConnection = if null (startState s) then connection s
-      else Connection [-1] (startState s) "" : connection s
+    newConnection = if null (startState s) then connections s
+      else Connection [-1] (startState s) "" : connections s
     convertedConnection = changeConnectionType newConnection toWrapper' []
-    maxKey = maximum (Map.keys $ mapWithLabel $ substate s)
+    maxKey = maximum (Map.keys $ mapWithLabel $ substates s)
 
 createGraph :: Map.Map Int [Int] -> [StateDiagram String Int [Connection Int]] -> [(StateDiagram String Int [Connection Int],
   Int, [Int])] -> (Graph, Vertex -> (StateDiagram String Int [Connection Int], Int, [Int]), Int -> Maybe
@@ -250,20 +250,20 @@ placeStartState originalW ss =  modifyAt layerToInsert (++ [StartS (-1) 0
 addDummy :: Wrapper -> Wrapper
 addDummy s@OrDecomposition {} = case layered s of
   [[_]] -> OrDecomposition (fmap (fmap addDummy) (layered s))
-    (key s) (strings s) (connections s) (layout s) (maxLabel s) (lengthXY s)
+    (key s) (strings s) (typedConnections s) (layout s) (maxLabel s) (lengthXY s)
     (rightC s) (outerLayout s)
   _ -> OrDecomposition loopDummy (key s) (strings s)
     connectionWithTransition Unspecified (getSecondFromTuple3 withTransition)
     (lengthXY s) (rightC s) (outerLayout s)
     where
-      withDummy = addDummyStates (maxLabel s) (layered s) (connections s) []
+      withDummy = addDummyStates (maxLabel s) (layered s) (typedConnections s) []
       withTransition = addTransitionStates (getSecondFromTuple3 withDummy)
         (buildEmptyWrapperByLayer (getFirstFromTuple3 withDummy) [])
         (getFirstFromTuple3 withDummy) (getThirdFromTuple3 withDummy) []
       stateWithTransition = getFirstFromTuple3 withTransition
       connectionWithTransition = getThirdFromTuple3 withTransition
       {- withTransition = addTransitionStates (maxLabel s) (buildEmptyWrapperByLayer
-        (layered s) []) (layered s) (connections s) []
+        (layered s) []) (layered s) (typedConnections s) []
       withDummy = addDummyStates (getSecondFromTuple3 withTransition) (getFirstFromTuple3
         withTransition) (getThirdFromTuple3 withTransition) []
       stateWithDummy = getFirstFromTuple3 withDummy
@@ -395,42 +395,42 @@ connectionsByLayers (x:xs) layers connectionLayers =
 startStateFirst :: StateDiagram String Int [Connection Int] -> [Int] -> StateDiagram String Int [Connection Int]
 startStateFirst a [] = a
 startStateFirst a@StateDiagram {} (x:xs) =
-  StateDiagram (loopOrder : tail newOrder) (label a) (name a) (connection a)
+  StateDiagram (loopOrder : tail newOrder) (label a) (name a) (connections a)
   (startState a)
   where
-    newOrder = moveToFirst (substate a) x []
+    newOrder = moveToFirst (substates a) x []
     loopOrder = startStateFirst (head newOrder) xs
 startStateFirst a@CombineDiagram {} (x:xs) =
   CombineDiagram (loopOrder : tail newOrder) (label a)
   where
-    newOrder = moveToFirst (substate a) x []
+    newOrder = moveToFirst (substates a) x []
     loopOrder = startStateFirst (head newOrder) xs
 startStateFirst a _ = a
 
-rearrangeSubstate :: StateDiagram String Int [Connection Int] -> StateDiagram String Int [Connection Int]
-rearrangeSubstate s@StateDiagram {} = case startState s of
-  [] -> StateDiagram (fmap rearrangeSubstate (substate s)) (label s) (name s)
-    (connection s) (startState s)
-  _ -> StateDiagram (fmap rearrangeSubstate (substate n)) (label n) (name s)
-    (connection n) (startState n)
+rearrangeSubstates :: StateDiagram String Int [Connection Int] -> StateDiagram String Int [Connection Int]
+rearrangeSubstates s@StateDiagram {} = case startState s of
+  [] -> StateDiagram (fmap rearrangeSubstates (substates s)) (label s) (name s)
+    (connections s) (startState s)
+  _ -> StateDiagram (fmap rearrangeSubstates (substates n)) (label n) (name s)
+    (connections n) (startState n)
   where
     n = startStateFirst s (startState s)
-rearrangeSubstate s@CombineDiagram {} =
-  CombineDiagram (fmap rearrangeSubstate (substate s)) (label s)
-rearrangeSubstate a = a
+rearrangeSubstates s@CombineDiagram {} =
+  CombineDiagram (fmap rearrangeSubstates (substates s)) (label s)
+rearrangeSubstates a = a
 
 {-
 changeLayout :: Wrapper -> Layout -> Wrapper
 changeLayout s@OrDecomposition {} a = OrDecomposition (layered s) (key s) (strings s)
-  (connections s) a (maxLabel s) (lengthXY s) (rightC s)
+  (typedConnections s) a (maxLabel s) (lengthXY s) (rightC s)
   (outerLayout s)
 changeLayout s _ = s
 
 changeOrLayout :: Wrapper -> Layout -> Wrapper
 changeOrLayout s@OrDecomposition {} b = case layered s of
-  [[a@AndDecomposition {}]] -> OrDecomposition (layered s) (key s) (strings s) (connections s)
+  [[a@AndDecomposition {}]] -> OrDecomposition (layered s) (key s) (strings s) (typedConnections s)
     (layout a) (maxLabel s) (lengthXY s) (rightC s) b
-  _ -> OrDecomposition (layered s) (key s) (strings s) (connections s)
+  _ -> OrDecomposition (layered s) (key s) (strings s) (typedConnections s)
     (layout s) (maxLabel s) (lengthXY s) (rightC s) b
 changeOrLayout s@Fork {} a = Fork (key s) a (lengthXY s) (rightC s)
 changeOrLayout s@Dummy {} a = Dummy (key s) a (lengthXY s)
@@ -451,24 +451,24 @@ changeAndLayout a b = if layout a == b then a else
   case layered a of
     [[s@AndDecomposition {}]] -> OrDecomposition [[AndDecomposition (fmap (`changeAndLayout` b)
       (component s)) (key s) b (lengthXY s) (rightC s) b]]
-      (key a) (strings a) (connections a) b (maxLabel a) (lengthXY a)
+      (key a) (strings a) (typedConnections a) b (maxLabel a) (lengthXY a)
       (rightC a) (outerLayout a)
     _ -> OrDecomposition (fmap (fmap (`changeOrLayout` b)) (layered a)) (key a)
-      (strings a) (connections a) b (maxLabel a) (lengthXY a)
+      (strings a) (typedConnections a) b (maxLabel a) (lengthXY a)
       (rightC a) b
 
 assignLayout :: Wrapper -> Wrapper
 assignLayout s@OrDecomposition {} = if checkOrList (concat (layered s)) then
-  newOrLayout else OrDecomposition newLayered (key s) (strings s) (connections s)
+  newOrLayout else OrDecomposition newLayered (key s) (strings s) (typedConnections s)
   (selectSmallerSize s) (maxLabel s) (lengthXY s) (rightC s)
   (outerLayout s)
   where
     newLayered = fmap (fmap (`changeOrLayout` selectSmallerSize s)) (layered s)
     newOr = OrDecomposition (fmap (fmap assignLayout) (layered s)) (key s) (strings s)
-      (connections s) (layout s) (maxLabel s) (lengthXY s) (rightC s)
+      (typedConnections s) (layout s) (maxLabel s) (lengthXY s) (rightC s)
       (outerLayout s)
     newOrLayout = OrDecomposition (fmap (fmap (`changeOrLayout` selectSmallerSize newOr
-      )) (layered newOr)) (key s) (strings s) (connections s)
+      )) (layered newOr)) (key s) (strings s) (typedConnections s)
       (selectSmallerSize newOr) (maxLabel s) (lengthXY s) (rightC s)
       (outerLayout s)
 assignLayout s@AndDecomposition {} = AndDecomposition (fmap (`changeAndLayout` decidedLayout)
@@ -484,12 +484,12 @@ assignLayout a = a
 reduceCrossStateCrossing :: Wrapper -> Wrapper
 reduceCrossStateCrossing s@OrDecomposition {} = if null (fst dummyToAdd) then OrDecomposition
   (fmap (fmap reduceCrossStateCrossing) (layered s)) (key s) (strings s)
-  (connections s) (layout s) (maxLabel s) (lengthXY s) (rightC s)
+  (typedConnections s) (layout s) (maxLabel s) (lengthXY s) (rightC s)
   (outerLayout s) else OrDecomposition (fmap (fmap reduceCrossStateCrossing) (layered
-  addingDummy)) (key s) (strings s) (connections addingDummy) (layout s)
+  addingDummy)) (key s) (strings s) (typedConnections addingDummy) (layout s)
   (maxLabel addingDummy) (lengthXY s) (rightC s) (outerLayout s)
   where
-    dummyToAdd = filterCrossStateConnection (connections s) [] []
+    dummyToAdd = filterCrossStateConnection (typedConnections s) [] []
     newOr = OrDecomposition (layered s) (key s) (strings s) (snd dummyToAdd)
       Unspecified (maxLabel s) (lengthXY s) (rightC s) (outerLayout
       s)
@@ -502,10 +502,10 @@ reduceCrossStateCrossing a = a
 reduceCrossStateCrossing' :: Wrapper -> Wrapper
 reduceCrossStateCrossing' s@OrDecomposition {} = if null (fst dummyToAdd) then OrDecomposition
   (fmap (fmap reduceCrossStateCrossing') (layered s)) (key s) (strings s)
-  (connections s) (layout s) (maxLabel s) (lengthXY s) (rightC s)
+  (typedConnections s) (layout s) (maxLabel s) (lengthXY s) (rightC s)
   (outerLayout s) else addingDummy
   where
-    dummyToAdd = filterCrossStateConnection (connections s) [] []
+    dummyToAdd = filterCrossStateConnection (typedConnections s) [] []
     newOr = OrDecomposition (fmap (fmap reduceCrossStateCrossing') (layered s)) (key s)
       (strings s) (snd dummyToAdd) (layout s) (maxLabel s) (lengthXY s)
       (rightC s) (outerLayout s)
@@ -572,7 +572,7 @@ addCrossSuperStateDummy a b = case (pointFrom $ connecting b, pointTo $
 addDummyLeft' :: ConnectionType -> [Int] -> [ConnectWithType]  -> Wrapper ->
   Wrapper
 addDummyLeft' cType (x:xs) connectWT a = OrDecomposition loop (key a) (strings a) (
-  connectWT ++ connections a) Unspecified (maxLabel a) (lengthXY a)
+  connectWT ++ typedConnections a) Unspecified (maxLabel a) (lengthXY a)
   (rightC a) (outerLayout a)
   where
     loop = fmap (fmap (addDummyLeft cType xs x)) (layered a)
@@ -582,7 +582,7 @@ addDummyLeft' _ _ _ _ = StartS (-1) 0 NoConnection Unspecified
 addDummyRight' :: ConnectionType -> [Int] -> [ConnectWithType]  -> Wrapper ->
   Wrapper
 addDummyRight' cType (x:xs) connectWT a = OrDecomposition loop (key a) (strings a) (
-  connectWT ++ connections a) Unspecified (maxLabel a) (lengthXY a)
+  connectWT ++ typedConnections a) Unspecified (maxLabel a) (lengthXY a)
   (rightC a) (outerLayout a)
   where
     loop = fmap (fmap (addDummyRight cType xs x)) (layered a)
@@ -591,13 +591,13 @@ addDummyRight' _ _ _ _ = StartS (-1) 0 NoConnection Unspecified
 addDummyLeft :: ConnectionType -> [Int] -> Int -> Wrapper -> Wrapper
 addDummyLeft ForwardH [a] matchLabel b = if key b == matchLabel then
   OrDecomposition (insertDummyLeft b) (key b) (strings b) (
-  ConnectWithType (Connection [maxLabel b + 1] [a] "") ForwardH : connections
+  ConnectWithType (Connection [maxLabel b + 1] [a] "") ForwardH : typedConnections
   b) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b)
   (outerLayout b) else b
 addDummyLeft ForwardH (x:xs) matchLabel b@OrDecomposition {} = if key b == matchLabel
   then OrDecomposition (fmap (fmap (addDummyLeft ForwardH xs x)) (
   insertDummyLeft b)) (key b) (strings b) (ConnectWithType (Connection [
-  maxLabel b + 1] (getDeeperConnection (x:xs) b) "") ForwardWH : connections b)
+  maxLabel b + 1] (getDeeperConnection (x:xs) b) "") ForwardWH : typedConnections b)
   Unspecified (maxLabel b + 1) (lengthXY b) (rightC b) (outerLayout
   b) else b
 addDummyLeft ForwardH (x:xs) matchLabel b@AndDecomposition {} = if key b == matchLabel
@@ -605,12 +605,12 @@ addDummyLeft ForwardH (x:xs) matchLabel b@AndDecomposition {} = if key b == matc
   layout b) (lengthXY b) (rightC b) (outerLayout b) else b
 addDummyLeft BackwardWH [a] matchLabel b = if key b == matchLabel then
   OrDecomposition (insertDummyLeft b) (key b) (strings b) (
-  ConnectWithType (Connection [a] [maxLabel b + 1] "") BackwardWH : connections
+  ConnectWithType (Connection [a] [maxLabel b + 1] "") BackwardWH : typedConnections
   b) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b) (outerLayout b) else b
 addDummyLeft BackwardWH (x:xs) matchLabel b@OrDecomposition {} = if key b == matchLabel
   then OrDecomposition (fmap (fmap (addDummyLeft BackwardWH xs x)) (
   insertDummyLeft b)) (key b) (strings b) (ConnectWithType (Connection (
-  getDeeperConnection (x:xs) b) [maxLabel b + 1] "") BackwardWH : connections b
+  getDeeperConnection (x:xs) b) [maxLabel b + 1] "") BackwardWH : typedConnections b
   ) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b) (
   outerLayout b) else b
 addDummyLeft BackwardWH (x:xs) matchLabel b@AndDecomposition {} = if key b ==
@@ -621,13 +621,13 @@ addDummyLeft _ _ _ b = b
 addDummyRight :: ConnectionType -> [Int] -> Int -> Wrapper -> Wrapper
 addDummyRight BackwardH [a] matchLabel b = if key b == matchLabel then
   OrDecomposition (insertDummyRight b) (key b) (strings b) (
-  ConnectWithType (Connection [maxLabel b + 1] [a] "") BackwardH : connections
+  ConnectWithType (Connection [maxLabel b + 1] [a] "") BackwardH : typedConnections
   b) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b)
   (outerLayout b) else b
 addDummyRight BackwardH (x:xs) matchLabel b@OrDecomposition {} = if key b == matchLabel
   then OrDecomposition (fmap (fmap (addDummyRight BackwardH xs x)) (
   insertDummyRight b)) (key b) (strings b) (ConnectWithType (Connection [
-  maxLabel b + 1] (getDeeperConnection (x:xs) b) "") BackwardWH : connections b
+  maxLabel b + 1] (getDeeperConnection (x:xs) b) "") BackwardWH : typedConnections b
   ) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b)
   (outerLayout b) else b
 addDummyRight BackwardH (x:xs) matchLabel b@AndDecomposition {} = if key b ==
@@ -635,13 +635,13 @@ addDummyRight BackwardH (x:xs) matchLabel b@AndDecomposition {} = if key b ==
   (key b) (layout b) (lengthXY b) (rightC b) (outerLayout b) else b
 addDummyRight ForwardWH [a] matchLabel b = if key b == matchLabel then
   OrDecomposition (insertDummyRight b) (key b) (strings b) (
-  ConnectWithType (Connection [a] [maxLabel b + 1] "") ForwardWH : connections
+  ConnectWithType (Connection [a] [maxLabel b + 1] "") ForwardWH : typedConnections
   b) Unspecified (maxLabel b + 1) (lengthXY b) (rightC b)
   (outerLayout b) else b
 addDummyRight ForwardWH (x:xs) matchLabel b@OrDecomposition {} = if key b == matchLabel
   then OrDecomposition (fmap (fmap (addDummyRight ForwardWH xs x)) (
   insertDummyRight b)) (key b) (strings b) (ConnectWithType (Connection (
-  getDeeperConnection (x:xs) b) [maxLabel b + 1] "") ForwardWH : connections b)
+  getDeeperConnection (x:xs) b) [maxLabel b + 1] "") ForwardWH : typedConnections b)
   Unspecified (maxLabel b + 1) (lengthXY b) (rightC b) (outerLayout
   b) else b
 addDummyRight ForwardWH (x:xs) matchLabel b@AndDecomposition {} = if key b ==
@@ -676,7 +676,7 @@ changeConnectionType (x:xs) layers withType = changeConnectionType xs layers
 
 changeRightConnection :: Wrapper -> RightConnect -> Wrapper
 changeRightConnection s@OrDecomposition {} a = OrDecomposition (layered s) (key s) (strings s)
-  (connections s) (layout s) (maxLabel s) (lengthXY s) a
+  (typedConnections s) (layout s) (maxLabel s) (lengthXY s) a
   (outerLayout s)
 changeRightConnection s@AndDecomposition {} a = AndDecomposition (component s) (key s) (layout
   s) (lengthXY s) a (outerLayout s)
@@ -708,7 +708,7 @@ changeRightConnections [] matchLabel rightType s = if key s == matchLabel then
   s
 changeRightConnections (x:xs) matchLabel rightType s@OrDecomposition {} = if key s ==
   matchLabel then OrDecomposition (fmap (fmap (changeRightConnections xs x rightType))
-  (layered s)) (key s) (strings s) (connections s) (layout s) (maxLabel s)
+  (layered s)) (key s) (strings s) (typedConnections s) (layout s) (maxLabel s)
   (lengthXY s) (rightC s) (outerLayout s) else s
 changeRightConnections (x:xs) matchLabel rightType s@AndDecomposition {} = if key s ==
   matchLabel then AndDecomposition (fmap (changeRightConnections xs x rightType)
@@ -718,7 +718,7 @@ changeRightConnections _ _ _ s = s
 
 markRightConnection :: Wrapper -> ConnectWithType -> Wrapper
 markRightConnection a b = OrDecomposition (layered afterChange) (key a) (strings a)
-  (connections a ++ [ConnectWithType (connecting b) decideConnectType]) (layout
+  (typedConnections a ++ [ConnectWithType (connecting b) decideConnectType]) (layout
   a) (maxLabel a) (lengthXY a) (rightC a) (outerLayout a)
   where
     startLayer = findLayer (head (pointFrom $ connecting b)) (layered a) 0
@@ -733,12 +733,12 @@ markRightConnection a b = OrDecomposition (layered afterChange) (key a) (strings
 
 modifyRightConnection :: Wrapper -> Wrapper
 modifyRightConnection s@OrDecomposition {} = OrDecomposition (fmap (fmap modifyRightConnection)
-  (layered newOr)) (key s) (strings s) (connections newOr) (layout s)
+  (layered newOr)) (key s) (strings s) (typedConnections newOr) (layout s)
   (maxLabel s) (lengthXY s) (rightC s) (outerLayout s)
   where
     dummyOr = OrDecomposition (layered s) (key s) (strings s) [] (layout s)
       (maxLabel s) (lengthXY s) (rightC s) (outerLayout s)
-    newOr = foldl markRightConnection dummyOr (connections s)
+    newOr = foldl markRightConnection dummyOr (typedConnections s)
 modifyRightConnection s@AndDecomposition {} = AndDecomposition (fmap modifyRightConnection
   (component s)) (key s) (layout s) (lengthXY s) (rightC s)
   (outerLayout s)
@@ -748,10 +748,10 @@ changeLength :: Double -> Wrapper -> Wrapper
 changeLength l s = case s of
   OrDecomposition {}
     | outerLayout s == Vertical -> OrDecomposition (layered s) (key s) (strings s)
-        (connections s) (layout s) (maxLabel s) (l - h) (rightC s)
+        (typedConnections s) (layout s) (maxLabel s) (l - h) (rightC s)
         (outerLayout s)
     | otherwise -> OrDecomposition (layered s) (key s) (strings s)
-        (connections s) (layout s) (maxLabel s) (l - w) (rightC s)
+        (typedConnections s) (layout s) (maxLabel s) (l - w) (rightC s)
         (outerLayout s)
   EndS {}
     | outerLayout s == Vertical ->
@@ -803,11 +803,11 @@ assignLayerLength layouts a = if layouts == Vertical then
 
 assignLength :: Wrapper -> Wrapper
 assignLength s@OrDecomposition {} = OrDecomposition newLayered (key s) (strings s)
-      (connections s) (layout s) (maxLabel s) (lengthXY s) (rightC s
+      (typedConnections s) (layout s) (maxLabel s) (lengthXY s) (rightC s
       ) (outerLayout s)
   where
     loop = OrDecomposition (fmap (fmap assignLength) (layered s)) (key s) (strings s)
-      (connections s) (layout s) (maxLabel s) (lengthXY s) (rightC s
+      (typedConnections s) (layout s) (maxLabel s) (lengthXY s) (rightC s
       ) (outerLayout s)
     newLayered = fmap (assignLayerLength (layout s)) (layered loop)
 assignLength s@AndDecomposition {} = AndDecomposition (fmap assignLength (component s)) (key s)
@@ -818,19 +818,19 @@ orderFunction :: StateDiagram String Int [Connection Int] -> Wrapper
 orderFunction a = loopEdgeRed 5 $
   modifyRightConnection $ assignLength $
   addDummy $
-  reduceCrossStateCrossing' $ getWrapper $ rearrangeSubstate a
+  reduceCrossStateCrossing' $ getWrapper $ rearrangeSubstates a
 
 edgeCrossingReduc :: Wrapper -> Wrapper
 edgeCrossingReduc s@OrDecomposition {} = case layered s of
   [[_]] -> OrDecomposition (fmap (fmap edgeCrossingReduc) (layered s)) (key s) (strings
-    s) (connections s) (layout s) (maxLabel s) (lengthXY s) (rightC
+    s) (typedConnections s) (layout s) (maxLabel s) (lengthXY s) (rightC
     s) (outerLayout s)
-  _ -> OrDecomposition withEdgeReduc (key s) (strings s) (connections s) (layout s)
+  _ -> OrDecomposition withEdgeReduc (key s) (strings s) (typedConnections s) (layout s)
     (maxLabel s) (lengthXY s) (rightC s) (outerLayout s)
     where
       loopDummy = fmap (fmap edgeCrossingReduc) (layered s)
       withEdgeReduc = edgeRedLayers [] loopDummy []
-        (connectionsByLayers (connections s) loopDummy
+        (connectionsByLayers (typedConnections s) loopDummy
         (buildEmptyConnectionByLayer loopDummy [])) 0 0 True
 
 edgeCrossingReduc s@AndDecomposition {} = AndDecomposition (fmap edgeCrossingReduc (component
@@ -933,26 +933,26 @@ checkWrapper :: StateDiagram String Int [Connection Int] -> Maybe String
 checkWrapper a
   | not (checkOuterMostWrapper b) = Just ("Error: Outermost layer must be "
     ++ "'OrDecomposition' constructor")
-  | not (checkOrDecompositionSubstate b) = Just ("Error: Substate of OrDecomposition "
+  | not (checkOrDecompositionSubstates b) = Just ("Error: Substates of OrDecomposition "
     ++ "constructor cannot be empty or just Hist/Fork/StartS/Dummy/Transition")
-  | not (checkAndDecompositionSubstate b) = Just ("Error: AndDecomposition constructor must "
+  | not (checkAndDecompositionSubstates b) = Just ("Error: AndDecomposition constructor must "
     ++ "contain at least 2 OrDecomposition and no other type of constructor")
   | not (checkLayout b) = Just ("Error: Horizontal slicing must be followed by "
     ++ "vertical layering or vise versa")
   | otherwise = Nothing
     where
-      b = addDummy $ getWrapper $ rearrangeSubstate a
+      b = addDummy $ getWrapper $ rearrangeSubstates a
 
 checkOuterMostWrapper :: Wrapper -> Bool
 checkOuterMostWrapper OrDecomposition {} = True
 checkOuterMostWrapper AndDecomposition {} = True
 checkOuterMostWrapper _ = False
 
-checkOrDecompositionSubstate :: Wrapper -> Bool
-checkOrDecompositionSubstate (AndDecomposition a _ _ _ _ _) = all checkOrDecompositionSubstate a
-checkOrDecompositionSubstate (OrDecomposition a _ _ _ _ _ _ _ _) = any checkOrDecompositionList (concat a) &&
-  all checkOrDecompositionSubstate (concat a)
-checkOrDecompositionSubstate _ = True
+checkOrDecompositionSubstates :: Wrapper -> Bool
+checkOrDecompositionSubstates (AndDecomposition a _ _ _ _ _) = all checkOrDecompositionSubstates a
+checkOrDecompositionSubstates (OrDecomposition a _ _ _ _ _ _ _ _) = any checkOrDecompositionList (concat a) &&
+  all checkOrDecompositionSubstates (concat a)
+checkOrDecompositionSubstates _ = True
 
 checkOrDecompositionList :: Wrapper -> Bool
 checkOrDecompositionList AndDecomposition {} = True
@@ -961,13 +961,13 @@ checkOrDecompositionList Leaf {} = True
 checkOrDecompositionList EndS {} = True
 checkOrDecompositionList _ = False
 
-checkAndDecompositionSubstate :: Wrapper -> Bool
-checkAndDecompositionSubstate (AndDecomposition a _ _ _ _ _) = length a > 1 && all checkAndDecompositionList a
-checkAndDecompositionSubstate (OrDecomposition a _ _ _ _ _ _ _ _) = all checkAndDecompositionSubstate (concat a)
-checkAndDecompositionSubstate _ = True
+checkAndDecompositionSubstates :: Wrapper -> Bool
+checkAndDecompositionSubstates (AndDecomposition a _ _ _ _ _) = length a > 1 && all checkAndDecompositionList a
+checkAndDecompositionSubstates (OrDecomposition a _ _ _ _ _ _ _ _) = all checkAndDecompositionSubstates (concat a)
+checkAndDecompositionSubstates _ = True
 
 checkAndDecompositionList :: Wrapper -> Bool
-checkAndDecompositionList (OrDecomposition a _ _ _ _ _ _ _ _) = all checkAndDecompositionSubstate (concat a)
+checkAndDecompositionList (OrDecomposition a _ _ _ _ _ _ _ _) = all checkAndDecompositionSubstates (concat a)
 checkAndDecompositionList _ = False
 
 checkLayout :: Wrapper -> Bool

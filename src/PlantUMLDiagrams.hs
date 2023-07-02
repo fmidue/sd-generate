@@ -23,8 +23,8 @@ renderAll :: UMLStateDiagram String Int -> String
 renderAll sd =
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
-    StateDiagram{ connection=connection } = unUML' sd
-    inherited = Inherited{ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connection}
+    StateDiagram{ connections = connections } = unUML' sd
+    inherited = Inherited{ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connections}
   in
     [i|@startuml
 #{info}
@@ -36,30 +36,30 @@ renderAll sd =
 renderUML :: UMLStateDiagram String Int -> Inherited -> String
 renderUML sd inherited =
   let
-    StateDiagram{ substate, connection, startState } = unUML' sd
+    StateDiagram{ substates, connections, startState } = unUML' sd
   in
   case unUML' (globalise sd) of
-    StateDiagram subst _ _ _ _ ->   let substate1 = subst
-                                        hn = getAllHistory substate1 inherited
+    StateDiagram subst _ _ _ _ ->   let substates1 = subst
+                                        hn = getAllHistory substates1 inherited
                                     in
                                     [i|
-#{renderSubState substate inherited}
+#{renderSubstates substates inherited}
 #{renderStart startState inherited}
-#{renderConnection hn connection inherited}|]
+#{renderConnections hn connections inherited}|]
     _ -> error "not defined"
 
-renderSubState :: [StateDiagram String Int [Connection Int]] -> Inherited -> String
-renderSubState [] _ = []
-renderSubState (x:xs) inherited@Inherited{ ctxt, connectionSources } =
+renderSubstates :: [StateDiagram String Int [Connection Int]] -> Inherited -> String
+renderSubstates [] _ = []
+renderSubstates (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of
 
     StateDiagram{ label, name } ->
         [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{("N_" ++ (address "" (ctxt ++ [label])))}|]
         ++ "{\n" ++ renderUML (umlStateDiagram x) Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
 
-    CombineDiagram{ substate, label } ->
+    CombineDiagram{ substates, label } ->
         [i|state "RegionsState" as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "{\n"
-        ++ renderRegions substate Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
+        ++ renderRegions substates Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
 
     EndState { label } ->
         [i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n"
@@ -75,7 +75,7 @@ renderSubState (x:xs) inherited@Inherited{ ctxt, connectionSources } =
         isFork = length (filter (node==) connectionSources) > 1
       in
         [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
-  ++ renderSubState xs inherited
+  ++ renderSubstates xs inherited
 
 renderRegions :: [StateDiagram String Int [Connection Int]] -> Inherited -> String
 renderRegions [] _ = []
@@ -85,8 +85,8 @@ renderRegions (r:rs) inherited@Inherited{ ctxt, connectionSources } =
         renderUML (umlStateDiagram r) Inherited{ctxt=ctxt ++ [label], connectionSources}
         ++ if null rs then "" else "--\n"
 
-    CombineDiagram{ substate, label } ->
-        renderRegions substate Inherited{ctxt=ctxt ++ [label], connectionSources}
+    CombineDiagram{ substates, label } ->
+        renderRegions substates Inherited{ctxt=ctxt ++ [label], connectionSources}
 
     EndState { label } ->
         [i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n"
@@ -112,22 +112,22 @@ renderStart target Inherited{ctxt} =
   in
     [i|[*] -> N_#{address "" here_target}|] ++ "\n"
 
-renderConnection :: [(StateDiagram String Int [Connection Int], [Int])] -> [Connection Int] -> Inherited -> String
-renderConnection _ [] _ = []
-renderConnection [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt } =
+renderConnections :: [(StateDiagram String Int [Connection Int], [Int])] -> [Connection Int] -> Inherited -> String
+renderConnections _ [] _ = []
+renderConnections [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt } =
   let
     here_pointFrom = ctxt ++ pointFrom
     here_pointTo = ctxt ++ pointTo
   in
     [i|N_#{address "" here_pointFrom} --> N_#{address "" here_pointTo}#{if null transition then "\n" else " : " ++ transition ++ "\n"}|]
-    ++ renderConnection [] cs inherited
-renderConnection hn@((History{ historyType },completeLabel):hs) cx@(Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt }
-  | completeLabel == here_pointFrom    = from_hc ++ renderConnection hn cs inherited
-  | completeLabel == here_pointTo      = to_hc ++ renderConnection hn cs inherited
+    ++ renderConnections [] cs inherited
+renderConnections hn@((History{ historyType },completeLabel):hs) cx@(Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt }
+  | completeLabel == here_pointFrom    = from_hc ++ renderConnections hn cs inherited
+  | completeLabel == here_pointTo      = to_hc ++ renderConnections hn cs inherited
   | otherwise                          = let
-                                           str = if null hs then [] else renderConnection hs cx inherited
+                                           str = if null hs then [] else renderConnections hs cx inherited
                                          in
-                                           if null str then oc ++ renderConnection hn cs inherited else str
+                                           if null str then oc ++ renderConnections hn cs inherited else str
     where
       here_pointFrom = ctxt ++ pointFrom
       here_pointTo = ctxt ++ pointTo
@@ -137,7 +137,7 @@ renderConnection hn@((History{ historyType },completeLabel):hs) cx@(Connection{ 
       oc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address "" here_pointTo}#{transitionLabel}|]
       from_hc = [i|#{isHistoryType} --> N_#{address "" here_pointTo}|] ++ "\n"
       to_hc = [i|N_#{address "" here_pointFrom} #{isNullTransition} N_#{address isHistoryType here_pointTo}#{transitionLabel}|] ++ "\n"
-renderConnection _ _ _ = error "not defined"
+renderConnections _ _ _ = error "not defined"
 
 address :: String -> [Int] -> String
 address "" as = intercalate "_" (map show as)
@@ -147,17 +147,17 @@ getAllHistory :: [StateDiagram String Int [Connection Int]] -> Inherited -> [(St
 getAllHistory [] _ = []
 getAllHistory (x:xs) inherited@Inherited{ ctxt, connectionSources } =
   case x of
-    StateDiagram{ substate, label } ->
+    StateDiagram{ substates, label } ->
       let
         here = ctxt ++ [label]
       in
-        getAllHistory substate Inherited{ctxt=here, connectionSources}
+        getAllHistory substates Inherited{ctxt=here, connectionSources}
 
-    CombineDiagram{ substate, label } ->
+    CombineDiagram{ substates, label } ->
       let
         here = ctxt ++ [label]
       in
-        getAllHistory substate Inherited{ctxt=here, connectionSources}
+        getAllHistory substates Inherited{ctxt=here, connectionSources}
 
     History{label} -> [(x, ctxt ++ [label])]
 

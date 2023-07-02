@@ -40,9 +40,9 @@ data Synthesized = Synthesized
 
 render :: Int -> UMLStateDiagram String Int -> String
 render protoFlowScope =
-  unUML (\name substate connection startState ->
+  unUML (\name substates connection startState ->
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
-        renderInner renderNode substate
+        renderInner renderNode substates
           Inherited {ctxt = [], nameMapping = nameMapping
                     , connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address pointFrom}|]) connection}
       nameMapping = zipWith (\name -> (name,) . ("Name" ++) . show) (nubOrd names) [1..]
@@ -96,9 +96,9 @@ renderConnection transitionMapping Connection{ pointFrom, pointTo, transition } 
 }|]
 
 renderInner :: (StateDiagram String Int a -> Inherited -> Synthesized) -> [StateDiagram String Int a] -> Inherited -> Synthesized
-renderInner recurse substate inherited =
+renderInner recurse substates inherited =
   let
-    recursively = map (`recurse` inherited) substate
+    recursively = map (`recurse` inherited) substates
   in
       Synthesized
       { alloy = unlines $ map alloy recursively
@@ -116,13 +116,13 @@ renderInner recurse substate inherited =
       }
 
 renderComposite :: String -> (StateDiagram String Int a -> Inherited -> Synthesized) -> StateDiagram String Int a -> Inherited -> Synthesized
-renderComposite kind eachWith StateDiagram{ substate, label, name, startState } inherited@Inherited{ctxt, nameMapping} =
+renderComposite kind eachWith StateDiagram{ substates, label, name, startState } inherited@Inherited{ctxt, nameMapping} =
   let
     here = ctxt ++ [label]
     node = [i|#{if kind == "Regions" then "R" else "N"}_#{address here}|]
     start = if null startState then Nothing else Just ([i|S_#{address here}|], here ++ startState)
     Synthesized {alloy, names, rootNodes, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
-      renderInner eachWith substate
+      renderInner eachWith substates
         inherited {ctxt = here}
   in
   Synthesized
@@ -165,10 +165,10 @@ renderNode :: StateDiagram String Int a -> Inherited -> Synthesized
 renderNode d@StateDiagram{} inherited =
   renderComposite "HierarchicalStates" renderNode d inherited
 
-renderNode CombineDiagram { substate, label } inherited =
+renderNode CombineDiagram { substates, label } inherited =
   renderComposite "RegionsStates"
     (renderComposite "Regions" renderNode)
-    StateDiagram{ substate = substate, label = label, name = "", startState = [] }
+    StateDiagram{ substates = substates, label = label, name = "", startState = [] }
     inherited
 
 renderNode InnerMostState { label, name } Inherited{ctxt, nameMapping} =

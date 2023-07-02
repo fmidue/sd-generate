@@ -9,11 +9,11 @@ import Datatype (
   UMLStateDiagram(unUML'),
   )
 
-import Checkers.Helpers (getSubstate, lastSecNotCD)
+import Checkers.Helpers (getSubstates, lastSecNotCD)
 
 checkRepresentation :: UMLStateDiagram n Int -> Maybe String
 checkRepresentation a
-  | not (checkSubstateCD $ unUML' a) =
+  | not (checkSubstatesCD $ unUML' a) =
       Just "Error: CombineDiagram constructor must contain at least 2 StateDiagram and no other type of constructor"
   | not (checkEmptyConnPoint $ unUML' a) =
       Just "Error: Neither the pointFrom nor the pointTo of a connection is an empty list"
@@ -28,25 +28,25 @@ checkRepresentation a
   | otherwise =
       Nothing
 
-checkSubstateCD :: StateDiagram n Int [Connection Int] -> Bool
-checkSubstateCD (CombineDiagram a _) = length a > 1 && all checkListInCD a
-checkSubstateCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
-checkSubstateCD _ = True
+checkSubstatesCD :: StateDiagram n Int [Connection Int] -> Bool
+checkSubstatesCD (CombineDiagram a _) = length a > 1 && all checkListInCD a
+checkSubstatesCD (StateDiagram a _ _ _ _) = all checkSubstatesCD a
+checkSubstatesCD _ = True
 
 checkListInCD :: StateDiagram n Int [Connection Int] -> Bool
-checkListInCD (StateDiagram a _ _ _ _) = all checkSubstateCD a
+checkListInCD (StateDiagram a _ _ _ _) = all checkSubstatesCD a
 checkListInCD _ = False
 
 checkEmptyConnPoint :: StateDiagram n Int [Connection Int] -> Bool
 checkEmptyConnPoint = all (\cs -> not (any (null . pointFrom) cs) && not (any (null . pointTo) cs))
 
 checkSubC :: StateDiagram n Int [Connection Int] -> Bool
-checkSubC  StateDiagram { substate, connection } =  checkConnFrom && checkConnTo  && all checkSubC substate
+checkSubC  StateDiagram { substates, connections } =  checkConnFrom && checkConnTo  && all checkSubC substates
                               where
-                                getLayerList = map label substate
-                                checkConnFrom = isContained (map pointFrom connection) getLayerList  substate
-                                checkConnTo = isContained (map pointTo connection ) getLayerList substate
-checkSubC CombineDiagram {substate} = all checkSubC substate
+                                getLayerList = map label substates
+                                checkConnFrom = isContained (map pointFrom connections) getLayerList substates
+                                checkConnTo = isContained (map pointTo connections) getLayerList substates
+checkSubC CombineDiagram { substates } = all checkSubC substates
 checkSubC  _ = True
 
 isContained :: [[Int]] -> [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
@@ -55,27 +55,27 @@ isContained xs a b = all (\x -> isContained1 x a b) xs
 isContained1 :: [Int] -> [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
 isContained1 [] _ _ = True
 isContained1 (x:xs) a b =  (x `elem` a)  &&
-       isContained1 xs (map label (getSubstate x b)) (getSubstate x b)
+       isContained1 xs (map label (getSubstates x b)) (getSubstates x b)
 
 checkConnFromToRegion :: StateDiagram n Int [Connection Int] -> Bool
-checkConnFromToRegion StateDiagram{substate,connection}  =
-                                all ((`lastSecNotCD` substate) . pointFrom) connection
-                             && all ((`lastSecNotCD` substate) . pointTo) connection
-                             && all checkConnFromToRegion substate
-checkConnFromToRegion CombineDiagram {substate} = all checkConnFromToRegion substate
+checkConnFromToRegion StateDiagram{ substates, connections }  =
+                                all ((`lastSecNotCD` substates) . pointFrom) connections
+                             && all ((`lastSecNotCD` substates) . pointTo) connections
+                             && all checkConnFromToRegion substates
+checkConnFromToRegion CombineDiagram { substates } = all checkConnFromToRegion substates
 checkConnFromToRegion _ = True
 
 checkSubS :: StateDiagram n Int [Connection Int] -> Bool
-checkSubS  StateDiagram { substate, startState} = checkStart && all checkSubS substate
+checkSubS  StateDiagram { substates, startState } = checkStart && all checkSubS substates
                                               where
-                                                getLayerList = map label substate
-                                                checkStart = isContained1 startState getLayerList substate
-checkSubS CombineDiagram {substate} = all checkSubS substate
+                                                getLayerList = map label substates
+                                                checkStart = isContained1 startState getLayerList substates
+checkSubS CombineDiagram { substates } = all checkSubS substates
 checkSubS  _ = True
 
 checkStartToRegion :: StateDiagram n Int [Connection Int] -> Bool
-checkStartToRegion StateDiagram{substate,startState}  =
-                                               lastSecNotCD startState substate
-                                             && all checkStartToRegion substate
-checkStartToRegion CombineDiagram {substate} = all checkStartToRegion substate
+checkStartToRegion StateDiagram{ substates, startState }  =
+                                               lastSecNotCD startState substates
+                                             && all checkStartToRegion substates
+checkStartToRegion CombineDiagram { substates } = all checkStartToRegion substates
 checkStartToRegion _ = True

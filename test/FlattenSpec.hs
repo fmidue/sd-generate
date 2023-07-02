@@ -12,14 +12,14 @@ import Flatten (flatten
 
 flatCase1Res :: UMLStateDiagram [String] Int
 flatCase1Res
-  = umlStateDiagram $ StateDiagram {substate =
+  = umlStateDiagram $ StateDiagram {substates =
     [InnerMostState {label = 1, name = ["P","G"], operations = ""}
     ,InnerMostState {label = 2, name = ["P","H"], operations = ""}
     ,InnerMostState {label = 3, name = ["A"], operations = ""}
     ,InnerMostState {label = 4, name = ["B"], operations = ""}
     ,InnerMostState {label = 5, name = ["C"], operations = ""}]
     , label = 0, name = [""]
-    , connection =
+    , connections =
     [Connection {pointFrom = [3], pointTo = [2], transition = "a"}
     ,Connection {pointFrom = [1], pointTo = [4], transition = "c"}
     ,Connection {pointFrom = [4], pointTo = [5], transition = "d"}
@@ -30,7 +30,7 @@ flatCase1Res
 {- unused
 flatCase2Res :: UMLStateDiagram [String] Int
 flatCase2Res
-  = umlStateDiagram $ StateDiagram {substate =
+  = umlStateDiagram $ StateDiagram {substates =
     [InnerMostState {label = 1, name = ["A", "D"], operations = "\n"}
     ,InnerMostState {label = 3, name = ["A", "E"], operations = "\n"}
     ,InnerMostState {label = 6, name = ["B", "D"], operations = "\n"}
@@ -40,7 +40,7 @@ flatCase2Res
     ,InnerMostState {label = 2, name = ["F"], operations = ""}
     ,InnerMostState {label = 4, name = ["", "H"], operations = ""}
     ,InnerMostState {label = 10, name = ["", "G"], operations = ""}]
-    , label = 22, name = [""], connection =
+    , label = 22, name = [""], connections =
     [Connection {pointFrom = [9], pointTo = [2], transition = "c"}
     ,Connection {pointFrom = [2], pointTo = [4], transition = "c"}
     ,Connection {pointFrom = [2], pointTo = [4], transition = "d"}

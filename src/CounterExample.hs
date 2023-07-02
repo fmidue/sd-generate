@@ -891,13 +891,13 @@ forCheckEmptyTran3 = umlStateDiagram $ StateDiagram [a, b] 1 "" [Connection [1] 
 forCheckDrawability :: UMLStateDiagram String Int
 forCheckDrawability = umlStateDiagram $
   StateDiagram
-    { substate =
+    { substates =
         [ StateDiagram
-            { substate =
+            { substates =
                 [ CombineDiagram
-                    { substate =
+                    { substates =
                         [ StateDiagram
-                            { substate =
+                            { substates =
                                 [ InnerMostState
                                     { label = 1
                                     , name = "1.1"
@@ -906,15 +906,15 @@ forCheckDrawability = umlStateDiagram $
                                 ]
                             , label = 1
                             , name = "1"
-                            , connection =
+                            , connections =
                                 [ ]
                             , startState =
                                 [ ]
                             }
                         , StateDiagram
-                            { substate =
+                            { substates =
                                 [ StateDiagram
-                                    { substate =
+                                    { substates =
                                         [ InnerMostState
                                             { label = 5
                                             , name = "Q"
@@ -929,7 +929,7 @@ forCheckDrawability = umlStateDiagram $
                                         ]
                                     , label = 2
                                     , name = "E"
-                                    , connection =
+                                    , connections =
                                         [ ]
                                     , startState = [ 1 ]
                                     }
@@ -939,7 +939,7 @@ forCheckDrawability = umlStateDiagram $
                                     , operations = ""
                                     }
                                 , StateDiagram
-                                    { substate =
+                                    { substates =
                                         [ InnerMostState
                                             { label = 3
                                             , name = "W"
@@ -948,14 +948,14 @@ forCheckDrawability = umlStateDiagram $
                                         ]
                                     , label = 4
                                     , name = "M"
-                                    , connection =
+                                    , connections =
                                         [ ]
                                     , startState = [ ]
                                     }
                                 ]
                             , label = 2
                             , name = "N"
-                            , connection =
+                            , connections =
                                 [ Connection
                                     { pointFrom =
                                         [ 2
@@ -981,7 +981,7 @@ forCheckDrawability = umlStateDiagram $
                 ]
             , label = 2
             , name = "B"
-            , connection =
+            , connections =
                 [ ]
             , startState =
                 [ ]
@@ -989,7 +989,7 @@ forCheckDrawability = umlStateDiagram $
         ]
     , label = 1
     , name = "I"
-    , connection =
+    , connections =
         [ Connection
             { pointFrom =
                 [ 2

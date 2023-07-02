@@ -13,17 +13,17 @@ import Data.List.Extra
 
 checkUniqueness :: UMLStateDiagram n Int -> Maybe String
 checkUniqueness a
-  | not (unUML (\_ substate _ _ -> checkRecursively substate) a) =
+  | not (unUML (\_ substates _ _ -> checkRecursively substates) a) =
       Just "Error: Local Uniqueness not fulfilled"
   | otherwise =
       Nothing
 
 checkRecursively :: [StateDiagram n Int [Connection Int]] -> Bool
-checkRecursively substate = isUnique (map label substate) && all checkSub substate
+checkRecursively substates = isUnique (map label substates) && all checkSub substates
 
 checkSub :: StateDiagram n Int [Connection Int] -> Bool
-checkSub  StateDiagram {substate} =  checkRecursively substate
-checkSub  CombineDiagram {substate} =  checkRecursively substate
+checkSub  StateDiagram {substates} = checkRecursively substates
+checkSub  CombineDiagram {substates} = checkRecursively substates
 checkSub  _ = True
 
 isUnique :: [Int] -> Bool

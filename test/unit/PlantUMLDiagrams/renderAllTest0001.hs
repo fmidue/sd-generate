@@ -1,34 +1,34 @@
 StateDiagram {
-  substate = [
+  substates = [
     StateDiagram {
-      substate = [
+      substates = [
         StateDiagram {
-          substate = [
+          substates = [
             Joint {label = 1},
             CombineDiagram {
-              substate = [
+              substates = [
                 StateDiagram {
-                  substate = [
+                  substates = [
                     InnerMostState {label = 1, name = "1", operations = ""},
                     InnerMostState {label = 2, name = "2", operations = ""}
                     ],
                   label = 1,
                   name = "C",
-                  connection = [
+                  connections = [
                     Connection {pointFrom = [1], pointTo = [2], transition = "a"},
                     Connection {pointFrom = [2], pointTo = [1], transition = "a"}
                     ],
                   startState = [1]
                   },
                 StateDiagram {
-                  substate = [
+                  substates = [
                     InnerMostState {label = 1, name = "3", operations = ""},
                     InnerMostState {label = 2, name = "4", operations = ""},
                     InnerMostState {label = 3, name = "5", operations = ""}
                     ],
                   label = 2,
                   name = "",
-                  connection = [
+                  connections = [
                     Connection {pointFrom = [1], pointTo = [2], transition = "b"},
                     Connection {pointFrom = [2], pointTo = [3], transition = "b"},
                     Connection {pointFrom = [3], pointTo = [1], transition = "b"}
@@ -41,13 +41,13 @@ StateDiagram {
             Joint {label = 3},
             History {label = 4, historyType = Shallow},
             StateDiagram {
-              substate = [
+              substates = [
                 InnerMostState {label = 1, name = "9", operations = ""},
                 InnerMostState {label = 2, name = "10", operations = ""}
                 ],
               label = 5,
               name = "D",
-              connection = [
+              connections = [
                 Connection {pointFrom = [1], pointTo = [2], transition = "g"},
                 Connection {pointFrom = [2], pointTo = [1], transition = "g"}
                 ],
@@ -56,7 +56,7 @@ StateDiagram {
             ],
           label = 1,
           name = "B",
-          connection = [
+          connections = [
             Connection {pointFrom = [4], pointTo = [5], transition = ""},
             Connection {pointFrom = [1], pointTo = [2,1,1], transition = ""},
             Connection {pointFrom = [1], pointTo = [2,2,3], transition = ""},
@@ -66,14 +66,14 @@ StateDiagram {
           startState = []
           },
         StateDiagram {
-          substate = [
+          substates = [
             InnerMostState {label = 1, name = "6", operations = ""},
             InnerMostState {label = 2, name = "7", operations = ""},
             InnerMostState {label = 3, name = "8", operations = ""}
             ],
           label = 2,
           name = "E",
-          connection = [
+          connections = [
             Connection {pointFrom = [1], pointTo = [3], transition = "d"},
             Connection {pointFrom = [3], pointTo = [2], transition = "d"},
             Connection {pointFrom = [2], pointTo = [1], transition = "d"}
@@ -83,7 +83,7 @@ StateDiagram {
         ],
       label = 1,
       name = "A",
-      connection = [
+      connections = [
         Connection {pointFrom = [1,2,1,1], pointTo = [2], transition = "i"},
         Connection {pointFrom = [1,3], pointTo = [2], transition = ""},
         Connection {pointFrom = [2,2], pointTo = [1,2,2,3], transition = "e"},
@@ -95,6 +95,6 @@ StateDiagram {
     ],
   label = 35,
   name = "",
-  connection = [],
+  connections = [],
   startState = [1,1,1]
   }

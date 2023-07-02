@@ -33,11 +33,11 @@ lift :: Eq l
   => UMLStateDiagram [n] (Either l l) -> UMLStateDiagram [n] (Either l l)
 lift
   = umlStateDiagram . unUML
-    (\name substate connection outerStartState ->
-    case target substate of
+    (\name substates connections outerStartState ->
+    case target substates of
      Just StateDiagram { label
                        , startState
-                       , substate = inner
+                       , substates = inner
                        , name = parentName }
        -> let
           address = label
@@ -48,7 +48,7 @@ lift
             { name = name
             , startState = if [label] `isPrefixOf` outerStartState then map (Right . fromLeft') $ tail outerStartState else outerStartState
             , label = undefined
-            , substate
+            , substates
                 = map (\case
                          i@InnerMostState{ name = innerName
                                          , label = Left innerLabel }
@@ -61,8 +61,8 @@ lift
                             InnerMostState {}
                               -> True
                             _ -> False
-                         ) substate
-            , connection = rewire connection address initial inner }
+                         ) substates
+            , connections = rewire connections address initial inner }
      Just _
        -> error "we dont expect anything else than StateDiagram or Nothing here"
      Nothing
@@ -76,9 +76,9 @@ target = find (\case
 
 rewire :: Eq l
   => [FlatConnection l] -> Either l l -> [Either l l] -> [FlatDiagram a l] -> [FlatConnection l]
-rewire connections address initial inner
+rewire theConnections address initial inner
   = map (updateLifted address initial) $
-    concatMap (updateCompoundExits address inner) connections
+    concatMap (updateCompoundExits address inner) theConnections
 
 updateByRule :: Eq l
   => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
@@ -111,16 +111,16 @@ distinctLabels :: (Eq b, Show b, Num l, Enum l, Eq l, Show l)
   => UMLStateDiagram a (Either l b) -> UMLStateDiagram a l
 distinctLabels
   = umlStateDiagram . unUML
-    (\name substate connection startState ->
+    (\name substates connections startState ->
        let
        r = zip {- if ever need for unit testing this relation can be extracted into a function again -}
-           (map label substate)
+           (map label substates)
            [1..]
        in
-       StateDiagram { substate
-                        = matchNodesToRelation substate r
-                    , connection
-                        = matchConnectionToRelation connection r
+       StateDiagram { substates
+                        = matchNodesToRelation substates r
+                    , connections
+                        = matchConnectionToRelation connections r
                     , name = name
                     , startState
                         = map (`matchToRelation` r) startState
@@ -138,7 +138,7 @@ matchToRelation x r
 
 matchNodesToRelation :: (Eq c, Eq b, Show c, Show b)
   => [StateDiagram n (Either b c) [Connection (Either b c)]] -> [(Either b c, b)] -> [StateDiagram n b [Connection b]]
-matchNodesToRelation substate r
+matchNodesToRelation substates r
   = map (\case
            InnerMostState{ label, name, operations }
              -> InnerMostState { label
@@ -147,14 +147,14 @@ matchNodesToRelation substate r
                                 , operations = operations
                                }
            _ -> error "only InnerMostStates are allowed at this point")
-    substate
+    substates
 
 matchConnectionToRelation :: (Eq b, Eq c, Show b, Show c)
   => [Connection (Either b c)] -> [(Either b c, b)] -> [Connection b]
-matchConnectionToRelation connection r
+matchConnectionToRelation connections r
   = [ c { pointFrom = map  (`matchToRelation` r) (pointFrom c)
         , pointTo = map (`matchToRelation` r) (pointTo c)
-        } |c<-connection ]
+        } | c <- connections ]
 
 
 type FlatConnection l = Connection (Either l l)

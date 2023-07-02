@@ -43,8 +43,8 @@ checkManyToOne s =
    && null (toOne `intersect` fromOne)
       where
         global = unUML' $ globalise s
-        sub    = substate global
-        conn   = connection global
+        sub    = substates global
+        conn   = connections global
         start  = globalStart global
         toOnlyJoint   = filter (not.(`notJoint` sub)) (map pointTo conn)
         fromOnlyJoint = filter (not.(`notJoint` sub)) (map pointFrom conn)
@@ -67,8 +67,8 @@ checkTransition s =
   && all (`notElem` fromTranNonEmpty) startOnlyJoint
     where
       global = unUML' $ globalise s
-      sub = substate global
-      conn = connection global
+      sub = substates global
+      conn = connections global
       start  = globalStart global
       fromOnlyJoint = filter (not.(`notJoint` sub).pointFrom) conn
       toOnlyJoint = filter (not.(`notJoint` sub).pointTo) conn
@@ -97,11 +97,11 @@ checkInTranEmpty a b = any (null.transition) (filter ((pointTo a ==).pointTo) b)
 checkParallelRegionConnections :: Bool -> [Int] -> UMLStateDiagram n Int -> Bool
 checkParallelRegionConnections into l s = all null . localise $
                                             case g of
-                                              StateDiagram{} -> g { connection = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
+                                              StateDiagram{} -> g { connections = [ Connection a b "" | a <- insides, b <- insides, a < b ] }
                                               _ -> error "not defined"
                                           where
                                             g = unUML' $ globalise s
-                                            insideCandidates = map inside . filter ((== l) . outside) $ connection g
+                                            insideCandidates = map inside . filter ((== l) . outside) $ connections g
                                             insides
                                              | xs@(_:_:_) <- insideCandidates = xs
                                              | otherwise                      = []
@@ -110,11 +110,11 @@ checkParallelRegionConnections into l s = all null . localise $
                                              | otherwise = (pointTo, pointFrom)
 
 addressesOfJoints :: UMLStateDiagram n Int -> [[Int]]
-addressesOfJoints = unUML (\_ substate _ _ -> concatMap addressesOfJoints' substate)
+addressesOfJoints = unUML (\_ substates _ _ -> concatMap addressesOfJoints' substates)
   where
     addressesOfJoints' Joint {label} = [[label]]
-    addressesOfJoints' StateDiagram {label, substate}   =
-      map (label:) $ concatMap addressesOfJoints' substate
-    addressesOfJoints' CombineDiagram {label, substate} =
-      map (label:) $ concatMap addressesOfJoints' substate
+    addressesOfJoints' StateDiagram {label, substates}   =
+      map (label:) $ concatMap addressesOfJoints' substates
+    addressesOfJoints' CombineDiagram {label, substates} =
+      map (label:) $ concatMap addressesOfJoints' substates
     addressesOfJoints' _ = []

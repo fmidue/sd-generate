@@ -10,7 +10,7 @@ import Datatype (
   )
 
 import Checkers (checkSemantics, checkDrawability)
-import Checkers.Helpers (checkEmptyOutTran,checkSameOutTran,inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart,getAllElem1, lastSecNotCD, getSubstate, isNotCD)
+import Checkers.Helpers (checkEmptyOutTran,checkSameOutTran,inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart,getAllElem1, lastSecNotCD, getSubstates, isNotCD)
 import Data.Maybe(isNothing)
 import Data.List((\\),nub,zip4)
 import Data.List.Extra(allSame)
@@ -19,7 +19,7 @@ import Test.QuickCheck hiding(label,labels)
 -- define random Node value
 data NodeType = Hist | End | Inner | Comb | Stat | Join  deriving Eq
 
--- the substate of SD must obey some rules
+-- the substates of SD must obey some rules
 checkSubType :: Int -> Bool -> Bool -> [NodeType] -> Bool
 checkSubType _ _ _ [] = False
 checkSubType subNum outermost leastTwoLevels x =
@@ -27,7 +27,7 @@ checkSubType subNum outermost leastTwoLevels x =
   -- here limit the number of some ingredients to make the diagram not so complicated or senseless (?)
   && if outermost && leastTwoLevels then Comb `elem` x || Stat `elem` x
      else (End `elem` x || Inner `elem` x || Comb `elem` x || Stat `elem` x)
-  -- here satisfy the rule of (checkSUbstateSD in checkStructure )
+  -- here satisfy the rule of (checkSubstatesSD in checkStructure)
   &&  if Comb `notElem` x && Stat `notElem` x then null joinNum else length joinNum < subNum - 1
     where
       histNum = filter (== Hist) x
@@ -54,12 +54,12 @@ checkParallelRegion [_,_] _ _ = True
 checkParallelRegion _ [_,_] _ = True
 checkParallelRegion (x:xs) (y:ys) subs
   = case (x == y, all (isNotCD x) subs) of
-     (True, True) -> checkParallelRegion xs ys (getSubstate x subs)
-     (True, False) -> head xs == head ys && checkParallelRegion xs ys (getSubstate x subs)
+     (True, True) -> checkParallelRegion xs ys (getSubstates x subs)
+     (True, False) -> head xs == head ys && checkParallelRegion xs ys (getSubstates x subs)
      (False, _) -> True
 
 --haveJoint:: StateDiagram n Int [Connection Int] -> Bool
---haveJoint a = any (\x -> not (notJoint x (substate a))) (getAllElem a)
+--haveJoint a = any (\x -> not (notJoint x (substates a))) (getAllElem a)
 
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
 suchThatWhileCounting gen p = tryWith 0
@@ -294,4 +294,4 @@ checkDistinctRegion cd points
 notCD :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
 notCD [] _ = True
 notCD [x] a = all (isNotCD x) a
-notCD (x:xs) a = notCD xs (getSubstate x a)
+notCD (x:xs) a = notCD xs (getSubstates x a)

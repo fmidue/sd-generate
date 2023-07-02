@@ -38,7 +38,7 @@ data Wrapper =
   OrDecomposition { layered :: [[Wrapper]],
             key :: Int,
             strings :: String,
-            connections :: [ConnectWithType],
+            typedConnections :: [ConnectWithType],
             layout :: Layout,
             maxLabel :: Int,
             lengthXY :: Double,
@@ -128,7 +128,7 @@ unUML ::
    [a] ->
    b)
   -> UMLStateDiagram n a -> b
-unUML c (UMLStateDiagram StateDiagram{substate, name, connection, startState}) = c name substate connection startState
+unUML c (UMLStateDiagram StateDiagram{substates, name, connections, startState}) = c name substates connections startState
 unUML _ _ = error "should never happen"
 
 umlStateDiagram :: StateDiagram n a [Connection a] -> UMLStateDiagram n a
@@ -137,29 +137,29 @@ umlStateDiagram _ = error "should never happen"
 
 rename :: (n -> m) -> UMLStateDiagram n a -> UMLStateDiagram m a
 rename f = unUML $
-  \name substate connection startState ->
+  \name substates connections startState ->
     umlStateDiagram $
     StateDiagram { name = f name,
-                   substate = map recurse substate,
+                   substates = map recurse substates,
                    label = undefined,
                    ..
                  }
   where
     -- recurse :: StateDiagram n a -> StateDiagram m a
-    recurse StateDiagram{..} = StateDiagram{name = f name, substate = map recurse substate, ..}
-    recurse CombineDiagram{..} = CombineDiagram{substate = map recurse substate, ..}
+    recurse StateDiagram{..} = StateDiagram{name = f name, substates = map recurse substates, ..}
+    recurse CombineDiagram{..} = CombineDiagram{substates = map recurse substates, ..}
     recurse EndState{..} = EndState{..}
     recurse Joint{..} = Joint{..}
     recurse History{..} = History{..}
     recurse InnerMostState{..} = InnerMostState{name = f name, ..}
 
-data StateDiagram n l a = StateDiagram { substate :: [StateDiagram n l a],
+data StateDiagram n l a = StateDiagram { substates :: [StateDiagram n l a],
                                           label :: l,
                                           name :: n,
-                                          connection :: a,
+                                          connections :: a,
                                           startState :: [l]
                                         }
-                     | CombineDiagram { substate :: [StateDiagram n l a],
+                     | CombineDiagram { substates :: [StateDiagram n l a],
                                         label :: l
                                       }
                      | EndState {
@@ -187,16 +187,16 @@ $(deriveBifoldable ''StateDiagram)
 $(deriveBitraversable ''StateDiagram)
 
 globalise :: UMLStateDiagram n a -> UMLStateDiagram n a
-globalise (UMLStateDiagram s@StateDiagram{ substate }) = UMLStateDiagram $
-                                       s { connection = hoistOutwards s
-                                         , substate = map (fmap (const [])) substate }
+globalise (UMLStateDiagram s@StateDiagram{ substates }) = UMLStateDiagram $
+                                       s { connections = hoistOutwards s
+                                         , substates = map (fmap (const [])) substates }
 globalise _ = error "should never happen"
 
 hoistOutwards :: StateDiagram n a [Connection a] -> [Connection a]
-hoistOutwards StateDiagram{ substate, connection }
-  = connection ++ concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
-hoistOutwards CombineDiagram{ substate }
-  = concatMap (\d -> prependL (label d) (hoistOutwards d)) substate
+hoistOutwards StateDiagram{ substates, connections }
+  = connections ++ concatMap (\d -> prependL (label d) (hoistOutwards d)) substates
+hoistOutwards CombineDiagram{ substates }
+  = concatMap (\d -> prependL (label d) (hoistOutwards d)) substates
 hoistOutwards _ = []
 
 prependL :: a -> [Connection a] -> [Connection a]
@@ -224,18 +224,18 @@ localise = localiseStateDiagram []
 localiseStateDiagram :: Eq a => [([a], Connection a)] -> StateDiagram n a [Connection a] -> StateDiagram n a [Connection a]
 localiseStateDiagram cs s = case s of
   StateDiagram {}   -> s {
-    connection = map snd local,
-    substate   = subs
+    connections = map snd local,
+    substates   = subs
     }
   CombineDiagram {} -> s {
-    substate   = subs
+    substates   = subs
     }
   _                 -> s
   where
     matching = [ (cps, c) | (cp:cps, c) <- cs, label s == cp]
     (local, global) = partition (null . fst)
-      $ matching ++ map localiseConnection connections
-    subs     = map (localiseStateDiagram global) $ substate s
-    connections
-      | StateDiagram {} <- s = connection s
+      $ matching ++ map localiseConnection theConnections
+    subs     = map (localiseStateDiagram global) $ substates s
+    theConnections
+      | StateDiagram {} <- s = connections s
       | otherwise            = []
