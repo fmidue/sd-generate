@@ -75,7 +75,7 @@ spec
 
 
 {- lets assume for simplicity that we only have one layer for now that we want to verify.
-   this avoids the neccessity for globalizing any connections or having to map through
+   this avoids the necessity for globalizing any connections or having to map through
    hierarchies as everything we care about is a single list of substates, a list of connections
    and one startState.
 
