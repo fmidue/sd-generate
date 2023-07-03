@@ -10,7 +10,7 @@ import Datatype (StateDiagram(..)
                 ,UMLStateDiagram
                 ,umlStateDiagram
                 ,unUML)
-import Example (flatCase2, flatCase1)
+import Example (flatCase2, flatCase1, flatCase3)
 import Flatten (flatten
                ,FlatDiagram)
 
@@ -71,8 +71,11 @@ spec
       it "flatten flatCase1" $ do
         let result = flatten flatCase1
         result `shouldBe` flatCase1Res
+      it "flatten flatCase3 - lift one hierarchical state correctly" $ do
+        let result = flatten flatCase3
+        result `shouldBe` flatCase1Res -- obviously not, but its meant to be adjusted once functions don't run into exceptions
       it "isStructurallySameAs" $ do
-        let (result::Bool) = isStructurallySameAs flatCase1Res flatCase1Res
+        let result = isStructurallySameAs flatCase1Res flatCase1Res
         result `shouldBe` True
 {-
       it "TODO: relabel connections by relation" $ do

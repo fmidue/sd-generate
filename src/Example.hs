@@ -579,6 +579,29 @@ flatCase1 = let
                 , Connection [3] [4,1] "e" ]
                 [4]
 
+flatCase3 :: UMLStateDiagram String Int
+flatCase3 = let
+            isA = InnerMostState 1 "A" ""
+            isB = InnerMostState 2 "B" ""
+            isC = InnerMostState 3 "C" ""
+            isG = InnerMostState 1 "G" ""
+            isH = InnerMostState 2 "H" ""
+            isI = InnerMostState 1 "I" ""
+            isJ = InnerMostState 2 "J" ""
+            sd1 = StateDiagram [isG,isH] 4 "P"
+                  [ Connection [2] [1] "b" ]
+                  [2]
+            sd2 = StateDiagram [isI, isJ] 5 "P"
+                  [ Connection [1] [2] "i" ]
+                  [2]
+            in
+              umlStateDiagram $ StateDiagram [isA,isB,isC,sd1,sd2] 0 ""
+                [ Connection [1] [4] "a"
+                , Connection [4,1] [2] "c"
+                , Connection [2] [3] "d"
+                , Connection [3] [4,1] "e" ]
+                [4]
+
 positiveExamples :: [(String, UMLStateDiagram String Int)]
 positiveExamples =
         [ ("verySmall", verySmall)

@@ -139,13 +139,13 @@ distinctLabels
                     }
     )
 
-matchToRelation :: (Eq a, Show a) => a -> [(a, b)] -> b
+matchToRelation :: (Eq a, Show a, Show b) => a -> [(a, b)] -> b
 matchToRelation x r
   = case lookup x r of
      Just u
        -> u
      Nothing
-       -> error $ "no matching label can be found for " ++ show x ++ " while updating"
+       -> error $ "no matching label can be found for " ++ show x ++ " while updating using " ++ show r
 
 matchNodesToRelation :: (Eq c, Eq b, Show c, Show b)
   => [StateDiagram n (Either b c) [Connection (Either b c)]] -> [(Either b c, b)] -> [StateDiagram n b [Connection b]]
