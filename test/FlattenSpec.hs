@@ -73,10 +73,22 @@ spec
         result `shouldBe` True
 -}
 
-{-
-isStructurallySameAs :: Eq n => UMLStateDiagram n a -> UMLStateDiagram n b -> Bool
-isStructurallySameAs _ _
-  = error "todo: impl."
+
+{- lets assume for simplicity that we only have one layer for now that we want to verify.
+   this avoids the neccessity for globalizing any connections or having to map through
+   hierarchies as everything we care about is a single list of substates, a list of connections
+   and one startState.
+
+isStructurallySameAs :: Eq n => UMLStateDiagram [StateDiagram n l a] a -> UMLStateDiagram [StateDiagram n l b] b -> Bool
+isStructurallySameAs g1 g2
+  = let
+    r = [(l1,l2)|InnerMostState{label = l1
+                          ,name = n1 } <- unUML (\substate _ _ _ -> substate) g1
+           ,InnerMostState{label = l2
+                          ,name = n2 } <- unUML (\substate _ _ _ -> substate) g2
+           ,n1 == n2]
+    in
+    error "todo: impl."
 -}
 
 {-

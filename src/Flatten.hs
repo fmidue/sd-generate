@@ -46,7 +46,12 @@ lift
           in
           StateDiagram
             { name = name
-            , startState = if [label] `isPrefixOf` outerStartState then map (Right . fromLeft') $ tail outerStartState else outerStartState
+            , startState
+                = if [label] `isPrefixOf` outerStartState
+                  then if null $ tail outerStartState
+                       then initial
+                       else map (Right . fromLeft') $ tail outerStartState
+                  else outerStartState
             , label = undefined
             , substates
                 = map (\case
@@ -62,11 +67,17 @@ lift
                               -> True
                             _ -> False
                          ) substates
-            , connections = rewire connections address initial inner }
+            , connections
+                = rewire connections address initial inner }
      Just _
        -> error "we dont expect anything else than StateDiagram or Nothing here"
      Nothing
-       -> error "scenario1 expects at least one hierarchical state")
+       -> StateDiagram { name = name
+                       , substates = substates
+                       , connections = connections
+                       , startState = outerStartState
+                       , label = error "not needed" }
+    )
 
 target :: [FlatDiagram a b] -> Maybe (FlatDiagram a b)
 target = find (\case
