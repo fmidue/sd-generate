@@ -22,23 +22,24 @@ import Data.List (find, isPrefixOf)
 
 flatten :: (Num l, Enum l, Eq l, Show l)
   => UMLStateDiagram n l -> UMLStateDiagram [n] l
-flatten
- = distinctLabels
-   . lift
-   . fmap Left
-   . globalise
-   . rename (:[])
+flatten x
+ = (\case
+      Just y -> distinctLabels y
+      Nothing -> error "not defined")
+   (lift
+   $ fmap Left
+   $ globalise
+   $ rename (:[]) x)
 
 lift :: Eq l
-  => UMLStateDiagram [n] (Either l l) -> UMLStateDiagram [n] (Either l l)
+  => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 lift
-  = umlStateDiagram . unUML
-    (\name substates connections outerStartState ->
-    case find (\case
-                 StateDiagram {}
-                   -> True
-                 _ -> False) substates
-    of
+  = unUML (\name substates connections outerStartState ->
+      case find (\case
+                   StateDiagram {}
+                     -> True
+                   _ -> False) substates
+      of
      Just StateDiagram { label
                        , startState
                        , substates = inner
@@ -48,40 +49,41 @@ lift
           initial
             = map (Right . fromLeft') startState
           in
-          StateDiagram
-            { name = name
-            , startState
-                = if [label] `isPrefixOf` outerStartState
-                  then if null $ tail outerStartState
-                       then initial
-                       else map (Right . fromLeft') $ tail outerStartState
-                  else outerStartState
-            , label = undefined
-            , substates
-                = map (\case
-                         i@InnerMostState{ name = innerName
-                                         , label = Left innerLabel }
-                           -> i { name = parentName ++ innerName
-                                , label = Right innerLabel }
-                         _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
-                      ) inner
-                  ++
-                  filter (\case
-                            InnerMostState {}
-                              -> True
-                            _ -> False
-                         ) substates
-            , connections
-                = rewire connections address initial inner }
+          Just (
+           umlStateDiagram
+            StateDiagram
+              { name = name
+              , startState
+                  = if [label] `isPrefixOf` outerStartState
+                    then if null $ tail outerStartState
+                         then initial
+                         else map (Right . fromLeft') $ tail outerStartState
+                    else outerStartState
+              , label
+                  = undefined
+              , substates
+                  = map (\case
+                           i@InnerMostState{ name = innerName
+                                           , label = Left innerLabel }
+                             -> i { name = parentName ++ innerName
+                                  , label = Right innerLabel }
+                           _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
+                        ) inner
+                    ++
+                    filter (\case
+                              InnerMostState {}
+                                -> True
+                              _ -> False
+                           ) substates
+              , connections
+                  = rewire connections address initial inner }
+               )
      Just _
        -> error "we dont expect anything else than StateDiagram or Nothing here"
      Nothing
-       -> StateDiagram { name = name
-                       , substates = substates
-                       , connections = connections
-                       , startState = outerStartState
-                       , label = error "not needed" }
+       -> Nothing
     )
+
 
 rewire :: Eq l
   => [FlatConnection l] -> Either l l -> [Either l l] -> [FlatDiagram a l] -> [FlatConnection l]
@@ -122,7 +124,7 @@ distinctLabels
   = umlStateDiagram . unUML
     (\name substates connections startState ->
        let
-       r = zip {- if ever need for unit testing this relation can be extracted into a function again -}
+       r = zip
            (map label substates)
            [1..]
        in

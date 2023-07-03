@@ -5,7 +5,11 @@ module FlattenSpec (
 
 import Test.Hspec
 import Test.Hspec.QuickCheck
-import Datatype (StateDiagram(..), Connection (..), UMLStateDiagram, umlStateDiagram)
+import Datatype (StateDiagram(..)
+                ,Connection (..)
+                ,UMLStateDiagram
+                ,umlStateDiagram
+                ,unUML)
 import Example (flatCase2, flatCase1)
 import Flatten (flatten
                ,FlatDiagram)
@@ -67,6 +71,9 @@ spec
       it "flatten flatCase1" $ do
         let result = flatten flatCase1
         result `shouldBe` flatCase1Res
+      it "isStructurallySameAs" $ do
+        let (result::Bool) = isStructurallySameAs flatCase1Res flatCase1Res
+        result `shouldBe` True
 {-
       it "TODO: relabel connections by relation" $ do
         let result = True
@@ -78,18 +85,19 @@ spec
    this avoids the necessity for globalizing any connections or having to map through
    hierarchies as everything we care about is a single list of substates, a list of connections
    and one startState.
+-}
 
-isStructurallySameAs :: Eq n => UMLStateDiagram [StateDiagram n l a] a -> UMLStateDiagram [StateDiagram n l b] b -> Bool
+isStructurallySameAs :: (Eq n, Eq l) => UMLStateDiagram n l -> UMLStateDiagram n l -> Bool
 isStructurallySameAs g1 g2
   = let
-    r = [(l1,l2)|InnerMostState{label = l1
-                          ,name = n1 } <- unUML (\substate _ _ _ -> substate) g1
-           ,InnerMostState{label = l2
-                          ,name = n2 } <- unUML (\substate _ _ _ -> substate) g2
-           ,n1 == n2]
+    {- r = [(l1,l2)|InnerMostState{ label = l1
+                               , name = n1 } <- unUML (\substate _ _ _ -> substate) g1
+        , InnerMostState{ label = l2
+                        , name = n2 } <- unUML (\substate _ _ _ -> substate) g2
+        , n1 == n2] -}
     in
-    error "todo: impl."
--}
+    length (unUML (\_ substate _ _ -> substate) g1) == length (unUML (\_ substate _ _ -> substate) g2)
+
 
 {-
       it "@pre: all left and right labels on nodes are unique" $ do
