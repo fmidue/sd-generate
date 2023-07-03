@@ -34,7 +34,11 @@ lift :: Eq l
 lift
   = umlStateDiagram . unUML
     (\name substates connections outerStartState ->
-    case target substates of
+    case find (\case
+                 StateDiagram {}
+                   -> True
+                 _ -> False) substates
+    of
      Just StateDiagram { label
                        , startState
                        , substates = inner
@@ -78,12 +82,6 @@ lift
                        , startState = outerStartState
                        , label = error "not needed" }
     )
-
-target :: [FlatDiagram a b] -> Maybe (FlatDiagram a b)
-target = find (\case
-                 StateDiagram {}
-                   -> True
-                 _ -> False)
 
 rewire :: Eq l
   => [FlatConnection l] -> Either l l -> [Either l l] -> [FlatDiagram a l] -> [FlatConnection l]
