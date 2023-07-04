@@ -31,6 +31,32 @@ flatCase1Res
     ,Connection {pointFrom = [2], pointTo = [1], transition = "b"}]
     , startState = [2]}
 
+flatCase3Res1Step :: UMLStateDiagram [String] Int
+flatCase3Res1Step
+  = umlStateDiagram $ StateDiagram { substates = [
+    InnerMostState { label = 1, name = ["P1", "G"], operations = "" }
+    ,InnerMostState { label = 2, name = ["P1", "H"], operations = "" }
+    ,InnerMostState { label = 3, name = ["A"], operations = "" }
+    ,InnerMostState { label = 4, name = ["B"], operations = "" }
+    ,InnerMostState { label = 5, name = ["C"], operations = "" }
+    ,StateDiagram { label = 6
+                  , name = ["P2"]
+                  , startState = [2]
+                  , connections = []
+                  , substates = [InnerMostState { label = 1, name = ["I"], operations = ""}
+                                ,InnerMostState { label = 2, name = ["J"], operations = ""}]
+    }]
+    ,startState = [2]
+    ,label = error "not relevant"
+    ,name = [""]
+    ,connections =
+    [Connection {pointFrom = [3], pointTo = [2], transition = "a"}
+    ,Connection {pointFrom = [1], pointTo = [4], transition = "c"}
+    ,Connection {pointFrom = [4], pointTo = [5], transition = "d"}
+    ,Connection {pointFrom = [5], pointTo = [1], transition = "e"}
+    ,Connection {pointFrom = [2], pointTo = [1], transition = "b"}
+    ,Connection {pointFrom = [6,1], pointTo = [6,2], transition = "i"}]}
+
 {- unused
 flatCase2Res :: UMLStateDiagram [String] Int
 flatCase2Res
@@ -73,7 +99,7 @@ spec
         result `shouldBe` flatCase1Res
       it "flatten flatCase3 - lift one hierarchical state correctly" $ do
         let result = flatten flatCase3
-        result `shouldBe` flatCase1Res -- obviously not, but its meant to be adjusted once functions don't run into exceptions
+        result `shouldBe` flatCase3Res1Step
       it "isStructurallySameAs" $ do
         let result = isStructurallySameAs flatCase1Res flatCase1Res
         result `shouldBe` True

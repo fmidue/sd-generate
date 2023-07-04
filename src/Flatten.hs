@@ -79,7 +79,6 @@ lift
        -> Nothing
     )
 
-
 rewire :: Eq l
   => [FlatConnection l] -> Either l l -> [Either l l] -> [FlatDiagram a l] -> [FlatConnection l]
 rewire theConnections address initial inner
@@ -155,8 +154,7 @@ matchNodesToRelation substates r
            StateDiagram { label
                         , substates = sSubstates
                         , name
-                        -- , connections
-                        -- , startState
+                        , startState
                         }
              -> StateDiagram { label
                                  = matchToRelation label r
@@ -175,11 +173,11 @@ matchNodesToRelation substates r
                                                               , operations
                                                                   = operations }
                                           _ -> error "requires more sophisticated traversal"
-                                       ) sSubstates -- must be correctly inherited
+                                       ) sSubstates
                              , connections
                                  = [] -- shouldnt they be globalized anyway?
                              , startState
-                                 = error "not defined yet" }
+                                 = map fromLeft' startState }
            _ -> error "not covered constructor to match relation against")
     substates
 

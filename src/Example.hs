@@ -588,10 +588,10 @@ flatCase3 = let
             isH = InnerMostState 2 "H" ""
             isI = InnerMostState 1 "I" ""
             isJ = InnerMostState 2 "J" ""
-            sd1 = StateDiagram [isG,isH] 4 "P"
+            sd1 = StateDiagram [isG,isH] 4 "P1"
                   [ Connection [2] [1] "b" ]
                   [2]
-            sd2 = StateDiagram [isI, isJ] 5 "P"
+            sd2 = StateDiagram [isI, isJ] 5 "P2"
                   [ Connection [1] [2] "i" ]
                   [2]
             in
