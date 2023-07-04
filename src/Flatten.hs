@@ -153,7 +153,23 @@ matchNodesToRelation substates r
                                 , name = name
                                 , operations = operations
                                }
-           _ -> error "only InnerMostStates are allowed at this point")
+           StateDiagram { label
+                        -- , substates
+                        , name
+                        -- , connections
+                        -- , startState
+                        }
+             -> StateDiagram { label
+                                 = matchToRelation label r
+                             , name
+                                 = name
+                             , substates
+                                 = error "not defined yet" -- must be correctly inherited
+                             , connections
+                                 = [] -- shouldnt they be globalized anyway?
+                             , startState
+                                 = error "not defined yet" }
+           _ -> error "not covered constructor to match relation against")
     substates
 
 matchConnectionToRelation :: (Eq b, Eq c, Show b, Show c)
