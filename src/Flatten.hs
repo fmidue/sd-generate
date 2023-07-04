@@ -173,22 +173,25 @@ matchNodesToRelation substates r
                                                               , operations
                                                                   = operations }
                                           _ -> error "requires more sophisticated traversal"
-                                               -- anything in here is expected to be Left label
-                                               -- this means it is only necessary to carry over Left labels
-                                               -- to Int labels
                                        ) sSubstates
                              , connections
-                                 = [] -- shouldnt they be globalized anyway?
+                                 = []
                              , startState
-                                 = map fromLeft' startState } -- here must be a significant problem for mapping in hierarchical states
+                                 = map fromLeft' startState }
            _ -> error "not covered constructor to match relation against")
     substates
+
+mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
+mapHeadTail f g (x:xs) = f x : map g xs
+mapHeadTail _ _ _      = error "impossible!"
 
 matchConnectionToRelation :: (Eq b, Eq c, Show b, Show c)
   => [Connection (Either b c)] -> [(Either b c, b)] -> [Connection b]
 matchConnectionToRelation connections r
-  = [ c { pointFrom = map  (`matchToRelation` r) [head (pointFrom c)] ++ (map fromLeft' $ tail (pointFrom c))
-        , pointTo = map (`matchToRelation` r) [head (pointTo c)] ++ (map fromLeft' $ tail (pointTo c))
+  = [ c { pointFrom
+            = mapHeadTail (`matchToRelation` r) fromLeft' (pointFrom c)
+        , pointTo
+            = mapHeadTail (`matchToRelation` r) fromLeft' (pointTo c)
         } | c <- connections ]
 
 
