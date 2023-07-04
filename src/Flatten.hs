@@ -19,9 +19,8 @@ import Data.Either.Extra (fromLeft'
                          ,fromRight'
                          )
 import Data.List (find, isPrefixOf)
-import Data.List.Extra (delete)
 
-flatten :: (Num l, Enum l, Eq l, Show l, Eq n)
+flatten :: (Num l, Enum l, Eq l, Show l)
   => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten x
  = (\case
@@ -32,7 +31,7 @@ flatten x
    $ globalise
    $ rename (:[]) x)
 
-lift :: (Eq l, Eq n)
+lift :: (Eq l)
   => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 lift
   = unUML (\name substates connections outerStartState ->
@@ -41,7 +40,7 @@ lift
                      -> True
                    _ -> False) substates
       of
-     Just target@StateDiagram { label = address
+     Just StateDiagram { label = address
                        , startState = innerStartState
                        , substates = innerStates
                        , name = parentName }
@@ -70,7 +69,7 @@ lift
                            _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
                         ) innerStates
                     ++
-                    delete target substates
+                    filter (\x -> address /= label x) substates
               , connections
                   = rewire connections address initial innerStates }
                )
@@ -154,7 +153,7 @@ matchNodesToRelation substates r
                                 , operations = operations
                                }
            StateDiagram { label
-                        -- , substates
+                        , substates = sSubstates
                         , name
                         -- , connections
                         -- , startState
@@ -164,7 +163,19 @@ matchNodesToRelation substates r
                              , name
                                  = name
                              , substates
-                                 = error "not defined yet" -- must be correctly inherited
+                                 = map (\case
+                                          InnerMostState { label
+                                                             = Left x
+                                                         , name = innerName
+                                                         , operations }
+                                            -> InnerMostState { label
+                                                                  = x
+                                                              , name
+                                                                  = innerName
+                                                              , operations
+                                                                  = operations }
+                                          _ -> error "requires more sophisticated traversal"
+                                       ) sSubstates -- must be correctly inherited
                              , connections
                                  = [] -- shouldnt they be globalized anyway?
                              , startState
