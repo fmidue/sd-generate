@@ -19,8 +19,9 @@ import Data.Either.Extra (fromLeft'
                          ,fromRight'
                          )
 import Data.List (find, isPrefixOf)
+import Data.List.Extra (delete)
 
-flatten :: (Num l, Enum l, Eq l, Show l)
+flatten :: (Num l, Enum l, Eq l, Show l, Eq n)
   => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten x
  = (\case
@@ -31,7 +32,7 @@ flatten x
    $ globalise
    $ rename (:[]) x)
 
-lift :: Eq l
+lift :: (Eq l, Eq n)
   => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 lift
   = unUML (\name substates connections outerStartState ->
@@ -40,7 +41,7 @@ lift
                      -> True
                    _ -> False) substates
       of
-     Just StateDiagram { label = address
+     Just target@StateDiagram { label = address
                        , startState = innerStartState
                        , substates = innerStates
                        , name = parentName }
@@ -69,11 +70,7 @@ lift
                            _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
                         ) innerStates
                     ++
-                    filter (\case
-                              InnerMostState {}
-                                -> True
-                              _ -> False
-                           ) substates
+                    delete target substates
               , connections
                   = rewire connections address initial innerStates }
                )
