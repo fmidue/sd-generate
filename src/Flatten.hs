@@ -40,19 +40,18 @@ lift
                      -> True
                    _ -> False) substates
       of
-     Just StateDiagram { label
-                       , startState
-                       , substates = inner
+     Just StateDiagram { label = address
+                       , startState = innerStartState
+                       , substates = innerStates
                        , name = parentName }
        -> let
-          address = label
           initial
-            = map (Right . fromLeft') startState
+            = map (Right . fromLeft') innerStartState
           in
           Just (
            umlStateDiagram
             StateDiagram
-              { name = name
+              { name
               , startState
                   = if [label] `isPrefixOf` outerStartState
                     then if null $ tail outerStartState
@@ -68,7 +67,7 @@ lift
                              -> i { name = parentName ++ innerName
                                   , label = Right innerLabel }
                            _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
-                        ) inner
+                        ) innerStates
                     ++
                     filter (\case
                               InnerMostState {}
@@ -76,7 +75,7 @@ lift
                               _ -> False
                            ) substates
               , connections
-                  = rewire connections address initial inner }
+                  = rewire connections address initial innerStates }
                )
      Just _
        -> error "we dont expect anything else than StateDiagram or Nothing here"
