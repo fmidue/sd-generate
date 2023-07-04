@@ -53,7 +53,7 @@ lift
             StateDiagram
               { name
               , startState
-                  = if [label] `isPrefixOf` outerStartState
+                  = if [address] `isPrefixOf` outerStartState
                     then if null $ tail outerStartState
                          then initial
                          else map (Right . fromLeft') $ tail outerStartState
