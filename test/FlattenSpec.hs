@@ -11,8 +11,7 @@ import Datatype (StateDiagram(..)
                 ,umlStateDiagram
                 ,unUML)
 import Example (flatCase2, flatCase1, flatCase3)
-import Flatten (flatten
-               ,FlatDiagram)
+import Flatten (flatten)
 
 flatCase1Res :: UMLStateDiagram [String] Int
 flatCase1Res

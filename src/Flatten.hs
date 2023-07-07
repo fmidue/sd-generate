@@ -3,8 +3,6 @@
 
 module Flatten (
   flatten
- ,FlatDiagram
- ,FlatConnection
 ) where
 import Datatype (UMLStateDiagram
                 ,umlStateDiagram
@@ -76,7 +74,7 @@ lift
     )
 
 rewire :: Eq l
-  => [FlatConnection l] -> Either l l -> [Either l l] -> [l] -> [FlatConnection l]
+  => [Connection (Either l l)] -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
 rewire connections address initial innerExits
   = map (updateLifted address initial) $
     concatMap (updateCompoundExits address innerExits) connections
@@ -90,7 +88,7 @@ updateByRule address _ (x:xs)
 updateByRule _ _ labels = labels
 
 updateLifted :: Eq l
-  => Either l l -> [Either l l] -> FlatConnection l -> FlatConnection l
+  => Either l l -> [Either l l] -> Connection (Either l l) -> Connection (Either l l)
 updateLifted address initial c@(Connection{pointFrom,pointTo})
   = c { pointFrom = updateByRule address initial pointFrom
       , pointTo = updateByRule address initial pointTo }
@@ -189,8 +187,3 @@ matchConnectionToRelation connections r
         , pointTo
             = mapHeadTail (`matchToRelation` r) fromLeft' (pointTo c)
         } | c <- connections ]
-
-
-type FlatConnection l = Connection (Either l l)
-
-type FlatDiagram n l = StateDiagram n (Either l l) [FlatConnection l]
