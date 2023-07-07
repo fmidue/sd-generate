@@ -21,14 +21,12 @@ import Data.List (find)
 
 flatten :: (Num l, Enum l, Eq l, Show l)
   => UMLStateDiagram n l -> UMLStateDiagram [n] l
-flatten x
- = (\case
-      Just y -> distinctLabels y
-      Nothing -> error "not defined")
-   (lift
-   $ fmap Left
-   $ globalise
-   $ rename (:[]) x)
+flatten
+ = maybe (error "not defined") distinctLabels
+   . lift
+   . fmap Left
+   . globalise
+   . rename (:[])
 
 lift :: (Eq l)
   => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
@@ -64,7 +62,7 @@ lift
                            _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
                         ) innerStates
                     ++
-                    filter (\x -> address /= label x) substates
+                    filter ((address /=) . label) substates
               , connections
                   = rewire connections address initial
                       (map (fromLeft' . label) innerStates)
