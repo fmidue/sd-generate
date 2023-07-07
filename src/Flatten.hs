@@ -78,9 +78,9 @@ lift
 
 rewire :: Eq l
   => [FlatConnection l] -> Either l l -> [Either l l] -> [l] -> [FlatConnection l]
-rewire theConnections address initial inner
+rewire connections address initial innerExits
   = map (updateLifted address initial) $
-    concatMap (updateCompoundExits address inner) theConnections
+    concatMap (updateCompoundExits address innerExits) connections
 
 updateByRule :: Eq l
   => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
@@ -98,7 +98,8 @@ updateLifted address initial c@(Connection{pointFrom,pointTo})
 
 updateCompoundExits :: (Eq l, Eq r)
   => Either l r -> [r] -> Connection (Either l r) -> [Connection (Either l r)]
-updateCompoundExits address inner c@Connection{ pointFrom
+updateCompoundExits address innerExits
+                                  c@Connection{ pointFrom
                                               , pointTo
                                               , transition }
   | pointFrom == [address]
@@ -106,7 +107,7 @@ updateCompoundExits address inner c@Connection{ pointFrom
                      = [Right label]
                  , pointTo = pointTo
                  , transition = transition
-                 } | label <- inner ]
+                 } | label <- innerExits ]
   | otherwise = [c]
 
 distinctLabels :: (Eq b, Show b, Num l, Enum l, Eq l, Show l)
