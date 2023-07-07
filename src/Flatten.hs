@@ -121,7 +121,7 @@ distinctLabels
            [1..]
        in
        StateDiagram { substates
-                        = matchNodesToRelation substates r
+                        = map (matchNodeToRelation r) substates
                     , connections
                         = matchConnectionToRelation connections r
                     , name = name
@@ -139,10 +139,10 @@ matchToRelation x r
      Nothing
        -> error $ "no matching label can be found for " ++ show x ++ " while updating using " ++ show r
 
-matchNodesToRelation :: (Eq c, Eq b, Show c, Show b)
-  => [StateDiagram n (Either b c) [Connection (Either b c)]] -> [(Either b c, b)] -> [StateDiagram n b [Connection b]]
-matchNodesToRelation substates r
-  = map (\case
+matchNodeToRelation :: (Eq c, Eq b, Show c, Show b)
+  => [(Either b c, b)] -> StateDiagram n (Either b c) [Connection (Either b c)] -> StateDiagram n b [Connection b]
+matchNodeToRelation r
+      = (\case
            InnerMostState{ label, name, operations }
              -> InnerMostState { label
                                    = matchToRelation label r
@@ -150,7 +150,7 @@ matchNodesToRelation substates r
                                 , operations = operations
                                }
            StateDiagram { label
-                        , substates = sSubstates
+                        , substates
                         , name
                         , startState
                         }
@@ -171,13 +171,12 @@ matchNodesToRelation substates r
                                                               , operations
                                                                   = operations }
                                           _ -> error "requires more sophisticated traversal"
-                                       ) sSubstates
+                                       ) substates
                              , connections
                                  = []
                              , startState
                                  = map fromLeft' startState }
            _ -> error "not covered constructor to match relation against")
-    substates
 
 mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
