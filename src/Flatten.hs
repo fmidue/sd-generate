@@ -139,7 +139,7 @@ matchToRelation x r
 matchNodeToRelation :: (Eq c, Eq b, Show c, Show b)
   => [(Either b c, b)] -> StateDiagram n (Either b c) [Connection (Either b c)] -> StateDiagram n b [Connection b]
 matchNodeToRelation r
-      = (\case
+      = \case
            InnerMostState{ label, name, operations }
              -> InnerMostState { label
                                    = matchToRelation label r
@@ -173,7 +173,7 @@ matchNodeToRelation r
                                  = []
                              , startState
                                  = map fromLeft' startState }
-           _ -> error "not covered constructor to match relation against")
+           _ -> error "not covered constructor to match relation against"
 
 mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
