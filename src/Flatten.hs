@@ -31,11 +31,12 @@ flatten
 lift :: (Eq l)
   => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 lift
-  = unUML (\name substates connections outerStartState ->
+  = fmap umlStateDiagram . unUML
+    (\outerName outerStates connections outerStartState ->
       case find (\case
                    StateDiagram {}
                      -> True
-                   _ -> False) substates
+                   _ -> False) outerStates
       of
      Just StateDiagram { label = address
                        , startState = innerStartState
@@ -46,9 +47,9 @@ lift
             = map (Right . fromLeft') innerStartState
           in
           Just (
-           umlStateDiagram
             StateDiagram
               { name
+                  = outerName
               , startState
                   = updateByRule address initial outerStartState
               , label
@@ -62,7 +63,7 @@ lift
                            _ -> error "scenario1 only expects InnerMostStates as substates of a StateDiagram"
                         ) innerStates
                     ++
-                    filter ((address /=) . label) substates
+                    filter ((address /=) . label) outerStates
               , connections
                   = rewire connections address initial
                       (map (fromLeft' . label) innerStates)
