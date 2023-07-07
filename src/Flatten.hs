@@ -66,7 +66,9 @@ lift
                     ++
                     filter (\x -> address /= label x) substates
               , connections
-                  = rewire connections address initial innerStates }
+                  = rewire connections address initial
+                      (map (fromLeft' . label) innerStates)
+              }
                )
      Just _
        -> error "we dont expect anything else than StateDiagram or Nothing here"
@@ -75,7 +77,7 @@ lift
     )
 
 rewire :: Eq l
-  => [FlatConnection l] -> Either l l -> [Either l l] -> [FlatDiagram a l] -> [FlatConnection l]
+  => [FlatConnection l] -> Either l l -> [Either l l] -> [l] -> [FlatConnection l]
 rewire theConnections address initial inner
   = map (updateLifted address initial) $
     concatMap (updateCompoundExits address inner) theConnections
@@ -94,17 +96,17 @@ updateLifted address initial c@(Connection{pointFrom,pointTo})
   = c { pointFrom = updateByRule address initial pointFrom
       , pointTo = updateByRule address initial pointTo }
 
-updateCompoundExits :: Eq l
-  => Either l l -> [FlatDiagram a l] -> FlatConnection l -> [FlatConnection l]
+updateCompoundExits :: (Eq l, Eq r)
+  => Either l r -> [r] -> Connection (Either l r) -> [Connection (Either l r)]
 updateCompoundExits address inner c@Connection{ pointFrom
                                               , pointTo
                                               , transition }
   | pointFrom == [address]
   = [ Connection { pointFrom
-                     = [(Right . fromLeft') label]
+                     = [Right label]
                  , pointTo = pointTo
                  , transition = transition
-                 } | InnerMostState{label} <- inner ]
+                 } | label <- inner ]
   | otherwise = [c]
 
 distinctLabels :: (Eq b, Show b, Num l, Enum l, Eq l, Show l)
