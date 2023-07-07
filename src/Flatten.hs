@@ -16,9 +16,8 @@ import Datatype (UMLStateDiagram
                 )
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
-                         ,fromRight'
                          )
-import Data.List (find, isPrefixOf)
+import Data.List (find)
 
 flatten :: (Num l, Enum l, Eq l, Show l)
   => UMLStateDiagram n l -> UMLStateDiagram [n] l
@@ -53,11 +52,7 @@ lift
             StateDiagram
               { name
               , startState
-                  = if [address] `isPrefixOf` outerStartState
-                    then if null $ tail outerStartState
-                         then initial
-                         else map (Right . fromLeft') $ tail outerStartState
-                    else outerStartState
+                  = updateByRule address initial outerStartState
               , label
                   = undefined
               , substates
@@ -88,7 +83,7 @@ rewire theConnections address initial inner
 updateByRule :: Eq l
   => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
 updateByRule address initial [x]
-  | x == address = map (Right . fromRight') initial
+  | x == address = initial
 updateByRule address _ (x:xs)
   | x == address = map (Right . fromLeft') xs
 updateByRule _ _ labels = labels
