@@ -149,7 +149,7 @@ rename f = unUML $
     recurse StateDiagram{..} = StateDiagram{name = f name, substates = map recurse substates, ..}
     recurse CombineDiagram{..} = CombineDiagram{substates = map recurse substates, ..}
     recurse EndState{..} = EndState{..}
-    recurse Joint{..} = Joint{..}
+    recurse ForkOrJoin{..} = ForkOrJoin{..}
     recurse History{..} = History{..}
     recurse InnerMostState{..} = InnerMostState{name = f name, ..}
 
@@ -165,7 +165,8 @@ data StateDiagram n l a = StateDiagram { substates :: [StateDiagram n l a],
                      | EndState {
                          label :: l
                          }
-                     | Joint { label :: l
+                     | ForkOrJoin {
+                         label :: l
                              }
                      | History { label :: l,
                                  historyType :: HistoryType

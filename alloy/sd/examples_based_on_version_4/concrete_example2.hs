@@ -99,7 +99,7 @@ data StateDiagram a =
                    }
   | EndState { label :: Int
              }
-  | Joint { label :: Int
+  | ForkOrJoin { label :: Int
           }
   | History { label :: Int,
               historyType :: HistoryType
@@ -113,13 +113,13 @@ picture2 :: UMLStateDiagram
 picture2 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2, 1, 1] "", Connection [1] [2, 2, 1] "", -- default outermost level, F1$0 -> a, C1$0 -> b, J2$0 -> c, E1$0 ->d
   Connection [2, 1, 3] [3] "", Connection [2, 2, 2] [3] "", Connection [3] [4] ""] [1] -- [Flow2$0 (this.)from to label, Flow3$0 from to label, Flow10$0 from to label, Flow11$0 from to label, Flow12$0 from to label] -> [Connection] here, Flow1$0 from(S1$0) to label -> [1]
   where
-    a = Joint 1 -- F1$0 -> a
+    a = ForkOrJoin 1 -- F1$0 -> a
     b = CombineDiagram [e, f] 2 -- C1$0 -> b, R1$0 -> e, R2$0 -> f, C1$0 <: contains -> CombineDiagram [e, f]
       where
         e = StateDiagram [g, h, i] 1 "4" [Connection [1] [2, 1, 1] "", Connection [1] [2, 2, 1] "", -- R1$0 -> e, F2$0 -> g, C2$0 -> h, J1$0 -> i, Name4$0 -> "4", R1$0 <: name -> "4"
           Connection [2, 1, 2] [3] "-2", Connection [2, 2, 1] [3] "-2"] [] -- [Flow4$0 from to label, Flow5$0 from to label, Flow7$0 from to label, Flow9$0 from to label] -> [Connection] here
           where
-            g = Joint 1 -- F2$0 -> g
+            g = ForkOrJoin 1 -- F2$0 -> g
             h = CombineDiagram [l, m] 2 -- C2$0 -> h, R3$0 -> l, R4$0 -> m, C2$0 <: contains -> CombineDiagram [l, m]
               where
                 l = StateDiagram [n, o] 1 "6" [Connection [1] [2] "-1"] [] -- R3$0 -> l, N1$0 -> n, N2$0 -> o, R3$0 <: contains -> StateDiagram [n, o], Name6$0 -> "6", R3$0 <: name -> "6", [Flow6$0 from label to] -> [Connection] here
@@ -129,12 +129,12 @@ picture2 = StateDiagram [a, b, c, d] 1 "" [Connection [1] [2, 1, 1] "", Connecti
                 m = StateDiagram [p] 2 "7" [] [] -- R4$0 -> m, N4$0 -> p, R4$0 <: contains -> StateDiagram [p], Name7$0 -> "7", R4$0 <: name = "7"
                   where
                     p = InnerMostState 1 "1" "" -- N4$0 -> p， Name1$0 -> “1”， N4$0 <: name = "1"
-            i = Joint 3 -- J1$0 -> i
+            i = ForkOrJoin 3 -- J1$0 -> i
         f = StateDiagram [j, k] 2 "5" [Connection [1] [2] "-1"] [] -- R2$0 -> f，N3$0 -> j， N5$0 -> k， R2$0 <: contains -> StateDiagram [j, k], Name5$0 -> "5", R2$0 <: name -> "5", [Flow8$0 from, to, label] -> [Connection] here
           where
             j = InnerMostState 1 "3" "" -- N3$0 -> j, Name3$0 -> "3", N3$0 <: name -> "3"
             k = InnerMostState 2 "2" "" -- N5$0 -> k, Name2$0 -> "2", N5$0 <: name -> "2"
-    c = Joint 3 -- J2$0 -> c
+    c = ForkOrJoin 3 -- J2$0 -> c
     d = EndState 4 -- E1$0 ->d
 -- T1$0 -> "-1", T2$0 -> "-2", EmptyTrigger$0 -> ""
 
@@ -161,7 +161,7 @@ I think labels can be set in a sequence;
 [Connectiong]: Flows.from -> the first parameter, Flows.to -> the second parameter, Flows.label -> the third parameter, but there are no labels of nodes in Alloy, so we need to translate them after all labels are set completely.
 [1]: If a node in this level, and a Flows whose Flows.from in StartNodes and Flows.to is the node, then this list have the relative address of the node. (Setting labels is also the first step)
 
-A ForkNodes or JoinNodes -> "Joint"
+A ForkNodes or JoinNodes -> "ForkOrJoin"
 An EndNodes -> "EndState"
 A ShallowHistoryNodes -> History "*" Shallow
 A DeepHistoryNofrd -> History * Deep

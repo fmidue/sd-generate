@@ -37,7 +37,7 @@ forCheckReachability2 = umlStateDiagram $ StateDiagram [a, b, c, d] 1 "" [Connec
           where
             l = InnerMostState 1 "D" ""
             m = InnerMostState 2 "E" ""
-    b = Joint 2
+    b = ForkOrJoin 2
     c = InnerMostState 3 "F" ""
     d = StateDiagram [g, h] 4 "" [] [2]
       where
@@ -68,8 +68,8 @@ forCheckTransition1 = umlStateDiagram $ StateDiagram [a,b,c,d,e,f,g] 1 "" [Conne
            b = InnerMostState  2 "Kaffee trinken" ""
            c = InnerMostState  3 "Tasse absetzen" ""
            d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5
-           f = Joint 6
+           e = ForkOrJoin 5
+           f = ForkOrJoin 6
            g = EndState 7
 
 forCheckTransition2 :: UMLStateDiagram String Int
@@ -79,8 +79,8 @@ forCheckTransition2 = umlStateDiagram $ StateDiagram [a,b,c,d,e,f,g] 1 "" [Conne
            b = InnerMostState  2 "Kaffee trinken" ""
            c = InnerMostState  3 "Tasse absetzen" ""
            d = InnerMostState  4 "Zeitung lesen" ""
-           e = Joint 5
-           f = Joint 6
+           e = ForkOrJoin 5
+           f = ForkOrJoin 6
            g = EndState 7
 
 forCheckManyToOne2 :: UMLStateDiagram String Int
@@ -90,7 +90,7 @@ forCheckManyToOne2 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
-           e = Joint 5
+           e = ForkOrJoin 5
 
 forCheckManyToOne1 :: UMLStateDiagram String Int
 forCheckManyToOne1 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection[2] [5] "b",Connection[1] [5] "",Connection[5] [4] "a",
@@ -99,7 +99,7 @@ forCheckManyToOne1 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
-           e = Joint 5
+           e = ForkOrJoin 5
 
 forCheckManyToOne3 :: UMLStateDiagram String Int
 forCheckManyToOne3 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection[5] [4] "",Connection[2] [1] "a",
@@ -108,7 +108,7 @@ forCheckManyToOne3 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
-           e = Joint 5
+           e = ForkOrJoin 5
 
 forCheckManyToOne5 :: UMLStateDiagram String Int
 forCheckManyToOne5 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[3] [5] "",Connection[2] [1] "a",
@@ -117,7 +117,7 @@ forCheckManyToOne5 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
-           e = Joint 5
+           e = ForkOrJoin 5
 
 forCheckManyToOne6 :: UMLStateDiagram String Int
 forCheckManyToOne6 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection[4] [5] "",Connection[5] [2] "",Connection[2] [1] "a",
@@ -126,7 +126,7 @@ forCheckManyToOne6 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
-           e = Joint 5
+           e = ForkOrJoin 5
 
 forCheckManyToOne7 :: UMLStateDiagram String Int
 forCheckManyToOne7 = umlStateDiagram $ StateDiagram [a, b, c, d, l] 1 "" [ Connection [2, 1, 3] [3] "", Connection [2, 2, 2]
@@ -144,7 +144,7 @@ forCheckManyToOne7 = umlStateDiagram $ StateDiagram [a, b, c, d, l] 1 "" [ Conne
           where
             j = InnerMostState 1 "E" ""
             k = InnerMostState 2 "F" ""
-    c = Joint 3
+    c = ForkOrJoin 3
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
@@ -155,7 +155,7 @@ forCheckManyToOne8 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connection
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
-           e = Joint 5
+           e = ForkOrJoin 5
 
 forCheckManyToOne4 :: UMLStateDiagram String Int
 forCheckManyToOne4 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] ""] [5]
@@ -164,7 +164,7 @@ forCheckManyToOne4 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connection[5] [1
           where
             e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
-        b = Joint 5
+        b = ForkOrJoin 5
 
 forCheckTransition3 :: UMLStateDiagram String Int
 forCheckTransition3 = umlStateDiagram $ StateDiagram [a, b, d, l] 1 "" [Connection [2]
@@ -180,7 +180,7 @@ forCheckTransition3 = umlStateDiagram $ StateDiagram [a, b, d, l] 1 "" [Connecti
             g = InnerMostState 1 "B" ""
             h = InnerMostState 2 "C" ""
             i = InnerMostState 3 "D" ""
-            c = Joint 4
+            c = ForkOrJoin 4
         f = StateDiagram [j, k] 2 "" [Connection [1] [2] "b"] [1]
           where
             j = InnerMostState 1 "E" ""
@@ -195,7 +195,7 @@ forCheckTransition4 = umlStateDiagram $ StateDiagram [a,b,c,d,e] 1 "" [Connectio
            b = InnerMostState  2 "B" ""
            c = InnerMostState  3 "C" ""
            d = InnerMostState  4 "D" ""
-           e = Joint 5
+           e = ForkOrJoin 5
 
 forCheckTransition5 :: UMLStateDiagram String Int
 forCheckTransition5 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [1,2,1] "b"] [5]
@@ -204,7 +204,7 @@ forCheckTransition5 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connection[5] [
           where
             e = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] []
-        b = Joint 5
+        b = ForkOrJoin 5
 
 forAllGoIntoParallelRegions1 :: UMLStateDiagram String Int
 forAllGoIntoParallelRegions1 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [1,1,2] "a"] [5]
@@ -213,7 +213,7 @@ forAllGoIntoParallelRegions1 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connec
           where
             e = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" [] []
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
-        b = Joint 5
+        b = ForkOrJoin 5
 
 forAllGoIntoParallelRegions2 :: UMLStateDiagram String Int
 forAllGoIntoParallelRegions2 = umlStateDiagram $ StateDiagram [a,b,g] 1 "" [Connection[5] [1,1,1] "a",Connection[5] [2,1,1] "a"] [5]
@@ -226,7 +226,7 @@ forAllGoIntoParallelRegions2 = umlStateDiagram $ StateDiagram [a,b,g] 1 "" [Conn
           where
             c = StateDiagram [InnerMostState 1 "A" ""] 1 "" [] []
             d = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] [1]
-        g = Joint 5
+        g = ForkOrJoin 5
 
 forAllComeOutOfParallelRegions1 :: UMLStateDiagram String Int
 forAllComeOutOfParallelRegions1 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connection[1,1,1] [5] "a",Connection[1,1,2] [5] "a",
@@ -236,7 +236,7 @@ forAllComeOutOfParallelRegions1 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Con
           where
             e = StateDiagram [InnerMostState 1 "A" "",InnerMostState 2 "B" ""] 1 "" [] [1]
             f = StateDiagram [InnerMostState 1 "A" ""] 2 "" [] []
-        b = Joint 5
+        b = ForkOrJoin 5
 
 forCheckEndState1 :: UMLStateDiagram String Int
 forCheckEndState1 = umlStateDiagram $ StateDiagram [b,e] 1 "" [Connection[7] [2] ""] [7]
@@ -380,7 +380,7 @@ forCheckConnection2 = umlStateDiagram $ StateDiagram [a, b, c, d] 1 "" [Connecti
               where
                 j = InnerMostState 1 "E" ""
                 k = InnerMostState 2 "F" ""
-        c = Joint 3
+        c = ForkOrJoin 3
         d = InnerMostState 4 "G" ""
 
 forCheckConnection3 :: UMLStateDiagram String Int
@@ -401,7 +401,7 @@ forCheckConnection3 = umlStateDiagram $ StateDiagram [a, b, c, d] 1 "" [Connecti
                 where
                   j = InnerMostState 1 "E" ""
                   k = InnerMostState 2 "F" ""
-          c = Joint 3
+          c = ForkOrJoin 3
           d = InnerMostState 4 "G" ""
 
 forCheckConnection4 :: UMLStateDiagram String Int
@@ -566,7 +566,7 @@ forCheckUniqueness2 = umlStateDiagram $ StateDiagram [a, b, c, d, l] 1 "" [] [1]
           where
             j = InnerMostState 1 "E" ""
             k = InnerMostState 2 "F" ""
-    c = Joint 3
+    c = ForkOrJoin 3
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
@@ -586,7 +586,7 @@ forCheckUniqueness3 = umlStateDiagram $ StateDiagram [a, b, c, d] 1 "" [Connecti
                 where
                   j = InnerMostState 1 "E" ""
                   k = InnerMostState 2 "F" ""
-          c = Joint 3
+          c = ForkOrJoin 3
           d = InnerMostState 4 "G" ""
 
 forCheckUniqueness4 :: UMLStateDiagram String Int
@@ -682,7 +682,8 @@ forCheckHistOutTransition1 = umlStateDiagram $ StateDiagram [a,b] 1 "" [Connecti
       b = InnerMostState  2 "State 3" ""
 
 forCheckHistOutTransition2 :: UMLStateDiagram String Int
-forCheckHistOutTransition2 = umlStateDiagram $ StateDiagram [Joint 1, a] 1 "" [Connection [1] [2, 1, 1, 1, 1] "",
+forCheckHistOutTransition2 = umlStateDiagram
+  $ StateDiagram [ForkOrJoin 1, a] 1 "" [Connection [1] [2, 1, 1, 1, 1] "",
          Connection [1] [2, 1, 1, 2, 1] ""] [1]
   where
     a = StateDiagram [b, c] 2 "A" [Connection [1, 1, 1, 1] [2] "i",
@@ -705,7 +706,7 @@ forCheckHistOutTransition2 = umlStateDiagram $ StateDiagram [Joint 1, a] 1 "" [C
               where
                 m = InnerMostState 1 "9" ""
                 n = InnerMostState 2 "10" ""
-            i = Joint 3
+            i = ForkOrJoin 3
             j = History 0 Shallow
         c = StateDiagram [d, e, f] 2 "E" [Connection [1] [3] "d", Connection
             [3] [2] "d", Connection [2] [1] "d"] [3]
@@ -836,7 +837,7 @@ forCheckSameConnection2 = umlStateDiagram $ StateDiagram [a, b, c, d, l] 1 "" [C
           where
             j = InnerMostState 1 "E" ""
             k = InnerMostState 2 "F" ""
-    c = Joint 3
+    c = ForkOrJoin 3
     d = InnerMostState 4 "G" ""
     l = EndState 5
 

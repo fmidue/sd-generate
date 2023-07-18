@@ -6,7 +6,7 @@ module Checkers
   , module Checkers.NameUniqueness
   , module Checkers.Uniqueness
   , module Checkers.EndState
-  , module Checkers.Joint
+  , module Checkers.ForkOrJoin
   , module Checkers.History
   , module Checkers.Semantics
   ) where
@@ -18,6 +18,6 @@ import Checkers.Drawability
 import Checkers.NameUniqueness
 import Checkers.Uniqueness
 import Checkers.EndState
-import Checkers.Joint
+import Checkers.ForkOrJoin
 import Checkers.History
 import Checkers.Semantics

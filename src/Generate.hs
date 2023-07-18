@@ -10,9 +10,23 @@ import Datatype (
   )
 
 import Checkers (checkSemantics, checkDrawability)
-import Checkers.Helpers (checkEmptyOutTran,checkSameOutTran,inCompoundState, notHistory, isNotEnd, getSameFromTran, isSDCD, notJoint, globalStart,getAllElem1, lastSecNotCD, getSubstates, isNotCD)
+import Checkers.Helpers (
+  checkEmptyOutTran,
+  checkSameOutTran,
+  getAllElem1,
+  getSameFromTran,
+  getSubstates,
+  globalStart,
+  inCompoundState,
+  isNotCD,
+  isNotEnd,
+  isSDCD,
+  lastSecNotCD,
+  notForkOrJoin,
+  notHistory,
+  )
 import Data.Maybe(isNothing)
-import Data.List((\\),nub,zip4)
+import Data.List ((\\), delete, nub, zip4)
 import Data.List.Extra(allSame)
 import Test.QuickCheck hiding(label,labels)
 
@@ -58,8 +72,8 @@ checkParallelRegion (x:xs) (y:ys) subs
      (True, False) -> head xs == head ys && checkParallelRegion xs ys (getSubstates x subs)
      (False, _) -> True
 
---haveJoint:: StateDiagram n Int [Connection Int] -> Bool
---haveJoint a = any (\x -> not (notJoint x (substates a))) (getAllElem a)
+--haveForkOrJoin:: StateDiagram n Int [Connection Int] -> Bool
+--haveForkOrJoin a = any (\x -> not (notForkOrJoin x (substates a))) (getAllElem a)
 
 suchThatWhileCounting :: Gen a -> (a -> Bool) -> Gen (a, Int)
 suchThatWhileCounting gen p = tryWith 0
@@ -98,14 +112,16 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
   let counter = c - 1
       chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(10,return Join)]
       -- all types
-      chooseNoCombJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
+      chooseNoCombForkOrJoinNodeTypes = frequency
+        [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
       chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(5,return Join)]
       -- types that have no substates
-      chooseNoSubJointNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner)]
+      chooseNoSubForkOrJoinNodeTypes = frequency
+        [(1,return Hist),(1,return End),(5,return Inner)]
   subTypes1 <- vectorOf n (case (c > 0, cdMaxNum == 0) of
-                            (True,True) -> chooseNoCombJointNodeTypes
+                            (True,True) -> chooseNoCombForkOrJoinNodeTypes
                             (True,False) -> chooseNodeTypes
-                            (False,True) -> chooseNoSubJointNodeTypes
+                            (False,True) -> chooseNoSubForkOrJoinNodeTypes
                             (False,False) -> chooseNoSubNodeTypes )
                               `suchThat` checkSubType n outermost leastTwoLevels
   -- check counter > 0 to limit the depth the diagram
@@ -148,37 +164,56 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
          ,(8,elements layerElem)]
        -- let there is no two startStates pointing the same node
   -- if there is an outermost History then start is this outermost History
-  let layerElemNoJoint = filter (`notJoint` subs) layerElem
-      innerElemNoRegionsJoint = filter (`notJoint` subs) innerElemNoRegions
-  -- let Joint connections only be controlled at the outermost layer
+  let layerElemNoForkOrJoin = filter (`notForkOrJoin` subs) layerElem
+      innerElemNoRegionsForkOrJoin =
+        filter (`notForkOrJoin` subs) innerElemNoRegions
+      randomConnect =
+        randomConnection layerElemNoForkOrJoin innerElemNoRegionsForkOrJoin subs
+  -- let ForkOrJoin connections only be controlled at the outermost layer
   conns <-  vectorOf
-    (length layerElemNoJoint)
-    (randomConnection layerElemNoJoint innerElemNoRegionsJoint subs [])
+    (length layerElemNoForkOrJoin)
+    (randomConnect [])
     `suchThat`
       (\ x
          -> all (`checkSameOutTran` x) x && all (`checkEmptyOutTran` x) x)
-  -- connections that from Joint/ to Joint is not considered
-  let jointStates = filter (not.(`notJoint` subs)) (innerElem ++ layerElem)
+  -- connections that from ForkOrJoin/ to ForkOrJoin is not considered
+  let forkOrJoinStates =
+        filter (not.(`notForkOrJoin` subs)) (innerElem ++ layerElem)
       globalStarts  = globalStartsWithoutCurrent ++ [start]
-  connsExtraJoint1
+      randomConnectToForkOrJoin = randomForkOrJoinConnection
+        layerElemNoForkOrJoin
+        innerElemNoRegionsForkOrJoin
+        globalStarts
+        subs
+  connsExtraForkOrJoin1
     <- if outermost
          then
-          mapM (randomJointConnection layerElemNoJoint innerElemNoRegionsJoint globalStarts subs) jointStates
+          mapM randomConnectToForkOrJoin forkOrJoinStates
        else return []
-  let connsExtraJoint = concat connsExtraJoint1
-      innerElemNoRegionsJointSDCD = filter (not.(`isSDCD` subs)) innerElemNoRegionsJoint
+  let connsExtraForkOrJoin = concat connsExtraForkOrJoin1
+      innerElemNoRegionsForkOrJoinSDCD =
+        filter (not.(`isSDCD` subs)) innerElemNoRegionsForkOrJoin
       toElem = unUML (\_ _ conn _ -> map pointTo conn)
-        $ globalise (umlStateDiagram (StateDiagram subs l nm (conns ++ connsExtraJoint) []))
+        $ globalise
+        $ umlStateDiagram
+        $ StateDiagram subs l nm (conns ++ connsExtraForkOrJoin) []
       reachableStates = toElem ++ globalStarts
-      unreachedStates = (layerElemNoJoint ++ innerElemNoRegionsJointSDCD) \\ reachableStates
+      unreachedStates =
+        (layerElemNoForkOrJoin ++ innerElemNoRegionsForkOrJoinSDCD)
+        \\ reachableStates
   connsExtra
     <- (if outermost
           then
-            mapM (randomConnection layerElemNoJoint innerElemNoRegionsJoint subs) unreachedStates
+            mapM randomConnect unreachedStates
         else return [])
           `suchThat`
             (\x -> all (`checkSameOutTran` x) x && all (`checkEmptyOutTran` x) x)
-  return (StateDiagram subs l nm (conns ++ connsExtra ++ connsExtraJoint ) start)
+  return $ StateDiagram
+    subs
+    l
+    nm
+    (conns ++ connsExtra ++ connsExtraForkOrJoin)
+    start
 
 randomInnerSD :: Int -> Int -> [Int] -> [String] -> (Int,NodeType,[String],Bool) -> [String]-> Gen (StateDiagram String Int [Connection Int])
 randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
@@ -189,7 +224,7 @@ randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
        Inner -> return (InnerMostState l nm "")
        Comb -> randomCD counter cdMaxNum ns alphabet l s exclude
        Stat -> randomSD' False counter cdMaxNum False ns alphabet (l,nm,mustCD) exclude
-       Join -> return (Joint l)
+       Join -> return (ForkOrJoin l)
 
 randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen (StateDiagram String Int [Connection Int])
 randomCD counter cdMaxNum ns alphabet l s exclude = do
@@ -256,33 +291,53 @@ randomConnection layerElem innerElem sub unreachedState = do
                   else
                     return (Connection historyFrom to "")
 
-randomJointConnection :: [[Int]] -> [[Int]] -> [[Int]] -> [StateDiagram n Int [Connection Int]] -> [Int] -> Gen [Connection Int]
-randomJointConnection layerElem innerElem globalStarts subs joint = do
-    fromNum <- if joint `elem` globalStarts then return 2 else choose (1,2)
-    -- if condition satisfy rules when the start node pointing to the joint
+randomForkOrJoinConnection
+  :: [[Int]]
+  -> [[Int]]
+  -> [[Int]]
+  -> [StateDiagram n Int [Connection Int]]
+  -> [Int]
+  -> Gen [Connection Int]
+randomForkOrJoinConnection layerElem innerElem globalStarts subs forkOrJoin = do
+    fromNum <- if forkOrJoin `elem` globalStarts then return 2 else choose (1,2)
+    -- if condition satisfy rules when the start node pointing to the forkOrJoin
     let points = layerElem ++ innerElem
         noHistory = filter (`notHistory` subs) points
-        -- here let Joint will not point to/from History
-       -- noParallelRegionHistoryElem = filter (\x -> checkParallelRegion joint x subs) noHistory
+        -- here let ForkOrJoin will not point to/from History
+       -- noParallelRegionHistoryElem = filter (\x -> checkParallelRegion forkOrJoin x subs) noHistory
     cd <- elements (filter (not.(`notCD` subs)) noHistory)
     let cdSub = filter (\ x -> take (length cd) x == cd) noHistory \\ [cd]
-    jointOut <- vectorOf fromNum (elements (if fromNum == 1 then noHistory \\[joint] else cdSub \\[joint]))
+    forkOrJoinOut <- vectorOf
+      fromNum
+      (elements $ delete forkOrJoin $ if fromNum == 1 then noHistory else cdSub)
                   `suchThat` (\x -> length (nub x) == length x && checkDistinctRegion cd x )
     let transitionNms = ["a","b","c","d","e","f","g","h","i","j","k",""]
-    jointOutNm <- if joint `elem` globalStarts then return "" else elements transitionNms
-    let jointOutConn = map (\x -> Connection joint x jointOutNm) jointOut
-    if joint `elem` globalStarts
+    forkOrJoinOutNm <-
+      if forkOrJoin `elem` globalStarts
+      then return ""
+      else elements transitionNms
+    let forkOrJoinOutConn = map
+          (\x -> Connection forkOrJoin x forkOrJoinOutNm)
+          forkOrJoinOut
+    if forkOrJoin `elem` globalStarts
       then
-        return jointOutConn
+        return forkOrJoinOutConn
     else do
       let toNum = if fromNum == 1 then 2 else 1
           noEndState  = filter (`isNotEnd` subs) noHistory
           cdSubsNoEndState = filter (`isNotEnd` subs) cdSub
-      jointIn <- vectorOf toNum (elements (if toNum == 1 then noEndState\\[joint] else cdSubsNoEndState \\[joint] ))
+      forkOrJoinIn <- vectorOf
+        toNum
+        (elements $ delete forkOrJoin $ if toNum == 1 then noEndState else cdSubsNoEndState)
                      `suchThat` (\x -> length (nub x) == length x && checkDistinctRegion cd x )
-      jointInNm <- if jointOutNm == "" then elements (transitionNms \\ [""]) else return ""
-      let jointInConn = map (\x -> Connection x joint jointInNm) jointIn
-      return (jointOutConn ++ jointInConn)
+      forkOrJoinInNm <-
+        if forkOrJoinOutNm == ""
+        then elements (transitionNms \\ [""])
+        else return ""
+      let forkOrJoinInConn = map
+            (\x -> Connection x forkOrJoin forkOrJoinInNm)
+            forkOrJoinIn
+      return (forkOrJoinOutConn ++ forkOrJoinInConn)
 
 checkDistinctRegion :: [Int] -> [[Int]] -> Bool
 checkDistinctRegion _ [_] = True

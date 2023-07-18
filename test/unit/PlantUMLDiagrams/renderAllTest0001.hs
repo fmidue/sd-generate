@@ -4,7 +4,7 @@ StateDiagram {
       substates = [
         StateDiagram {
           substates = [
-            Joint {label = 1},
+            ForkOrJoin {label = 1},
             CombineDiagram {
               substates = [
                 StateDiagram {
@@ -38,7 +38,7 @@ StateDiagram {
                 ],
               label = 2
               },
-            Joint {label = 3},
+            ForkOrJoin {label = 3},
             History {label = 4, historyType = Shallow},
             StateDiagram {
               substates = [

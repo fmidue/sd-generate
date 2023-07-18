@@ -188,7 +188,7 @@ toWrapper :: StateDiagram String Int [Connection Int] -> Wrapper
 toWrapper (EndState a ) = EndS a 0 NoConnection Unspecified
 toWrapper (History a b) = Hist a b 0 NoConnection Unspecified
 toWrapper (InnerMostState a b c) = Leaf a b c 0 NoConnection Unspecified
-toWrapper (Joint a) = Fork a Unspecified 0 NoConnection
+toWrapper (ForkOrJoin a) = Fork a Unspecified 0 NoConnection
 toWrapper s@CombineDiagram {} = AndDecomposition (fmap toWrapper (substates s)) (label
   s) Unspecified 0 NoConnection Unspecified
 toWrapper s@StateDiagram {} = OrDecomposition toWrapper' (label s) (name s)

@@ -12,7 +12,7 @@ module Checkers.Helpers (
   isSDCD,
   lastSecNotCD,
   notHistory,
-  notJoint,
+  notForkOrJoin,
   checkEmptyOutTran,
   checkSameOutTran
   ) where
@@ -117,14 +117,14 @@ isNotHistory :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
 
-notJoint  :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
-notJoint  [] _ = True
-notJoint  [x] a = all (isNotJoint x) a
-notJoint  (x:xs) a = notJoint xs (getSubstates x a)
+notForkOrJoin :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
+notForkOrJoin [] _ = True
+notForkOrJoin [x] a = all (isNotForkOrJoin x) a
+notForkOrJoin (x:xs) a = notForkOrJoin xs (getSubstates x a)
 
-isNotJoint :: Int -> StateDiagram n Int [Connection Int] -> Bool
-isNotJoint a Joint {label}  = a /= label
-isNotJoint _ _ = True
+isNotForkOrJoin :: Int -> StateDiagram n Int [Connection Int] -> Bool
+isNotForkOrJoin a ForkOrJoin {label} = a /= label
+isNotForkOrJoin _ _ = True
 
 lastSecNotCD :: [Int] -> [StateDiagram n Int [Connection Int]]-> Bool
 lastSecNotCD [] _ = True

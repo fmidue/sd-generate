@@ -208,7 +208,7 @@ renderNode History { label, historyType } Inherited{ctxt} =
   , shallowHistoryNodes = historyType == Shallow
   }
 
-renderNode Joint { label } Inherited{ctxt, connectionSources} =
+renderNode ForkOrJoin {label} Inherited {ctxt, connectionSources} =
   let
     here = ctxt ++ [label]
     node = [i|N_#{address here}|]

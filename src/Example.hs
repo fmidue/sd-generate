@@ -51,8 +51,8 @@ picture3 = umlStateDiagram $ StateDiagram [a,b,c,d] 12 "" [Connection[3] [1,1,1]
                 h = InnerMostState 2 "Kaffee trinken" ""
                 i = InnerMostState 3 "Tasse absetzen" ""
             f = StateDiagram [InnerMostState 1 "Zeitung lesen" ""] 2 "" [] []
-        b = Joint 3
-        c = Joint 4
+        b = ForkOrJoin 3
+        c = ForkOrJoin 4
         d = EndState 5
 
 {- After some changes, accepted by Alloy -}
@@ -150,7 +150,7 @@ slide271 = umlStateDiagram $ StateDiagram [a, b, c] 200 "" [Connection [3] [1, 0
         d = InnerMostState 1 "on" ""
         e = InnerMostState 2 "off" ""
         f = History 0 Shallow
-    b = Joint 2
+    b = ForkOrJoin 2
     c = CombineDiagram [g, h] 3
       where
         g = StateDiagram (i ++ [k]) 1 "Stunden" (map (\x -> Connection [x]
@@ -179,7 +179,7 @@ slide273 = umlStateDiagram $ StateDiagram [a, b, c] 200 "" [Connection [3] [1, 1
       where
         d = InnerMostState 1 "on" ""
         e = InnerMostState 2 "off" ""
-    b = Joint 2
+    b = ForkOrJoin 2
     c = CombineDiagram [g, h] 3
       where
         g = StateDiagram (i ++ [k]) 1 "Stunden" (map (\x -> Connection [x]
@@ -211,7 +211,7 @@ slide275 = umlStateDiagram $ StateDiagram [a, b] 200 "" [Connection [1] [2] "Bat
           where
             f = InnerMostState 1 "on" ""
             g = InnerMostState 2 "off" ""
-        d = Joint 2
+        d = ForkOrJoin 2
         e = CombineDiagram [h, i] 3
           where
             h = StateDiagram (j ++ [k]) 1 "Stunden" (map (\x -> Connection [x]
@@ -274,7 +274,7 @@ slide279 = umlStateDiagram $ StateDiagram [a, b, c, d, l] 16 "" [Connection [1] 
           where
             j = InnerMostState 1 "E" ""
             k = InnerMostState 2 "F" ""
-    c = Joint 3
+    c = ForkOrJoin 3
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
@@ -347,7 +347,7 @@ task26a = umlStateDiagram $ StateDiagram [a, b, c, d] 23 "" [Connection [1, 1, 3
           where
             l = InnerMostState 1 "D" ""
             m = InnerMostState 2 "E" ""
-    b = Joint 2
+    b = ForkOrJoin 2
     c = InnerMostState 3 "F" ""
     d = StateDiagram [g, h] 4 "" [Connection [2] [1] "d"] [2]
       where
@@ -393,7 +393,8 @@ task27 = umlStateDiagram $ StateDiagram [a, b] 12 "" [Connection [1] [2, 0] "F",
 
 {- Accepted by Alloy directly -}
 task85 :: UMLStateDiagram String Int
-task85 = umlStateDiagram $ StateDiagram [Joint 1, a] 35 "" [Connection [1] [2, 1, 1, 1, 1] "",
+task85 = umlStateDiagram $ StateDiagram [ForkOrJoin 1, a] 35 "" [
+         Connection [1] [2, 1, 1, 1, 1] "",
          Connection [1] [2, 1, 1, 2, 1] ""] [1]
   where
     a = StateDiagram [b, c] 2 "A" [Connection [1, 1, 1, 1] [2] "i",
@@ -416,7 +417,7 @@ task85 = umlStateDiagram $ StateDiagram [Joint 1, a] 35 "" [Connection [1] [2, 1
               where
                 m = InnerMostState 1 "9" ""
                 n = InnerMostState 2 "10" ""
-            i = Joint 3
+            i = ForkOrJoin 3
             j = History 0 Shallow
         c = StateDiagram [d, e, f] 2 "E" [Connection [1] [3] "d", Connection
             [3] [2] "d", Connection [2] [1] "d"] [3]
@@ -476,9 +477,9 @@ test4 = umlStateDiagram $ StateDiagram [a] 35 "" [] [1, 1, 1]
     c1 = InnerMostState 1 "6" ""
     c2 = InnerMostState 2 "7" ""
     c3 = InnerMostState 3 "8" ""
-    b1 = Joint 1
+    b1 = ForkOrJoin 1
     b2 = CombineDiagram [d1, d2] 2
-    b3 = Joint 3
+    b3 = ForkOrJoin 3
     b4 = History 4 Shallow
     b5 = StateDiagram [e1, e2] 5 "D" [Connection [1] [2] "g", Connection [2] [1] "g"] [1]
     e1 = InnerMostState 1 "9" ""
@@ -526,7 +527,7 @@ flatCase2 = let
                  isD = InnerMostState 1 "D" ""
                  isE = InnerMostState 2 "E" ""
                  isF = InnerMostState 2 "F" ""
-                 jn1 = Joint 5
+                 jn1 = ForkOrJoin 5
                  cd1 = CombineDiagram [cd1r1, cd1r2] 1
                  cd1r1 = StateDiagram [isA, isB, isC] 1 ""
                         [ Connection [1] [2] "a"

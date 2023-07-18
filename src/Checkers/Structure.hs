@@ -16,7 +16,7 @@ import Checkers.Helpers (globalStart, notHistory, isSDCD, getAllElem)
 checkStructure :: UMLStateDiagram n Int -> Maybe String
 checkStructure a
   | not (checkSubstatesSD $ unUML' a) =
-      Just "Error: Substates of StateDiagram constructor cannot be empty or just History/Joint"
+      Just "Error: Substates of StateDiagram constructor cannot be empty or just History/ForkOrJoin"
   | not (checkHistOutTransition $ unUML' a) =
       Just "Error: Outgoing edges from a history node always have the empty transition"
   | not (checkReachability a) =
@@ -30,7 +30,7 @@ checkSubstatesSD (StateDiagram a _ _ _ _) = any checkListInSD a && all checkSubs
 checkSubstatesSD _ = True
 
 checkListInSD :: StateDiagram n Int [Connection Int] -> Bool
-checkListInSD Joint {} = False
+checkListInSD ForkOrJoin {} = False
 checkListInSD History {} = False
 checkListInSD _ = True
 

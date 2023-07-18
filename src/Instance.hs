@@ -220,7 +220,7 @@ treeToStateDiagram getName getStart n = case node of
     startState = getStart (Just node)
     }
   ENode {} -> EndState { label = l }
-  FJNode {} -> Joint { label = l }
+  FJNode {} -> ForkOrJoin { label = l }
   HNode (HistoryNode t _) -> History {
     label = l,
     historyType = t

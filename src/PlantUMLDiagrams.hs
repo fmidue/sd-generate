@@ -69,7 +69,7 @@ renderSubstates (x:xs) inherited@Inherited{ ctxt, connectionSources } =
 
     History {} -> ""
 
-    Joint { label } ->
+    ForkOrJoin { label } ->
       let
         node = ("N_" ++ address "" (ctxt ++ [label]))
         isFork = length (filter (node==) connectionSources) > 1
@@ -96,7 +96,7 @@ renderRegions (r:rs) inherited@Inherited{ ctxt, connectionSources } =
 
     History {} -> ""
 
-    Joint { label } ->
+    ForkOrJoin { label } ->
       let
         node = "N_" ++ address "" (ctxt ++ [label])
         isFork = length (filter (node==) connectionSources) > 1

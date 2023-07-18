@@ -76,7 +76,7 @@ spec = do
         ,("forCheckEndState2", forCheckEndState2)
         ,("forCheckEndState3", forCheckEndState3)
        ]
-  counterExamplesOnlyFor "checkJoint"
+  counterExamplesOnlyFor "checkForkOrJoin"
        [ ("forCheckTransition1", forCheckTransition1)
         ,("forCheckTransition2", forCheckTransition2)
         ,("forCheckManyToOne1", forCheckManyToOne1)
