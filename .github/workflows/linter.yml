@@ -29,4 +29,4 @@ jobs:
           VALIDATE_JSCPD_ALL_CODEBASE: true
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FILTER_REGEX_EXCLUDE: \.drawio$
+          FILTER_REGEX_EXCLUDE: \.drawio$|\.dvi$
