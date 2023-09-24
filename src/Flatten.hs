@@ -13,8 +13,7 @@ import Datatype (UMLStateDiagram
                 ,rename
                 )
 import Datatype.ClassInstances ()
-import Data.Either.Extra (fromLeft'
-                         )
+import Data.Either.Extra (fromLeft')
 import Data.List (find)
 
 flatten :: (Num l, Enum l, Eq l, Show l)
