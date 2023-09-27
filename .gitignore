@@ -18,6 +18,10 @@ stack.yaml.lock
 *.synctex(busy)
 *.toc
 *~
+*.pdf
+*.dvi
+*.out.ps
 *.exe
 *.o
 thesis/references/
+*.bkp
