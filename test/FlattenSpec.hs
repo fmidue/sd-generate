@@ -160,3 +160,12 @@ isStructurallySameAs g1 g2
          the total amount of connections stays unchanged, (i.e. there are no new relations between nodes)
          (or any relations lost)
  -}
+
+{- a flattened diagram has the same localized and globalized representation
+   because it has only one layer. -}
+
+{- flattening two charts will allow to compare them easily -}
+
+{- generate diagram; flatten, and output pre and post image to use it as task
+   further, globalize, collect transition literals, generate walkable sequences of defined length
+   and print the chain of active configurations to use it as task as well. -}
