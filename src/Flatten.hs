@@ -42,7 +42,7 @@ lift
                        , name = parentName }
        -> let
           initial
-            = map (Right . fromLeft') innerStartState 
+            = map (Right . fromLeft') innerStartState
             {- TODO: maybe provide better error handling,
                            in case of the presence of implicit entries towards the StateDiagram
                            with connections targeting this child,
@@ -66,7 +66,7 @@ lift
                            s@StateDiagram{ name = innerSDName
                                          , label = Left innerSDLabel
                                          , startState = innerSDStartState
-                                         , substates = innerSDSubstates 
+                                         , substates = innerSDSubstates
                                          , connections = [] }
                              -> s { name = parentName ++ innerSDName
                                   , label = Right innerSDLabel
@@ -77,9 +77,9 @@ lift
                            StateDiagram{ connections = _} -> error "error; a non globalized chart was supplied"
                            e@EndState{ label = Left innerLabel }
                              -> e { label = Right innerLabel }
-                           c@CombineDiagram{ label = Left innerLabel 
+                           c@CombineDiagram{ label = Left innerLabel
                                            , substates = innerCDSubstates }
-                             -> c { label = Right innerLabel 
+                             -> c { label = Right innerLabel
                                   , substates = labelRight innerCDSubstates }
                            f@ForkOrJoin{ label = Left innerLabel } -> f { label = Right innerLabel }
                            {- the really interesting part here will be lifting histories,
@@ -143,7 +143,7 @@ fromEither' (History { label
   = History { label = fromLeft' label
             , historyType }
 fromEither' (InnerMostState { name
-                            , label 
+                            , label
                             , operations})
   = InnerMostState { name
                    , label = fromLeft' label
