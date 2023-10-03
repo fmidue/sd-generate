@@ -14,7 +14,8 @@ module Checkers.Helpers (
   notHistory,
   notForkOrJoin,
   checkEmptyOutTran,
-  checkSameOutTran
+  checkSameOutTran,
+  getSubstates1
   ) where
 
 import Datatype (

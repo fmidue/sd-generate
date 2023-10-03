@@ -126,7 +126,6 @@ isStructurallySameAs g1 g2
     in
     length (unUML (\_ substate _ _ -> substate) g1) == length (unUML (\_ substate _ _ -> substate) g2)
 
-
 {-
       it "@pre: all left and right labels on nodes are unique" $ do
         let result = True
