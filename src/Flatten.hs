@@ -22,7 +22,6 @@ import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft', fromRight')
 import Data.List (find
                  ,unfoldr)
-
 flatten :: (Num l, Enum l, Eq l, Show l)
   => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
@@ -270,7 +269,7 @@ substates' (StateDiagram a _ _ _ _) = a
 substates' (CombineDiagram a _) = a
 substates' _ = []
 
-leftLabelConnection :: Connection a -> Connection (Either a b)
+leftLabelConnection :: (Eq a) => Connection a -> Connection (Either a a)
 leftLabelConnection
   Connection{ pointFrom = pf
             , pointTo = pt
@@ -279,8 +278,7 @@ leftLabelConnection
                  , pointTo = map Left pt
                  , transition = t }
 
-{- i should really figure out how to do proper functional traversals -}
-leftLabelNodes :: StateDiagram n a1 [Connection a2] -> StateDiagram n (Either a1 b1) [Connection (Either a2 b2)]
+leftLabelNodes :: (Eq l, Eq n) => StateDiagram n l [Connection l] -> StateDiagram n (Either l l) [Connection (Either l l)]
 leftLabelNodes
   StateDiagram { label = sdLabel
                , substates = sdSubstates
@@ -316,17 +314,17 @@ leftLabelNodes
                      , name = imsName
                      , operations = imsOperations }
 
-fromRightLabeledConnection :: Connection (Either l l) -> Connection l
+fromRightLabeledConnection :: (Eq l) => Connection (Either l l) -> Connection l
 fromRightLabeledConnection
   = \case
       Connection { pointFrom = pf
                  , pointTo = pt
                  , transition = t }
-        -> Connection { pointFrom = map fromLeft' pf {- TODO: fix that the naming aligns, or better dont unwrap from Either too early -}
-                      , pointTo = map fromLeft' pt
+        -> Connection { pointFrom = map fromRight' pf
+                      , pointTo = map fromRight' pt
                       , transition = t }
 
-fromRightLabeledNodes :: StateDiagram n (Either l l) [Connection (Either l l)] -> StateDiagram n l [Connection l]
+fromRightLabeledNodes :: (Eq l, Eq n) => StateDiagram n (Either l l) [Connection (Either l l)] -> StateDiagram n l [Connection l]
 fromRightLabeledNodes
   = \case
       StateDiagram { label = sdLabel
@@ -357,8 +355,6 @@ fromRightLabeledNodes
         -> InnerMostState { label = fromRight' imsLabel
                           , name = imsName
                           , operations = imsOperations }
-
-{- return the vertex of a chart referenced by the given address -}
 
 {- return the vertex of a chart referenced by the given address -}
 vertexByAddress ::(Eq b, Show b, Show n) => [b] -> StateDiagram n b [Connection b] -> StateDiagram n b [Connection b]
@@ -427,7 +423,7 @@ replaceVertexL x y
 
 {- polymorphic variant of checkers helper function,
    TODO: it must contain [] as root address as well -}
-allVertexAddresses :: (Show b) => StateDiagram n b [Connection b] -> [[b]]
+allVertexAddresses :: (Show b, Eq b) => StateDiagram n b [Connection b] -> [[b]]
 allVertexAddresses stateChart
   = [] :
     map (\x -> [label x]) (substates' stateChart)
@@ -437,35 +433,35 @@ allVertexAddresses stateChart
       = map (\x -> label stateChart' : [label x]) (substates' stateChart')
         ++ concatMap allVertexAddresses' (substates' stateChart')
 
+{- auxiliary function looking up a the vertex address in a relabeled chart for a vertex address of a non-relabeled chart -}
+lookupByAddr :: (Show l, Eq l) => [Either l l] -> StateDiagram n (Either l l) [Connection (Either l l)] -> StateDiagram n l [Connection l] -> [Either l l]
+lookupByAddr addr relabeledChart stateChart {- TODO; maybe swap the args for readability -}
+          = (\case
+               Just addr' -> addr'
+               Nothing -> error "bad resolution")
+            $ lookup addr (zip (map (map Left) (allVertexAddresses stateChart))
+                               (allVertexAddresses relabeledChart))
+
+{- TODO; by dropping some debug prints from the functions, type constraints can be relaxed -}
 {- enumerate all vertices in the chart with unique labels -}
-distinctLabels' :: (Eq a, Enum a, Show a, Num a, Show n) => StateDiagram n a [Connection a] -> StateDiagram n a [Connection a]
+distinctLabels' :: (Eq n, Num l, Enum l, Show n, Show l, Eq l) => StateDiagram n l [Connection l] -> StateDiagram n l [Connection l]
 distinctLabels' stateChart
   = let
     rewireStartStates relabeledChart
       = foldl (\stateChart' (addr,startState')
-                 -> replaceVertex (lookupByAddr addr)
-                    (case vertexByAddress (lookupByAddr addr) stateChart' of
+                 -> replaceVertex (lookupByAddr addr relabeledChart stateChart)
+                    (case vertexByAddress (lookupByAddr addr relabeledChart stateChart) stateChart' of
                        s@StateDiagram{}
                          -> s { startState
-                                  = case lookup (addr ++ startState') -- awkward inlining issue? type mismatch when deferring to lookupByAddr
-                                         (zip (allVertexAddresses stateChart)
-                                              (allVertexAddresses relabeledChart))
-                                    of
-                                    Just addr'' -> addr''
-                                    Nothing -> error "bad resolution" }
+                                  = lookupByAddr (addr ++ startState') relabeledChart stateChart
+                              }
                        _ -> error "invalid node" ) stateChart'
                 ) relabeledChart (reverse globalizedStartStates)
         where
-        lookupByAddr addr
-          = (\case
-               Just addr' -> addr'
-               Nothing -> error "bad resolution")
-            $ lookup addr (zip (allVertexAddresses stateChart)
-                               (allVertexAddresses relabeledChart))
         globalizedStartStates
           = concatMap (\addr
                          -> case vertexByAddress addr stateChart of
-                              StateDiagram { startState } -> [(addr,startState)]
+                              StateDiagram { startState } -> [(map Left addr,map Left startState)]
                               _ -> []
                       ) (allVertexAddresses stateChart)
     rewireGlobalizedConnections relabeledChart
@@ -478,15 +474,14 @@ distinctLabels' stateChart
           = map (\case
                    c@Connection{ pointFrom = pF
                                , pointTo = pT }
-                     -> c { pointFrom = case lookup pF (zip (allVertexAddresses stateChart) (allVertexAddresses relabeledChart)) of
+                     -> c { pointFrom = case lookup pF (zip (map (map Left) (allVertexAddresses stateChart)) (allVertexAddresses relabeledChart)) of
                                            Just x -> x
                                            Nothing -> error "bad resolution"
-                           , pointTo = case lookup pT (zip (allVertexAddresses stateChart) (allVertexAddresses relabeledChart)) of
+                           , pointTo = case lookup pT (zip (map (map Left)  (allVertexAddresses stateChart)) (allVertexAddresses relabeledChart)) of
                                          Just x -> x
                                          Nothing -> error "bad resolution" })
     relabelVertices labelSet stateDiagram {- use left, right to tag whether a hit vertex is already relabeled or not -}
-      = fromRightLabeledNodes $ {- it might be beneficial to keep LR until rewiring operations are done (to know that its not finished yet) -}
-        foldl (\stateChart' (addr,l)
+      = foldl (\stateChart' (addr,l)
                  -> replaceVertex addr ((vertexByAddress addr stateChart') { label = l}) stateChart')
         (leftLabelNodes stateDiagram) (zip (map (map Left) (reverse $ allVertexAddresses stateDiagram)) (map Right labelSet))
     globalizeConnections
@@ -512,9 +507,10 @@ distinctLabels' stateChart
                          )
                   ) stateChart (reverse $ allVertexAddresses stateChart))
     in
+    fromRightLabeledNodes $ -- now, with all nodes Right after relabeling, this call should not fail, unless something was forgotten and addresses somehow stayed Left
     rewireStartStates $
     rewireGlobalizedConnections $
-    relabelVertices [1..]
+    relabelVertices [1..] -- here the state chart is labeled Left, so that the relabeling can be done with Right labels
     globalizeConnections -- Int independent variant
     -- TODO: inline oldToNew addresses relation
 
