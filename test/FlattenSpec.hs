@@ -1,4 +1,5 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wno-deprecations   #-}
 module FlattenSpec (
   spec
 ) where
@@ -7,11 +8,19 @@ import Test.Hspec
 import Test.Hspec.QuickCheck
 import Datatype (StateDiagram(..)
                 ,Connection (..)
-                ,UMLStateDiagram
+                ,UMLStateDiagram (unUML')
                 ,umlStateDiagram
-                ,unUML)
-import Example (flatCase2, flatCase1, flatCase3)
-import Flatten (flatten)
+                ,unUML
+                -- ,unUML'
+                )
+import Example (flatCase2
+               ,flatCase1
+               ,flatCase3
+               ,positiveExamples)
+import Flatten (flatten
+               -- ,allVertexAddresses
+               -- ,vertexPath
+               )
 
 flatCase1Res :: UMLStateDiagram [String] Int
 flatCase1Res
@@ -55,44 +64,24 @@ flatCase3Res1Step
     ,Connection {pointFrom = [5], pointTo = [1], transition = "e"}
     ,Connection {pointFrom = [2], pointTo = [1], transition = "b"}
     ,Connection {pointFrom = [6,1], pointTo = [6,2], transition = "i"}]}
-
-{- unused
-flatCase2Res :: UMLStateDiagram [String] Int
-flatCase2Res
-  = umlStateDiagram $ StateDiagram {substates =
-    [InnerMostState {label = 1, name = ["A", "D"], operations = "\n"}
-    ,InnerMostState {label = 3, name = ["A", "E"], operations = "\n"}
-    ,InnerMostState {label = 6, name = ["B", "D"], operations = "\n"}
-    ,InnerMostState {label = 7, name = ["B", "E"], operations = "\n"}
-    ,InnerMostState {label = 8, name = ["C", "D"], operations = "\n"}
-    ,InnerMostState {label = 9, name = ["C", "E"], operations = "\n"}
-    ,InnerMostState {label = 2, name = ["F"], operations = ""}
-    ,InnerMostState {label = 4, name = ["", "H"], operations = ""}
-    ,InnerMostState {label = 10, name = ["", "G"], operations = ""}]
-    , label = 22, name = [""], connections =
-    [Connection {pointFrom = [9], pointTo = [2], transition = "c"}
-    ,Connection {pointFrom = [2], pointTo = [4], transition = "c"}
-    ,Connection {pointFrom = [2], pointTo = [4], transition = "d"}
-    ,Connection {pointFrom = [4], pointTo = [3], transition = "z"}
-    ,Connection {pointFrom = [10], pointTo = [1], transition = "z"}
-    ,Connection {pointFrom = [1], pointTo = [6], transition = "a"}
-    ,Connection {pointFrom = [1], pointTo = [3], transition = "b"}
-    ,Connection {pointFrom = [3], pointTo = [7], transition = "a"}
-    ,Connection {pointFrom = [3], pointTo = [1], transition = "b"}
-    ,Connection {pointFrom = [6], pointTo = [9], transition = "b"}
-    ,Connection {pointFrom = [7], pointTo = [8], transition = "b"}
-    ,Connection {pointFrom = [8], pointTo = [1], transition = "a"}
-    ,Connection {pointFrom = [8], pointTo = [9], transition = "b"}
-    ,Connection {pointFrom = [9], pointTo = [3], transition = "a"}
-    ,Connection {pointFrom = [9], pointTo = [8], transition = "b"}
-    ,Connection {pointFrom = [4], pointTo = [10], transition = "d"}]
-    , startState = [1]}
+{-
+resolveVertices :: [([[Int]], [[Int]])]
+resolveVertices
+  = let
+    diagrams = map (unUML' . snd) positiveExamples
+    allLabels = map allVertexAddresses diagrams
+    in
+    zip (map (map (\(vertex,path) -> map label path ++ [label vertex]))
+      (zipWith (\labels chart -> map (`vertexPath` chart) labels) allLabels diagrams))
+    allLabels
 -}
 
 spec :: Spec
 spec
   = do
     describe "flatten tests" $ do
+      -- it "attempting to resolve available state chart vertices shall not fail" $ do
+      --  all (uncurry (==)) resolveVertices `shouldBe` True
       it "flatten flatCase1" $ do
         let result = flatten flatCase1
         result `shouldBe` flatCase1Res
