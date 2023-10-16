@@ -1,27 +1,21 @@
-{-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -Wno-deprecations   #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 module FlattenSpec (
   spec
 ) where
 
 import Test.Hspec
-import Test.Hspec.QuickCheck
 import Datatype (StateDiagram(..)
                 ,Connection (..)
                 ,UMLStateDiagram (unUML')
                 ,umlStateDiagram
                 ,unUML, globalise
                 )
-import Example (flatCase2
-               ,flatCase1
+import Example (flatCase1
                ,flatCase3
                ,flatCase7
-               ,task26a
-               ,positiveExamples)
-import Flatten (flatten
-               -- ,allVertexAddresses
-               -- ,vertexPath
-               )
+               ,task26a)
+import Flatten (flatten)
 import Data.List (sortBy)
 
 connectionsOrderedByName :: UMLStateDiagram [String] Int -> UMLStateDiagram [String] Int

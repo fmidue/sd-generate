@@ -1,7 +1,5 @@
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE LambdaCase                #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
-
 module Flatten (flatten) where
 
 import Datatype (UMLStateDiagram
