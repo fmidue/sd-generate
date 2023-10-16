@@ -191,7 +191,7 @@ distinctLabels
                         = matchConnectionToRelation connections r
                     , name = name
                     , startState
-                        = map (`matchToRelation` r) startState
+                        = mapHeadTail (`matchToRelation` r) fromLeft' startState
                     , label = error "not relevant"
                     }
     )
@@ -207,7 +207,7 @@ matchToRelation x r
 matchNodeToRelation :: (Eq b, Show b) => [(Either b b, b)] -> StateDiagram n (Either b b) [Connection (Either b b)] -> StateDiagram n b [Connection b]
 matchNodeToRelation r
       = \case
-           InnerMostState{ label, name, operations }
+           InnerMostState { label, name, operations }
              -> InnerMostState { label
                                    = matchToRelation label r
                                 , name = name
@@ -228,7 +228,20 @@ matchNodeToRelation r
                                  = []
                              , startState
                                  = map fromLeft' startState }
-           _ -> error "not covered constructor to match relation against"
+           CombineDiagram { label
+                          , substates
+                          }
+             -> CombineDiagram { label
+                                   = matchToRelation label r
+                                , substates
+                                    = map fromEither' substates
+                                }
+           EndState { label }
+             -> EndState { label = matchToRelation label r }
+           ForkOrJoin { label }
+             -> ForkOrJoin { label = matchToRelation label r }
+           History { }
+            -> error "not covered constructor to match relation against"
 
 mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
@@ -242,5 +255,3 @@ matchConnectionToRelation connections r
         , pointTo
             = mapHeadTail (`matchToRelation` r) fromLeft' (pointTo c)
         } | c <- connections ]
-
-
