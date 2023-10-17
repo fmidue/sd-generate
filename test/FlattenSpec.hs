@@ -9,12 +9,15 @@ import Datatype (StateDiagram(..)
                 ,Connection (..)
                 ,UMLStateDiagram (unUML')
                 ,umlStateDiagram
-                ,unUML, globalise
+                ,unUML
+                ,globalise
+                ,rename
                 )
 import Example (flatCase1
                ,flatCase3
                ,flatCase7
-               ,task26a)
+               ,task26a
+               ,slide267b, task88)
 import Flatten (flatten)
 import Data.List (sortBy)
 
@@ -139,6 +142,64 @@ task26aStep1Res
                     ,Connection {pointFrom = [2], pointTo = [1], transition = "d"}]
    , startState = [3,1,2]}
 
+{- checked manually -}
+slide267bRes1Step :: UMLStateDiagram [String] Int
+slide267bRes1Step
+  = umlStateDiagram $
+    StateDiagram {
+      substates = [ InnerMostState {label = 1, name = ["A","B"], operations = ""}
+                  , InnerMostState {label = 2, name = ["A","C"], operations = ""}
+                  , InnerMostState {label = 3, name = ["A","D"], operations = ""}
+                  , InnerMostState {label = 4, name = ["E"], operations = ""} ]
+    , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+    , name = [""]
+    , connections = [ Connection {pointFrom = [1], pointTo = [4], transition = "a"}
+                    , Connection {pointFrom = [2], pointTo = [4], transition = "a"}
+                    , Connection {pointFrom = [3], pointTo = [4], transition = "a"}
+                    , Connection {pointFrom = [1], pointTo = [2], transition = "b"}
+                    , Connection {pointFrom = [2], pointTo = [3], transition = "c"}
+                    , Connection {pointFrom = [3], pointTo = [2], transition = "b"}
+                    , Connection {pointFrom = [2], pointTo = [1], transition = "b"} ]
+    , startState = [1] }
+
+{- taken from console output; to be verified; but expected to be ok -}
+task88Res1Step :: UMLStateDiagram [String] Int
+task88Res1Step
+  = umlStateDiagram $
+    StateDiagram {
+      substates = [ InnerMostState {label = 1, name = ["","F"], operations = ""}
+                  , InnerMostState {label = 2, name = ["","G"], operations = ""}
+                  , CombineDiagram {
+                      substates = [ StateDiagram {
+                                      substates = [ InnerMostState {label = 1, name = ["A"], operations = ""}
+                                                  , InnerMostState {label = 2, name = ["B"], operations = ""}]
+                                    , label = 1
+                                    , name = [""]
+                                    , connections = []
+                                    , startState = [1]}
+                  , StateDiagram {
+                      substates = [ InnerMostState {label = 1, name = ["C"], operations = ""}
+                                  , InnerMostState {label = 2, name = ["D"], operations = ""}]
+                    , label = 2
+                    , name = [""]
+                    , connections = []
+                    , startState = [1]}]
+                    , label = 3}
+                  , InnerMostState {label = 4, name = ["E"], operations = ""}]
+    , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+    , name = [""]
+    , connections = [ Connection {pointFrom = [3], pointTo = [1], transition = "k"}
+                    , Connection {pointFrom = [4], pointTo = [1], transition = "k"}
+                    , Connection {pointFrom = [2], pointTo = [4], transition = "h"}
+                    , Connection {pointFrom = [4], pointTo = [3,2,2], transition = "h"}
+                    , Connection {pointFrom = [3,1,1], pointTo = [3,1,2], transition = "a"}
+                    , Connection {pointFrom = [3,1,2], pointTo = [3,1,1], transition = "a"}
+                    , Connection {pointFrom = [3,2,1], pointTo = [3,2,2], transition = "b"}
+                    , Connection {pointFrom = [3,2,2], pointTo = [3,2,1], transition = "b"}
+                    , Connection {pointFrom = [1], pointTo = [2], transition = "a"}
+                    , Connection {pointFrom = [2], pointTo = [1], transition = "a"}]
+    , startState = [1]}
+
 spec :: Spec
 spec
   = do
@@ -158,6 +219,12 @@ spec
       it "flatten task26a - lift SD and retain root substates" $ do
         let result = flatten task26a
         result `shouldBe` task26aStep1Res
+      it "flatten slide267b - lift SD with only InnerMostState children present in root" $ do
+        let result = flatten slide267b
+        result `shouldBe` slide267bRes1Step
+      it "flatten task88 - lift SD and retain root substates (to manually verify - but should be ok)" $ do
+        let result = flatten task88
+        result `shouldBe` task88Res1Step
 
 isStructurallySameAs :: (Eq n, Eq l) => UMLStateDiagram n l -> UMLStateDiagram n l -> Bool
 isStructurallySameAs g1 g2

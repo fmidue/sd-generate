@@ -238,8 +238,10 @@ matchNodeToRelation r
              -> EndState { label = matchToRelation label r }
            ForkOrJoin { label }
              -> ForkOrJoin { label = matchToRelation label r }
-           History { }
-            -> error "not covered constructor to match relation against"
+           History { label
+                   , historyType }
+              -> History { label = matchToRelation label r
+                         , historyType = historyType }
 
 mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
