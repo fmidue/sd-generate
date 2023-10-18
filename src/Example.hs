@@ -691,6 +691,52 @@ test4 = umlStateDiagram $
     g2 = InnerMostState 2 "4" ""
     g3 = InnerMostState 3 "5" ""
 
+noHistoryTest4 :: UMLStateDiagram String Int
+noHistoryTest4 = umlStateDiagram $
+        StateDiagram [a] 35 "" [] [1, 1, 1]
+  where
+    a = StateDiagram [b, c] 1 "A"
+        [ Connection [1, 2, 1, 1] [2] "i"
+        , Connection [1, 3] [2] ""
+        , Connection [2, 2] [1, 2, 2, 3] "e"
+        , Connection [1, 5, 2] [2, 2] "h" ]
+        []
+    b = StateDiagram [b1, b2, b3, b5] 1 "B"
+        [ Connection [1] [2, 1, 1] ""
+        , Connection [1] [2, 2, 3] ""
+        , Connection [2, 1, 2] [3] "c"
+        , Connection [2, 2, 2] [3] "c"]
+        []
+    c = StateDiagram [c1, c2, c3] 2 "E"
+        [ Connection [1] [3] "d"
+        , Connection [3] [2] "d"
+        , Connection [2] [1] "d"] [3]
+    c1 = InnerMostState 1 "6" ""
+    c2 = InnerMostState 2 "7" ""
+    c3 = InnerMostState 3 "8" ""
+    b1 = ForkOrJoin 1
+    b2 = CombineDiagram [d1, d2] 2
+    b3 = ForkOrJoin 3
+    b5 = StateDiagram [e1, e2] 5 "D"
+         [ Connection [1] [2] "g"
+         , Connection [2] [1] "g"] [1]
+    e1 = InnerMostState 1 "9" ""
+    e2 = InnerMostState 2 "10" ""
+    d1 = StateDiagram [f1, f2] 1 "C"
+         [ Connection [1] [2] "a"
+         , Connection [2] [1] "a"]
+         [1]
+    d2 = StateDiagram [g1, g2, g3] 2 ""
+         [ Connection [1] [2] "b"
+         , Connection [2] [3] "b"
+         , Connection [3] [1] "b"]
+         [1]
+    f1 = InnerMostState 1 "1" ""
+    f2 = InnerMostState 2 "2" ""
+    g1 = InnerMostState 1 "3" ""
+    g2 = InnerMostState 2 "4" ""
+    g3 = InnerMostState 3 "5" ""
+
 testFlatConReg1 :: UMLStateDiagram String Int
 testFlatConReg1 = let
                   isA = InnerMostState 1 "A" ""

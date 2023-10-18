@@ -1,6 +1,7 @@
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE LambdaCase                #-}
-module Flatten (flatten) where
+module Flatten (flatten
+               ,flatten') where
 
 import Datatype (UMLStateDiagram
                 ,umlStateDiagram
@@ -20,6 +21,13 @@ flatten
    . fmap Left
    . globalise
    . rename (:[])
+
+flatten' :: (Num l, Enum l, Eq l, Show l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
+flatten'
+ = maybe (error "not defined") distinctLabels
+   . lift
+   . fmap Left
+   . globalise
 
 lift :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 lift
@@ -255,3 +263,4 @@ matchConnectionToRelation connections r
         , pointTo
             = mapHeadTail (`matchToRelation` r) fromEither (pointTo c)
         } | c <- connections ]
+
