@@ -430,6 +430,9 @@ spec
       it "flatten noHistoryTest4 [step 2] - lift SD and retain deeper layer structures of children integrated into the root" $ do
         let result = flatten' $ flatten noHistoryTest4
         result `shouldBe` noHistoryTest4Res2Step
+      it "flatten noHistoryTest4 [step 3] - lift SD" $ do
+        let result = flatten' $ flatten' $ flatten noHistoryTest4
+        result `shouldBe` noHistoryTest4Res2Step
 
 isStructurallySameAs :: (Eq n, Eq l) => UMLStateDiagram n l -> UMLStateDiagram n l -> Bool
 isStructurallySameAs g1 g2

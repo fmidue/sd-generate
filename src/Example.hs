@@ -705,7 +705,9 @@ noHistoryTest4 = umlStateDiagram $
         [ Connection [1] [2, 1, 1] ""
         , Connection [1] [2, 2, 3] ""
         , Connection [2, 1, 2] [3] "c"
-        , Connection [2, 2, 2] [3] "c"]
+        , Connection [2, 2, 2] [3] "c"
+        , Connection [2,1,2] [5] "enter"
+        , Connection [5,1] [2,2,3] "exit" ]
         []
     c = StateDiagram [c1, c2, c3] 2 "E"
         [ Connection [1] [3] "d"
