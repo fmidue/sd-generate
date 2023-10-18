@@ -549,7 +549,7 @@ spec
       it "flatten noHistoryTest4 [step 3] - lift SD" $ do
         let result = flatten' $ flatten' $ flatten noHistoryTest4
         result `shouldBe` noHistoryTest4Res3Step
-      it "flatten noHistoryTest4 [step 4] - lift SD (bricked - Fork/Join nodes are not handled yet)" $ do
+      it "flatten noHistoryTest4 [step 4] - lift SD" $ do
         let result = flatten' $ flatten' $ flatten' $ flatten noHistoryTest4
         result `shouldBe` noHistoryTest4Res4Step
 
