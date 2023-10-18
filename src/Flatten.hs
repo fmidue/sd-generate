@@ -11,7 +11,7 @@ import Datatype (UMLStateDiagram
                 ,rename
                 )
 import Datatype.ClassInstances ()
-import Data.Either.Extra (fromLeft')
+import Data.Either.Extra (fromLeft', fromEither)
 import Data.List (find)
 flatten :: (Num l, Enum l, Eq l, Show l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
@@ -110,34 +110,34 @@ inheritParentName pName ims@InnerMostState { name = imsName }
   = ims { name = pName ++ imsName }
 inheritParentName _ node = node
 
-fromEither' :: StateDiagram n (Either b c) [Connection (Either b c)] -> StateDiagram n b [Connection c]
+fromEither' :: StateDiagram n (Either b b) [Connection (Either b b)] -> StateDiagram n b [Connection b]
 fromEither' (StateDiagram { name
                           , label
                           , substates
                           , startState
                           , connections = [] })
   = StateDiagram { name
-                 , label = fromLeft' label
+                 , label = fromEither label
                  , substates = map fromEither' substates
-                 , startState = map fromLeft' startState
+                 , startState = map fromEither startState
                  , connections = [] }
 fromEither' (CombineDiagram { label
                               , substates })
-  = CombineDiagram { label = fromLeft' label
+  = CombineDiagram { label = fromEither label
                    , substates = map fromEither' substates }
 fromEither' (EndState { label })
-  = EndState { label = fromLeft' label }
+  = EndState { label = fromEither label }
 fromEither' (ForkOrJoin { label })
-  = ForkOrJoin { label = fromLeft' label }
+  = ForkOrJoin { label = fromEither label }
 fromEither' (History { label
                        , historyType })
-  = History { label = fromLeft' label
+  = History { label = fromEither label
             , historyType }
 fromEither' (InnerMostState { name
                             , label
                             , operations})
   = InnerMostState { name
-                   , label = fromLeft' label
+                   , label = fromEither label
                    , operations }
 fromEither' _ = error "failed to extract int label"
 
@@ -189,7 +189,7 @@ distinctLabels
                         = matchConnectionToRelation connections r
                     , name = name
                     , startState
-                        = mapHeadTail (`matchToRelation` r) fromLeft' startState
+                        = mapHeadTail (`matchToRelation` r) fromEither startState
                     , label = error "not relevant"
                     }
     )
@@ -225,7 +225,7 @@ matchNodeToRelation r
                              , connections
                                  = []
                              , startState
-                                 = map fromLeft' startState }
+                                 = map fromEither startState }
            CombineDiagram { label
                           , substates
                           }
@@ -247,11 +247,11 @@ mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
 mapHeadTail _ _ _      = error "impossible!"
 
-matchConnectionToRelation :: (Eq b, Eq c, Show b, Show c)
-  => [Connection (Either b c)] -> [(Either b c, b)] -> [Connection b]
+matchConnectionToRelation :: (Eq b, Show b)
+  => [Connection (Either b b)] -> [(Either b b, b)] -> [Connection b]
 matchConnectionToRelation connections r
   = [ c { pointFrom
-            = mapHeadTail (`matchToRelation` r) fromLeft' (pointFrom c)
+            = mapHeadTail (`matchToRelation` r) fromEither (pointFrom c)
         , pointTo
-            = mapHeadTail (`matchToRelation` r) fromLeft' (pointTo c)
+            = mapHeadTail (`matchToRelation` r) fromEither (pointTo c)
         } | c <- connections ]

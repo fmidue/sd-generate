@@ -8,6 +8,7 @@ import Test.Hspec
 import Datatype (StateDiagram(..)
                 ,Connection (..)
                 ,UMLStateDiagram (unUML')
+                ,HistoryType(..)
                 ,umlStateDiagram
                 ,unUML
                 ,globalise
@@ -17,7 +18,9 @@ import Example (flatCase1
                ,flatCase3
                ,flatCase7
                ,task26a
-               ,slide267b, task88)
+               ,slide267b
+               ,task88
+               ,test4)
 import Flatten (flatten)
 import Data.List (sortBy)
 
@@ -198,7 +201,76 @@ task88Res1Step
                     , Connection {pointFrom = [3,2,2], pointTo = [3,2,1], transition = "b"}
                     , Connection {pointFrom = [1], pointTo = [2], transition = "a"}
                     , Connection {pointFrom = [2], pointTo = [1], transition = "a"}]
-    , startState = [1]}
+    , startState = [1] }
+
+-- this result is likely wrong
+test4Res1Step :: UMLStateDiagram [String] Int
+test4Res1Step
+  = umlStateDiagram $
+    StateDiagram {
+      substates = [ StateDiagram {
+                      substates = [ ForkOrJoin { label = 1 }
+                                  , CombineDiagram {
+                                      substates = [ StateDiagram {
+                                                      substates = [ InnerMostState {label = 1, name = ["1"], operations = ""}
+                                                                  , InnerMostState {label = 2, name = ["2"], operations = ""} ]
+                                                    , label = 1
+                                                    , name = ["C"]
+                                                    , connections = []
+                                                    , startState = [1]}
+                                                  , StateDiagram {
+                                                      substates = [ InnerMostState {label = 1, name = ["3"], operations = ""}
+                                                                  , InnerMostState {label = 2, name = ["4"], operations = ""}
+                                                                  , InnerMostState {label = 3, name = ["5"], operations = ""}]
+                                                    , label = 2
+                                                    , name = [""]
+                                                    , connections = []
+                                                    , startState = [1]}]
+                                    , label = 2}
+                                  , ForkOrJoin {label = 3}
+                                  , History {label = 4, historyType = Shallow}
+                                  , StateDiagram {
+                                      substates = [ InnerMostState {label = 1, name = ["9"], operations = ""}
+                                                  , InnerMostState {label = 2, name = ["10"], operations = ""}]
+                                    , label = 5
+                                    , name = ["D"]
+                                    , connections = []
+                                    , startState = [1]}]
+                    , label = 1
+                    , name = ["A","B"]
+                    , connections = []
+                    , startState = []}
+                    , StateDiagram {
+                        substates = [ InnerMostState {label = 1, name = ["6"], operations = ""}
+                                    , InnerMostState {label = 2, name = ["7"], operations = ""}
+                                    , InnerMostState {label = 3, name = ["8"], operations = ""}]
+                      , label = 2
+                      , name = ["A","E"]
+                      , connections = []
+                      , startState = [3]}]
+    , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+    , name = [""]
+    , connections = [ Connection {pointFrom = [1,2,1,1], pointTo = [2], transition = "i"}
+                    , Connection {pointFrom = [1,3], pointTo = [2], transition = ""}
+                    , Connection {pointFrom = [2,2], pointTo = [1,2,2,3], transition = "e"}
+                    , Connection {pointFrom = [1,5,2], pointTo = [2,2], transition = "h"}
+                    , Connection {pointFrom = [2,1], pointTo = [1,4], transition = "f"}
+                    , Connection {pointFrom = [1,4], pointTo = [1,5], transition = ""}
+                    , Connection {pointFrom = [1,1], pointTo = [1,2,1,1], transition = ""}
+                    , Connection {pointFrom = [1,1], pointTo = [1,2,2,3], transition = ""}
+                    , Connection {pointFrom = [1,2,1,2], pointTo = [1,3], transition = "c"}
+                    , Connection {pointFrom = [1,2,2,2], pointTo = [1,3], transition = "c"}
+                    , Connection {pointFrom = [1,2,1,1], pointTo = [1,2,1,2], transition = "a"}
+                    , Connection {pointFrom = [1,2,1,2], pointTo = [1,2,1,1], transition = "a"}
+                    , Connection {pointFrom = [1,2,2,1], pointTo = [1,2,2,2], transition = "b"}
+                    , Connection {pointFrom = [1,2,2,2], pointTo = [1,2,2,3], transition = "b"}
+                    , Connection {pointFrom = [1,2,2,3], pointTo = [1,2,2,1], transition = "b"}
+                    , Connection {pointFrom = [1,5,1], pointTo = [1,5,2], transition = "g"}
+                    , Connection {pointFrom = [1,5,2], pointTo = [1,5,1], transition = "g"}
+                    , Connection {pointFrom = [2,1], pointTo = [2,3], transition = "d"}
+                    , Connection {pointFrom = [2,3], pointTo = [2,2], transition = "d"}
+                    , Connection {pointFrom = [2,2], pointTo = [2,1], transition = "d"}]
+    , startState = [1,1]}
 
 spec :: Spec
 spec
@@ -222,9 +294,12 @@ spec
       it "flatten slide267b - lift SD with only InnerMostState children present in root" $ do
         let result = flatten slide267b
         result `shouldBe` slide267bRes1Step
-      it "flatten task88 - lift SD and retain root substates (to manually verify - but should be ok)" $ do
+      it "flatten task88 - lift SD and retain root substates" $ do
         let result = flatten task88
         result `shouldBe` task88Res1Step
+      it "flatten test4 - lift SD and retain deeper layer structures of children integrated into the root (this is likely wrong.)" $ do
+        let result = flatten test4
+        result `shouldBe` test4Res1Step
 
 isStructurallySameAs :: (Eq n, Eq l) => UMLStateDiagram n l -> UMLStateDiagram n l -> Bool
 isStructurallySameAs g1 g2
