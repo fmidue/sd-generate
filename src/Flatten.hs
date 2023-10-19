@@ -1,5 +1,6 @@
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE LambdaCase                #-}
+{-# LANGUAGE RecordWildCards           #-}
 
 module Flatten (flatten
                ,flatten') where
@@ -42,43 +43,43 @@ liftSD
                      -> True
                    _ -> False) outerStates
       of
-     Just StateDiagram { label = address
-                       , startState = innerStartState
-                       , substates = innerStates
-                       , name = parentName }
-       -> let
-          initial = map (Right . fromLeft') innerStartState
-          in
-          Just (
-            StateDiagram
-              { name = outerName
-              , startState = updateByRule address initial outerStartState
-              , label = undefined
-              , substates
-                  = map
-                    (inheritParentName parentName . bimap (Right . fromLeft') (map (fmap (Right . fromLeft'))))
-                    innerStates
-                    ++
-                    filter ((address /=) . label) outerStates
-              , connections
-                  = rewire connections address initial
-                      (map (fromLeft' . label) innerStates)
-              }
-          )
-     Just _
-       -> error "we dont expect anything else than StateDiagram or Nothing here"
-     Nothing
-       -> Nothing
+      Just StateDiagram { label = address
+                        , startState = innerStartState
+                        , substates = innerStates
+                        , name = parentName }
+        -> let
+           initial = map (Right . fromLeft') innerStartState
+           in
+           Just (
+             StateDiagram
+               { name = outerName
+               , startState = updateByRule address initial outerStartState
+               , label = undefined
+               , substates
+                   = map
+                     (inheritParentName parentName . bimap (Right . fromLeft') (const []))
+                     innerStates
+                     ++
+                     filter ((address /=) . label) outerStates
+               , connections
+                   = rewire connections address initial
+                       (map (fromLeft' . label) innerStates)
+               }
+           )
+      Just _
+        -> error "we dont expect anything else than StateDiagram or Nothing here"
+      Nothing
+        -> Nothing
     )
 
 inheritParentName :: [n] -> StateDiagram [n] l c -> StateDiagram [n] l c
 inheritParentName pName sd@StateDiagram { name = sdName }
   = sd { name = pName ++ sdName }
-inheritParentName pName ims@InnerMostState { name = imsName }
-  = ims { name = pName ++ imsName }
+inheritParentName pName innerState@InnerMostState { name = imsName }
+  = innerState { name = pName ++ imsName }
 inheritParentName _ node = node
 
-rewire :: (Eq l, Foldable c) => c (Connection (Either l l)) -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
+rewire :: (Eq l) => [Connection (Either l l)] -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
 rewire connections address initial innerExits
   = map (updateLifted address initial) $
     concatMap (updateCompoundExits address innerExits) connections
@@ -107,7 +108,6 @@ updateCompoundExits address innerExits c@Connection{ pointFrom
                  } | label <- innerExits ]
   | otherwise = [c]
 
-
 distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels
   = umlStateDiagram . unUML
@@ -128,7 +128,6 @@ distinctLabels
                     }
     )
 
-
 matchToRelation :: Eq a => a -> [(a, b)] -> b
 matchToRelation x r
   = case lookup x r of
@@ -137,36 +136,42 @@ matchToRelation x r
      Nothing
        -> error "no matching label can be found"
 
-matchNodeToRelation :: (Eq l, Functor f) => [(Either l l, l)] -> StateDiagram n (Either l l) [f (Either b b)] -> StateDiagram n l [f b]
+matchNodeToRelation :: (Eq l) => [(Either l l, l)] -> StateDiagram n (Either l l) [Connection (Either b b)] -> StateDiagram n l [Connection b]
 matchNodeToRelation r
       = \case
            StateDiagram { label
                         , substates
-                        , name
                         , startState
+                        , ..
                         }
              -> StateDiagram { label
                                  = matchToRelation label r
-                             , name
-                                 = name
                              , substates
-                                 = map (bimap fromEither (map $ fmap fromEither)) substates
+                                 = map (bimap fromEither (const [])) substates
                              , connections
                                  = []
                              , startState
-                                 = map fromEither startState }
+                                 = map fromEither startState
+                             , .. }
            CombineDiagram { label
                           , substates
                           }
              -> CombineDiagram { label
                                    = matchToRelation label r
                                 , substates
-                                    = map (bimap fromEither (map $ fmap fromEither)) substates
+                                    = map (bimap fromEither (const [])) substates
                                 }
-           s -> let
-                l = label s
-                in
-                (bimap fromEither (map $ fmap fromEither) s) { label = matchToRelation l r }
+           InnerMostState { label, .. }
+             -> InnerMostState { label = matchToRelation label r
+                               , .. }
+           EndState { label }
+             -> EndState { label = matchToRelation label r }
+           ForkOrJoin { label }
+             -> ForkOrJoin { label = matchToRelation label r }
+           History { label
+                   , .. }
+              -> History { label = matchToRelation label r
+                         , .. }
 
 mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
