@@ -39,7 +39,6 @@ library:
     - Layout
     - Generate
     - Flatten
-    - Distinct
     - AlloyDiagrams
     - PlantUMLDiagrams
   ghc-options:

@@ -1,5 +1,6 @@
 {-# LANGUAGE NamedFieldPuns            #-}
 {-# LANGUAGE LambdaCase                #-}
+
 module Flatten (flatten
                ,flatten') where
 
@@ -12,11 +13,12 @@ import Datatype (UMLStateDiagram
                 ,rename
                 )
 import Datatype.ClassInstances ()
-import Data.Either.Extra (fromLeft', fromEither)
+import Data.Either.Extra (fromLeft'
+                         ,fromEither)
 import Data.List (find)
 import Data.Bifunctor (bimap)
 
-flatten :: (Num l, Enum l, Eq l, Show l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
+flatten :: (Eq l, Enum l, Num l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
  = maybe (error "not defined") distinctLabels
    . liftSD
@@ -24,7 +26,7 @@ flatten
    . globalise
    . rename (:[])
 
-flatten' :: (Num l, Enum l, Eq l, Show l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
+flatten' :: (Eq l, Enum l, Num l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
 flatten'
  = maybe (error "not defined") distinctLabels
    . liftSD
@@ -49,14 +51,13 @@ liftSD
           in
           Just (
             StateDiagram
-              { name
-                  = outerName
-              , startState
-                  = updateByRule address initial outerStartState
-              , label
-                  = undefined
+              { name = outerName
+              , startState = updateByRule address initial outerStartState
+              , label = undefined
               , substates
-                  = map (inheritParentName parentName . bimap (Right . fromEither) (map (fmap (Right . fromEither)))) innerStates
+                  = map
+                    (inheritParentName parentName . bimap (Right . fromLeft') (map (fmap (Right . fromLeft'))))
+                    innerStates
                     ++
                     filter ((address /=) . label) outerStates
               , connections
@@ -70,7 +71,7 @@ liftSD
        -> Nothing
     )
 
-inheritParentName :: [a] -> StateDiagram [a] l c -> StateDiagram [a] l c
+inheritParentName :: [n] -> StateDiagram [n] l c -> StateDiagram [n] l c
 inheritParentName pName sd@StateDiagram { name = sdName }
   = sd { name = pName ++ sdName }
 inheritParentName pName ims@InnerMostState { name = imsName }
@@ -84,27 +85,24 @@ fromEither'
     -- first (fromEither) . second (map $ fmap fromEither)
 -}
 
-rewire :: Eq l
-  => [Connection (Either l l)] -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
+rewire :: (Eq l, Foldable c) => c (Connection (Either l l)) -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
 rewire connections address initial innerExits
   = map (updateLifted address initial) $
     concatMap (updateCompoundExits address innerExits) connections
 
-updateByRule :: Eq l
-  => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
+updateByRule :: (Eq l) => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
 updateByRule address initial [x]
   | x == address = initial
 updateByRule address _ (x:xs)
   | x == address = map (Right . fromLeft') xs
 updateByRule _ _ labels = labels
 
-updateLifted :: Eq l
-  => Either l l -> [Either l l] -> Connection (Either l l) -> Connection (Either l l)
+updateLifted :: (Eq l) => Either l l -> [Either l l] -> Connection (Either l l) -> Connection (Either l l)
 updateLifted address initial c@(Connection{pointFrom,pointTo})
   = c { pointFrom = updateByRule address initial pointFrom
       , pointTo = updateByRule address initial pointTo }
 
-updateCompoundExits :: (Eq l, Eq r) => Either l r -> [r] -> Connection (Either l r) -> [Connection (Either l r)]
+updateCompoundExits :: (Eq l) => Either l l -> [l] -> Connection (Either l l) -> [Connection (Either l l)]
 updateCompoundExits address innerExits c@Connection{ pointFrom
                                                    , pointTo
                                                    , transition }
@@ -116,7 +114,8 @@ updateCompoundExits address innerExits c@Connection{ pointFrom
                  } | label <- innerExits ]
   | otherwise = [c]
 
-distinctLabels :: (Eq l, Show l, Num l, Enum l, Eq l, Show l) => UMLStateDiagram a (Either l l) -> UMLStateDiagram a l
+
+distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels
   = umlStateDiagram . unUML
     (\name substates connections startState ->
@@ -136,15 +135,17 @@ distinctLabels
                     }
     )
 
-matchToRelation :: (Eq a, Show a, Show b) => a -> [(a, b)] -> b
+
+matchToRelation :: Eq a => a -> [(a, b)] -> b
 matchToRelation x r
   = case lookup x r of
      Just u
        -> u
      Nothing
-       -> error $ "no matching label can be found for " ++ show x ++ " while updating using " ++ show r
+       -> error "no matching label can be found"
 
-matchNodeToRelation :: (Eq b, Show b) => [(Either b b, b)] -> StateDiagram n (Either b b) [Connection (Either b b)] -> StateDiagram n b [Connection b]
+
+matchNodeToRelation :: (Eq l, Functor f) => [(Either l l, l)] -> StateDiagram n (Either l l) [f (Either b b)] -> StateDiagram n l [f b]
 matchNodeToRelation r
       = \case
            InnerMostState { label, name, operations }
@@ -189,8 +190,7 @@ mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
 mapHeadTail _ _ _      = error "impossible!"
 
-matchConnectionToRelation :: (Eq b, Show b)
-  => [Connection (Either b b)] -> [(Either b b, b)] -> [Connection b]
+matchConnectionToRelation :: (Eq l) => [Connection (Either l l)] -> [(Either l l, l)] -> [Connection l]
 matchConnectionToRelation connections r
   = [ c { pointFrom
             = mapHeadTail (`matchToRelation` r) fromEither (pointFrom c)

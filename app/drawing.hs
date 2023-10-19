@@ -16,13 +16,13 @@ import Datatype (unUML'
 main :: IO ()
 main = do
   print "step1"
-  print (sd)
+  print sd
   print "step2"
-  print ( sd')
+  print sd'
   print "step3"
-  print ( sd'')
+  print sd''
   print "step4"
-  print ( sd''')
+  print sd'''
   mainWith ( drawDiagram $ renderable sd''' )
   where
   sd = flatten noHistoryTest4
