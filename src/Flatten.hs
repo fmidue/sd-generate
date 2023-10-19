@@ -14,10 +14,12 @@ import Datatype (UMLStateDiagram
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft', fromEither)
 import Data.List (find)
+import Data.Bifunctor (bimap)
+
 flatten :: (Num l, Enum l, Eq l, Show l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
  = maybe (error "not defined") distinctLabels
-   . lift
+   . liftSD
    . fmap Left
    . globalise
    . rename (:[])
@@ -25,12 +27,12 @@ flatten
 flatten' :: (Num l, Enum l, Eq l, Show l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
 flatten'
  = maybe (error "not defined") distinctLabels
-   . lift
+   . liftSD
    . fmap Left
    . globalise
 
-lift :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
-lift
+liftSD :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
+liftSD
   = fmap umlStateDiagram . unUML
     (\outerName outerStates connections outerStartState ->
       case find (\case
@@ -43,8 +45,7 @@ lift
                        , substates = innerStates
                        , name = parentName }
        -> let
-          initial
-            = map (Right . fromLeft') innerStartState
+          initial = map (Right . fromLeft') innerStartState
           in
           Just (
             StateDiagram
@@ -55,7 +56,7 @@ lift
               , label
                   = undefined
               , substates
-                  = map (inheritParentName parentName . rightLabelNodes . fromEither') innerStates
+                  = map (inheritParentName parentName . bimap (Right . fromEither) (map (fmap (Right . fromEither)))) innerStates
                     ++
                     filter ((address /=) . label) outerStates
               , connections
@@ -69,48 +70,6 @@ lift
        -> Nothing
     )
 
-rightLabelConnection :: Connection a -> Connection (Either a a)
-rightLabelConnection
-  = \case
-      Connection { pointFrom = pf
-                 , pointTo = pt
-                 , transition = t }
-        -> Connection { pointFrom = map Right pf
-                      , pointTo = map Right pt
-                      , transition = t }
-
-rightLabelNodes :: StateDiagram n l [Connection l] -> StateDiagram n (Either l l) [Connection (Either l l)]
-rightLabelNodes
-  = \case
-      StateDiagram { label = sdLabel
-                   , substates = sdSubstates
-                   , startState = sdStartState
-                   , connections = sdConnections
-                   , name = sdName }
-        -> StateDiagram { label = Right sdLabel
-                        , substates = map rightLabelNodes sdSubstates
-                        , startState = map Right sdStartState
-                        , connections = map rightLabelConnection sdConnections
-                        , name = sdName }
-      CombineDiagram { label = cdLabel
-                     , substates = cdSubstates }
-        -> CombineDiagram { label = Right cdLabel
-                          , substates = map rightLabelNodes cdSubstates }
-      EndState { label = esLabel }
-        -> EndState { label = Right esLabel }
-      ForkOrJoin { label = fjLabel }
-        -> ForkOrJoin { label = Right fjLabel }
-      History { label = hLabel
-              , historyType = hType }
-        -> History { label = Right hLabel
-                   , historyType = hType }
-      InnerMostState { label = imsLabel
-                     , name = imsName
-                     , operations = imsOperations }
-        -> InnerMostState { label = Right imsLabel
-                          , name = imsName
-                          , operations = imsOperations }
-
 inheritParentName :: [a] -> StateDiagram [a] l c -> StateDiagram [a] l c
 inheritParentName pName sd@StateDiagram { name = sdName }
   = sd { name = pName ++ sdName }
@@ -118,36 +77,12 @@ inheritParentName pName ims@InnerMostState { name = imsName }
   = ims { name = pName ++ imsName }
 inheritParentName _ node = node
 
+{-
 fromEither' :: StateDiagram n (Either b b) [Connection (Either b b)] -> StateDiagram n b [Connection b]
-fromEither' (StateDiagram { name
-                          , label
-                          , substates
-                          , startState
-                          , connections = [] })
-  = StateDiagram { name
-                 , label = fromEither label
-                 , substates = map fromEither' substates
-                 , startState = map fromEither startState
-                 , connections = [] }
-fromEither' (CombineDiagram { label
-                              , substates })
-  = CombineDiagram { label = fromEither label
-                   , substates = map fromEither' substates }
-fromEither' (EndState { label })
-  = EndState { label = fromEither label }
-fromEither' (ForkOrJoin { label })
-  = ForkOrJoin { label = fromEither label }
-fromEither' (History { label
-                       , historyType })
-  = History { label = fromEither label
-            , historyType }
-fromEither' (InnerMostState { name
-                            , label
-                            , operations})
-  = InnerMostState { name
-                   , label = fromEither label
-                   , operations }
-fromEither' _ = error "failed to extract int label"
+fromEither'
+  = bimap fromEither (map $ fmap fromEither)
+    -- first (fromEither) . second (map $ fmap fromEither)
+-}
 
 rewire :: Eq l
   => [Connection (Either l l)] -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
@@ -169,8 +104,7 @@ updateLifted address initial c@(Connection{pointFrom,pointTo})
   = c { pointFrom = updateByRule address initial pointFrom
       , pointTo = updateByRule address initial pointTo }
 
-updateCompoundExits :: (Eq l, Eq r)
-  => Either l r -> [r] -> Connection (Either l r) -> [Connection (Either l r)]
+updateCompoundExits :: (Eq l, Eq r) => Either l r -> [r] -> Connection (Either l r) -> [Connection (Either l r)]
 updateCompoundExits address innerExits c@Connection{ pointFrom
                                                    , pointTo
                                                    , transition }
@@ -229,7 +163,7 @@ matchNodeToRelation r
                              , name
                                  = name
                              , substates
-                                 = map fromEither' substates
+                                 = map (bimap fromEither (map $ fmap fromEither)) substates
                              , connections
                                  = []
                              , startState
@@ -240,7 +174,7 @@ matchNodeToRelation r
              -> CombineDiagram { label
                                    = matchToRelation label r
                                 , substates
-                                    = map fromEither' substates
+                                    = map (bimap fromEither (map $ fmap fromEither)) substates
                                 }
            EndState { label }
              -> EndState { label = matchToRelation label r }

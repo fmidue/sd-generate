@@ -553,6 +553,7 @@ spec
         let result = flatten' $ flatten' $ flatten' $ flatten noHistoryTest4
         result `shouldBe` noHistoryTest4Res4Step
 
+
 isStructurallySameAs :: (Eq n, Eq l) => UMLStateDiagram n l -> UMLStateDiagram n l -> Bool
 isStructurallySameAs g1 g2
   = length (unUML (\_ substate _ _ -> substate) g1) == length (unUML (\_ substate _ _ -> substate) g2)
