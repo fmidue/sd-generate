@@ -78,13 +78,6 @@ inheritParentName pName ims@InnerMostState { name = imsName }
   = ims { name = pName ++ imsName }
 inheritParentName _ node = node
 
-{-
-fromEither' :: StateDiagram n (Either b b) [Connection (Either b b)] -> StateDiagram n b [Connection b]
-fromEither'
-  = bimap fromEither (map $ fmap fromEither)
-    -- first (fromEither) . second (map $ fmap fromEither)
--}
-
 rewire :: (Eq l, Foldable c) => c (Connection (Either l l)) -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
 rewire connections address initial innerExits
   = map (updateLifted address initial) $
@@ -144,16 +137,9 @@ matchToRelation x r
      Nothing
        -> error "no matching label can be found"
 
-
 matchNodeToRelation :: (Eq l, Functor f) => [(Either l l, l)] -> StateDiagram n (Either l l) [f (Either b b)] -> StateDiagram n l [f b]
 matchNodeToRelation r
       = \case
-           InnerMostState { label, name, operations }
-             -> InnerMostState { label
-                                   = matchToRelation label r
-                                , name = name
-                                , operations = operations
-                               }
            StateDiagram { label
                         , substates
                         , name
@@ -177,14 +163,10 @@ matchNodeToRelation r
                                 , substates
                                     = map (bimap fromEither (map $ fmap fromEither)) substates
                                 }
-           EndState { label }
-             -> EndState { label = matchToRelation label r }
-           ForkOrJoin { label }
-             -> ForkOrJoin { label = matchToRelation label r }
-           History { label
-                   , historyType }
-              -> History { label = matchToRelation label r
-                         , historyType = historyType }
+           s -> let
+                l = label s
+                in
+                (bimap fromEither (map $ fmap fromEither) s) { label = matchToRelation l r }
 
 mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
