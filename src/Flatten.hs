@@ -54,7 +54,9 @@ liftSD
                , label = undefined
                , substates
                    = map
-                     (inheritName liftedName . bimap (Right . fromLeft') (const []))
+                     ( inheritName liftedName
+                     . (\node -> node { label = Right . fromLeft' $ label node })
+                     )
                      elevatedSubstates
                      ++
                      filter ((liftedVertexAddress /=) . label) rootVertices
