@@ -55,7 +55,7 @@ getSameFromTran1 x
 inCompoundState :: [Int] -> [Int] -> Bool
 inCompoundState a b = init (take (length a) b) == init a
 
-getAllElem :: StateDiagram n Int [Connection Int] -> [[Int]]
+getAllElem :: StateDiagram n l [Connection l] -> [[l]]
 getAllElem StateDiagram{substates}
   = map (\x -> [label x]) substates
    ++ concatMap (getAllElem1 []) substates
@@ -64,7 +64,7 @@ getAllElem CombineDiagram{substates}
   ++ concatMap (getAllElem1 []) substates
 getAllElem _ = []
 
-getAllElem1 :: [Int] -> StateDiagram n Int [Connection Int] -> [[Int]]
+getAllElem1 :: [l] -> StateDiagram n l [Connection l] -> [[l]]
 getAllElem1 prepend s@StateDiagram {substates}
   = map (\x -> newPrepend ++ [label x]) substates
     ++ concatMap (getAllElem1 newPrepend) substates

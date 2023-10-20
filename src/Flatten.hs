@@ -16,8 +16,9 @@ import Datatype (UMLStateDiagram
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft'
                          ,fromEither)
-import Data.List (find)
+import Data.List (find, stripPrefix)
 import Data.Bifunctor (bimap)
+import Checkers.Helpers (getAllElem)
 
 flatten :: (Eq l, Enum l, Num l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
@@ -37,33 +38,28 @@ flatten'
 liftSD :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 liftSD
   = fmap umlStateDiagram . unUML
-    (\outerName outerStates connections outerStartState ->
+    (\globalName rootVertices globalConnections globalStartState ->
       case find (\case
                    StateDiagram {}
                      -> True
-                   _ -> False) outerStates
+                   _ -> False) rootVertices
       of
-      Just StateDiagram { label = address
-                        , startState = innerStartState
-                        , substates = innerStates
-                        , name = parentName }
-        -> let
-           initial = map (Right . fromLeft') innerStartState
-           in
-           Just (
+      Just liftedVertex@StateDiagram { label = liftedVertexAddress
+                                     , substates = elevatedSubstates
+                                     , name = liftedName }
+        -> Just (
              StateDiagram
-               { name = outerName
-               , startState = updateByRule address initial outerStartState
+               { name = globalName
+               , startState = rewireGlobalStartState liftedVertexAddress liftedVertex globalStartState
                , label = undefined
                , substates
                    = map
-                     (inheritParentName parentName . bimap (Right . fromLeft') (const []))
-                     innerStates
+                     (inheritName liftedName . bimap (Right . fromLeft') (const []))
+                     elevatedSubstates
                      ++
-                     filter ((address /=) . label) outerStates
+                     filter ((liftedVertexAddress /=) . label) rootVertices
                , connections
-                   = rewire connections address initial
-                       (map (fromLeft' . label) innerStates)
+                   = rewire liftedVertexAddress liftedVertex globalConnections
                }
            )
       Just _
@@ -72,41 +68,64 @@ liftSD
         -> Nothing
     )
 
-inheritParentName :: [n] -> StateDiagram [n] l c -> StateDiagram [n] l c
-inheritParentName pName sd@StateDiagram { name = sdName }
+inheritName :: [n] -> StateDiagram [n] l c -> StateDiagram [n] l c
+inheritName pName sd@StateDiagram { name = sdName }
   = sd { name = pName ++ sdName }
-inheritParentName pName innerState@InnerMostState { name = imsName }
+inheritName pName innerState@InnerMostState { name = imsName }
   = innerState { name = pName ++ imsName }
-inheritParentName _ node = node
+inheritName _ node = node
 
-rewire :: (Eq l) => [Connection (Either l l)] -> Either l l -> [Either l l] -> [l] -> [Connection (Either l l)]
-rewire connections address initial innerExits
-  = map (updateLifted address initial) $
-    concatMap (updateCompoundExits address innerExits) connections
+rewire :: (Eq l) => Either l l -> StateDiagram n (Either l l) [Connection (Either l l)] -> [Connection (Either l l)] -> [Connection (Either l l)]
+rewire liftedVertexAddress liftedVertex@StateDiagram{}
+  = map $
+      explicitSDExit [liftedVertexAddress] liftedVertex
+    . explicitSDEntry [liftedVertexAddress] liftedVertex
+    . implicitSDEntry [liftedVertexAddress] liftedVertex
+rewire _ _ = error "not defined"
 
-updateByRule :: (Eq l) => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
-updateByRule address initial [x]
-  | x == address = initial
-updateByRule address _ (x:xs)
-  | x == address = map (Right . fromLeft') xs
-updateByRule _ _ labels = labels
+rewireGlobalStartState :: (Eq l) => Either l l -> StateDiagram n (Either l l) [Connection (Either l l)] -> [Either l l] -> [Either l l]
+rewireGlobalStartState _ _ []
+  = error "invalid global start state (not present)"
+rewireGlobalStartState liftedVertexAddress liftedVertex@StateDiagram{} startState
+  = pointTo (head $ rewire
+                    liftedVertexAddress liftedVertex
+                    [Connection { pointTo = startState
+                                , pointFrom = []
+                                , transition = undefined }])
+rewireGlobalStartState _ _ _ = error "not defined"
 
-updateLifted :: (Eq l) => Either l l -> [Either l l] -> Connection (Either l l) -> Connection (Either l l)
-updateLifted address initial c@(Connection{pointFrom,pointTo})
-  = c { pointFrom = updateByRule address initial pointFrom
-      , pointTo = updateByRule address initial pointTo }
+explicitSDExit :: (Eq l) => [Either l l] -> StateDiagram n (Either l l) [Connection (Either l l)] -> Connection (Either l l) -> Connection (Either l l)
+explicitSDExit liftedVertexAddress liftedVertex connection
+  = if pointFrom connection
+       `elem`
+       map (liftedVertexAddress ++) (getAllElem liftedVertex)
+    then connection { pointFrom
+                        =  maybe (error "")
+                                 (map (Right . fromLeft'))
+                                 (stripPrefix liftedVertexAddress $ pointFrom connection)
+                    }
+    else connection
 
-updateCompoundExits :: (Eq l) => Either l l -> [l] -> Connection (Either l l) -> [Connection (Either l l)]
-updateCompoundExits address innerExits c@Connection{ pointFrom
-                                                   , pointTo
-                                                   , transition }
-  | pointFrom == [address]
-  = [ Connection { pointFrom
-                     = [Right label]
-                 , pointTo = pointTo
-                 , transition = transition
-                 } | label <- innerExits ]
-  | otherwise = [c]
+explicitSDEntry :: (Eq l) => [Either l l] -> StateDiagram n (Either l l) [Connection (Either l l)] -> Connection (Either l l) -> Connection (Either l l)
+explicitSDEntry liftedVertexAddress liftedVertex connection
+  = if pointTo connection
+       `elem`
+       map (liftedVertexAddress ++) (getAllElem liftedVertex)
+    then connection { pointTo
+                        =  maybe (error "")
+                                 (map (Right . fromLeft'))
+                                 (stripPrefix liftedVertexAddress (pointTo connection))
+                    }
+    else connection
+
+implicitSDEntry :: (Eq l) => [Either l l] -> StateDiagram n (Either l l) [Connection (Either l l)] -> Connection (Either l l) -> Connection (Either l l)
+implicitSDEntry liftedVertexAddress liftedVertex connection
+  = if pointTo connection == liftedVertexAddress
+    then connection { pointTo
+                        = map (Right . fromLeft')
+                              (startState liftedVertex)
+                    }
+    else connection
 
 distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels
@@ -184,4 +203,3 @@ matchConnectionToRelation connections r
         , pointTo
             = mapHeadTail (`matchToRelation` r) fromEither (pointTo c)
         } | c <- connections ]
-
