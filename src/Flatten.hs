@@ -14,8 +14,7 @@ import Datatype (UMLStateDiagram
                 ,rename
                 )
 import Datatype.ClassInstances ()
-import Data.Either.Extra (fromLeft'
-                         ,fromEither)
+import Data.Either.Extra (fromLeft')
 import Data.List (find, stripPrefix)
 import Data.Bifunctor (bimap)
 import Checkers.Helpers (getAllElem)
@@ -55,7 +54,7 @@ liftSD
                , substates
                    = map
                      ( inheritName liftedName
-                     . (\node -> node { label = Right . fromLeft' $ label node })
+                     . (\node -> node { label = Right . fromLeft' $ label node }) -- no deep traversals anymore
                      )
                      elevatedSubstates
                      ++
@@ -103,7 +102,7 @@ explicitSDExit liftedVertexAddress liftedVertex connection
        map (liftedVertexAddress ++) (getAllElem liftedVertex)
     then connection { pointFrom
                         =  maybe (error "")
-                                 (map (Right . fromLeft'))
+                                 (mapHead (Right . fromLeft'))
                                  (stripPrefix liftedVertexAddress $ pointFrom connection)
                     }
     else connection
@@ -115,7 +114,7 @@ explicitSDEntry liftedVertexAddress liftedVertex connection
        map (liftedVertexAddress ++) (getAllElem liftedVertex)
     then connection { pointTo
                         =  maybe (error "")
-                                 (map (Right . fromLeft'))
+                                 (mapHead (Right . fromLeft'))
                                  (stripPrefix liftedVertexAddress (pointTo connection))
                     }
     else connection
@@ -124,8 +123,8 @@ implicitSDEntry :: (Eq l) => [Either l l] -> StateDiagram n (Either l l) [Connec
 implicitSDEntry liftedVertexAddress liftedVertex connection
   = if pointTo connection == liftedVertexAddress
     then connection { pointTo
-                        = map (Right . fromLeft')
-                              (startState liftedVertex)
+                        = mapHead (Right . fromLeft')
+                                  (startState liftedVertex)
                     }
     else connection
 
@@ -144,7 +143,7 @@ distinctLabels
                         = matchConnectionToRelation connections r
                     , name = name
                     , startState
-                        = mapHeadTail (`matchToRelation` r) fromEither startState
+                        = mapHeadTail (`matchToRelation` r) fromLeft' startState
                     , label = error "not relevant"
                     }
     )
@@ -172,7 +171,7 @@ matchNodeToRelation r
                              , connections
                                  = []
                              , startState
-                                 = map fromEither startState
+                                 = map fromLeft' startState
                              , .. }
            CombineDiagram { label
                           , substates
@@ -198,10 +197,15 @@ mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
 mapHeadTail f g (x:xs) = f x : map g xs
 mapHeadTail _ _ _      = error "impossible!"
 
+-- if we dont change the tail type we'll stay in the same type
+mapHead :: (a -> a) -> [a] -> [a]
+mapHead _ []     = error "impossible!"
+mapHead f (x:xs) = f x : xs
+
 matchConnectionToRelation :: (Eq l) => [Connection (Either l l)] -> [(Either l l, l)] -> [Connection l]
 matchConnectionToRelation connections r
   = [ c { pointFrom
-            = mapHeadTail (`matchToRelation` r) fromEither (pointFrom c)
+            = mapHeadTail (`matchToRelation` r) fromLeft' (pointFrom c)
         , pointTo
-            = mapHeadTail (`matchToRelation` r) fromEither (pointTo c)
+            = mapHeadTail (`matchToRelation` r) fromLeft' (pointTo c)
         } | c <- connections ]
