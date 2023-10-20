@@ -168,7 +168,7 @@ matchNodeToRelation r
              -> StateDiagram { label
                                  = matchToRelation label r
                              , substates
-                                 = map (bimap fromEither (const [])) substates
+                                 = map (bimap fromLeft' (const [])) substates
                              , connections
                                  = []
                              , startState
@@ -180,7 +180,7 @@ matchNodeToRelation r
              -> CombineDiagram { label
                                    = matchToRelation label r
                                 , substates
-                                    = map (bimap fromEither (const [])) substates
+                                    = map (bimap fromLeft' (const [])) substates
                                 }
            InnerMostState { label, .. }
              -> InnerMostState { label = matchToRelation label r
