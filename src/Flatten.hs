@@ -15,7 +15,7 @@ import Datatype (UMLStateDiagram
                 )
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft')
-import Data.List (find, stripPrefix, isPrefixOf)
+import Data.List (find, isPrefixOf)
 import Data.Bifunctor (bimap)
 
 flatten :: (Eq l, Enum l, Num l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
@@ -35,13 +35,6 @@ flatten'
    . globalise
 
 {-
- i dont exactly understand the reasoning behind the desire to localise
- a diagram after flattening it,
- since the final result of the (entire) procedure should be a diagram with
- only one layer anyway.
- but it could be helpful in debug printouts - because stuff is more
- organized in that case
-
 localise' :: (Eq l, Enum l, Num l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
 localise'
   = umlStateDiagram
@@ -55,7 +48,6 @@ localise'
                       }
     )
 -}
-
 
 liftSD :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 liftSD
@@ -77,15 +69,15 @@ liftSD
                , startState = rewireGlobalStartState liftedVertexAddress liftedStartState globalStartState
                , label = undefined
                , substates
-                   = map
-                     ( inheritName liftedName
-                     . (\node -> node { label = Right . fromLeft' $ label node })
-                     )
+                   = map ( inheritName liftedName
+                         . (\node -> node { label = Right . fromLeft' $ label node }) )
                      elevatedSubstates
                      ++
                      filter ((liftedVertexAddress /=) . label) rootVertices
                , connections
-                   = rewire liftedVertexAddress liftedStartState globalConnections
+                   = concatMap ( rewireExiting liftedVertexAddress (map label elevatedSubstates)
+                               . rewireEntering liftedVertexAddress liftedStartState )
+                     globalConnections
                }
            )
       Just _
@@ -101,54 +93,37 @@ inheritName pName innerState@InnerMostState { name = imsName }
   = innerState { name = pName ++ imsName }
 inheritName _ node = node
 
-rewire :: (Eq l) => Either l l -> [Either l l] -> [Connection (Either l l)] -> [Connection (Either l l)]
-rewire liftedVertexAddress liftedStartState
-  = map $
-      explicitSDExit liftedVertexAddress
-    . explicitSDEntry liftedVertexAddress
-    . implicitSDEntry liftedVertexAddress liftedStartState
-
 rewireGlobalStartState :: (Eq l) => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
-rewireGlobalStartState _ _ []
-  = error "invalid global start state (not present)"
 rewireGlobalStartState liftedVertexAddress liftedStartState globalStartState
-  = pointTo (head $ rewire
-                    liftedVertexAddress liftedStartState
-                    [Connection { pointTo = globalStartState
-                                , pointFrom = []
-                                , transition = undefined }])
+  | [liftedVertexAddress] == globalStartState
+    = mapHead (Right. fromLeft') liftedStartState
+  | [liftedVertexAddress] `isPrefixOf` globalStartState  -- TODO: simplify isPrefix statement into (x:xs) through pattern matching
+    = mapHead (Right. fromLeft') (tail globalStartState)
+  | otherwise = globalStartState
 
-explicitSDExit :: (Eq l) => Either l l -> Connection (Either l l) -> Connection (Either l l)
-explicitSDExit liftedVertexAddress connection
-  = if [liftedVertexAddress] `isPrefixOf` pointFrom connection
-       && length (pointFrom connection) > 1
-    then connection { pointFrom
-                        =  maybe (error "")
-                                 (mapHead (Right . fromLeft'))
-                                 (stripPrefix [liftedVertexAddress] $ pointFrom connection)
-                    }
-    else connection
+rewireEntering :: Eq b => Either b b -> [Either b b] -> Connection (Either b b) -> Connection (Either b b)
+rewireEntering liftedVertexAddress liftedStartState connection
+  | [liftedVertexAddress] == pointTo connection
+    = connection { pointTo
+                     = mapHead (Right . fromLeft') liftedStartState
+                 }
+  | [liftedVertexAddress] `isPrefixOf` pointTo connection
+    = connection { pointTo
+                     = mapHead (Right . fromLeft')
+                       (tail $ pointTo connection)
+                 }
+  | otherwise = connection
 
-explicitSDEntry :: (Eq l) => Either l l -> Connection (Either l l) -> Connection (Either l l)
-explicitSDEntry liftedVertexAddress connection
-  = if [liftedVertexAddress] `isPrefixOf` pointTo connection
-       && length (pointTo connection) > 1
-    then connection { pointTo
-                        =  maybe (error "")
-                                 (mapHead (Right . fromLeft'))
-                                 (stripPrefix [liftedVertexAddress] (pointTo connection))
-                    }
-    else connection
-
-implicitSDEntry :: (Eq l) => Either l l -> [Either l l] -> Connection (Either l l) -> Connection (Either l l)
-implicitSDEntry liftedVertexAddress liftedStartState connection
-  = if pointTo connection == [liftedVertexAddress]
-    then connection { pointTo
-                        =  if null liftedStartState
-                           then []
-                           else mapHead (Right. fromLeft') liftedStartState
-                    }
-    else connection
+rewireExiting :: Eq b => Either b b -> [Either b b] -> Connection (Either b b) -> [Connection (Either b b)]
+rewireExiting liftedVertexAddress elevatedSubstates connection
+  | [liftedVertexAddress] == pointFrom connection
+    = [ connection { pointFrom = [pf] } | pf <- map (Right . fromLeft') elevatedSubstates ]
+  | [liftedVertexAddress] `isPrefixOf` pointFrom connection
+    = [connection { pointFrom
+                     = mapHead (Right . fromLeft')
+                       (tail $ pointFrom connection)
+                 }]
+  | otherwise = [connection]
 
 distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels

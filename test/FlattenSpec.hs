@@ -19,6 +19,7 @@ import Example (flatCase1
                ,flatCase7
                ,task26a
                ,slide267b
+               ,slide281
                ,task88
                ,test4
                ,noHistoryTest4)
@@ -511,6 +512,29 @@ noHistoryTest4Res4Step
                                    ,Connection {pointFrom = [2], pointTo = [1], transition = "d"}]
                     , startState = [6]}
 
+slide281Res1Step :: UMLStateDiagram [String] Int
+slide281Res1Step
+  = umlStateDiagram $
+    StateDiagram { substates = [ InnerMostState {label = 1, name = ["","C"], operations = ""}
+                               , InnerMostState {label = 2, name = ["","D"], operations = ""}
+                               , History {label = 3, historyType = Shallow}
+                               , InnerMostState {label = 4, name = ["A"], operations = ""}
+                               , InnerMostState {label = 5, name = ["B"], operations = ""}
+                               , InnerMostState {label = 6, name = ["X"], operations = ""}]
+                 , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+                 , name = [""]
+                 , connections = [ Connection {pointFrom = [4], pointTo = [5], transition = "a"}
+                                 , Connection {pointFrom = [5], pointTo = [4], transition = "f"}
+                                 , Connection {pointFrom = [5], pointTo = [3], transition = "b"}
+                                 , Connection {pointFrom = [1], pointTo = [4], transition = "e"}
+                                 , Connection {pointFrom = [2], pointTo = [4], transition = "e"}
+                                 , Connection {pointFrom = [3], pointTo = [4], transition = "e"}
+                                 , Connection {pointFrom = [6], pointTo = [1], transition = "x"}
+                                 , Connection {pointFrom = [1], pointTo = [2], transition = "c"}
+                                 , Connection {pointFrom = [2], pointTo = [1], transition = "d"}
+                                 , Connection {pointFrom = [3], pointTo = [1], transition = ""}]
+                 , startState = [6]}
+
 spec :: Spec
 spec
   = do
@@ -536,6 +560,9 @@ spec
       it "flatten task88 - lift SD and retain root substates" $ do
         let result = flatten task88
         result `shouldBe` task88Res1Step
+      it "flatten slide281 - lift SD with implicit exits (ignore history node for now)" $ do
+        let result = flatten slide281
+        result `shouldBe` slide281Res1Step
       it "flatten test4 [step1] - lift SD and retain deeper layer structures of children integrated into the root" $ do
         let result = flatten test4
         result `shouldBe` test4Res1Step
