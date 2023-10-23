@@ -1,5 +1,6 @@
 module Main where
 
+import Style (Styling(..))
 import PlantUMLDiagrams(renderAll)
 import Example (posPlantUMLExamples)
 import Control.Monad (forM_)
@@ -11,7 +12,8 @@ import Language.PlantUML.Call (drawPlantUMLDiagram, DiagramType(..))
 main :: IO ()
 main = forM_ posPlantUMLExamples $
   \(file, sd) -> do
-    let plantUML = pack (renderAll sd)
+    rendered <- renderAll Unstyled sd
+    let plantUML = pack rendered
     writeFile (file ++ ".txt") plantUML
     picture <- drawPlantUMLDiagram SVG plantUML
     writeFile (file ++ ".svg") picture

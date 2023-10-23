@@ -41,6 +41,7 @@ library:
     - Flatten
     - AlloyDiagrams
     - PlantUMLDiagrams
+    - Style
   ghc-options:
     - -Wall
     - -Werror

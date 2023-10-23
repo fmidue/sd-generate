@@ -12,28 +12,47 @@ import Datatype (UMLStateDiagram(unUML')
                 ,Connection(..)
                 ,HistoryType(..)
                 ,globalise)
+import Style (Styling(..))
+import Test.QuickCheck (elements, suchThat, vectorOf, generate, infiniteListOf)
 
 import Data.String.Interpolate (i)
 import Data.List (intercalate)
+import Data.List.Extra (nubOrd)
 
-data Inherited = Inherited { ctxt :: [Int]
+data Inherited = Inherited { style :: Styling
+                           , ctxt :: [Int]
                            , connectionSources :: [String] }
 
-renderAll :: UMLStateDiagram String Int -> String
-renderAll sd =
+renderAll :: Styling -> UMLStateDiagram String Int -> IO String
+renderAll style sd = do
+  colors <- generate (infiniteListOf (vectorOf 3 (vectorOf 2 (elements "0123456789abcdef")) `suchThat` (\[r,g,b] -> r /= g || g /= b)))
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
     StateDiagram{ connections = connections } = unUML' sd
-    inherited = Inherited{ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connections}
-  in
-    [i|@startuml
+    inherited = Inherited {style, ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connections}
+    (rendered, relevantNames) = renderUML sd inherited
+    theStyling =
+      case style of
+        Unstyled
+          -> ""
+
+        _
+          -> "<style>\n" ++
+             concatMap (\(n,[r,g,b]) ->
+                           let c = r ++ g ++ b
+                           in
+                             '.' : n ++ " {\n  FontColor #" ++ c ++ "\n  LineColor #" ++ c ++ "\n}\n")
+             (zip relevantNames (if style == StyledRainbow then nubOrd colors else repeat ["00","00","00"]))
+             ++ "</style>\n"
+  return [i|@startuml
+#{theStyling}
 #{info}
 
-#{renderUML sd inherited}
+#{rendered}
 @enduml
 |]
 
-renderUML :: UMLStateDiagram String Int -> Inherited -> String
+renderUML :: UMLStateDiagram String Int -> Inherited -> (String, [String])
 renderUML sd inherited =
   let
     StateDiagram{ substates, connections, startState } = unUML' sd
@@ -41,68 +60,66 @@ renderUML sd inherited =
   case unUML' (globalise sd) of
     StateDiagram subst _ _ _ _ ->   let substates1 = subst
                                         hn = getAllHistory substates1 inherited
+                                        (theSubstates, relevantNames) = renderSubstates substates inherited
                                     in
-                                    [i|
-#{renderSubstates substates inherited}
+                                    ([i|
+#{theSubstates}
 #{renderStart startState inherited}
-#{renderConnections hn connections inherited}|]
+#{renderConnections hn connections inherited}|], relevantNames)
     _ -> error "not defined"
 
-renderSubstates :: [StateDiagram String Int [Connection Int]] -> Inherited -> String
-renderSubstates [] _ = []
-renderSubstates (x:xs) inherited@Inherited{ ctxt, connectionSources } =
+renderSubstates :: [StateDiagram String Int [Connection Int]] -> Inherited -> (String, [String])
+renderSubstates [] _ = ("",[])
+renderSubstates (x:xs) inherited@Inherited{ style, ctxt, connectionSources } =
+  let (rest, restNames) = renderSubstates xs inherited in
   case x of
 
     StateDiagram{ label, name } ->
-        [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{("N_" ++ (address "" (ctxt ++ [label])))}|]
-        ++ "{\n" ++ renderUML (umlStateDiagram x) Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
+       ([i|state #{theName} as #{("N_" ++ (address "" (ctxt ++ [label])))}#{theStyle}|]
+        ++ "{\n" ++ recursively ++ "}\n"
+        ++ rest, name : namesRecursively ++ restNames)
+        where
+          theName = if null name then "\"" ++ "EmptyName" ++ "\"" else show name
+          theStyle = if null name || style == Unstyled then "" else " <<" ++ name ++ ">>"
+          (recursively, namesRecursively) = renderUML (umlStateDiagram x) Inherited{ style, ctxt = ctxt ++ [label], connectionSources }
 
     CombineDiagram{ substates, label } ->
-        [i|state "RegionsState" as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "{\n"
-        ++ renderRegions substates Inherited{ctxt=ctxt ++ [label], connectionSources} ++ "}\n"
+       ([i|state "RegionsState" as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "{\n"
+        ++ recursively ++ "}\n"
+        ++ rest, namesRecursively ++ restNames)
+        where
+          (recursively, namesRecursively) = renderRegions substates Inherited{ style, ctxt = ctxt ++ [label], connectionSources }
 
     EndState { label } ->
-        [i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n"
+       ([i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n" ++ rest, restNames)
 
     InnerMostState{ label, name } ->
-        [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "\n"
+       ([i|state #{theName} as #{("N_" ++ (address "" (ctxt ++ [label])))}#{theStyle}|] ++ "\n"
+        ++ rest, name : restNames)
+        where
+          theName = if null name then "\"" ++ "EmptyName" ++ "\"" else show name
+          theStyle = if null name || style == Unstyled then "" else " <<" ++ name ++ ">>"
 
-    History {} -> ""
+    History {} -> (rest, restNames)
 
     ForkOrJoin { label } ->
       let
         node = ("N_" ++ address "" (ctxt ++ [label]))
         isFork = length (filter (node==) connectionSources) > 1
       in
-        [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
-  ++ renderSubstates xs inherited
+        ([i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n" ++ rest, restNames)
 
-renderRegions :: [StateDiagram String Int [Connection Int]] -> Inherited -> String
-renderRegions [] _ = []
-renderRegions (r:rs) inherited@Inherited{ ctxt, connectionSources } =
+renderRegions :: [StateDiagram String Int [Connection Int]] -> Inherited -> (String, [String])
+renderRegions [] _ = ("", [])
+renderRegions (r:rs) inherited@Inherited{ style, ctxt, connectionSources } =
+  let (rest, restNames) = renderRegions rs inherited in
   case r of
     StateDiagram{ label } ->
-        renderUML (umlStateDiagram r) Inherited{ctxt=ctxt ++ [label], connectionSources}
-        ++ if null rs then "" else "--\n"
+        (recursively ++ if null rs then "" else "--\n" ++ rest, namesRecursively ++ restNames)
+        where
+          (recursively, namesRecursively) = renderUML (umlStateDiagram r) Inherited{ style, ctxt = ctxt ++ [label], connectionSources }
 
-    CombineDiagram{ substates, label } ->
-        renderRegions substates Inherited{ctxt=ctxt ++ [label], connectionSources}
-
-    EndState { label } ->
-        [i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n"
-
-    InnerMostState{ label, name } ->
-        [i|state #{if null name then "\"" ++ "EmptyName" ++ "\"" else show name} as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "\n"
-
-    History {} -> ""
-
-    ForkOrJoin { label } ->
-      let
-        node = "N_" ++ address "" (ctxt ++ [label])
-        isFork = length (filter (node==) connectionSources) > 1
-      in
-        [i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n"
-  ++ renderRegions rs inherited
+    _ -> error "impossible!"
 
 renderStart :: [Int] -> Inherited -> String
 renderStart [] _ = []
