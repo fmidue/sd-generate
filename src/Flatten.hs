@@ -97,11 +97,11 @@ rewireGlobalStartState :: (Eq l) => Either l l -> [Either l l] -> [Either l l] -
 rewireGlobalStartState liftedVertexAddress liftedStartState globalStartState
   | [liftedVertexAddress] == globalStartState
     = mapHead (Right. fromLeft') liftedStartState
-  | [liftedVertexAddress] `isPrefixOf` globalStartState  -- TODO: simplify isPrefix statement into (x:xs) through pattern matching
+  | [liftedVertexAddress] `isPrefixOf` globalStartState
     = mapHead (Right. fromLeft') (tail globalStartState)
   | otherwise = globalStartState
 
-rewireEntering :: Eq b => Either b b -> [Either b b] -> Connection (Either b b) -> Connection (Either b b)
+rewireEntering :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> Connection (Either b b)
 rewireEntering liftedVertexAddress liftedStartState connection
   | [liftedVertexAddress] == pointTo connection
     = connection { pointTo
@@ -114,8 +114,7 @@ rewireEntering liftedVertexAddress liftedStartState connection
                  }
   | otherwise = connection
 
--- with the need of case matching on the vertex type, passing the elevated substates should be ok
-rewireExiting :: Eq b => Either b b -> [StateDiagram [n] (Either b b) [Connection (Either b b)]] -> Connection (Either b b) -> [Connection (Either b b)]
+rewireExiting :: (Eq b) => Either b b -> [StateDiagram [n] (Either b b) [Connection (Either b b)]] -> Connection (Either b b) -> [Connection (Either b b)]
 rewireExiting liftedVertexAddress elevatedSubstates connection
   | [liftedVertexAddress] == pointFrom connection
     = concatMap
@@ -127,14 +126,11 @@ rewireExiting liftedVertexAddress elevatedSubstates connection
         CombineDiagram { label }
           -> [ connection { pointFrom =  [Right . fromLeft' $ label] } ]
         EndState { }
-          -> [] -- there should not be any outgoing transitions from a final state, so dont create any new connections...
-                -- there is no unit test for this yet, but maybe it would make sense to add an extra filtering step to reduce
-                -- the allowed number of final states to 1 within the root node and rewire connections accordingly if more
-                -- than one final state is present to the instance supposed to remain
+          -> []
         ForkOrJoin { }
-          -> [] -- dont touch
+          -> []
         History { }
-          -> [] -- error out?
+          -> []
       )
       elevatedSubstates
   | [liftedVertexAddress] `isPrefixOf` pointFrom connection
@@ -164,7 +160,7 @@ distinctLabels
                     }
     )
 
-matchToRelation :: Eq a => a -> [(a, b)] -> b
+matchToRelation :: (Eq a) => a -> [(a, b)] -> b
 matchToRelation x r
   = case lookup x r of
      Just u

@@ -22,7 +22,8 @@ import Example (flatCase1
                ,slide281
                ,task88
                ,test4
-               ,noHistoryTest4)
+               ,noHistoryTest4
+               ,implicitExitTask85)
 import Flatten (flatten
                ,flatten')
 import Data.List (sortBy)
@@ -534,6 +535,64 @@ slide281Res1Step
                                  , Connection {pointFrom = [3], pointTo = [1], transition = ""}]
                  , startState = [6]}
 
+implicitExitTask85Res2Step :: UMLStateDiagram [String] Int
+implicitExitTask85Res2Step
+  = umlStateDiagram $
+    StateDiagram { substates = [ CombineDiagram { substates = [ StateDiagram { substates = [ InnerMostState {label = 1, name = ["1"], operations = ""}
+                                                                                          , InnerMostState {label = 2, name = ["2"], operations = ""}]
+                                                                             , label = 1
+                                                                             , name = ["C"]
+                                                                             , connections = []
+                                                                             , startState = [1]}
+                                                               , StateDiagram { substates = [ InnerMostState {label = 1, name = ["3"], operations = ""}
+                                                                                            , InnerMostState {label = 2, name = ["4"], operations = ""}
+                                                                                            , InnerMostState {label = 3, name = ["5"], operations = ""}]
+                                                                              , label = 2, name = [""]
+                                                                              , connections = []
+                                                                              , startState = [1]}]
+                                                                              , label = 1}
+                                                               , StateDiagram { substates = [ InnerMostState {label = 1, name = ["9"], operations = ""}
+                                                                                            , InnerMostState {label = 2, name = ["10"], operations = ""}]
+                                                                              , label = 2
+                                                                              , name = ["A","B","D"]
+                                                                              , connections = []
+                                                                              , startState = [1]}
+                                                               , ForkOrJoin {label = 3}
+                                                               , History {label = 4, historyType = Shallow}
+                                                               , StateDiagram { substates = [ InnerMostState {label = 1, name = ["6"], operations = ""}
+                                                                                            , InnerMostState {label = 2, name = ["7"], operations = ""}
+                                                                                            , InnerMostState {label = 3, name = ["8"], operations = ""}]
+                                                                              , label = 5
+                                                                              , name = ["A","E"]
+                                                                              , connections = []
+                                                                              , startState = [3]}
+                                                               , ForkOrJoin {label = 6}]
+                 , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+                 , name = [""]
+                 , connections = [ Connection {pointFrom = [6], pointTo = [1,1,1], transition = ""}
+                                 , Connection {pointFrom = [6], pointTo = [1,2,1], transition = ""}
+                                 , Connection {pointFrom = [1,1,1], pointTo = [5], transition = "i"}
+                                 , Connection {pointFrom = [3], pointTo = [5], transition = ""}
+                                 , Connection {pointFrom = [2,2], pointTo = [5,2], transition = "h"}
+                                 , Connection {pointFrom = [5,2], pointTo = [1,2,3], transition = "e"}
+                                 , Connection {pointFrom = [5,1], pointTo = [4], transition = "f"}
+                                 , Connection {pointFrom = [1], pointTo = [5], transition = "implicit exit"}
+                                 , Connection {pointFrom = [2], pointTo = [5], transition = "implicit exit"}
+                                 , Connection {pointFrom = [1,1,2], pointTo = [3], transition = "c"}
+                                 , Connection {pointFrom = [1,2,2], pointTo = [3], transition = "c"}
+                                 , Connection {pointFrom = [4], pointTo = [2], transition = ""}
+                                 , Connection {pointFrom = [1,1,1], pointTo = [1,1,2], transition = "a"}
+                                 , Connection {pointFrom = [1,1,2], pointTo = [1,1,1], transition = "b"}
+                                 , Connection {pointFrom = [1,2,1], pointTo = [1,2,2], transition = "b"}
+                                 , Connection {pointFrom = [1,2,2], pointTo = [1,2,3], transition = "b"}
+                                 , Connection {pointFrom = [1,2,3], pointTo = [1,2,1], transition = "b"}
+                                 , Connection {pointFrom = [2,1], pointTo = [2,2], transition = "g"}
+                                 , Connection {pointFrom = [2,2], pointTo = [2,1], transition = "g"}
+                                 , Connection {pointFrom = [5,1], pointTo = [5,3], transition = "d"}
+                                 , Connection {pointFrom = [5,3], pointTo = [5,2], transition = "d"}
+                                 , Connection {pointFrom = [5,2], pointTo = [5,1], transition = "d"}]
+                                 , startState = [6]}
+
 spec :: Spec
 spec
   = do
@@ -578,6 +637,10 @@ spec
       it "flatten noHistoryTest4 [step 4] - lift SD" $ do
         let result = flatten' $ flatten' $ flatten' $ flatten noHistoryTest4
         result `shouldBe` noHistoryTest4Res4Step
+      it "flatten implicitExitTask85 - lift SD and do not add connections for contained fork node" $ do
+        let result = flatten' $ flatten implicitExitTask85
+        result `shouldBe` implicitExitTask85Res2Step
+
 
 
 isStructurallySameAs :: (Eq n, Eq l) => UMLStateDiagram n l -> UMLStateDiagram n l -> Bool
