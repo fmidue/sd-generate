@@ -63,7 +63,12 @@ liftSD
         -> Just (
              StateDiagram
                { name = globalName
-               , startState = rewireGlobalStartState liftedVertexAddress liftedStartState globalStartState
+               , startState = pointTo $
+                              rewireEntering liftedVertexAddress liftedStartState
+                              Connection{ pointFrom = undefined
+                                        , pointTo = globalStartState
+                                        , transition = undefined
+                                        }
                , label = undefined
                , substates
                    = map ( inheritName liftedName
@@ -98,14 +103,6 @@ inheritName pName sd@StateDiagram { name = sdName }
 inheritName pName innerState@InnerMostState { name = imsName }
   = innerState { name = pName ++ imsName }
 inheritName _ node = node
-
-rewireGlobalStartState :: (Eq l) => Either l l -> [Either l l] -> [Either l l] -> [Either l l]
-rewireGlobalStartState liftedVertexAddress liftedStartState globalStartState
-  | [liftedVertexAddress] == globalStartState
-    = mapHead (Right. fromLeft') liftedStartState
-rewireGlobalStartState liftedVertexAddress _ (x:xs)
-  | liftedVertexAddress == x = mapHead (Right. fromLeft') xs
-rewireGlobalStartState _ _ globalStartState = globalStartState
 
 rewireEntering :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> Connection (Either b b)
 rewireEntering liftedVertexAddress liftedStartState connection
