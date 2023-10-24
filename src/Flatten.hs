@@ -15,7 +15,7 @@ import Datatype (UMLStateDiagram
                 )
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft')
-import Data.List (find, isPrefixOf)
+import Data.List (find)
 import Data.Bifunctor (bimap)
 
 flatten :: (Eq l, Enum l, Num l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
@@ -75,7 +75,14 @@ liftSD
                      ++
                      filter ((liftedVertexAddress /=) . label) rootVertices
                , connections
-                   = concatMap ( rewireExiting liftedVertexAddress elevatedSubstates
+                   = concatMap ( rewireExiting liftedVertexAddress
+                                               ( map label $ filter
+                                                             (\case
+                                                                ForkOrJoin {} -> False
+                                                                History {} -> False
+                                                                EndState {} -> False
+                                                                _ -> True
+                                               ) elevatedSubstates )
                                . rewireEntering liftedVertexAddress liftedStartState )
                      globalConnections
                }
@@ -97,48 +104,26 @@ rewireGlobalStartState :: (Eq l) => Either l l -> [Either l l] -> [Either l l] -
 rewireGlobalStartState liftedVertexAddress liftedStartState globalStartState
   | [liftedVertexAddress] == globalStartState
     = mapHead (Right. fromLeft') liftedStartState
-  | [liftedVertexAddress] `isPrefixOf` globalStartState
-    = mapHead (Right. fromLeft') (tail globalStartState)
-  | otherwise = globalStartState
+rewireGlobalStartState liftedVertexAddress _ (x:xs)
+  | liftedVertexAddress == x = mapHead (Right. fromLeft') xs
+rewireGlobalStartState _ _ globalStartState = globalStartState
 
 rewireEntering :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> Connection (Either b b)
 rewireEntering liftedVertexAddress liftedStartState connection
   | [liftedVertexAddress] == pointTo connection
-    = connection { pointTo
-                     = mapHead (Right . fromLeft') liftedStartState
-                 }
-  | [liftedVertexAddress] `isPrefixOf` pointTo connection
-    = connection { pointTo
-                     = mapHead (Right . fromLeft')
-                       (tail $ pointTo connection)
-                 }
-  | otherwise = connection
+    = connection { pointTo = mapHead (Right . fromLeft') liftedStartState }
+rewireEntering liftedVertexAddress _ connection@Connection { pointTo = (x:xs) }
+  | liftedVertexAddress == x
+  = connection { pointTo = mapHead (Right . fromLeft') xs }
+rewireEntering _ _ connection = connection
 
-rewireExiting :: (Eq b) => Either b b -> [StateDiagram [n] (Either b b) [Connection (Either b b)]] -> Connection (Either b b) -> [Connection (Either b b)]
+rewireExiting :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> [Connection (Either b b)]
 rewireExiting liftedVertexAddress elevatedSubstates connection
   | [liftedVertexAddress] == pointFrom connection
-    = concatMap
-      (\case
-        InnerMostState { label }
-          -> [ connection { pointFrom = [Right . fromLeft' $ label] } ]
-        StateDiagram { label }
-          -> [ connection { pointFrom =  [Right . fromLeft' $ label] } ]
-        CombineDiagram { label }
-          -> [ connection { pointFrom =  [Right . fromLeft' $ label] } ]
-        EndState { }
-          -> []
-        ForkOrJoin { }
-          -> []
-        History { }
-          -> []
-      )
-      elevatedSubstates
-  | [liftedVertexAddress] `isPrefixOf` pointFrom connection
-    = [connection { pointFrom
-                     = mapHead (Right . fromLeft')
-                       (tail $ pointFrom connection)
-                 }]
-  | otherwise = [connection]
+    = [ connection { pointFrom = [pf] } | pf <- map (Right . fromLeft') elevatedSubstates ]
+rewireExiting liftedVertexAddress _ connection@Connection { pointFrom = (x:xs) }
+  | liftedVertexAddress == x = [ connection { pointFrom = mapHead (Right . fromLeft') xs } ]
+rewireExiting _ _ connection = [connection]
 
 distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels
