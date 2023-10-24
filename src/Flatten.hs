@@ -127,7 +127,10 @@ rewireExiting liftedVertexAddress elevatedSubstates connection
         CombineDiagram { label }
           -> [ connection { pointFrom =  [Right . fromLeft' $ label] } ]
         EndState { }
-          -> [] -- trim? rewire to endstate within root (if present)? this could be done by extra find + pass along of Maybe adr. ?
+          -> [] -- there should not be any outgoing transitions from a final state, so dont create any new connections...
+                -- there is no unit test for this yet, but maybe it would make sense to add an extra filtering step to reduce
+                -- the allowed number of final states to 1 within the root node and rewire connections accordingly if more
+                -- than one final state is present to the instance supposed to remain
         ForkOrJoin { }
           -> [] -- dont touch
         History { }
