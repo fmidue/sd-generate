@@ -67,7 +67,9 @@ liftSD
                , label = undefined
                , substates
                    = map ( inheritName liftedName
-                         . (\node -> node { label = Right . fromLeft' $ label node }) )
+                         . \case
+                             History{} -> error "History as inner node is not supported here."
+                             node -> node { label = Right . fromLeft' $ label node })
                      elevatedSubstates
                      ++
                      filter ((liftedVertexAddress /=) . label) rootVertices
