@@ -528,7 +528,6 @@ slide281Res1Step
                                  , Connection {pointFrom = [5], pointTo = [3], transition = "b"}
                                  , Connection {pointFrom = [1], pointTo = [4], transition = "e"}
                                  , Connection {pointFrom = [2], pointTo = [4], transition = "e"}
-                                 , Connection {pointFrom = [3], pointTo = [4], transition = "e"}
                                  , Connection {pointFrom = [6], pointTo = [1], transition = "x"}
                                  , Connection {pointFrom = [1], pointTo = [2], transition = "c"}
                                  , Connection {pointFrom = [2], pointTo = [1], transition = "d"}
