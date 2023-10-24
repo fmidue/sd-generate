@@ -75,7 +75,7 @@ liftSD
                      ++
                      filter ((liftedVertexAddress /=) . label) rootVertices
                , connections
-                   = concatMap ( rewireExiting liftedVertexAddress (map label elevatedSubstates)
+                   = concatMap ( rewireExiting liftedVertexAddress elevatedSubstates
                                . rewireEntering liftedVertexAddress liftedStartState )
                      globalConnections
                }
@@ -114,10 +114,26 @@ rewireEntering liftedVertexAddress liftedStartState connection
                  }
   | otherwise = connection
 
-rewireExiting :: Eq b => Either b b -> [Either b b] -> Connection (Either b b) -> [Connection (Either b b)]
+-- with the need of case matching on the vertex type, passing the elevated substates should be ok
+rewireExiting :: Eq b => Either b b -> [StateDiagram [n] (Either b b) [Connection (Either b b)]] -> Connection (Either b b) -> [Connection (Either b b)]
 rewireExiting liftedVertexAddress elevatedSubstates connection
   | [liftedVertexAddress] == pointFrom connection
-    = [ connection { pointFrom = [pf] } | pf <- map (Right . fromLeft') elevatedSubstates ]
+    = concatMap
+      (\case
+        InnerMostState { label }
+          -> [ connection { pointFrom = [Right . fromLeft' $ label] } ]
+        StateDiagram { label }
+          -> [ connection { pointFrom =  [Right . fromLeft' $ label] } ]
+        CombineDiagram { label }
+          -> [ connection { pointFrom =  [Right . fromLeft' $ label] } ]
+        EndState { }
+          -> [] -- trim? rewire to endstate within root (if present)? this could be done by extra find + pass along of Maybe adr. ?
+        ForkOrJoin { }
+          -> [] -- dont touch
+        History { }
+          -> [] -- error out?
+      )
+      elevatedSubstates
   | [liftedVertexAddress] `isPrefixOf` pointFrom connection
     = [connection { pointFrom
                      = mapHead (Right . fromLeft')
