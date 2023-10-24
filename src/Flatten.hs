@@ -53,10 +53,7 @@ liftSD :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [
 liftSD
   = fmap umlStateDiagram . unUML
     (\globalName rootVertices globalConnections globalStartState ->
-      case find (\case
-                   StateDiagram {}
-                     -> True
-                   _ -> False) rootVertices
+      case find isHierarchical rootVertices
       of
       Just StateDiagram { label = liftedVertexAddress
                         , substates = elevatedSubstates
@@ -76,13 +73,7 @@ liftSD
                      filter ((liftedVertexAddress /=) . label) rootVertices
                , connections
                    = concatMap ( rewireExiting liftedVertexAddress
-                                               ( map label $ filter
-                                                             (\case
-                                                                ForkOrJoin {} -> False
-                                                                History {} -> False
-                                                                EndState {} -> False
-                                                                _ -> True
-                                               ) elevatedSubstates )
+                                               ( map label $ filter isState elevatedSubstates )
                                . rewireEntering liftedVertexAddress liftedStartState )
                      globalConnections
                }
@@ -92,6 +83,12 @@ liftSD
       Nothing
         -> Nothing
     )
+  where
+    isState InnerMostState{} = True
+    isState CombineDiagram{} = True
+    isState other = isHierarchical other
+    isHierarchical StateDiagram{} = True
+    isHierarchical _ = False
 
 inheritName :: [n] -> StateDiagram [n] l c -> StateDiagram [n] l c
 inheritName pName sd@StateDiagram { name = sdName }
