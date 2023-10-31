@@ -9,6 +9,7 @@ import System.Environment (getArgs, withArgs)
 
 import Instance (parseInstance)
 import Layout (drawDiagram)
+import Style (Styling (Unstyled))
 
 main :: IO ()
 main = do
@@ -18,7 +19,7 @@ main = do
       inst <- B.readFile f
       let sd = failWith id . parseInstance scope . failWith show
             $ AD.parseInstance inst
-      withArgs xs' $ mainWith (drawDiagram sd)
+      withArgs xs' $ mainWith (drawDiagram Unstyled sd)
     _ -> error "usage: two parameters required: String (scope) FilePath (Alloy instance)"
 
 failWith :: (a -> String) -> Either a c -> c

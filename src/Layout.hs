@@ -14,9 +14,22 @@ import Data.Tree
 import Data.List.Index
 import Arrows
 import Support
+import Style (Styling(..))
+import Data.Hashable (hash)
 
-drawDiagram :: UMLStateDiagram String Int -> Diagram B
-drawDiagram = drawWrapper' [] . orderFunction . unUML'
+hashToColour :: Styling -> String -> Colour Double
+hashToColour StyledRainbow str =
+  let h = hash str
+      (gb, r) = h `divMod` 256
+      (b, g) = gb `divMod` 256
+      r' = fromIntegral r / 255.0
+      g' = fromIntegral g / 255.0
+      b' = fromIntegral (b `mod` 256) / 255.0
+  in sRGB r' g' b'
+hashToColour _ _ = black
+
+drawDiagram :: Styling -> UMLStateDiagram String Int -> Diagram B
+drawDiagram style = drawWrapper' style [] . orderFunction . unUML'
 
 textBox :: String -> [String] -> [String]
 textBox a stringList
@@ -25,16 +38,16 @@ textBox a stringList
     where
       splittingText = splitAt 15 a
 
-drawTextBox :: String -> Diagram B
-drawTextBox s = text s # font "Monospace" # fontSizeL 0.2 <> rect (0.11 *
+drawTextBox :: String -> Colour Double -> Diagram B
+drawTextBox s col = text s # font "Monospace" # fontSizeL 0.2 # fc col <> rect (0.11 *
   multiplier) 0.19 # lcA transparent
   where
     multiplier = fromIntegral $ length s
 
-drawText :: String -> Diagram B
-drawText s = drawing <> rect (width drawing) (height drawing) # lcA transparent
+drawText :: String -> Colour Double -> Diagram B
+drawText s col = drawing <> rect (width drawing) (height drawing) # lcA transparent
   where
-    drawing = vcat (fmap (alignL . drawTextBox) (textBox s [])) # centerXY
+    drawing = vcat (fmap (alignL . flip drawTextBox col) (textBox s [])) # centerXY
 
 drawSwimlane :: Bool -> [Diagram B] -> Double -> [Diagram B]
 drawSwimlane False [a, b] c = [a, hrule c # dashingG [0.1] 0 , b] -- vertical AND
@@ -66,85 +79,87 @@ appendEdges a l rightType layouts = case layouts of
     w1 = width a
     h1 = height a
 
-drawWrapper :: [Int] -> Wrapper -> Diagram B
-drawWrapper a (StartS _ l rightType layouts) = appendEdges (circle 0.1 # fc
+drawWrapper :: Styling -> [Int] -> Wrapper -> Diagram B
+drawWrapper _ a (StartS _ l rightType layouts) = appendEdges (circle 0.1 # fc
   black) l rightType layouts # named (a ++ [-1])
-drawWrapper a (CrossStateDummy b _) = square 0.005 # fc black # named (a ++ [b])
-drawWrapper a (EndS k l rightType layouts) =
+drawWrapper _ a (CrossStateDummy b _) = square 0.005 # fc black # named (a ++ [b])
+drawWrapper _ a (EndS k l rightType layouts) =
   appendEdges (circle 0.16 # lw ultraThin `atop` circle 0.1 # fc black) l rightType layouts
   # named (a ++ [k])
-drawWrapper a (Leaf b c d l rightType layouts) = if d == "" then appendEdges
-  (text' <> roundedRect (width text' + 0.3) (height text' + 0.3) 0.1 # lc black) l
+drawWrapper style a (Leaf b c d l rightType layouts) = if d == "" then appendEdges
+  (text' <> roundedRect (width text' + 0.3) (height text' + 0.3) 0.1 # lc theColour) l
   rightType layouts # named (a ++ [b]) else appendEdges drawing'
   l rightType layouts #
   named (a ++ [b])
   where
-    text' = drawText c
-    text'' = drawText d
+    text' = drawText c theColour
+    text'' = drawText d black
     drawing = drawSwimlane' [text' <> roundedRect (width text' + 0.3) (height text' + 0.3) 0.1
       # lcA transparent, text'' <> roundedRect (width text'' + 0.3) (height text'' + 0.3) 0.1 ] # centerXY
     drawing' = (roundedRect (width drawing) (height drawing) 0.1 <> drawing) #
       centerXY
-drawWrapper a (Hist b histType l rightType layouts) = appendEdges ((if
-  histType == Deep then drawText "H*" else drawText "H") <> circle 0.25
+    theColour = hashToColour style c
+drawWrapper _ a (Hist b histType l rightType layouts) = appendEdges ((if
+  histType == Deep then drawText "H*" else drawText "H") black <> circle 0.25
   # lc black) l rightType layouts # named (a ++ [b])
-drawWrapper a (Fork b layouts l rightType) = if layouts == Vertical then
+drawWrapper _ a (Fork b layouts l rightType) = if layouts == Vertical then
   appendEdges (rect 1 0.1 # fc black) l rightType Horizontal # named (a ++
   [b]) else appendEdges (rect 0.1 1 # fc black) l rightType Vertical # named
   (a ++ [b])
-drawWrapper a (Dummy b Unspecified w) = ((rect w 0.5 # lcA transparent) <>
+drawWrapper _ a (Dummy b Unspecified w) = ((rect w 0.5 # lcA transparent) <>
   arrowAt' arrowStyle2 (p2 (-0.5 * w, 0)) (r2 (w, 0))) # named (a ++ [b])
-drawWrapper a (Dummy b Horizontal w) = ((rect w 0.5 # lcA transparent) <>
+drawWrapper _ a (Dummy b Horizontal w) = ((rect w 0.5 # lcA transparent) <>
   arrowAt' arrowStyle2 (p2 (-0.5 * w, 0)) (r2 (w, 0))) # named (a ++ [b])
-drawWrapper a (Dummy b Vertical h) = ((rect 0.5 h # lcA transparent) <>
+drawWrapper _ a (Dummy b Vertical h) = ((rect 0.5 h # lcA transparent) <>
   arrowAt' arrowStyle2 (p2 (0,-0.5 * h)) (r2 (0, h))) # named (a ++ [b])
-drawWrapper a (Transition b c l rightType layouts) = appendEdges
+drawWrapper _ a (Transition b c l rightType layouts) = appendEdges
   (x <> rect (width x + 0.1) (height x + 0.1) # lcA transparent) l rightType
   layouts # named (a ++ [b])
   where
-    x = drawText c
-drawWrapper a s@AndDecomposition {} = appendEdges (roundedRect (width f) (height f) 0.1
+    x = drawText c black
+drawWrapper style a s@AndDecomposition {} = appendEdges (roundedRect (width f) (height f) 0.1
   <> f) (lengthXY s) (rightC s) (outerLayout s) # named (a ++
   [key s])
   where
-    w = maximum (fmap (width . drawWrapper (a ++ [key s])) (component s))
-    h = maximum (fmap (height . drawWrapper (a ++ [key s])) (component s))
-    d = (vcat . fmap alignL) (drawSwimlane False (fmap (drawWrapper' (a ++ [key
+    w = maximum (fmap (width . drawWrapper style (a ++ [key s])) (component s))
+    h = maximum (fmap (height . drawWrapper style (a ++ [key s])) (component s))
+    d = (vcat . fmap alignL) (drawSwimlane False (fmap (drawWrapper' style (a ++ [key
       s])) (component s)) w) # centerXY
-    e = (hcat . fmap alignT) (drawSwimlane True (fmap (drawWrapper' (a ++ [key
+    e = (hcat . fmap alignT) (drawSwimlane True (fmap (drawWrapper' style (a ++ [key
       s])) (component s)) h) # centerXY
     f = if layout s == Vertical then e else d
-drawWrapper d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
-  (height draw + 0.9) 0.1 # lc black <> text' # alignTL # translate
+drawWrapper style d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
+  (height draw + 0.9) 0.1 # lc theColour <> text' # alignTL # translate
   (r2 (-0.5 * (width draw + 0.9) + 0.1 , 0.5 * (height draw + 0.9) - 0.1)) <> draw # centerXY) (lengthXY s) (rightC s)
   (outerLayout s) # named (d ++ [key s]) # applyAll (fmap (`drawConnection`
   layout s) connectList)
   where
-    text' = drawTextBox (strings s)
-    draw = drawLayers (layout s == Vertical) (d ++ [key s]) (layered s)
+    text' = drawTextBox (strings s) theColour
+    draw = drawLayers style (layout s == Vertical) (d ++ [key s]) (layered s)
     connectList = getConnection (d ++ [key s]) (typedConnections s)
+    theColour = hashToColour style (strings s)
 
-drawWrapper' :: [Int] -> Wrapper -> Diagram B
-drawWrapper' d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
+drawWrapper' :: Styling -> [Int] -> Wrapper -> Diagram B
+drawWrapper' style d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
   (height draw + 0.9) 0.1 # lcA transparent <> alignedText 0 1 (strings s) #
   translate (r2 (-0.485 * (width draw + 0.9), 0.485 * (height draw + 0.9))) #
   fontSize (local 0.2) <> draw # centerXY) (lengthXY s) (rightC s)
   (outerLayout s) # named (d ++ [key s]) # applyAll (fmap (`drawConnection`
   layout s) connectList)
   where
-    draw = drawLayers (layout s == Vertical) (d ++ [key s]) (layered s)
+    draw = drawLayers style (layout s == Vertical) (d ++ [key s]) (layered s)
     connectList = getConnection (d ++ [key s]) (typedConnections s)
-drawWrapper' _ _ = mempty
+drawWrapper' _ _ _ = mempty
 
-drawLayer :: Bool -> [Int] -> [Wrapper] -> Diagram B
-drawLayer True prefix layer = vsep 0.5 (fmap (alignL . drawWrapper prefix)
+drawLayer :: Styling -> Bool -> [Int] -> [Wrapper] -> Diagram B
+drawLayer style True prefix layer = vsep 0.5 (fmap (alignL . drawWrapper style prefix)
   layer) # centerXY
-drawLayer False prefix layer = hsep 0.5 (fmap (alignT . drawWrapper prefix)
+drawLayer style False prefix layer = hsep 0.5 (fmap (alignT . drawWrapper style prefix)
   layer) # centerXY
 
-drawLayers :: Bool -> [Int] -> [[Wrapper]] -> Diagram B
-drawLayers False prefix layers = hsep 0.5 (fmap (drawLayer True prefix) layers)
-drawLayers True prefix layers = vsep 0.5 (fmap (drawLayer False prefix) layers)
+drawLayers :: Styling -> Bool -> [Int] -> [[Wrapper]] -> Diagram B
+drawLayers style False prefix layers = hsep 0.5 (fmap (drawLayer style True prefix) layers)
+drawLayers style True prefix layers = vsep 0.5 (fmap (drawLayer style False prefix) layers)
 
 drawConnection :: (([Int], [Int]), ConnectionType) -> Layout -> Diagram B ->
   Diagram B
@@ -165,8 +180,8 @@ drawConnection (a, SelfCR) _ = uncurry selfConnect1 a
 selectSmallerSize :: Wrapper -> Layout -- for OrDecomposition
 selectSmallerSize a = if areaH > areaV then Vertical else Horizontal
   where
-    v = drawWrapper [] (changeLayout a Vertical)
-    h = drawWrapper [] (changeLayout a Horizontal)
+    v = drawWrapper Unstyled [] (changeLayout a Vertical)
+    h = drawWrapper Unstyled [] (changeLayout a Horizontal)
     areaV = width v * height v
     areaH = width h * height h
 
@@ -177,8 +192,8 @@ decideAndLayout a = if areaV < areaH then Vertical else Horizontal
       Vertical (lengthXY a) (rightC a) (outerLayout a)
     h = AndDecomposition (fmap (`changeAndLayout` Horizontal) (component a)) (key a)
       Horizontal (lengthXY a) (rightC a) (outerLayout a)
-    areaV = width (drawWrapper [] v) * height (drawWrapper [] v)
-    areaH = width (drawWrapper [] h) * height (drawWrapper [] h)
+    areaV = width (drawWrapper Unstyled [] v) * height (drawWrapper Unstyled [] v)
+    areaH = width (drawWrapper Unstyled [] h) * height (drawWrapper Unstyled [] h)
 -}
 
 getWrapper :: StateDiagram String Int [Connection Int] -> Wrapper
@@ -790,16 +805,16 @@ changeLength l s = case s of
         (outerLayout s)
     | otherwise -> StartS (key s) (l - w) (rightC s) (outerLayout s)
   where
-    w = width (drawWrapper [] s)
-    h = height (drawWrapper [] s)
+    w = width (drawWrapper Unstyled [] s)
+    h = height (drawWrapper Unstyled [] s)
 
 assignLayerLength :: Layout -> [Wrapper] -> [Wrapper]
 assignLayerLength layouts a = if layouts == Vertical then
   fmap (changeLength maxHeight) a else
   fmap (changeLength maxWidth) a
   where
-    maxWidth = width (drawLayer True [] a)
-    maxHeight = height (drawLayer False [] a)
+    maxWidth = width (drawLayer Unstyled True [] a)
+    maxHeight = height (drawLayer Unstyled False [] a)
 
 assignLength :: Wrapper -> Wrapper
 assignLength s@OrDecomposition {} = OrDecomposition newLayered (key s) (strings s)

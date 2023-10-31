@@ -12,6 +12,7 @@ import Data.Maybe
 import Text.Pretty.Simple (pPrint)
 
 import Datatype.ClassInstances ()
+import Style (Styling (Unstyled))
 
 main :: IO ()
 main = do
@@ -23,4 +24,4 @@ main = do
         putStrLn $ "\nDiscarded " ++ show n ++ " attempts, then got " ++ file ++ ":"
         pPrint sd
         when (isNothing $ checkDrawability sd)
-          $ renderSVG file (mkWidth 250) (drawDiagram sd)
+          $ renderSVG file (mkWidth 250) (drawDiagram Unstyled sd)

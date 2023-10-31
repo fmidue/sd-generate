@@ -18,6 +18,7 @@ dependencies:
   - svg-builder
   - QuickCheck
   - string-interpolate
+  - hashable
   - pretty-simple
 default-extensions:
   - TupleSections

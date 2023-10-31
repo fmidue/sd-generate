@@ -11,6 +11,7 @@ import Datatype (unUML'
                 ,umlStateDiagram
                 ,label)
 
+import Style (Styling (Unstyled))
 
 -- stack run drawing -- --output here.svg -w 640 -h 480
 main :: IO ()
@@ -23,7 +24,7 @@ main = do
   print sd''
   print "step4"
   print sd'''
-  mainWith ( drawDiagram $ renderable sd''' )
+  mainWith ( drawDiagram Unstyled $ renderable sd''' )
   where
   sd = flatten noHistoryTest4
   sd' = flatten' sd
