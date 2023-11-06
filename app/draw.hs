@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-orphans   #-}
+
 module Main where
 
 import qualified Language.Alloy.Debug as AD (parseInstance)
@@ -10,6 +12,10 @@ import System.Environment (getArgs, withArgs)
 import Instance (parseInstance)
 import Layout (drawDiagram)
 import Style (Styling (Unstyled))
+
+import Control.Monad.IO.Class (MonadIO (liftIO))
+
+import Text.Trifecta.Result (ErrInfo)
 
 main :: IO ()
 main = do
@@ -24,3 +30,7 @@ main = do
 
 failWith :: (a -> String) -> Either a c -> c
 failWith f = either (error . f) id
+
+
+instance MonadIO (Either Text.Trifecta.Result.ErrInfo) where
+  liftIO = error "liftIO not implemented for Either Text.Trifecta.Result.ErrInfo"
