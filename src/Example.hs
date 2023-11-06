@@ -603,13 +603,12 @@ implicitExitTask85 = umlStateDiagram $
         , Connection [1, 3] [2] ""
         , Connection [1, 2, 2] [2, 2] "h"
         , Connection [2, 2] [1, 1, 2, 3] "e"
-        , Connection [2, 1] [1, 0] "f"
         , Connection [1] [2] "implicit exit"] []
       where
-        b = StateDiagram [g, h, i, j] 1 "B"
+        b = StateDiagram [g, h, i] 1 "B"
             [ Connection [1, 1, 2] [3] "c"
-            , Connection [1, 2, 2] [3] "c"
-            , Connection [0] [2] ""] []
+            , Connection [1, 2, 2] [3] "c"]
+            []
           where
             g = CombineDiagram [k, l] 1
               where
@@ -631,7 +630,6 @@ implicitExitTask85 = umlStateDiagram $
                 m = InnerMostState 1 "9" ""
                 n = InnerMostState 2 "10" ""
             i = ForkOrJoin 3
-            j = History 0 Shallow
         c = StateDiagram [d, e, f] 2 "E"
             [ Connection [1] [3] "d"
             , Connection [3] [2] "d"
@@ -788,6 +786,27 @@ noHistoryTest4 = umlStateDiagram $
     g1 = InnerMostState 1 "3" ""
     g2 = InnerMostState 2 "4" ""
     g3 = InnerMostState 3 "5" ""
+
+noHistorySlide281 :: UMLStateDiagram String Int
+noHistorySlide281
+  = umlStateDiagram $
+           StateDiagram [a, b, c, d] 14 ""
+           [ Connection [1] [2] "a"
+           , Connection [2] [1] "f"
+           , Connection [3] [1] "e"
+           , Connection [4] [3] "x"]
+           [4]
+  where
+    a = InnerMostState 1 "A" ""
+    b = InnerMostState 2 "B" ""
+    c = StateDiagram [e, f] 3 ""
+        [ Connection [1] [2] "c"
+        , Connection [2] [1] "d"]
+        [1]
+      where
+        e = InnerMostState 1 "C" ""
+        f = InnerMostState 2 "D" ""
+    d = InnerMostState 4 "X" ""
 
 testFlatConReg1 :: UMLStateDiagram String Int
 testFlatConReg1 = let
