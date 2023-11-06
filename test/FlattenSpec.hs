@@ -24,10 +24,12 @@ import Example (flatCase1
                ,test4
                ,noHistoryTest4
                ,implicitExitTask85
-               ,noHistorySlide281)
+               ,noHistorySlide281
+               ,selfTransitionCase1)
 import Flatten (flatten
                ,flatten')
 import Data.List (sortBy)
+import Data.String (String)
 
 connectionsOrderedByName :: UMLStateDiagram [String] Int -> UMLStateDiagram [String] Int
 connectionsOrderedByName
@@ -586,6 +588,42 @@ implicitExitTask85Res1Step
                                  , Connection {pointFrom = [4,2], pointTo = [4,1], transition = "d"}]
                  , startState = [5]}
 
+selfTransitionCase1Res1Step :: UMLStateDiagram [String] Int
+selfTransitionCase1Res1Step
+  = umlStateDiagram $
+    StateDiagram { substates = [ StateDiagram { substates = [ InnerMostState {label = 1, name = ["J"], operations = ""}
+                                                            , InnerMostState {label = 2, name = ["K"], operations = ""} ]
+                                              , label = 1
+                                              , name = ["E","G"]
+                                              , connections = []
+                                              , startState = [1]}
+                               , InnerMostState {label = 2, name = ["E","F"], operations = ""}
+                               , InnerMostState {label = 3, name = ["D"], operations = ""}
+                               , StateDiagram { substates = [ InnerMostState {label = 2, name = ["B"], operations = ""}
+                                                            , InnerMostState {label = 1, name = ["C"], operations = ""} ]
+                                              , label = 4
+                                              , name = ["A"]
+                                              , connections = []
+                                              , startState = [2]}
+                               , EndState {label = 5}]
+                 , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+                 , name = [""]
+                 , connections = [ Connection {pointFrom = [3], pointTo = [5], transition = "dt"}
+                                 , Connection {pointFrom = [1], pointTo = [1], transition = "lst"}
+                                 , Connection {pointFrom = [2], pointTo = [1], transition = "lst"}
+                                 , Connection {pointFrom = [1], pointTo = [3], transition = "gd"}
+                                 , Connection {pointFrom = [3], pointTo = [1], transition = "de"}
+                                 , Connection {pointFrom = [1,1], pointTo = [3], transition = "jd"}
+                                 , Connection {pointFrom = [4,2], pointTo = [1,2], transition = "bk"}
+                                 , Connection {pointFrom = [1], pointTo = [4], transition = "ea"}
+                                 , Connection {pointFrom = [2], pointTo = [4], transition = "ea"}
+                                 , Connection {pointFrom = [4,1], pointTo = [2], transition = "cf"}
+                                 , Connection {pointFrom = [1], pointTo = [2], transition = "gf"}
+                                 , Connection {pointFrom = [1], pointTo = [1], transition = "est"}
+                                 , Connection {pointFrom = [1,2], pointTo = [1,1], transition = "kj"}
+                                 , Connection {pointFrom = [4,2], pointTo = [4,1], transition = "bc"} ]
+                 , startState = [1]}
+
 spec :: Spec
 spec
   = do
@@ -632,6 +670,9 @@ spec
       it "flatten implicitExitTask85 - lift SD and do not add connections for contained fork node" $ do
         let result = flatten' $ flatten implicitExitTask85
         result `shouldBe` implicitExitTask85Res1Step
+      it "flatten selfTransitionCase1 - lift SD with a self transtion" $ do
+        let result = flatten selfTransitionCase1
+        result `shouldBe` selfTransitionCase1Res1Step
 
 
 

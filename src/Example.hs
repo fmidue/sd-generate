@@ -945,6 +945,43 @@ flatCase3 = let
                 , Connection [3] [4,1] "e" ]
                 [4]
 
+selfTransitionCase1 :: UMLStateDiagram String Int
+selfTransitionCase1
+  = let
+    isD = InnerMostState 2 "D" ""
+
+    isC = InnerMostState 1 "C" ""
+    isB = InnerMostState 2 "B" ""
+    sdA = StateDiagram [isB, isC] 3 "A"
+          [ Connection [2] [1] "bc" ]
+          [2]
+
+    isJ = InnerMostState 1 "J" ""
+    isK = InnerMostState 2 "K" ""
+    sdG = StateDiagram [isJ, isK] 1 "G"
+          [ Connection [2] [1] "kj" ]
+          [1]
+    isF = InnerMostState 2 "F" ""
+    sdE = StateDiagram [sdG, isF] 1 "E"
+          [ Connection [1] [2] "gf"
+          , Connection [1] [1] "est" -- elevated self transition
+          ]
+          [1]
+
+    fs = EndState (4::Int)
+    in
+    umlStateDiagram $
+    StateDiagram [sdE, isD, sdA,fs] 0 ""
+      [ Connection [2] [4] "dt"
+      , Connection [1] [1] "lst" -- lifted self transition
+      , Connection [1,1] [2] "gd"
+      , Connection [2] [1] "de"
+      , Connection [1,1,1] [2] "jd"
+      , Connection [3,2] [1,1,2] "bk"
+      , Connection [1] [3] "ea"
+      , Connection [3,1] [1,2] "cf" ]
+      [1]
+
 positiveExamples :: [(String, UMLStateDiagram String Int)]
 positiveExamples =
         [ ("verySmall", verySmall)

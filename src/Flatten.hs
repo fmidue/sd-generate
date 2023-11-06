@@ -52,10 +52,10 @@ localise'
 liftSD :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 liftSD
   = fmap umlStateDiagram . unUML
-    (\globalName rootVertices globalConnections globalStartState ->
-      case find isHierarchical rootVertices
+    (\globalName rootNodes globalConnections globalStartState ->
+      case find isHierarchical rootNodes
       of
-      Just StateDiagram { label = liftedVertexAddress
+      Just StateDiagram { label = liftedNodeAddress
                         , substates = elevatedSubstates
                         , name = liftedName
                         , startState = liftedStartState
@@ -64,7 +64,7 @@ liftSD
              StateDiagram
                { name = globalName
                , startState = pointTo $
-                              rewireEntering liftedVertexAddress liftedStartState
+                              rewireEntering liftedNodeAddress liftedStartState
                               Connection{ pointFrom = undefined
                                         , pointTo = globalStartState
                                         , transition = undefined
@@ -77,11 +77,11 @@ liftSD
                              node -> node { label = Right . fromLeft' $ label node })
                      elevatedSubstates
                      ++
-                     filter ((liftedVertexAddress /=) . label) rootVertices
+                     filter ((liftedNodeAddress /=) . label) rootNodes
                , connections
-                   = concatMap ( rewireExiting liftedVertexAddress
+                   = concatMap ( rewireExiting liftedNodeAddress
                                                ( map label $ filter isState elevatedSubstates )
-                               . rewireEntering liftedVertexAddress liftedStartState )
+                               . rewireEntering liftedNodeAddress liftedStartState )
                      globalConnections
                }
            )
@@ -105,20 +105,20 @@ inheritName pName innerState@InnerMostState { name = imsName }
 inheritName _ node = node
 
 rewireEntering :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> Connection (Either b b)
-rewireEntering liftedVertexAddress liftedStartState connection
-  | [liftedVertexAddress] == pointTo connection
+rewireEntering liftedNodeAddress liftedStartState connection
+  | [liftedNodeAddress] == pointTo connection
     = connection { pointTo = mapHead (Right . fromLeft') liftedStartState }
-rewireEntering liftedVertexAddress _ connection@Connection { pointTo = (x:xs) }
-  | liftedVertexAddress == x
+rewireEntering liftedNodeAddress _ connection@Connection { pointTo = (x:xs) }
+  | liftedNodeAddress == x
   = connection { pointTo = mapHead (Right . fromLeft') xs }
 rewireEntering _ _ connection = connection
 
 rewireExiting :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> [Connection (Either b b)]
-rewireExiting liftedVertexAddress elevatedSubstates connection
-  | [liftedVertexAddress] == pointFrom connection
+rewireExiting liftedNodeAddress elevatedSubstates connection
+  | [liftedNodeAddress] == pointFrom connection
     = [ connection { pointFrom = [pf] } | pf <- map (Right . fromLeft') elevatedSubstates ]
-rewireExiting liftedVertexAddress _ connection@Connection { pointFrom = (x:xs) }
-  | liftedVertexAddress == x = [ connection { pointFrom = mapHead (Right . fromLeft') xs } ]
+rewireExiting liftedNodeAddress _ connection@Connection { pointFrom = (x:xs) }
+  | liftedNodeAddress == x = [ connection { pointFrom = mapHead (Right . fromLeft') xs } ]
 rewireExiting _ _ connection = [connection]
 
 distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
