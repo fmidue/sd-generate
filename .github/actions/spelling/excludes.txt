@@ -53,6 +53,7 @@ ignore$
 ^\Qthesis/pdf.tex\E$
 ^\Qthesis/README.txt\E$
 ^\Qthesis/literatur.bib\E$
+^\Qthesis/tikz-uml.sty\E$
 ^\QREADME.md\E$
 ^\Qtest/Spec.hs\E$
 ^\Qsrc/Datatype.hs\E$
