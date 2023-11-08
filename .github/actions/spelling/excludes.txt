@@ -64,3 +64,4 @@ ignore$
 ^\Qsrc/Arrows.hs\E$
 ^\Qsrc/CounterExample.hs\E$
 ^src/Checkers/
+^.+\.drawio$
