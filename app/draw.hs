@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-orphans   #-}
-
 module Main where
 
 import qualified Language.Alloy.Debug as AD (parseInstance)
