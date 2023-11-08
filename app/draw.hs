@@ -13,9 +13,7 @@ import Instance (parseInstance)
 import Layout (drawDiagram)
 import Style (Styling (Unstyled))
 
-import Control.Monad.IO.Class (MonadIO (liftIO))
-
-import Text.Trifecta.Result (ErrInfo)
+import Control.Monad.Except (runExceptT)
 
 main :: IO ()
 main = do
@@ -23,14 +21,10 @@ main = do
   case xs of
     scope:f:xs' -> do
       inst <- B.readFile f
-      let sd = failWith id . parseInstance scope . failWith show
-            $ AD.parseInstance inst
+      alloyInstance <- runExceptT $ AD.parseInstance inst
+      let sd = failWith id . parseInstance scope . failWith show $ alloyInstance
       withArgs xs' $ mainWith (drawDiagram Unstyled sd)
     _ -> error "usage: two parameters required: String (scope) FilePath (Alloy instance)"
 
 failWith :: (a -> String) -> Either a c -> c
 failWith f = either (error . f) id
-
-
-instance MonadIO (Either Text.Trifecta.Result.ErrInfo) where
-  liftIO = error "liftIO not implemented for Either Text.Trifecta.Result.ErrInfo"
