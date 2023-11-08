@@ -11,12 +11,15 @@ import Datatype (UMLStateDiagram
                 ,StateDiagram(..)
                 ,globalise
                 ,Connection(..)
+                ,pointFromL
+                ,pointToL
                 ,rename
                 )
 import Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft')
-import Data.List (find)
+import Data.List (find, singleton)
 import Data.Bifunctor (bimap)
+import Control.Lens (over, traverseOf)
 
 flatten :: (Eq l, Enum l, Num l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
@@ -25,7 +28,7 @@ flatten
    . liftSD
    . fmap Left
    . globalise
-   . rename (:[])
+   . rename singleton
 
 flatten' :: (Eq l, Enum l, Num l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
 flatten'
@@ -63,12 +66,7 @@ liftSD
         -> Just (
              StateDiagram
                { name = globalName
-               , startState = pointTo $
-                              rewireEntering liftedNodeAddress liftedStartState
-                              Connection{ pointFrom = undefined
-                                        , pointTo = globalStartState
-                                        , transition = undefined
-                                        }
+               , startState = rewireEntering liftedNodeAddress liftedStartState globalStartState
                , label = undefined
                , substates
                    = map ( inheritName liftedName
@@ -79,9 +77,11 @@ liftSD
                      ++
                      filter ((liftedNodeAddress /=) . label) rootNodes
                , connections
-                   = concatMap ( rewireExiting liftedNodeAddress
-                                               ( map label $ filter isState elevatedSubstates )
-                               . rewireEntering liftedNodeAddress liftedStartState )
+                   = concatMap ( traverseOf pointFromL
+                                 (rewireExiting liftedNodeAddress
+                                   (map label $ filter isState elevatedSubstates))
+                               . over pointToL
+                                 (rewireEntering liftedNodeAddress liftedStartState) )
                      globalConnections
                }
            )
@@ -104,22 +104,23 @@ inheritName pName innerState@InnerMostState { name = imsName }
   = innerState { name = pName ++ imsName }
 inheritName _ node = node
 
-rewireEntering :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> Connection (Either b b)
-rewireEntering liftedNodeAddress liftedStartState connection
-  | [liftedNodeAddress] == pointTo connection
-    = connection { pointTo = mapHead (Right . fromLeft') liftedStartState }
-rewireEntering liftedNodeAddress _ connection@Connection { pointTo = (x:xs) }
+rewireEntering :: Eq b => Either b b -> [Either b b] -> [Either b b] -> [Either b b]
+rewireEntering liftedNodeAddress liftedStartState to
+  | [liftedNodeAddress] == to
+  = mapHead (Right . fromLeft') liftedStartState
+rewireEntering liftedNodeAddress _ (x:xs)
   | liftedNodeAddress == x
-  = connection { pointTo = mapHead (Right . fromLeft') xs }
-rewireEntering _ _ connection = connection
+  = mapHead (Right . fromLeft') xs
+rewireEntering _ _ to = to
 
-rewireExiting :: (Eq b) => Either b b -> [Either b b] -> Connection (Either b b) -> [Connection (Either b b)]
-rewireExiting liftedNodeAddress elevatedSubstates connection
-  | [liftedNodeAddress] == pointFrom connection
-    = [ connection { pointFrom = [pf] } | pf <- map (Right . fromLeft') elevatedSubstates ]
-rewireExiting liftedNodeAddress _ connection@Connection { pointFrom = (x:xs) }
-  | liftedNodeAddress == x = [ connection { pointFrom = mapHead (Right . fromLeft') xs } ]
-rewireExiting _ _ connection = [connection]
+rewireExiting :: Eq b => Either b b -> [Either b b] -> [Either b b] -> [[Either b b]]
+rewireExiting liftedNodeAddress elevatedSubstates from
+  | [liftedNodeAddress] == from
+  = map (singleton . Right . fromLeft') elevatedSubstates
+rewireExiting liftedNodeAddress _ (x:xs)
+  | liftedNodeAddress == x
+  = [ mapHead (Right . fromLeft') xs ]
+rewireExiting _ _ from = [ from ]
 
 distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels

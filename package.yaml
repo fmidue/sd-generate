@@ -20,6 +20,7 @@ dependencies:
   - string-interpolate
   - hashable
   - pretty-simple
+  - lens
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
