@@ -649,7 +649,7 @@ spec
       it "flatten task88 - lift SD and retain root substates" $ do
         let result = flatten task88
         result `shouldBe` task88Res1Step
-      it "flatten noHistoryslide281 - lift SD with implicit exits" $ do
+      it "flatten noHistorySlide281 - lift SD with implicit exits" $ do
         let result = flatten noHistorySlide281
         result `shouldBe` noHistorySlide281Res1Step
       it "flatten test4 [step1] - lift SD and retain deeper layer structures of children integrated into the root" $ do
@@ -670,7 +670,7 @@ spec
       it "flatten implicitExitTask85 - lift SD and do not add connections for contained fork node" $ do
         let result = flatten' $ flatten implicitExitTask85
         result `shouldBe` implicitExitTask85Res1Step
-      it "flatten selfTransitionCase1 - lift SD with a self transtion" $ do
+      it "flatten selfTransitionCase1 - lift SD with a self transition" $ do
         let result = flatten selfTransitionCase1
         result `shouldBe` selfTransitionCase1Res1Step
 

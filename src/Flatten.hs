@@ -101,8 +101,8 @@ liftSD
 inheritName :: [n] -> StateDiagram [n] l c -> StateDiagram [n] l c
 inheritName pName sd@StateDiagram { name = sdName }
   = sd { name = pName ++ sdName }
-inheritName pName innerState@InnerMostState { name = imsName }
-  = innerState { name = pName ++ imsName }
+inheritName pName innerState@InnerMostState { name = innerMostName }
+  = innerState { name = pName ++ innerMostName }
 inheritName _ node = node
 
 rewireEntering :: Eq b => Either b b -> [Either b b] -> [Either b b] -> [Either b b]
