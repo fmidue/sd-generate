@@ -26,3 +26,5 @@ stack.yaml.lock
 thesis/references/
 *.bkp
 *.tix
+thesis/Abschlussarbeit.run.xml
+thesis/Abschlussarbeit.bcf
