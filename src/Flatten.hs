@@ -66,7 +66,8 @@ liftSD
         -> Just (
              StateDiagram
                { name = globalName
-               , startState = rewireEntering liftedNodeAddress liftedStartState globalStartState
+               , startState = rewireEntering liftedNodeAddress liftedStartState
+                              globalStartState
                , label = undefined
                , substates
                    = map ( inheritName liftedName
@@ -108,19 +109,21 @@ rewireEntering :: Eq b => Either b b -> [Either b b] -> [Either b b] -> [Either 
 rewireEntering liftedNodeAddress liftedStartState to
   | [liftedNodeAddress] == to
   = mapHead (Right . fromLeft') liftedStartState
-rewireEntering liftedNodeAddress _ (x:xs)
+rewireEntering liftedNodeAddress _ to
+  = rewireAny liftedNodeAddress to
+
+rewireAny :: Eq b => Either b b -> [Either b b] -> [Either b b]
+rewireAny liftedNodeAddress (x:xs)
   | liftedNodeAddress == x
   = mapHead (Right . fromLeft') xs
-rewireEntering _ _ to = to
+rewireAny _ point = point
 
 rewireExiting :: Eq b => Either b b -> [Either b b] -> [Either b b] -> [[Either b b]]
 rewireExiting liftedNodeAddress elevatedSubstates from
   | [liftedNodeAddress] == from
   = map (singleton . Right . fromLeft') elevatedSubstates
-rewireExiting liftedNodeAddress _ (x:xs)
-  | liftedNodeAddress == x
-  = [ mapHead (Right . fromLeft') xs ]
-rewireExiting _ _ from = [ from ]
+rewireExiting liftedNodeAddress _ from
+  = [ rewireAny liftedNodeAddress from ]
 
 distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels
