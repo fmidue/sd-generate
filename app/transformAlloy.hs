@@ -2,9 +2,9 @@
 
 module Main where
 
-import AlloyDiagrams (render)
-import Datatype (UMLStateDiagram(unUML'), StateDiagram(label))
-import Example (positiveExamples)
+import Modelling.StateDiagram.AlloyDiagrams (render)
+import Modelling.StateDiagram.Datatype (UMLStateDiagram(unUML'), StateDiagram(label))
+import Modelling.StateDiagram.Example (positiveExamples)
 import Control.Monad (forM_)
 
 main :: IO ()

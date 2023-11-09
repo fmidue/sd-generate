@@ -21,6 +21,8 @@ dependencies:
   - hashable
   - pretty-simple
   - lens
+  - output-monad
+  - file-embed
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
@@ -32,18 +34,20 @@ default-extensions:
 library:
   source-dirs: src
   exposed-modules:
-    - Datatype
-    - Datatype.ClassInstances
-    - Example
-    - CounterExample
-    - Checkers
-    - Instance
-    - Layout
-    - Generate
-    - Flatten
-    - AlloyDiagrams
-    - PlantUMLDiagrams
-    - Style
+    - Modelling.StateDiagram.Alloy
+    - Modelling.StateDiagram.Config
+    - Modelling.StateDiagram.Datatype
+    - Modelling.StateDiagram.Datatype.ClassInstances
+    - Modelling.StateDiagram.Example
+    - Modelling.StateDiagram.CounterExample
+    - Modelling.StateDiagram.Checkers
+    - Modelling.StateDiagram.Instance
+    - Modelling.StateDiagram.Layout
+    - Modelling.StateDiagram.Generate
+    - Modelling.StateDiagram.Flatten
+    - Modelling.StateDiagram.AlloyDiagrams
+    - Modelling.StateDiagram.PlantUMLDiagrams
+    - Modelling.StateDiagram.Style
   ghc-options:
     - -Wall
     - -Werror
@@ -102,6 +106,8 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - ba-sergei-lestsenski
+      - file-embed
+      - call-alloy
       - directory
       - filepath
       - hspec

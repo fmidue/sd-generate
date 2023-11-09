@@ -1,8 +1,8 @@
 module Main where
 
-import Style (Styling(..))
-import PlantUMLDiagrams(renderAll)
-import Example (posPlantUMLExamples)
+import Modelling.StateDiagram.Style (Styling(..))
+import Modelling.StateDiagram.PlantUMLDiagrams(renderAll)
+import Modelling.StateDiagram.Example (posPlantUMLExamples)
 import Control.Monad (forM_)
 
 import Prelude hiding (writeFile)

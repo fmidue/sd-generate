@@ -1,9 +1,9 @@
 import Diagrams.Prelude
 import Diagrams.Backend.SVG
-import Layout (drawDiagram)
+import Modelling.StateDiagram.Layout (drawDiagram)
 
-import Generate
-import Checkers (checkDrawability)
+import Modelling.StateDiagram.Generate
+import Modelling.StateDiagram.Checkers (checkDrawability)
 
 import Test.QuickCheck
 import Control.Monad
@@ -11,8 +11,8 @@ import Data.Maybe
 
 import Text.Pretty.Simple (pPrint)
 
-import Datatype.ClassInstances ()
-import Style (Styling (Unstyled))
+import Modelling.StateDiagram.Datatype.ClassInstances ()
+import Modelling.StateDiagram.Style (Styling (Unstyled))
 
 main :: IO ()
 main = do

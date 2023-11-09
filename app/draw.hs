@@ -7,9 +7,9 @@ import qualified Data.ByteString as B (readFile)
 import Diagrams.Backend.SVG.CmdLine
 import System.Environment (getArgs, withArgs)
 
-import Instance (parseInstance)
-import Layout (drawDiagram)
-import Style (Styling (Unstyled))
+import Modelling.StateDiagram.Instance (parseInstance)
+import Modelling.StateDiagram.Layout (drawDiagram)
+import Modelling.StateDiagram.Style (Styling (Unstyled))
 
 import Control.Monad.Except (runExceptT)
 

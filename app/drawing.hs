@@ -1,17 +1,17 @@
 {-# OPTIONS_GHC -Wno-deprecations #-}
 
 import Diagrams.Backend.SVG.CmdLine
-import Layout (drawDiagram)
-import Example (noHistoryTest4)
-import Flatten (flatten
+import Modelling.StateDiagram.Layout (drawDiagram)
+import Modelling.StateDiagram.Example (noHistoryTest4)
+import Modelling.StateDiagram.Flatten (flatten
                ,flatten')
 
-import Datatype (unUML'
+import Modelling.StateDiagram.Datatype (unUML'
                 ,rename
                 ,umlStateDiagram
                 ,label)
 
-import Style (Styling (Unstyled))
+import Modelling.StateDiagram.Style (Styling (Unstyled))
 
 -- stack run drawing -- --output here.svg -w 640 -h 480
 main :: IO ()
