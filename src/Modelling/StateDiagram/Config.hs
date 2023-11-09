@@ -13,7 +13,7 @@ import Data.String.Interpolate(i)
 {-
   These parameters are chosen to match the .als files definitions
   of the Alloy generator taken from the 5th release.
-  The min parameter, will be used as a lower boundry to flush out
+  The min parameter, will be used as a lower boundary to flush out
   obtained charts from the generator when they are not satisfied
 -}
 data SDConfig
@@ -39,7 +39,7 @@ data SDConfig
     } deriving (Show)
 
 {-
-  to match scenario1ext, there is some fine funing necessary
+  to match scenario1ext, there is some fine tuning necessary
   and quite a number of state charts obtained from Alloy must be
   flushed out as they are not suitable to serve as tasks (missing states,
   empty names or transitions)
@@ -95,7 +95,7 @@ checkSDConfig SDConfig {
   | minEndNodes > maxEndNodes = Just "minEndNodes must be less than or equal to maxEndNodes"
   | minForkNodes > maxForkNodes = Just "minForkNodes must be less than or equal to maxForkNodes"
   | minJoinNodes > maxJoinNodes = Just "minJoinNodes must be less than or equal to maxJoinNodes"
-  | minHistoryNodes > maxHistoryNodes = Just "minHistoryNodes must be less than or equal to maxHisotryNodes"
+  | minHistoryNodes > maxHistoryNodes = Just "minHistoryNodes must be less than or equal to maxHistoryNodes"
   | minEndNodes < 1 = Just "you likely want to have at least one EndNode in the chart"
   | maxRegions > 10 = Just "you likely want to have less than 11 Regions in the chart"
   | maxNormalStates > 15 = Just "you likely want to have less than 16 NormalStates in the chart"
