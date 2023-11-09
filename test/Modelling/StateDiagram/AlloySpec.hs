@@ -58,7 +58,7 @@ spec
         do
         inst <- getInstances (Just 1) (sdConfigToAlloy 9 6 defaultSDConfig)
         map ( failWith id . parseInstance "components") inst `shouldNotBe` []
-      it "retreiving simple Alloy SD chart instances does satisfy the Haskell chart checkers" $
+      it "retrieving simple Alloy SD chart instances does satisfy the Haskell chart checkers" $
         do
         inst <- getInstances (Just 50) alloySDGenerator
         and (concatMap (zipWith (\ checker chart' -> isNothing (checker chart')) (map snd checkers) . repeat . failWith id . parseInstance "components") inst) `shouldBe` True
