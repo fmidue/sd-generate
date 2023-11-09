@@ -36,6 +36,7 @@ import Modelling.StateDiagram.Checkers
       checkSemantics,
       checkStructure,
       checkUniqueness )
+import Data.Maybe (isNothing)
 
 spec :: Spec
 spec
@@ -47,11 +48,11 @@ spec
         createDirectoryIfMissing True "./temp"
         writeFile "./temp/sd.als" $ sdConfigToAlloy 6 3 defaultSDConfig
         return ()
-      it "default SD config is capable to invoke Alloy and instances returned satisfy the Haskell chart checkers" $
+      it "default SD config is capable to invoke Alloy and returns an instance" $
         do
         inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
-        let chart = head (drop 499 (map (failWith id . parseInstance "this") inst))
-        putStrLn (show chart)
+        let chart = map (failWith id . parseInstance "this") inst !! 499
+        print chart
         return ()
       it "default Alloy sd config wont return empty chart instances (as checkers might still pass on [])" $
         do
@@ -60,7 +61,7 @@ spec
       it "retreiving simple Alloy SD chart instances does satisfy the Haskell chart checkers" $
         do
         inst <- getInstances (Just 50) alloySDGenerator
-        and (concatMap (\chart -> (zipWith (\checker chart' -> Nothing == (checker $ chart')) (map snd checkers) (repeat chart))) (map ( failWith id . parseInstance "components") inst)) `shouldBe` True
+        and (concatMap (zipWith (\ checker chart' -> isNothing (checker chart')) (map snd checkers) . repeat . failWith id . parseInstance "components") inst) `shouldBe` True
       it "config checker denies unreasonable requests" $
         True `shouldBe` True
 {-
