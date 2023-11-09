@@ -127,7 +127,7 @@ renderComposite kind eachWith StateDiagram{ substates, label, name, startState }
   in
   Synthesized
   { alloy = unlines $
-            [i|one sig #{node} extends #{kind}{}{#{if kind == "RegionsStates" then "" else if null name then "\n  no name" else "\n  name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
+            [i|one sig #{node} extends #{kind}{}{#{if kind == "RegionsStates" then "" else if null name then noName else "\n  name = " ++ fromJust (lookup name nameMapping) ++ " // " ++ show name}
   contains = #{intercalate " + " (maybe [] (\x -> [fst x]) start ++ rootNodes)}
 }|]
             : maybe id ((:) . renderStart) start
@@ -144,6 +144,8 @@ renderComposite kind eachWith StateDiagram{ substates, label, name, startState }
   , forkNodes = forkNodes
   , joinNodes = joinNodes
   }
+  where
+  noName = "\n  no name"  -- because the line length limit is 200 characters
 renderComposite _ _ _ _ = error "not defined"
 
 defaultSynthesized :: Synthesized
