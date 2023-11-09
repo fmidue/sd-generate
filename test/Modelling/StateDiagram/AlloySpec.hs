@@ -16,7 +16,6 @@ import Test.Hspec(Spec
                  ,it
                  ,shouldBe
                  ,shouldNotBe)
-import Modelling.StateDiagram.Alloy(alloySDGenerator)
 import Language.Alloy.Call(getInstances)
 import Data.String(IsString, fromString)
 import System.Directory(createDirectoryIfMissing)
@@ -48,22 +47,21 @@ spec
         createDirectoryIfMissing True "./temp"
         writeFile "./temp/sd.als" $ sdConfigToAlloy 6 3 defaultSDConfig
         return ()
-      it "default SD config is capable to invoke Alloy and returns an instance" $
+      it "parsing an Alloy chart instance yields some result" $
         do
         inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
         let chart = map (failWith id . parseInstance "this") inst !! 499
-        print chart
-        return ()
+        show chart `shouldNotBe` ""
       it "default Alloy sd config wont return empty chart instances (as checkers might still pass on [])" $
         do
-        inst <- getInstances (Just 1) (sdConfigToAlloy 9 6 defaultSDConfig)
-        map ( failWith id . parseInstance "components") inst `shouldNotBe` []
-      it "retrieving simple Alloy SD chart instances does satisfy the Haskell chart checkers" $
+        inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
+        length inst `shouldBe` 500
+      it "retrieving default Alloy SD chart instances does satisfy the Haskell chart checkers" $
         do
-        inst <- getInstances (Just 50) alloySDGenerator
-        and (concatMap (zipWith (\ checker chart' -> isNothing (checker chart')) (map snd checkers) . repeat . failWith id . parseInstance "components") inst) `shouldBe` True
-      it "config checker denies unreasonable requests" $
-        True `shouldBe` True
+        inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
+        and (concatMap (zipWith (\ checker chart' -> isNothing (checker chart')) (map snd checkers) . repeat . failWith id . parseInstance "this") inst) `shouldBe` True
+      --it "config checker denies unreasonable requests" $
+      --  True `shouldBe` True
 {-
       it "render some charts obtained from Alloy" $
         do
