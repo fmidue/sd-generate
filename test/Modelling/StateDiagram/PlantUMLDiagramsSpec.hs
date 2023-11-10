@@ -13,4 +13,4 @@ spec =
   withUnitTests "renderAll" does dir "txt" $ shouldBe . unsafePerformIO . renderAll Unstyled . umlStateDiagram . read
   where
     does = "generates expected PlantUML code"
-    dir = "test/unit/PlantUMLDiagrams"
+    dir = "test/unit/Modelling/StateDiagram/PlantUMLDiagrams"

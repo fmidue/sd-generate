@@ -23,6 +23,8 @@ dependencies:
   - lens
   - output-monad
   - file-embed
+  - filepath
+  - MonadRandom
 default-extensions:
   - TupleSections
   - DuplicateRecordFields

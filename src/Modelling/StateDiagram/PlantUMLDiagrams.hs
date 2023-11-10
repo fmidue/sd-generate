@@ -4,7 +4,8 @@
 {-# Language NamedFieldPuns #-}
 {-# Language ViewPatterns   #-}
 
-module Modelling.StateDiagram.PlantUMLDiagrams (renderAll) where
+module Modelling.StateDiagram.PlantUMLDiagrams (renderAll
+                                               ,drawSDToFile) where
 
 import Modelling.StateDiagram.Datatype (UMLStateDiagram(unUML')
                 ,umlStateDiagram
@@ -18,6 +19,8 @@ import Test.QuickCheck (elements, suchThat, vectorOf, generate, infiniteListOf)
 import Data.String.Interpolate (i)
 import Data.List (intercalate)
 import Data.List.Extra (nubOrd)
+import Language.PlantUML.Call (drawPlantUMLDiagram, DiagramType (SVG))
+import Data.ByteString.Char8 (pack, unpack)
 
 data Inherited = Inherited { style :: Styling
                            , ctxt :: [Int]
@@ -180,3 +183,12 @@ getAllHistory (x:xs) inherited@Inherited{ ctxt, connectionSources } =
 
     _ -> []
   ++ getAllHistory xs inherited
+
+drawSDToFile :: FilePath -> UMLStateDiagram String Int -> IO FilePath
+drawSDToFile path chart
+  = do
+    rendered <- renderAll Unstyled chart
+    let plantUML = pack rendered
+    picture <- drawPlantUMLDiagram SVG plantUML
+    writeFile (path ++ "Diagram.svg") (unpack picture)
+    return (path ++ "Diagram.svg")

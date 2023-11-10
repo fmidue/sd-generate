@@ -3,7 +3,8 @@
 
 module Modelling.StateDiagram.Config(defaultSDConfig
                                     ,checkSDConfig
-                                    ,sdConfigToAlloy)
+                                    ,sdConfigToAlloy
+                                    ,SDConfig(..))
 
 where
 

@@ -19,8 +19,8 @@ import Modelling.StateDiagram.Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft')
 import Data.List (find, singleton)
 import Data.Bifunctor (bimap)
-import Control.Lens (over -- 1:1 ?
-                    ,traverseOf)  -- 1:N ?
+import Control.Lens (over
+                    ,traverseOf)
 
 flatten :: (Eq l, Enum l, Num l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
