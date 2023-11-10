@@ -5,9 +5,9 @@ packages:
 extra-deps:
   - call-alloy-0.4.0.2
   - git: https://github.com/fmidue/output-monad.git
-    commit: dee586e12b62b0b854070c1bbd59749ad7ff3b0c
+    commit: a0758bd19e830d8c3f6e5898a07b3dbf57ad013c
     subdirs:
       - output-monad
   - git: https://github.com/fmidue/modelling-tasks.git
-    commit: becccb3b5bc09d9317c08c2ad89df20f2d598864
-  - call-plantuml-0.0.1@sha256:8a1ff92fef35729ed01db4201f7954127034ad6113224f579276d254dae2221b,1985
+    commit: f047bce8f2d1641b4161d5f25ebb063821340efa
+  - call-plantuml-0.0.1.2
