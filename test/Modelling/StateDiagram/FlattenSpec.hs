@@ -14,18 +14,18 @@ import Modelling.StateDiagram.Datatype (StateDiagram(..)
                 ,globalise
                 ,rename
                 )
-import Modelling.StateDiagram.Example (flatCase1
-               ,flatCase3
-               ,flatCase7
-               ,task26a
-               ,slide267b
-               ,slide281
-               ,task88
-               ,test4
-               ,noHistoryTest4
-               ,implicitExitTask85
-               ,noHistorySlide281
-               ,selfTransitionCase1)
+import Modelling.StateDiagram.Example(flatCase1
+                                     ,flatCase3
+                                     ,flatCase7
+                                     ,task26a
+                                     ,slide267b
+                                     ,slide281
+                                     ,task88
+                                     ,test4
+                                     ,noHistoryTest4
+                                     ,implicitExitTask85
+                                     ,noHistorySlide281
+                                     ,selfTransitionCase1)
 import Modelling.StateDiagram.Flatten (flatten
                ,flatten')
 import Data.List (sortBy)
@@ -133,7 +133,7 @@ task26aStep1Res
                                   , connections = []
                                   , startState = [1]}]
                     , label = 3}
-                  , ForkOrJoin {label = 4}
+                  , Join {label = 4}
                   , InnerMostState {label = 5, name = ["F"], operations = ""}]
     , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
     , name = [""]
@@ -217,7 +217,7 @@ test4Res1Step
   = umlStateDiagram $
     StateDiagram {
       substates = [ StateDiagram {
-                      substates = [ ForkOrJoin { label = 1 }
+                      substates = [ Fork { label = 1 }
                                   , CombineDiagram {
                                       substates = [ StateDiagram {
                                                       substates = [ InnerMostState {label = 1, name = ["1"], operations = ""}
@@ -235,7 +235,7 @@ test4Res1Step
                                                     , connections = []
                                                     , startState = [1]}]
                                     , label = 2}
-                                  , ForkOrJoin {label = 3}
+                                  , Join {label = 3}
                                   , History {label = 4, historyType = Shallow}
                                   , StateDiagram {
                                       substates = [ InnerMostState {label = 1, name = ["9"], operations = ""}
@@ -285,7 +285,7 @@ noHistoryTest4Res1Step
   = umlStateDiagram $
     StateDiagram {
       substates = [StateDiagram {
-                     substates = [ForkOrJoin {label = 1}
+                     substates = [Fork {label = 1}
                                  ,CombineDiagram {
                                     substates = [StateDiagram {
                                                   substates = [InnerMostState {label = 1, name = ["1"], operations = ""}
@@ -303,7 +303,7 @@ noHistoryTest4Res1Step
                                                 , connections = []
                                                 , startState = [1]}]
                                                 , label = 2}
-                                               ,ForkOrJoin {label = 3}
+                                               ,Join {label = 3}
                                                ,StateDiagram {
                                                   substates = [InnerMostState {label = 1, name = ["9"], operations = ""}
                                                               ,InnerMostState {label = 2, name = ["10"], operations = ""}]
@@ -351,7 +351,7 @@ noHistoryTest4Res2Step :: UMLStateDiagram [String] Int
 noHistoryTest4Res2Step
   = umlStateDiagram $
     StateDiagram {
-      substates = [ForkOrJoin {label = 1}
+      substates = [Fork {label = 1}
                   ,CombineDiagram {
                     substates = [StateDiagram {
                                    substates = [InnerMostState {label = 1, name = ["1"], operations = ""}
@@ -369,7 +369,7 @@ noHistoryTest4Res2Step
                                  , connections = []
                                  , startState = [1]}]
                                  , label = 2}
-                                ,ForkOrJoin {label = 3}
+                                ,Join {label = 3}
                                 ,StateDiagram {
                                    substates = [InnerMostState {label = 1, name = ["9"], operations = ""}
                                                ,InnerMostState {label = 2, name = ["10"], operations = ""}]
@@ -415,7 +415,7 @@ noHistoryTest4Res3Step
     StateDiagram {
       substates = [InnerMostState {label = 1, name = ["A","B","D","9"], operations = ""}
                   ,InnerMostState {label = 2, name = ["A","B","D","10"], operations = ""}
-                  ,ForkOrJoin {label = 3}
+                  ,Fork {label = 3}
                   ,CombineDiagram {
                      substates = [StateDiagram {
                                     substates = [InnerMostState {label = 1, name = ["1"], operations = ""}
@@ -433,7 +433,7 @@ noHistoryTest4Res3Step
                                   , connections = []
                                   , startState = [1]}]
                                   , label = 4}
-                  ,ForkOrJoin {label = 5}
+                  ,Join {label = 5}
                   ,StateDiagram {
                      substates = [InnerMostState {label = 1, name = ["6"], operations = ""}
                                  ,InnerMostState {label = 2, name = ["7"], operations = ""}
@@ -472,7 +472,7 @@ noHistoryTest4Res4Step
                   ,InnerMostState {label = 3, name = ["A","E","8"], operations = ""}
                   ,InnerMostState {label = 4, name = ["A","B","D","9"], operations = ""}
                   ,InnerMostState {label = 5, name = ["A","B","D","10"], operations = ""}
-                  ,ForkOrJoin {label = 6}
+                  ,Fork {label = 6}
                   ,CombineDiagram {
                      substates = [StateDiagram {
                                     substates = [InnerMostState {label = 1, name = ["1"], operations = ""}
@@ -490,7 +490,7 @@ noHistoryTest4Res4Step
                                   , connections = []
                                   , startState = [1]}]
                                   , label = 7}
-                                 ,ForkOrJoin {label = 8}]
+                                 ,Join {label = 8}]
                    , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
                    , name = [""]
                    , connections = [Connection {pointFrom = [7,1,1], pointTo = [3], transition = "i"}
@@ -555,7 +555,7 @@ implicitExitTask85Res1Step
                                                                              , name = ["A","B","D"]
                                                                              , connections = []
                                                                              , startState = [1]}
-                                                              , ForkOrJoin {label = 3}
+                                                              , Join {label = 3}
                                                               , StateDiagram { substates = [ InnerMostState {label = 1, name = ["6"], operations = ""}
                                                                                            , InnerMostState {label = 2, name = ["7"], operations = ""}
                                                                                            , InnerMostState {label = 3, name = ["8"], operations = ""}]
@@ -563,7 +563,7 @@ implicitExitTask85Res1Step
                                                                              , name = ["A","E"]
                                                                              , connections = []
                                                                              , startState = [3]}
-                                                              , ForkOrJoin {label = 5}]
+                                                              , Fork {label = 5}]
                  , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
                  , name = [""]
                  , connections = [ Connection {pointFrom = [5], pointTo = [1,1,1], transition = ""}

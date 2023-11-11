@@ -102,7 +102,7 @@ drawWrapper style a (Leaf b c d l rightType layouts) = if d == "" then appendEdg
 drawWrapper _ a (Hist b histType l rightType layouts) = appendEdges ((if
   histType == Deep then drawText "H*" else drawText "H") black <> circle 0.25
   # lc black) l rightType layouts # named (a ++ [b])
-drawWrapper _ a (Fork b layouts l rightType) = if layouts == Vertical then
+drawWrapper _ a (ForkOrJoin b layouts l rightType) = if layouts == Vertical then
   appendEdges (rect 1 0.1 # fc black) l rightType Horizontal # named (a ++
   [b]) else appendEdges (rect 0.1 1 # fc black) l rightType Vertical # named
   (a ++ [b])
@@ -203,7 +203,8 @@ toWrapper :: StateDiagram String Int [Connection Int] -> Wrapper
 toWrapper (EndState a ) = EndS a 0 NoConnection Unspecified
 toWrapper (History a b) = Hist a b 0 NoConnection Unspecified
 toWrapper (InnerMostState a b c) = Leaf a b c 0 NoConnection Unspecified
-toWrapper (ForkOrJoin a) = Fork a Unspecified 0 NoConnection
+toWrapper (Fork a) = ForkOrJoin a Unspecified 0 NoConnection
+toWrapper (Join a) = ForkOrJoin a Unspecified 0 NoConnection -- Fork and Join are the same for our Haskell-(diagram lib) renderer, right?
 toWrapper s@CombineDiagram {} = AndDecomposition (fmap toWrapper (substates s)) (label
   s) Unspecified 0 NoConnection Unspecified
 toWrapper s@StateDiagram {} = OrDecomposition toWrapper' (label s) (name s)
@@ -447,7 +448,7 @@ changeOrLayout s@OrDecomposition {} b = case layered s of
     (layout a) (maxLabel s) (lengthXY s) (rightC s) b
   _ -> OrDecomposition (layered s) (key s) (strings s) (typedConnections s)
     (layout s) (maxLabel s) (lengthXY s) (rightC s) b
-changeOrLayout s@Fork {} a = Fork (key s) a (lengthXY s) (rightC s)
+changeOrLayout s@ForkOrJoin {} a = ForkOrJoin (key s) a (lengthXY s) (rightC s)
 changeOrLayout s@Dummy {} a = Dummy (key s) a (lengthXY s)
 changeOrLayout s@AndDecomposition {} a = AndDecomposition (component s) (key s) (layout s)
   (lengthXY s) (rightC s) a
@@ -696,7 +697,7 @@ changeRightConnection s@OrDecomposition {} a = OrDecomposition (layered s) (key 
 changeRightConnection s@AndDecomposition {} a = AndDecomposition (component s) (key s) (layout
   s) (lengthXY s) a (outerLayout s)
 changeRightConnection s@EndS {} a = EndS (key s) (lengthXY s) a (outerLayout s)
-changeRightConnection s@Fork {} a = Fork (key s) (outerLayout s) (lengthXY s) a
+changeRightConnection s@ForkOrJoin {} a = ForkOrJoin (key s) (outerLayout s) (lengthXY s) a
 changeRightConnection s@Hist {} a = Hist (key s) (history s) (lengthXY s) a
   (outerLayout s)
 changeRightConnection s@Leaf {} a = Leaf (key s) (strings s) (operation s)
@@ -796,10 +797,10 @@ changeLength l s = case s of
         (l - h) (rightC s) (outerLayout s)
     | otherwise -> Transition (key s) (transitionName s)
         (l - w) (rightC s) (outerLayout s)
-  Fork {}
-    | outerLayout s == Vertical -> Fork (key s) (outerLayout s)
+  ForkOrJoin {}
+    | outerLayout s == Vertical -> ForkOrJoin (key s) (outerLayout s)
         (l - h) (rightC s)
-    | otherwise -> Fork (key s) (outerLayout s) (l - w) (rightC s)
+    | otherwise -> ForkOrJoin (key s) (outerLayout s) (l - w) (rightC s)
   StartS {}
     | outerLayout s == Vertical -> StartS (key s) (l - h) (rightC s)
         (outerLayout s)
@@ -949,7 +950,7 @@ checkWrapper a
   | not (checkOuterMostWrapper b) = Just ("Error: Outermost layer must be "
     ++ "'OrDecomposition' constructor")
   | not (checkOrDecompositionSubstates b) = Just ("Error: Substates of OrDecomposition "
-    ++ "constructor cannot be empty or just Hist/Fork/StartS/Dummy/Transition")
+    ++ "constructor cannot be empty or just Hist/ForkOrJoin/StartS/Dummy/Transition")
   | not (checkAndDecompositionSubstates b) = Just ("Error: AndDecomposition constructor must "
     ++ "contain at least 2 OrDecomposition and no other type of constructor")
   | not (checkLayout b) = Just ("Error: Horizontal slicing must be followed by "

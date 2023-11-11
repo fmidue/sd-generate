@@ -30,7 +30,8 @@ checkSubstatesSD (StateDiagram a _ _ _ _) = any checkListInSD a && all checkSubs
 checkSubstatesSD _ = True
 
 checkListInSD :: StateDiagram n Int [Connection Int] -> Bool
-checkListInSD ForkOrJoin {} = False
+checkListInSD Join {} = False
+checkListInSD Fork {} = False
 checkListInSD History {} = False
 checkListInSD _ = True
 

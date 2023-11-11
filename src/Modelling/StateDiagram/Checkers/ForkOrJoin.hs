@@ -2,7 +2,7 @@
 {-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# LANGUAGE NamedFieldPuns #-}
 
-module Modelling.StateDiagram.Checkers.ForkOrJoin (checkForkOrJoin) where
+module Modelling.StateDiagram.Checkers.ForkOrJoin (checkForkAndJoin) where
 
 import Modelling.StateDiagram.Datatype (
   Connection(..),
@@ -16,8 +16,8 @@ import Modelling.StateDiagram.Datatype (
 import Modelling.StateDiagram.Checkers.Helpers (globalStart, notForkOrJoin)
 import Data.List.Extra
 
-checkForkOrJoin :: UMLStateDiagram n Int -> Maybe String
-checkForkOrJoin a
+checkForkAndJoin :: UMLStateDiagram n Int -> Maybe String
+checkForkAndJoin a
   | not (checkTransition a) =
       Just "transitions from/to some ForkOrJoins are not in line with standards."
   | not (checkManyToOne a) =
@@ -120,9 +120,10 @@ addressesOfForkOrJoins :: UMLStateDiagram n Int -> [[Int]]
 addressesOfForkOrJoins = unUML
   $ \_ substates _ _ -> concatMap addressesOfForkOrJoins' substates
   where
-    addressesOfForkOrJoins' ForkOrJoin {label} = [[label]]
-    addressesOfForkOrJoins' StateDiagram {label, substates}   =
-      map (label:) $ concatMap addressesOfForkOrJoins' substates
+    addressesOfForkOrJoins' Fork {label} = [[label]] -- well this is really a smell, but i need to figure out
+    addressesOfForkOrJoins' Join {label} = [[label]] -- how this (entire) checker is used before i can do a more thorough assessment here
+    addressesOfForkOrJoins' StateDiagram {label, substates}   =  -- it could need some rework, because we could now assert the direction
+      map (label:) $ concatMap addressesOfForkOrJoins' substates -- of the transitions more easily by the constructor used to ensure they are right
     addressesOfForkOrJoins' CombineDiagram {label, substates} =
       map (label:) $ concatMap addressesOfForkOrJoins' substates
     addressesOfForkOrJoins' _ = []

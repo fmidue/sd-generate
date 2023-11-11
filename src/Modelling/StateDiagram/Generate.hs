@@ -31,7 +31,20 @@ import Data.List.Extra(allSame)
 import Test.QuickCheck hiding(label,labels)
 
 -- define random Node value
-data NodeType = Hist | End | Inner | Comb | Stat | Join  deriving Eq
+data NodeType = Hist | End | Inner | Comb | Stat | JoinN  deriving Eq
+{-
+TODO: it is not immediately clear, whether JoinN is ForkOrJoin or not.
+      because if it is, then we have to adjust that now by using
+      our new node constructors to avoid breaking the generator
+      and ending up with only one node type.
+
+      edit: after looking at the code, it seems that JoinN is
+            indeed ForkOrJoin, so we will have to adjust the generator
+            to use the new node constructors, but for now we might
+            get away with tricking the generator into spawning both
+            node types.
+-}
+
 
 -- the substates of SD must obey some rules
 checkSubType :: Int -> Bool -> Bool -> [NodeType] -> Bool
@@ -48,7 +61,7 @@ checkSubType subNum outermost leastTwoLevels x =
       endNum = filter (== End) x
       cdNum = filter (== Comb) x
       sdNum = filter (== Stat) x
-      joinNum = filter (== Join) x
+      joinNum = filter (== JoinN) x
 
 -- choose name for each components in order to satisfy (checkSubNameUniq)
 chooseName :: [NodeType] -> [String] -> [[String]]
@@ -110,11 +123,11 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
   labels <- shuffle  [1..(n+1)]
   -- shuffle to achieve random assignment of label
   let counter = c - 1
-      chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(10,return Join)]
+      chooseNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(1,return Comb),(1,return Stat),(10,return JoinN)]
       -- all types
       chooseNoCombForkOrJoinNodeTypes = frequency
         [(1,return Hist),(1,return End),(5,return Inner),(1,return Stat)]
-      chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(5,return Join)]
+      chooseNoSubNodeTypes = frequency [(1,return Hist),(1,return End),(5,return Inner),(5,return JoinN)]
       -- types that have no substates
       chooseNoSubForkOrJoinNodeTypes = frequency
         [(1,return Hist),(1,return End),(5,return Inner)]
@@ -125,7 +138,7 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
                             (False,False) -> chooseNoSubNodeTypes )
                               `suchThat` checkSubType n outermost leastTwoLevels
   -- check counter > 0 to limit the depth the diagram
-  let newMustCD = (Join `elem` subTypes1 && cdMaxNum /= 0) || mustCD
+  let newMustCD = (JoinN `elem` subTypes1 && cdMaxNum /= 0) || mustCD
       subTypes = case (c > 0, newMustCD) of
                   (True,True) ->  case (Comb `elem` subTypes1, Stat `elem` subTypes1) of
                                     (True,_) -> subTypes1
@@ -224,7 +237,8 @@ randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
        Inner -> return (InnerMostState l nm "")
        Comb -> randomCD counter cdMaxNum ns alphabet l s exclude
        Stat -> randomSD' False counter cdMaxNum False ns alphabet (l,nm,mustCD) exclude
-       Join -> return (ForkOrJoin l)
+       JoinN -> frequency [(1,return (Fork l)),(1,return (Join l))] -- lets be naive and assume that JoinN was used for both Fork and Join
+                                                                           -- and hope the tests can catch the altered return if im wrong.
 
 randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen (StateDiagram String Int [Connection Int])
 randomCD counter cdMaxNum ns alphabet l s exclude = do

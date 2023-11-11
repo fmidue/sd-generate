@@ -54,13 +54,7 @@ jobs:
           spell_check_this: check-spelling/spell-check-this@prerelease
           post_comment: 0
           experimental_apply_changes_via_bot: 1
-          extra_dictionaries: ''
-           # cspell:latex/latex.txt
-           # cspell:filetypes/filetypes.txt
-           # cspell:software-terms/softwareTerms.txt
-           # cspell:companies/companies.txt
-           # cspell:haskell/haskell.txt
-           # what is the chance of this to work without a migration? cspell_old
+          extra_dictionaries: '' # it seems to be quite good figuring out the dictionaries needed by itself
   comment:
     name: Report
     runs-on: ubuntu-latest

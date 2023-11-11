@@ -184,8 +184,10 @@ matchNodeToRelation r
                                , .. }
            EndState { label }
              -> EndState { label = matchToRelation label r }
-           ForkOrJoin { label }
-             -> ForkOrJoin { label = matchToRelation label r }
+           Fork { label }
+             -> Fork { label = matchToRelation label r }
+           Join { label }
+             -> Join { label = matchToRelation label r}
            History { label
                    , .. }
               -> History { label = matchToRelation label r

@@ -62,7 +62,7 @@ data Wrapper =
       rightC      :: RightConnect,
       outerLayout :: Layout
       }
-  | Fork { key :: Int,
+  | ForkOrJoin { key :: Int,
            outerLayout :: Layout,
            lengthXY :: Double,
            rightC :: RightConnect
@@ -161,7 +161,8 @@ rename f = unUML $
     recurse StateDiagram{..} = StateDiagram{name = f name, substates = map recurse substates, ..}
     recurse CombineDiagram{..} = CombineDiagram{substates = map recurse substates, ..}
     recurse EndState{..} = EndState{..}
-    recurse ForkOrJoin{..} = ForkOrJoin{..}
+    recurse Fork{..} = Fork{..}
+    recurse Join{..} = Join{..}
     recurse History{..} = History{..}
     recurse InnerMostState{..} = InnerMostState{name = f name, ..}
 
@@ -174,19 +175,14 @@ data StateDiagram n l a = StateDiagram { substates :: [StateDiagram n l a],
                      | CombineDiagram { substates :: [StateDiagram n l a],
                                         label :: l
                                       }
-                     | EndState {
-                         label :: l
-                         }
-                     | ForkOrJoin {
-                         label :: l
-                             }
-                     | History { label :: l,
-                                 historyType :: HistoryType
-                               }
-                     | InnerMostState { label :: l,
-                                        name :: n,
-                                        operations :: String
-                                      }
+                     | EndState { label :: l }
+                     | Fork { label :: l}
+                     | Join { label :: l}
+                     | History { label :: l
+                               , historyType :: HistoryType }
+                     | InnerMostState { label :: l
+                                      , name :: n
+                                      , operations :: String }
   deriving (Eq, Foldable, Functor, Read, Show, Traversable)
 
 data Layout = Vertical | Horizontal | Unspecified

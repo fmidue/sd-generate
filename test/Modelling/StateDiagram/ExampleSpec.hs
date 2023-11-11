@@ -29,7 +29,7 @@ allTheCheckers =
   , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
   , ("checkEndState", checkEndState)
-  , ("checkForkOrJoin", checkForkOrJoin)
+  , ("checkForkAndJoin", checkForkAndJoin)
   , ("checkHistory", checkHistory)
   , ("checkSemantics", checkSemantics)
   , ("checkWrapper", checkWrapper . unUML')

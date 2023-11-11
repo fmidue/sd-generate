@@ -210,7 +210,23 @@ renderNode History { label, historyType } Inherited{ctxt} =
   , shallowHistoryNodes = historyType == Shallow
   }
 
-renderNode ForkOrJoin {label} Inherited {ctxt, connectionSources} =
+-- TODO: use the constructor to avoid the assessment of the node type
+--       and refactor this correctly
+renderNode Fork {label} Inherited {ctxt, connectionSources} =
+  let
+    here = ctxt ++ [label]
+    node = [i|N_#{address here}|]
+    isFork = length (filter (node==) connectionSources) > 1
+  in
+  defaultSynthesized
+  { alloy = [i|one sig #{node} extends #{if isFork then "Fork" else "Join"}Nodes{}|]
+  , rootNodes = [node]
+  , forkNodes = isFork
+  , joinNodes = not isFork
+  }
+
+-- TODO: same as above
+renderNode Join {label} Inherited {ctxt, connectionSources} =
   let
     here = ctxt ++ [label]
     node = [i|N_#{address here}|]

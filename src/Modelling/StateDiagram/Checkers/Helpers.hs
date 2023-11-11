@@ -124,7 +124,8 @@ notForkOrJoin [x] a = all (isNotForkOrJoin x) a
 notForkOrJoin (x:xs) a = notForkOrJoin xs (getSubstates x a)
 
 isNotForkOrJoin :: Int -> StateDiagram n Int [Connection Int] -> Bool
-isNotForkOrJoin a ForkOrJoin {label} = a /= label
+isNotForkOrJoin a Fork {label} = a /= label
+isNotForkOrJoin a Join {label} = a /= label
 isNotForkOrJoin _ _ = True
 
 lastSecNotCD :: [Int] -> [StateDiagram n Int [Connection Int]]-> Bool

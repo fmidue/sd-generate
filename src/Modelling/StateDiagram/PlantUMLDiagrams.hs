@@ -105,12 +105,13 @@ renderSubstates (x:xs) inherited@Inherited{ style, ctxt, connectionSources } =
 
     History {} -> (rest, restNames)
 
-    ForkOrJoin { label } ->
-      let
-        node = ("N_" ++ address "" (ctxt ++ [label]))
-        isFork = length (filter (node==) connectionSources) > 1
-      in
-        ([i|state #{node} #{if isFork then "<<fork>>" else "<<join>>"}|] ++ "\n" ++ rest, restNames)
+    -- split into two cases now
+    Fork { label }
+      -> let node = ("N_" ++ address "" (ctxt ++ [label])) in
+         ([i|state #{node} <<fork>>|] ++ "\n" ++ rest, restNames)
+    Join { label }
+      -> let node = ("N_" ++ address "" (ctxt ++ [label])) in
+         ([i|state #{node} <<join>>|] ++ "\n" ++ rest, restNames)
 
 renderRegions :: [StateDiagram String Int [Connection Int]] -> Inherited -> (String, [String])
 renderRegions [] _ = ("", [])

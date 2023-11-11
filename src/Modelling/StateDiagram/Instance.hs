@@ -51,7 +51,9 @@ newtype State = State String
   deriving (Eq, Ord, Read, Show)
 newtype CompositeState = CompositeState String
   deriving (Eq, Ord, Read, Show)
-newtype ForkJoinNode = ForkJoinNode String
+newtype ForkNode = ForkNode String
+  deriving (Eq, Ord, Read, Show)
+newtype JoinNode = JoinNode String
   deriving (Eq, Ord, Read, Show)
 newtype EndNode = EndNode String
   deriving (Eq, Ord, Read, Show)
@@ -66,7 +68,8 @@ newtype Trigger = Trigger String
 data Node =
   CNode CompositeState
   | ENode EndNode
-  | FJNode ForkJoinNode
+  | FNode ForkNode
+  | JNode JoinNode
   | HNode HistoryNode
   | RNode RegionState
   | SNode State
@@ -76,7 +79,8 @@ data Node =
 data Nodes = Nodes {
   cNodes  :: Set CompositeState,
   eNodes  :: Set EndNode,
-  fjNodes :: Set ForkJoinNode,
+  fNodes :: Set ForkNode, -- use the newtype(s) from above
+  jNodes :: Set JoinNode,
   hNodes  :: Set HistoryNode,
   rNodes  :: Set RegionState,
   sNodes  :: Set State,
@@ -87,7 +91,8 @@ toSet :: Nodes -> Set Node
 toSet ns = S.unions [
   CNode `S.mapMonotonic` cNodes ns,
   ENode `S.mapMonotonic` eNodes ns,
-  FJNode `S.mapMonotonic` fjNodes ns,
+  FNode `S.mapMonotonic` fNodes ns,  -- again, use our newtype(s) from above
+  JNode `S.mapMonotonic` jNodes ns,  -- in place of the old variant
   HNode `S.mapMonotonic` hNodes ns,
   RNode `S.mapMonotonic` rNodes ns,
   SNode `S.mapMonotonic` sNodes ns,
@@ -105,15 +110,14 @@ parseInstance scope insta = do
     <$> getAs "Regions" CompositeState
     <*> getAs "HierarchicalStates" CompositeState
   regions <- getAs "RegionsStates" RegionState
-  forkJoins <- S.union
-    <$> getAs "ForkNodes" ForkJoinNode
-    <*> getAs "JoinNodes" ForkJoinNode
+  forks <- getAs "ForkNodes" ForkNode -- never written a parser in Haskell and might like to look into this later
+  joins <- getAs "JoinNodes" JoinNode -- but since we are in two different types now, splitting the sets looks about right
   ends <- getAs "EndNodes" EndNode
   histories <- S.union
     <$> getAs "ShallowHistoryNodes" (HistoryNode Shallow)
     <*> getAs "DeepHistoryNodes" (HistoryNode Deep)
   stnodes <- getAs "StartNodes" StartNode
-  let nodes = Nodes composites ends forkJoins histories regions states stnodes
+  let nodes = Nodes composites ends forks joins histories regions states stnodes
   compositeContains <- fmap (S.mapMonotonic $ first CNode) $ S.union
     <$> getContains scope insta nodes "Regions" CompositeState
     <*> getContains scope insta nodes "HierarchicalStates" CompositeState
@@ -123,8 +127,8 @@ parseInstance scope insta = do
     <$> getNames scope insta nodes "States" ComponentName
     <*> getNames scope insta nodes "Regions" ComponentName
   let hierarchy = toForest
-        (S.toAscList $ S.union compositeContains regionContains)
-        $ flip Node [] <$> S.toAscList (toSet nodes)
+        (S.toAscList $ S.union compositeContains regionContains)  -- there are no further occurrences of forks or joins here
+        $ flip Node [] <$> S.toAscList (toSet nodes)              -- so ill just assume things should be fine
       names = M.fromList $ zip (nubOrd $ M.elems componentNames) $ pure <$> ['A'..]
       getName x = fromMaybe "" $ M.lookup x componentNames >>= (`M.lookup` names)
   (starts, conns) <- S.partition (isStartNode . (\(x, _, _) -> x))
@@ -220,7 +224,8 @@ treeToStateDiagram getName getStart n = case node of
     startState = getStart (Just node)
     }
   ENode {} -> EndState { label = l }
-  FJNode {} -> ForkOrJoin { label = l }
+  JNode {} -> Join { label = l }  -- this should assemble both nodes
+  FNode {} -> Fork { label = l }  -- separately now
   HNode (HistoryNode t _) -> History {
     label = l,
     historyType = t
@@ -233,9 +238,9 @@ treeToStateDiagram getName getStart n = case node of
     label = l,
     name = getName node,
     operations = ""
-    }
-  where
-    l = last $ snd root
+    }   -- the missing StNode pattern match complaint is not really an issue, as we
+  where -- use the startState field instead of a node type in our data type
+    l = last $ snd root  -- maybe just error out again?
     root = rootLabel n
     node = fst root
     fromTree = treeToStateDiagram getName (stail . getStart)
@@ -357,7 +362,8 @@ toNode
 toNode ns x i = ifX CNode CompositeState cNodes
   $ ifX StNode StartNode stNodes
   $ ifX ENode EndNode eNodes
-  $ ifX FJNode ForkJoinNode fjNodes
+  $ ifX FNode ForkNode fNodes
+  $ ifX JNode JoinNode jNodes
   $ ifX RNode RegionState rNodes
   $ ifX SNode State sNodes
   $ ifX HNode (HistoryNode Shallow) hNodes
@@ -367,5 +373,5 @@ toNode ns x i = ifX CNode CompositeState cNodes
     ifX f g which h =
       let node = toX g x i
       in if node `S.member` which ns
-         then return $ f node
+         then return $ f node  -- interesting
          else h

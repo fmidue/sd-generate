@@ -28,7 +28,7 @@ import Modelling.StateDiagram.Checkers
     ( checkCrossings,
       checkDrawability,
       checkEndState,
-      checkForkOrJoin,
+      checkForkAndJoin,
       checkHistory,
       checkNameUniqueness,
       checkRepresentation,
@@ -89,7 +89,7 @@ checkers =
   , ("checkNameUniqueness", checkNameUniqueness)
   , ("checkUniqueness", checkUniqueness)
   , ("checkEndState", checkEndState)
-  , ("checkForkOrJoin", checkForkOrJoin)
+  , ("checkForkAndJoin", checkForkAndJoin)
   , ("checkHistory", checkHistory)
   , ("checkSemantics", checkSemantics)
   , ("checkDrawability", checkDrawability)
