@@ -7,7 +7,7 @@ state "A" as N_1{
 
 state "B" as N_1_1{
 
-state N_1_1_1 <<join>>
+state N_1_1_1 <<fork>>
 state "RegionsState" as N_1_1_2{
 
 state "1" as N_1_1_2_1_1

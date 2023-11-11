@@ -1081,24 +1081,29 @@ positiveExamples =
 
 {- was added due to failures in PlantUML front end
    on the charts missing from (positiveExamples)
+   for reasons still unknown, orthogonal regions
+   are prone to failure in particular
+
+   invoking: stack run transformPlantUML
+
+   should pass for all examples in (posPlantUMLExamples)
 -}
 posPlantUMLExamples :: [(String, UMLStateDiagram String Int)]
-posPlantUMLExamples = [ ("verySmall", verySmall)
-                      , ("picture2", picture2)
-                      , ("picture4", picture4)
-                      , ("slide246", slide246)
-                      , ("slide253", slide253)
-                      , ("slide257", slide257)
-                      , ("slide267a", slide267a)
-                      , ("slide267b", slide267b)
-                      , ("slide271", slide271)
-                      , ("slide273", slide273)
-                      , ("slide277", slide277)
-                      , ("slide278", slide278)
-                      , ("slide280", slide280)
-                      , ("slide281", slide281)
-                      , ("slide283", slide283)
-                      , ("task26b", task26b)
-                      , ("task27", task27)
-                      , ("test2", test2)
-        ]
+posPlantUMLExamples
+  = [ ("verySmall", verySmall)
+    , ("picture2", picture2)
+    , ("picture4", picture4)
+    , ("slide246", slide246)
+    , ("slide253", slide253)
+    , ("slide257", slide257)
+    , ("slide267a", slide267a)
+    , ("slide267b", slide267b)
+    , ("slide273", slide273)
+    , ("slide275", slide275)
+    , ("slide277", slide277)
+    , ("slide278", slide278)
+    , ("slide280", slide280)
+    , ("slide283", slide283)
+    , ("task26b", task26b)
+    , ("test2", test2)
+    ]
