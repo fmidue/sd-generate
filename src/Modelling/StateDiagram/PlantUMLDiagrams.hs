@@ -24,17 +24,13 @@ import Data.List.Extra (nubOrd)
 import Language.PlantUML.Call (drawPlantUMLDiagram, DiagramType (SVG))
 import Data.ByteString.Char8 (pack, unpack)
 
-data Inherited = Inherited { style :: Styling
-                           , ctxt :: [Int]
-                           }
-
 renderAll :: Styling -> UMLStateDiagram String Int -> IO String
 renderAll style sd = do
   colors <- generate (infiniteListOf (vectorOf 3 (vectorOf 2 (elements "0123456789abcdef")) `suchThat` (\[r,g,b] -> r /= g || g /= b)))
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
-    inherited = Inherited { style, ctxt = [] }
-    (rendered, relevantNames) = renderUML sd inherited
+    ctxt = []
+    (rendered, relevantNames) = renderUML style ctxt sd
     theStyling =
       case style of
         Unstyled
@@ -56,21 +52,21 @@ renderAll style sd = do
 @enduml
 |]
 
-renderUML :: UMLStateDiagram String Int -> Inherited -> (String, [String])
-renderUML sd inherited =
-  flip unUML sd $ \_ substates connections startState ->
-                                    let hn = getAllHistory substates inherited
-                                        (theSubstates, relevantNames) = renderSubstates substates inherited
+renderUML :: Styling -> [Int] -> UMLStateDiagram String Int -> (String, [String])
+renderUML style ctxt =
+  unUML $ \_ substates connections startState ->
+                                    let hn = getAllHistory substates ctxt
+                                        (theSubstates, relevantNames) = renderSubstates substates style ctxt
                                     in
                                     ([i|
 #{theSubstates}
-#{renderStart startState inherited}
-#{renderConnections hn connections inherited}|], relevantNames)
+#{renderStart startState ctxt}
+#{renderConnections hn connections ctxt}|], relevantNames)
 
-renderSubstates :: [StateDiagram String Int [Connection Int]] -> Inherited -> (String, [String])
-renderSubstates [] _ = ("",[])
-renderSubstates (x:xs) inherited@Inherited{ style, ctxt } =
-  let (rest, restNames) = renderSubstates xs inherited in
+renderSubstates :: [StateDiagram String Int [Connection Int]] -> Styling -> [Int] -> (String, [String])
+renderSubstates [] _ _ = ("",[])
+renderSubstates (x:xs) style ctxt =
+  let (rest, restNames) = renderSubstates xs style ctxt in
   case x of
 
     StateDiagram{ label, name } ->
@@ -80,14 +76,14 @@ renderSubstates (x:xs) inherited@Inherited{ style, ctxt } =
         where
           theName = if null name then "\"" ++ "EmptyName" ++ "\"" else show name
           theStyle = if null name || style == Unstyled then "" else " <<" ++ name ++ ">>"
-          (recursively, namesRecursively) = renderUML (umlStateDiagram x) Inherited{ style, ctxt = ctxt ++ [label] }
+          (recursively, namesRecursively) = renderUML style (ctxt ++ [label]) (umlStateDiagram x)
 
     CombineDiagram{ substates, label } ->
        ([i|state "RegionsState" as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "{\n"
         ++ recursively ++ "}\n"
         ++ rest, namesRecursively ++ restNames)
         where
-          (recursively, namesRecursively) = renderRegions substates Inherited{ style, ctxt = ctxt ++ [label] }
+          (recursively, namesRecursively) = renderRegions substates style (ctxt ++ [label])
 
     EndState { label } ->
        ([i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n" ++ rest, restNames)
@@ -109,42 +105,42 @@ renderSubstates (x:xs) inherited@Inherited{ style, ctxt } =
       -> let node = ("N_" ++ address "" (ctxt ++ [label])) in
          ([i|state #{node} <<join>>|] ++ "\n" ++ rest, restNames)
 
-renderRegions :: [StateDiagram String Int [Connection Int]] -> Inherited -> (String, [String])
-renderRegions [] _ = ("", [])
-renderRegions (r:rs) inherited@Inherited{ style, ctxt } =
-  let (rest, restNames) = renderRegions rs inherited in
+renderRegions :: [StateDiagram String Int [Connection Int]] -> Styling -> [Int] -> (String, [String])
+renderRegions [] _ _ = ("", [])
+renderRegions (r:rs) style ctxt =
+  let (rest, restNames) = renderRegions rs style ctxt in
   case r of
     StateDiagram{ label } ->
         (recursively ++ if null rs then "" else "--\n" ++ rest, namesRecursively ++ restNames)
         where
-          (recursively, namesRecursively) = renderUML (umlStateDiagram r) Inherited{ style, ctxt = ctxt ++ [label] }
+          (recursively, namesRecursively) = renderUML style (ctxt ++ [label]) (umlStateDiagram r)
 
     _ -> error "impossible!"
 
-renderStart :: [Int] -> Inherited -> String
+renderStart :: [Int] -> [Int] -> String
 renderStart [] _ = []
-renderStart target Inherited{ctxt} =
+renderStart target ctxt =
   let
     here_target = ctxt ++ target
   in
     [i|[*] -> N_#{address "" here_target}|] ++ "\n"
 
-renderConnections :: [(StateDiagram String Int [Connection Int], [Int])] -> [Connection Int] -> Inherited -> String
+renderConnections :: [(StateDiagram String Int [Connection Int], [Int])] -> [Connection Int] -> [Int] -> String
 renderConnections _ [] _ = []
-renderConnections [] (Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt } =
+renderConnections [] (Connection{ pointFrom, pointTo, transition }:cs) ctxt =
   let
     here_pointFrom = ctxt ++ pointFrom
     here_pointTo = ctxt ++ pointTo
   in
     [i|N_#{address "" here_pointFrom} --> N_#{address "" here_pointTo}#{if null transition then "\n" else " : " ++ transition ++ "\n"}|]
-    ++ renderConnections [] cs inherited
-renderConnections hn@((History{ historyType },completeLabel):hs) cx@(Connection{ pointFrom, pointTo, transition }:cs) inherited@Inherited{ ctxt }
-  | completeLabel == here_pointFrom    = from_hc ++ renderConnections hn cs inherited
-  | completeLabel == here_pointTo      = to_hc ++ renderConnections hn cs inherited
+    ++ renderConnections [] cs ctxt
+renderConnections hn@((History{ historyType },completeLabel):hs) cx@(Connection{ pointFrom, pointTo, transition }:cs) ctxt
+  | completeLabel == here_pointFrom    = from_hc ++ renderConnections hn cs ctxt
+  | completeLabel == here_pointTo      = to_hc ++ renderConnections hn cs ctxt
   | otherwise                          = let
-                                           str = if null hs then [] else renderConnections hs cx inherited
+                                           str = if null hs then [] else renderConnections hs cx ctxt
                                          in
-                                           if null str then oc ++ renderConnections hn cs inherited else str
+                                           if null str then oc ++ renderConnections hn cs ctxt else str
     where
       here_pointFrom = ctxt ++ pointFrom
       here_pointTo = ctxt ++ pointTo
@@ -160,26 +156,26 @@ address :: String -> [Int] -> String
 address "" as = intercalate "_" (map show as)
 address h as = intercalate "_" (map show (init as)) ++ h
 
-getAllHistory :: [StateDiagram String Int a] -> Inherited -> [(StateDiagram String Int a, [Int])]
+getAllHistory :: [StateDiagram String Int a] -> [Int] -> [(StateDiagram String Int a, [Int])]
 getAllHistory [] _ = []
-getAllHistory (x:xs) inherited@Inherited{ ctxt } =
+getAllHistory (x:xs) ctxt =
   case x of
     StateDiagram{ substates, label } ->
       let
         here = ctxt ++ [label]
       in
-        getAllHistory substates Inherited{ ctxt = here }
+        getAllHistory substates here
 
     CombineDiagram{ substates, label } ->
       let
         here = ctxt ++ [label]
       in
-        getAllHistory substates Inherited{ ctxt = here }
+        getAllHistory substates here
 
     History{label} -> [(x, ctxt ++ [label])]
 
     _ -> []
-  ++ getAllHistory xs inherited
+  ++ getAllHistory xs ctxt
 
 drawSDToFile :: FilePath -> UMLStateDiagram String Int -> IO FilePath
 drawSDToFile path chart
