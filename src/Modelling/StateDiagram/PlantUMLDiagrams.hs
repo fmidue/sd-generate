@@ -31,8 +31,8 @@ renderAll style sd = do
   colors <- generate (infiniteListOf (vectorOf 3 (vectorOf 2 (elements "0123456789abcdef")) `suchThat` (\[r,g,b] -> r /= g || g /= b)))
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
-    StateDiagram{ connections = connections } = unUML' sd
-    inherited = Inherited {style, ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) connections}
+    StateDiagram{ connections = globalisedConnections } = unUML' (globalise sd)
+    inherited = Inherited {style, ctxt = [], connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address "" pointFrom}|]) globalisedConnections}
     (rendered, relevantNames) = renderUML sd inherited
     theStyling =
       case style of
