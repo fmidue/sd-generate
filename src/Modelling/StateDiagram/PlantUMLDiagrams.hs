@@ -7,7 +7,9 @@
 module Modelling.StateDiagram.PlantUMLDiagrams (renderAll
                                                ,drawSDToFile) where
 
-import Modelling.StateDiagram.Datatype (UMLStateDiagram(unUML')
+import Modelling.StateDiagram.Datatype
+                (UMLStateDiagram
+                ,unUML
                 ,umlStateDiagram
                 ,StateDiagram(..)
                 ,Connection(..)
@@ -56,9 +58,7 @@ renderAll style sd = do
 
 renderUML :: UMLStateDiagram String Int -> Inherited -> (String, [String])
 renderUML sd inherited =
-  let
-    StateDiagram{ substates, connections, startState } = unUML' sd
-  in
+  flip unUML sd $ \_ substates connections startState ->
                                     let hn = getAllHistory substates inherited
                                         (theSubstates, relevantNames) = renderSubstates substates inherited
                                     in
