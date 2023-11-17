@@ -183,7 +183,7 @@ data StateDiagram n l a = StateDiagram { substates :: [StateDiagram n l a],
                      | InnerMostState { label :: l
                                       , name :: n
                                       , operations :: String }
-  deriving (Eq, Foldable, Functor, Read, Show, Traversable)
+  deriving (Eq, Foldable, Functor, Read, Show, Traversable, Ord)
 
 data Layout = Vertical | Horizontal | Unspecified
   deriving (Eq, Read, Show)

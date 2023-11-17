@@ -50,6 +50,7 @@ library:
     - Modelling.StateDiagram.AlloyDiagrams
     - Modelling.StateDiagram.PlantUMLDiagrams
     - Modelling.StateDiagram.Style
+    - Modelling.StateDiagram.Simulate
   ghc-options:
     - -Wall
     - -Werror

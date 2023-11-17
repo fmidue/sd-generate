@@ -1,4 +1,9 @@
 {-# OPTIONS_GHC -Wno-deprecations   #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wno-unused-binds   #-}
+{-# LANGUAGE OverloadedStrings      #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
+
 module Modelling.StateDiagram.FlattenSpec (
   spec
 ) where
@@ -21,6 +26,7 @@ import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Modelling.StateDiagram.Layout (drawDiagram)
 import Diagrams (dims)
 import Diagrams.Prelude (V2(V2))
+import Modelling.StateDiagram.Flatten (liftCD)
 
 -- this chart should cover most cases within one instance
 -- to avoid cluttering up the test suite with many overly
@@ -48,9 +54,8 @@ probeChart
     ml = Connection {pointFrom = [4,2,1], pointTo = [4,2,2], transition = "ml"}
     lm = Connection {pointFrom = [4,2,2], pointTo = [4,2,1], transition = "lm"}
     eCD = Connection {pointFrom = [3], pointTo = [4], transition = "eCD"}
-    kBenter = Connection {pointFrom = [3,1,2], pointTo = [4,1,1], transition = "kBenter"}
-    -- todo: add self transition to a state within the orthogonal region
-    --       add semi-implicit activation of orthogonal region (i.e. entering only one state explicitly, the rest is triggered implicitly)
+    kl = Connection {pointFrom = [3,1,2], pointTo = [4,2,2], transition = "kl"}
+    cst = Connection {pointFrom = [4,2,1], pointTo = [4,2,1], transition = "cst"}
     in
     umlStateDiagram $
     StateDiagram { substates = [fs,isD,sdE,cd,fork,join]
@@ -59,7 +64,7 @@ probeChart
                  , connections = [dt,gd,de,jd,kj,lst
                                  ,gf,est,enter,in1,in2
                                  ,ft,exit,ex1,ex2,cb,bc
-                                 ,ml,lm,eCD,kBenter]
+                                 ,ml,lm,eCD,kl,cst]
                  , startState = [3]}
     where
     fs = EndState { label = 1 }
@@ -180,7 +185,8 @@ probeChartLiftedSDe
                                                , Connection {pointFrom = [5,2,2], pointTo = [5,2,1], transition = "lm"}
                                                , Connection {pointFrom = [1], pointTo = [5], transition = "eCD"}
                                                , Connection {pointFrom = [2], pointTo = [5], transition = "eCD"}
-                                               , Connection {pointFrom = [1,2], pointTo = [5,1,1], transition = "kBenter"}]
+                                               , Connection {pointFrom = [1,2], pointTo = [5,2,2], transition = "kl"}
+                                               , Connection {pointFrom = [5,2,1], pointTo = [5,2,1], transition = "cst"}]
                                 , startState = [1] }
 
 probeChartLiftedSDeAndSDg :: UMLStateDiagram [String] Int
@@ -256,7 +262,8 @@ probeChartLiftedSDeAndSDg
                                  , Connection {pointFrom = [1], pointTo = [6], transition = "eCD"}
                                  , Connection {pointFrom = [2], pointTo = [6], transition = "eCD"}
                                  , Connection {pointFrom = [3], pointTo = [6], transition = "eCD"}
-                                 , Connection {pointFrom = [2], pointTo = [6,1,1], transition = "kBenter"}
+                                 , Connection {pointFrom = [2], pointTo = [6,2,2], transition = "kl"}
+                                 , Connection {pointFrom = [6,2,1], pointTo = [6,2,1], transition = "cst"}
                                  ]
                  , startState = [1]}
 
@@ -285,7 +292,6 @@ spec
       it "probe chart satisfies Haskell chart checkers" $ do
         let result = map (($ renderable probeChart) . snd) allTheCheckers
         all (Nothing ==) result `shouldBe` True
-      -- todo: maybe target against alloy too?
       it "flatten - lift SD(E) of probeChart" $ do
         let result = flatten probeChart
         result `shouldBe` probeChartLiftedSDe
@@ -298,17 +304,14 @@ spec
       it "flatten - lift SD(E) and then SD(G) of probeChart with initial state set to D instead of SD(E)" $ do
         let result = flatten' $ flatten $ withInitialState [2] probeChart
         result `shouldBe` withInitialState [5] probeChartLiftedSDeAndSDg
-     -- it "print flat and non-flat probeChart to /temp/*.svg files using PlantUML" $ do
-     --   let result = flatten' $ flatten probeChart
-     --   createDirectoryIfMissing True "./temp"
-     --   nonFlat <- drawSDToFile "./temp/PlantUML_probeChart.svg" $ renderable probeChart
-     --   flat <- drawSDToFile "./temp/PlantUML_probeChartLiftedSDeAndSDg.svg" $ renderable (rename concat result)
-     --   putStrLn ("saved non-flat in: " ++ nonFlat)
-     --   putStrLn ("saved flat in: " ++ flat)
-     --   return () unfortunately, PlantUML crashes on this diagram
       it "print flat and non-flat probeChart to /temp/*.svg files using internal renderer" $ do
         createDirectoryIfMissing True "./temp"
         renderSVG "./temp/probeChart.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable probeChart)
         renderSVG "./temp/probeChartLiftedSDe.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten probeChart)))
         renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
+        return ()
+      it "debug print liftCD after lifting SD" $ do
+        let result = flatten probeChart
+        let result' = liftCD (fmap Left result)
+        putStrLn (show result')
         return ()
