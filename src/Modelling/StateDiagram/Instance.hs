@@ -79,7 +79,7 @@ data Node =
 data Nodes = Nodes {
   cNodes  :: Set CompositeState,
   eNodes  :: Set EndNode,
-  fNodes :: Set ForkNode, -- use the newtype(s) from above
+  fNodes :: Set ForkNode,
   jNodes :: Set JoinNode,
   hNodes  :: Set HistoryNode,
   rNodes  :: Set RegionState,
@@ -91,8 +91,8 @@ toSet :: Nodes -> Set Node
 toSet ns = S.unions [
   CNode `S.mapMonotonic` cNodes ns,
   ENode `S.mapMonotonic` eNodes ns,
-  FNode `S.mapMonotonic` fNodes ns,  -- again, use our newtype(s) from above
-  JNode `S.mapMonotonic` jNodes ns,  -- in place of the old variant
+  FNode `S.mapMonotonic` fNodes ns,
+  JNode `S.mapMonotonic` jNodes ns,
   HNode `S.mapMonotonic` hNodes ns,
   RNode `S.mapMonotonic` rNodes ns,
   SNode `S.mapMonotonic` sNodes ns,
@@ -110,8 +110,8 @@ parseInstance scope insta = do
     <$> getAs "Regions" CompositeState
     <*> getAs "HierarchicalStates" CompositeState
   regions <- getAs "RegionsStates" RegionState
-  forks <- getAs "ForkNodes" ForkNode -- never written a parser in Haskell and might like to look into this later
-  joins <- getAs "JoinNodes" JoinNode -- but since we are in two different types now, splitting the sets looks about right
+  forks <- getAs "ForkNodes" ForkNode
+  joins <- getAs "JoinNodes" JoinNode
   ends <- getAs "EndNodes" EndNode
   histories <- S.union
     <$> getAs "ShallowHistoryNodes" (HistoryNode Shallow)
@@ -127,8 +127,8 @@ parseInstance scope insta = do
     <$> getNames scope insta nodes "States" ComponentName
     <*> getNames scope insta nodes "Regions" ComponentName
   let hierarchy = toForest
-        (S.toAscList $ S.union compositeContains regionContains)  -- there are no further occurrences of forks or joins here
-        $ flip Node [] <$> S.toAscList (toSet nodes)              -- so ill just assume things should be fine
+        (S.toAscList $ S.union compositeContains regionContains)
+        $ flip Node [] <$> S.toAscList (toSet nodes)
       names = M.fromList $ zip (nubOrd $ M.elems componentNames) $ pure <$> ['A'..]
       getName x = fromMaybe "" $ M.lookup x componentNames >>= (`M.lookup` names)
   (starts, conns) <- S.partition (isStartNode . (\(x, _, _) -> x))
@@ -224,8 +224,8 @@ treeToStateDiagram getName getStart n = case node of
     startState = getStart (Just node)
     }
   ENode {} -> EndState { label = l }
-  JNode {} -> Join { label = l }  -- this should assemble both nodes
-  FNode {} -> Fork { label = l }  -- separately now
+  JNode {} -> Join { label = l }
+  FNode {} -> Fork { label = l }
   HNode (HistoryNode t _) -> History {
     label = l,
     historyType = t
@@ -238,9 +238,9 @@ treeToStateDiagram getName getStart n = case node of
     label = l,
     name = getName node,
     operations = ""
-    }   -- the missing StNode pattern match complaint is not really an issue, as we
-  where -- use the startState field instead of a node type in our data type
-    l = last $ snd root  -- maybe just error out again?
+    }
+  where
+    l = last $ snd root
     root = rootLabel n
     node = fst root
     fromTree = treeToStateDiagram getName (stail . getStart)
@@ -373,5 +373,5 @@ toNode ns x i = ifX CNode CompositeState cNodes
     ifX f g which h =
       let node = toX g x i
       in if node `S.member` which ns
-         then return $ f node  -- interesting
+         then return $ f node
          else h

@@ -118,10 +118,10 @@ addressesOfForkOrJoins :: UMLStateDiagram n Int -> [[Int]]
 addressesOfForkOrJoins = unUML
   $ \_ substates _ _ -> concatMap addressesOfForkOrJoins' substates
   where
-    addressesOfForkOrJoins' Fork {label} = [[label]] -- well this is really a smell, but i need to figure out
-    addressesOfForkOrJoins' Join {label} = [[label]] -- how this (entire) checker is used before i can do a more thorough assessment here
-    addressesOfForkOrJoins' StateDiagram {label, substates}   =  -- it could need some rework, because we could now assert the direction
-      map (label:) $ concatMap addressesOfForkOrJoins' substates -- of the transitions more easily by the constructor used to ensure they are right
+    addressesOfForkOrJoins' Fork {label} = [[label]]
+    addressesOfForkOrJoins' Join {label} = [[label]]
+    addressesOfForkOrJoins' StateDiagram {label, substates}   =
+      map (label:) $ concatMap addressesOfForkOrJoins' substates
     addressesOfForkOrJoins' CombineDiagram {label, substates} =
       map (label:) $ concatMap addressesOfForkOrJoins' substates
     addressesOfForkOrJoins' _ = []
