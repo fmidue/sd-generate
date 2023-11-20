@@ -210,33 +210,28 @@ renderNode History { label, historyType } Inherited{ctxt} =
   , shallowHistoryNodes = historyType == Shallow
   }
 
--- TODO: use the constructor to avoid the assessment of the node type
---       and refactor this correctly
-renderNode Fork {label} Inherited {ctxt, connectionSources} =
+renderNode Fork {label} Inherited {ctxt} =
   let
     here = ctxt ++ [label]
     node = [i|N_#{address here}|]
-    isFork = length (filter (node==) connectionSources) > 1
   in
   defaultSynthesized
-  { alloy = [i|one sig #{node} extends #{if isFork then "Fork" else "Join"}Nodes{}|]
+  { alloy = [i|one sig #{node} extends ForkNodes{}|]
   , rootNodes = [node]
-  , forkNodes = isFork
-  , joinNodes = not isFork
+  , forkNodes = True
+  , joinNodes = False
   }
 
--- TODO: same as above
-renderNode Join {label} Inherited {ctxt, connectionSources} =
+renderNode Join {label} Inherited {ctxt} =
   let
     here = ctxt ++ [label]
     node = [i|N_#{address here}|]
-    isFork = length (filter (node==) connectionSources) > 1
   in
   defaultSynthesized
-  { alloy = [i|one sig #{node} extends #{if isFork then "Fork" else "Join"}Nodes{}|]
+  { alloy = [i|one sig #{node} extends JoinNodes{}|]
   , rootNodes = [node]
-  , forkNodes = isFork
-  , joinNodes = not isFork
+  , forkNodes = False
+  , joinNodes = True
   }
 
 address :: [Int] -> String
