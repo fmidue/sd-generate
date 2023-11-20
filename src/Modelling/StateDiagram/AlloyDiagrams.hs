@@ -20,7 +20,6 @@ import Data.Maybe (isNothing, fromJust)
 data Inherited = Inherited
   { ctxt :: [Int]
   , nameMapping :: [(String,String)]
-  , connectionSources :: [String]
   }
 
 data Synthesized = Synthesized
@@ -44,7 +43,7 @@ render protoFlowScope =
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
         renderInner renderNode substates
           Inherited {ctxt = [], nameMapping = nameMapping
-                    , connectionSources = map (\Connection{ pointFrom } -> [i|N_#{address pointFrom}|]) connection}
+                    }
       nameMapping = zipWith (\name -> (name,) . ("Name" ++) . show) (nubOrd names) [1..]
       nameOutput = map (\(_,component) -> [i|one sig #{component} extends ComponentNames{}|])
                    nameMapping
