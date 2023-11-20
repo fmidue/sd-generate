@@ -9,14 +9,14 @@ import Modelling.StateDiagram.Datatype (
   globalise,
   )
 
-import Modelling.StateDiagram.Checkers.Helpers (checkEmptyOutTran, checkSameOutTran, notForkOrJoin)
+import Modelling.StateDiagram.Checkers.Helpers (checkEmptyOutTran, checkSameOutTran, isFork)
 
 checkSemantics :: UMLStateDiagram n Int -> Maybe String
 checkSemantics a
   | not (checkSameConnection a) =
-      Just "Error: No two connections are allowed leaving the same source and and having the same label (except From ForkOrJoin Node)."
+      Just "Error: No two connections are allowed leaving the same source and having the same label (except from Fork node)."
   | not (checkEmptyTran a) =
-      Just "Error: The non-ForkOrJoin state which has more than one outgoing connection, must have a non-empty transition label."
+      Just "Error: Non-Fork nodes which have more than one outgoing connection must not have an empty transition label there."
   | otherwise =
       Nothing
 
@@ -24,9 +24,9 @@ checkSameConnection :: UMLStateDiagram n Int -> Bool
 checkSameConnection =
   unUML (\_ sub conn _ ->
            let
-             withoutForkOrJoin = filter ((`notForkOrJoin` sub) . pointFrom) conn
+             withoutFromFork = filter (not . (`isFork` sub) . pointFrom) conn
            in
-             all (`checkSameOutTran` withoutForkOrJoin) withoutForkOrJoin
+             all (`checkSameOutTran` withoutFromFork) withoutFromFork
         )
   . globalise
 
@@ -34,8 +34,8 @@ checkEmptyTran :: UMLStateDiagram n Int -> Bool
 checkEmptyTran =
   unUML (\_ sub conn _ ->
            let
-             withoutForkOrJoin = filter ((`notForkOrJoin` sub) . pointFrom) conn
+             withoutFromFork = filter (not . (`isFork` sub) . pointFrom) conn
            in
-             all (`checkEmptyOutTran` withoutForkOrJoin) withoutForkOrJoin
+             all (`checkEmptyOutTran` withoutFromFork) withoutFromFork
          )
   . globalise

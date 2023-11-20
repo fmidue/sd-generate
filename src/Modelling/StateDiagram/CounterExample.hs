@@ -220,7 +220,7 @@ forCheckManyToOne7
           where
             j = InnerMostState 1 "E" ""
             k = InnerMostState 2 "F" ""
-    c = Join 3
+    c = Fork 3
     d = InnerMostState 4 "G" ""
     l = EndState 5
 
