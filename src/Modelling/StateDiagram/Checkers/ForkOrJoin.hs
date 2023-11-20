@@ -13,7 +13,7 @@ import Modelling.StateDiagram.Datatype (
   localise,
   )
 
-import Modelling.StateDiagram.Checkers.Helpers (globalStart, notForkOrJoin)
+import Modelling.StateDiagram.Checkers.Helpers (globalStart, notForkOrJoin, isFork, isJoin)
 import Data.List.Extra
 
 checkForkAndJoin :: UMLStateDiagram n Int -> Maybe String
@@ -35,7 +35,8 @@ checkForkAndJoin a
 
 checkManyToOne :: UMLStateDiagram n Int -> Bool
 checkManyToOne s =
-   null (toMany `intersect` fromMany)
+   all (`isFork` sub) fromMany
+   && all (`isJoin` sub) toMany
    && all (`notElem` toOnlyForkOrJoin) startOnlyForkOrJoin
    && all (`elem` fromMany) startOnlyForkOrJoin
    && all (`elem` startOnlyForkOrJoin) toNoConn

@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Modelling.StateDiagram.Checkers.Helpers (
   getAllElem,
@@ -13,6 +14,8 @@ module Modelling.StateDiagram.Checkers.Helpers (
   lastSecNotCD,
   notHistory,
   notForkOrJoin,
+  isFork,
+  isJoin,
   checkEmptyOutTran,
   checkSameOutTran,
   getSubstates1
@@ -117,6 +120,16 @@ notHistory (x:xs) a = notHistory xs (getSubstates x a)
 isNotHistory :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isNotHistory a History {label}  = a /= label
 isNotHistory _ _ = True
+
+isFork :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
+isFork [] _ = False
+isFork [x] a = any (\case {Fork{label} -> x == label; _ -> False}) a
+isFork (x:xs) a = isFork xs (getSubstates x a)
+
+isJoin :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
+isJoin [] _ = False
+isJoin [x] a = any (\case {Join{label} -> x == label; _ -> False}) a
+isJoin (x:xs) a = isJoin xs (getSubstates x a)
 
 notForkOrJoin :: [Int] -> [StateDiagram n Int [Connection Int]] -> Bool
 notForkOrJoin [] _ = True
