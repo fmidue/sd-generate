@@ -67,9 +67,6 @@ deployability
 EGinit
 Einit
 executability
-extit
-exttt
-extwidth
 FSM
 Ginit
 ispell
