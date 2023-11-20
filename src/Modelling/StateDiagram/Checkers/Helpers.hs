@@ -18,6 +18,7 @@ module Modelling.StateDiagram.Checkers.Helpers (
   isJoin,
   checkEmptyOutTran,
   checkSameOutTran,
+  overOne,
   getSubstates1
   ) where
 
@@ -149,6 +150,9 @@ lastSecNotCD (x:xs) a = lastSecNotCD xs (getSubstates x a)
 isNotCD :: Int -> StateDiagram n Int [Connection Int] -> Bool
 isNotCD a CombineDiagram{label} = a /= label
 isNotCD _ _ = True
+
+overOne :: [Int] -> [[Int]] -> Bool
+overOne a b = length (filter (a ==) b) > 1
 
 getSubstates :: Int -> [StateDiagram n Int [Connection Int]] -> [StateDiagram n Int [Connection Int]]
 getSubstates a xs = maybe [] getSubstates1 (find ((a ==) . label) xs)

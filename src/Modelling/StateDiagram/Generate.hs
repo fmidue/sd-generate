@@ -1,9 +1,12 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
+{-# LANGUAGE LambdaCase, RecordWildCards #-}
+
 module Modelling.StateDiagram.Generate (randomSD) where
 import Modelling.StateDiagram.Datatype (
   Connection(..),
   HistoryType(..),
   StateDiagram(..),
-  UMLStateDiagram,
+  UMLStateDiagram(unUML'),
   unUML,
   umlStateDiagram,
   globalise
@@ -24,6 +27,7 @@ import Modelling.StateDiagram.Checkers.Helpers (
   lastSecNotCD,
   notForkOrJoin,
   notHistory,
+  overOne,
   )
 import Data.Maybe(isNothing)
 import Data.List ((\\), delete, nub, zip4)
@@ -95,7 +99,26 @@ randomSD = do
       -- to ignore nested CD
   nm <- elements alphabet
   leastTwoLevels <- frequency [(2,return False),(8,return True)]
-  (umlStateDiagram <$> randomSD' outermost counter cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) [])
+  let
+    fixUpForkOrJoins sd =
+      flip unUML (globalise sd) $
+      \_ sub conn _ ->
+        let
+          toOnlyForkOrJoin = filter (not . (`notForkOrJoin` sub)) (map pointTo conn)
+          toMany = filter (`overOne` toOnlyForkOrJoin) toOnlyForkOrJoin
+          recursively here = \case
+            Fork {..}
+              -> if here `elem` toMany then Join {..} else Fork {..}
+            StateDiagram { label = keep, .. }
+              -> StateDiagram { substates = map (\s -> recursively (here ++ [label s]) s) substates
+                              , label = keep, .. }
+            CombineDiagram { label = keep, .. }
+              -> CombineDiagram { substates = map (\s -> recursively (here ++ [label s]) s) substates
+                                , label = keep, .. }
+            x -> x
+        in
+          umlStateDiagram (recursively [] (unUML' sd))
+  (fixUpForkOrJoins . umlStateDiagram <$> randomSD' outermost counter cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) [])
    `suchThatWhileCounting` (\sd -> isNothing (checkSemantics sd) && isNothing (checkDrawability sd))
   -- here outermost layer must be StateDigram (checkOutMostLayer)
 
@@ -224,7 +247,7 @@ randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
        Inner -> return (InnerMostState l nm "")
        Comb -> randomCD counter cdMaxNum ns alphabet l s exclude
        Stat -> randomSD' False counter cdMaxNum False ns alphabet (l,nm,mustCD) exclude
-       ForkOrJoin -> elements [Fork l, Join l]
+       ForkOrJoin -> return (Fork l) -- will be fixed up by switching some of them to Join post-hoc
 
 randomCD :: Int -> Int -> [Int]-> [String] -> Int -> [String] ->[String] -> Gen (StateDiagram String Int [Connection Int])
 randomCD counter cdMaxNum ns alphabet l s exclude = do

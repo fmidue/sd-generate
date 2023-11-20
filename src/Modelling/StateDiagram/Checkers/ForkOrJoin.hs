@@ -13,7 +13,7 @@ import Modelling.StateDiagram.Datatype (
   localise,
   )
 
-import Modelling.StateDiagram.Checkers.Helpers (globalStart, notForkOrJoin, isFork, isJoin)
+import Modelling.StateDiagram.Checkers.Helpers (globalStart, notForkOrJoin, isFork, isJoin, overOne)
 import Data.List.Extra
 
 checkForkAndJoin :: UMLStateDiagram n Int -> Maybe String
@@ -59,9 +59,6 @@ checkManyToOne s =
         fromOne       = fromOnlyForkOrJoin \\fromMany
         toNoConn = nub fromOnlyForkOrJoin \\ nub toOnlyForkOrJoin
         fromNoConn = nub toOnlyForkOrJoin \\ nub fromOnlyForkOrJoin
-
-overOne :: [Int] -> [[Int]] -> Bool
-overOne a b =  length (filter ( a ==) b) > 1
 
 checkTransition :: UMLStateDiagram n Int -> Bool
 checkTransition s =
