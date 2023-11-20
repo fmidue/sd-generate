@@ -26,7 +26,8 @@ import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Modelling.StateDiagram.Layout (drawDiagram)
 import Diagrams (dims)
 import Diagrams.Prelude (V2(V2))
-import Modelling.StateDiagram.Flatten (liftCD)
+import Modelling.StateDiagram.Flatten (lift)
+import Data.List (singleton)
 
 -- this chart should cover most cases within one instance
 -- to avoid cluttering up the test suite with many overly
@@ -44,7 +45,7 @@ probeChart
     est = Connection {pointFrom = [3,2], pointTo = [3,2], transition = "est"}
     enter = Connection {pointFrom = [3,2], pointTo = [5], transition = "enter"}
     in1 = Connection {pointFrom = [5], pointTo = [4,1,2], transition = ""}
-    in2 = Connection {pointFrom = [5], pointTo = [4,2,1], transition = ""}
+    in2 = Connection {pointFrom = [5], pointTo = [4,2,2], transition = ""}
     ft = Connection {pointFrom = [3,2], pointTo = [1], transition = "ft"}
     exit = Connection {pointFrom = [6], pointTo = [3,1,2], transition = ""}
     ex1 = Connection {pointFrom = [4,1,1], pointTo = [6], transition = "exit"}
@@ -174,7 +175,7 @@ probeChartLiftedSDe
                                                , Connection {pointFrom = [2], pointTo = [2], transition = "est"}
                                                , Connection {pointFrom = [2], pointTo = [6], transition = "enter"}
                                                , Connection {pointFrom = [6], pointTo = [5,1,2], transition = ""}
-                                               , Connection {pointFrom = [6], pointTo = [5,2,1], transition = ""}
+                                               , Connection {pointFrom = [6], pointTo = [5,2,2], transition = ""}
                                                , Connection {pointFrom = [2], pointTo = [3], transition = "ft"}
                                                , Connection {pointFrom = [7], pointTo = [1,2], transition = ""}
                                                , Connection {pointFrom = [5,1,1], pointTo = [7], transition = "exit"}
@@ -250,7 +251,7 @@ probeChartLiftedSDeAndSDg
                                  , Connection {pointFrom = [3], pointTo = [3], transition = "est"}
                                  , Connection {pointFrom = [3], pointTo = [7], transition = "enter"}
                                  , Connection {pointFrom = [7], pointTo = [6,1,2], transition = ""}
-                                 , Connection {pointFrom = [7], pointTo = [6,2,1], transition = ""}
+                                 , Connection {pointFrom = [7], pointTo = [6,2,2], transition = ""}
                                  , Connection {pointFrom = [3], pointTo = [4], transition = "ft"}
                                  , Connection {pointFrom = [8], pointTo = [2], transition = ""}
                                  , Connection {pointFrom = [6,1,1], pointTo = [8], transition = "exit"}
@@ -311,7 +312,9 @@ spec
         renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
         return ()
       it "debug print liftCD after lifting SD" $ do
-        let result = flatten probeChart
-        let result' = liftCD (fmap Left result)
+        let result = flatten' $ flatten probeChart
+        -- let result' = lift (fmap Left result)
+        let result' = lift (fmap Left $ rename singleton result)
         putStrLn (show result')
+        putStrLn (show $ flatten' result)
         return ()

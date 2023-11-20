@@ -4,11 +4,9 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE InstanceSigs #-}
 
-
-
 module Modelling.StateDiagram.Flatten(flatten
                                      ,flatten'
-                                     ,liftCD) where
+                                     ,lift) where
 
 import Modelling.StateDiagram.Datatype (UMLStateDiagram
                 ,umlStateDiagram
@@ -22,19 +20,16 @@ import Modelling.StateDiagram.Datatype (UMLStateDiagram
                 )
 import Modelling.StateDiagram.Datatype.ClassInstances ()
 import Data.Either.Extra (fromLeft', mapRight, fromRight')
-import Data.List ( find, singleton, uncons, groupBy, (\\) )
+import Data.List ( find, singleton, uncons, groupBy, nub )
 import Data.Bifunctor (bimap)
 import Control.Lens (over
                     ,traverseOf)
 import Data.Set (fromList, toList, cartesianProduct)
 import Data.List.Extra (sortBy)
+import qualified Data.Maybe
 
 
-{- convenience function to access n l a in one swipe
-   it is to be removed by fmap and bimap in the future
-   because n/a is rarely needed to be accessed after all
-   (only rename needs it)
--}
+-- remove
 class TrifunctorW g z where
   trimapW :: (a -> b) -> (c -> d) -> (e -> f) -> g a c [z e] -> g b d [z f]
 
@@ -66,21 +61,19 @@ instance TrifunctorW StateDiagram Connection where
     = History { label = b label
               , historyType = historyType }
 
-
-
-flatten :: (Eq l, Enum l, Num l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
+flatten :: (Eq l, Enum l, Num l, Ord l, Ord n, Show l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten
  = -- localise' .
    maybe (error "not defined") distinctLabels
-   . liftSD
+   . lift
    . fmap Left
    . globalise
    . rename singleton
 
-flatten' :: (Eq l, Enum l, Num l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
+flatten' :: (Eq l, Enum l, Num l, Ord l, Ord n, Show l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
 flatten'
  = maybe (error "not defined") distinctLabels
-   . liftSD
+   . lift
    . fmap Left
    . globalise
 
@@ -99,11 +92,11 @@ localise'
     )
 -}
 
-liftSD :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
-liftSD
+lift :: (Eq l, Ord l, Enum l, Num l, Ord n, Eq n, Show l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
+lift
   = fmap umlStateDiagram . unUML
     (\globalName rootNodes globalConnections globalStartState ->
-      case find isHierarchical rootNodes
+      case find (\x -> isHierarchical x || isCombine x) rootNodes
       of
       Just StateDiagram { label = liftedNodeAddress
                         , substates = elevatedSubstates
@@ -133,8 +126,79 @@ liftSD
                      globalConnections
                }
            )
+      Just CombineDiagram { label = combineAddress
+                          , substates = combineRegions }
+        -> Just (
+             StateDiagram
+               { name = globalName
+               , startState = [Left 4] -- temp; the rules are the same as for rewireCombineEntries and rewireForkInFlows
+               , label = undefined
+               , substates
+                   = let
+                     resolvedForks
+                       = map (maybe (error "") fst . uncons)
+                             (nub (map pointFrom
+                                  (filter (\case
+                                              Connection{ pointFrom = (Left pF):_
+                                                        , pointTo = pT:_ }
+                                                -> Left pF `elem` map label (filter isFork rootNodes) && pT == combineAddress
+                                              _ -> False)
+                                  globalConnections)))
+                     resolvedJoins
+                       = map (maybe (error "") fst . uncons) (nub (map pointTo
+                        (filter (\case
+                                    Connection{ pointFrom = pF:_
+                                              , pointTo = (Left pT):_ }
+                                      -> Left pT `elem`  map label (filter isJoin rootNodes) && pF == combineAddress
+                                    _ -> False)
+                        globalConnections)))
+                     in
+                     zipWith (\x y -> trimapW id
+                                              (mapRight (const y))
+                                              (mapRight (const y))
+                              x)
+                     (cartesianProductOf' combineAddress combineRegions) [1..]
+                     ++
+                     filter (\node
+                                -> label node /= combineAddress &&
+                                   label node `notElem` resolvedForks &&
+                                   label node `notElem` resolvedJoins )
+                     rootNodes
+               , connections
+                   = let r' = zip (map label
+                              (cartesianProductOf' combineAddress combineRegions))
+                              (map label
+                              (fmap (\(x, y)
+                                       -> trimapW id
+                                                  (mapRight (const y))
+                                                  (mapRight (const y))
+                                          x)
+                              (zip (cartesianProductOf' combineAddress combineRegions)
+                                   [1..])
+                              ))
+                     in
+                     mapNotRewired
+                       (cartesianConnections'  -- forms a set of cartesian connections matching the cartesian nodes
+                         combineAddress
+                         combineRegions
+                         r')
+                     $
+                     rewireJoinOutFlows  -- must be aware of multiple join inbound connections to fuse them
+                       combineAddress
+                       (map label $ filter isJoin rootNodes) r'
+                     $
+                     rewireForkInFlows -- must be aware of other connections and their target forks to fuse them
+                       -- combineAddress
+                       (map label $ filter isFork rootNodes)
+                     $
+                     rewireCombineEntries -- must know entry groups of transitions to complete them
+                       combineAddress
+                       (map ((:) combineAddress . (\n -> label n:startState n)) combineRegions)
+                       r' globalConnections
+               }
+         )
       Just _
-        -> error "we dont expect anything else than StateDiagram or Nothing here"
+        -> error "we don't expect anything else than StateDiagram or Nothing here"
       Nothing
         -> Nothing
     )
@@ -144,192 +208,25 @@ liftSD
     isState other = isHierarchical other
     isHierarchical StateDiagram{} = True
     isHierarchical _ = False
+    isCombine CombineDiagram{} = True
+    isCombine _ = False
+    isFork Fork{} = True
+    isFork _ = False
+    isJoin Join{} = True
+    isJoin _ = False
 
+-- todo: adjust to [([[l]],Either l l)] -> [[l]] -> Either l l
+--       or [[[Either l l]], Either l l] -> [[Either l l]] -> Either l l
+translateTo :: (Show l, Eq l) => [(Either l [[l]], Either l l)] -> Either l [[l]] -> Either l l
+translateTo cartesianRelation label
+  = Data.Maybe.fromMaybe
+    (error ("cant translate cartesian label: " ++ show label ++ " with cartesian relation: " ++ show cartesianRelation))
+    (lookup label cartesianRelation)
 
-liftCD :: UMLStateDiagram [String] (Either Int Int) -> Maybe (UMLStateDiagram [String] (Either Int [[Int]]))
-liftCD
-  = fmap umlStateDiagram . unUML
-    (\globalName rootNodes globalConnections _ {-globalStartState-}
-      -> case find isCombine rootNodes
-          of
-          Just CombineDiagram { label = combineAddress
-                              , substates = combineRegions
-                              }
-            -> Just (
-                 StateDiagram
-                   { name = globalName
-                   , startState = []
-                   , label = undefined
-                   , substates
-                       = cartesianProductOf combineRegions
-                         ++
-                         -- bimap should be enough
-                         map (trimapW id (mapRight (singleton . singleton)) (mapRight (singleton . singleton)))
-                         (filter ((combineAddress /=) . label) rootNodes)
-                   , connections
-                       = let
-                         cartesianConnections -- maybe just hand back c instead of singleton c, makes one less wrap
-                           = concatMap concat
-                             [ [ let  -- i should have used maps instead... this is anything but modular at this stage
-                                  {- given a node created as part of the computed
-                                     cartesian product of the combine node's regions,
-                                     we match every group of transitions determined by
-                                     their literal to bind against their updated cartesian target -}
-                                  cartesianTarget = [ case find (\c@Connection {}
-                                                                   -> label == tail (map fromLeft' $ pointFrom c))
-                                                           connectionGroup
-                                                      of
-                                                        Nothing -> (False, label)
-                                                        Just c@Connection{} -> (True, tail $ map fromLeft' $ pointTo c)
-                                                    | label <- fromRight' cartesianSource ]
-                                  in
-                                  {- assemble the the updated connection, by binding it against its
-                                     cartesian target (identified through the Right label)
-                                  -}
-                                  [ Connection { pointFrom = [cartesianSource]
-                                               , pointTo = [Right (map snd cartesianTarget)]
-                                               , transition = case uncons connectionGroup of
-                                                                Just (x,_)
-                                                                  -> transition x
-                                                                _ -> error "can't be empty, therefore inner Forks are not supported"
-                                               } | any fst cartesianTarget ]
-                                                   {- connection groups might not link a given
-                                                      cartesian source with a cartesian target,
-                                                      in that case we do not form them -}
-                                  {- group all connections spanned between nodes of orthogonal regions
-                                     belonging to the combine diagram by their literals into sets -}
-                                | connectionGroup <- groupBy (\x y -> transition x == transition y) $
-                                                     sortBy (\x y -> compare (transition x) (transition y)) $
-                                                     {- we only want to rewire connections spanned between cartesian nodes
-                                                        and nothing else, anything happening beyond the combine node
-                                                        is therefore not of interest here -}
-                                                     filter (\case
-                                                                Connection { pointFrom = (y:_)
-                                                                           , pointTo = (x:_) }
-                                                                  -> fromLeft' y == fromLeft' combineAddress &&
-                                                                     fromLeft' x == fromLeft' combineAddress
-                                                                _ -> False )
-                                                     (fmap (fmap (mapRight (singleton . singleton))) globalConnections)
-                                ]
-                                {- connections are meant to be spanned between cartesian nodes that
-                                   are the outcome of the cartesian product construction, with taking
-                                   the orthogonal regions of the combine diagram and crossing them.
-                                   Therefore, we gather the labels of that construction, since old node
-                                   values became part of them.
-                                   Labels in of cartesian nodes are always Right tagged, somewhat similar to the lift SD approach above. -}
-                              | cartesianSource <- map label (cartesianProductOf combineRegions)
-                              ]
-                         rootNodes' = fmap (trimapW id (mapRight (singleton . singleton)) (mapRight (singleton . singleton))) rootNodes
-                         globalConnections' = fmap (fmap (mapRight (singleton . singleton))) globalConnections
-                         joinedConnections
-                           = filter (\c -> maybe (error "connection target undefined")
-                                                 (\(h,_) -> h `elem` map label (filter isJoin rootNodes'))
-                                                 (uncons $ pointTo c)
-                                             &&
-                                             maybe (error "connection source undefined")
-                                                   (\(h,_) -> fromLeft' h == fromLeft' combineAddress)
-                                                   (uncons $ pointFrom c))
-                            globalConnections'
-                         forkedConnections
-                           = filter (\c -> maybe (error "connection source undefined")
-                                                 (\(h,_) -> h `elem` map label (filter isFork rootNodes'))
-                                                 (uncons $ pointFrom c)
-                                             &&
-                                             maybe (error "connection target undefined")
-                                                   (\(h,_) -> fromLeft' h == fromLeft' combineAddress)
-                                                   (uncons $ pointTo c))
-                            globalConnections'
-                         forkTriggerConnections
-                           = filter (\c -> maybe (error "connection source undefined")
-                                                 (\(h,_) -> h `elem` map label (filter isFork rootNodes'))
-                                                 (uncons $ pointTo c)
-                                           &&
-                                           any (\Connection{ pointFrom = pF
-                                                            , pointTo = pT }
-                                                  -> pointTo c == pF &&
-                                                     maybe (error "connection target undefined")
-                                                           (\(h,_) -> fromLeft' h == fromLeft' combineAddress)
-                                                           (uncons pT)
-                                               ) forkedConnections
-                                    )
-                            globalConnections'
-                         joinMergedConnections
-                           = filter (\c -> maybe (error "connection source undefined")
-                                                 (\(h,_) -> h `elem` map label (filter isJoin rootNodes'))
-                                                 (uncons $ pointFrom c)
-                                           &&
-                                           any (\Connection{ pointFrom = pF
-                                                           , pointTo = pT }
-                                                  -> pointFrom c == pT &&
-                                                     maybe (error "connection target undefined")
-                                                           (\(h,_) -> fromLeft' h == fromLeft' combineAddress)
-                                                           (uncons pF)
-                                               ) joinedConnections
-                                    )
-                            globalConnections'
-                         inertConnections
-                           = filter (\case
-                                    {- connections that reach into, or are part of inter connections
-                                       between nodes of the combine diagram are dismissed as they do change
-                                       the rest is Left labelled and remains 'mostly' valid.
-                                       The exception is formed by Join and Fork nodes, these are structurally valid
-                                       but semantically not exactly correct and need to be removed at a later stage. -}
-                                    Connection { pointFrom = (y:_)
-                                               , pointTo = (x:_) }
-                                      -> fromLeft' y /= fromLeft' combineAddress &&
-                                         fromLeft' x /= fromLeft' combineAddress
-                                    _ -> False )  ((((globalConnections' \\ joinedConnections) \\ forkedConnections) \\ joinMergedConnections) \\ forkTriggerConnections)
-                        --convertedForks
-                        --  = map pointTo forkTriggerConnections
-                        --convertedJoins
-                        --  = map pointFrom joinMergedConnections
-                        --semiExplicitCDEntries
-                        --  = filter (\c -> maybe (error "connection source undefined")
-                        --                        (\(h,_) -> h `notElem` map label (filter isFork rootNodes'))
-                        --                        (uncons $ pointFrom c)
-                        --                  &&
-                        --                  maybe (error "connection source undefined")
-                        --                        (\(h,_) -> fromLeft' h == fromLeft' combineAddress)
-                        --                        (uncons $ pointTo c)
-                        --           )
-                        --  globalConnections'
-                         in
-                         cartesianConnections
-                         ++ inertConnections
-                   }
-                )
-          Just _
-            -> error "we don't expect anything else than StateDiagram or Nothing here"
-          Nothing
-            -> Nothing
-    )
-  where
-  isCombine CombineDiagram{} = True
-  isCombine _ = False
-  isFork Fork{} = True
-  isFork _ = False
-  isJoin Join{} = True
-  isJoin _ = False
-  {- given a combine diagram, this function returns a cartesian
-     product construction of its nodes.
-     for that purpose, all previously Left tagged nodes will be converted to carry
-     Right labels when "glued/crossed" against nodes of other regions.
-     only InnerMostState nodes are supported as of now.
-     when crossing two nodes, they will remember their region, aka. StateDiagram node
-     that was their immediate parent.
-
-     CombineDiagram(L5) ----> StateDiagram(L1) -----> InnerMost(L1)"A"
-                         |
-                         |---> StateDiagram(L2) ------> InnerMost(L1)"B"
-
-    this sketchy asci schematic shall visualize the outcome;
-
-                            InnerMost( R [1,1],[2,1] )"A","B"
-
-    remembering their immediate parent allows to distinguish two nodes from each other
-    that might carry the same numeric label in separate regions.
-  -}
-  cartesianProductOf combineRegionNodes
+-- todo: get rid of the trifunctor
+cartesianProductOf' :: (Ord a1, Ord a2, Ord (z (Either a3 [[b]])), TrifunctorW StateDiagram z) => Either a1 r -> [StateDiagram [a2] (Either a1 a1) [z (Either a3 b)]]
+ -> [StateDiagram [a2] (Either a1 [[a1]]) [z (Either a3 [[b]])]]
+cartesianProductOf' combineAddress combineRegionNodes
     = case
         uncons $
              map ((fromList . (\case
@@ -339,7 +236,8 @@ liftCD
                                 innerMost@InnerMostState{ label = Left label}
                                   -> innerMost {
                                        label
-                                         = Right [regionAddress : [label]]
+                                           -- todo: change to either-less variant, left side is never used for cartesian nodes anyway
+                                         = Right [fromLeft' combineAddress : regionAddress : [label]]
                                      }
                                 _ -> error "only orthogonal regions with plain InnerMostStates are supported"
                               )
@@ -361,11 +259,217 @@ liftCD
                                           , name = nameX ++ nameY
                                           , operations = operationsX ++ operationsY }]
                      _ -> error "only orthogonal regions with plain InnerMostStates are supported")
-                                {- in theory it could be possible to define rules for (SD x InnerMost) and vice versa as well -}
         $ toList
         $ cartesianProduct x y) h t
       Nothing -> error "an empty CombineDiagram node, without any regions is ~not~ supported"
 
+-- todo: get rid of the trifunctor
+cartesianConnections' :: (Ord l, Ord a1, Ord (z (Either a2 [[b]])), TrifunctorW StateDiagram z, Show l) => Either l l -> [StateDiagram [a1] (Either l l) [z (Either a2 b)]]
+ -> [(Either l [[l]], Either l l)] -> [Connection (Either l l)] -> [Connection (Either l l)]
+cartesianConnections' combineAddress combineRegions cartesianRelation globalConnections
+                           = concatMap concat
+                             [ [ let
+                                  cartesianTarget = [ case find (\c@Connection {}
+                                                                   -> label == map fromLeft' (pointFrom c))
+                                                           connectionGroup
+                                                      of
+                                                        Nothing -> (False, label)
+                                                        Just c@Connection{} -> (True, map fromLeft' $ pointTo c)
+                                                    | label <- fromRight' cartesianSource
+                                                    ]
+                                  in
+                                  [ Connection { pointFrom = singleton $ translateTo cartesianRelation cartesianSource
+                                               , pointTo = singleton $ translateTo cartesianRelation $ Right (map snd cartesianTarget)
+                                               , transition = case uncons connectionGroup of
+                                                                Just (x,_)
+                                                                  -> transition x
+                                                                _ -> error "can't be empty, therefore inner Forks are not supported"
+                                               }
+                                  | any fst cartesianTarget
+                                  ]
+                               | connectionGroup <- groupBy (\x y -> transition x == transition y) $
+                                                    sortBy (\x y -> compare (transition x) (transition y)) $
+                                                    filter (\case
+                                                               Connection { pointFrom = (y:_)
+                                                                          , pointTo = (x:_) }
+                                                                 -> fromLeft' y == fromLeft' combineAddress &&
+                                                                    fromLeft' x == fromLeft' combineAddress
+                                                               _ -> False )
+                                                    (fmap (fmap (mapRight (singleton . singleton))) globalConnections)
+                               ]
+                             | cartesianSource <- map label (cartesianProductOf' combineAddress combineRegions)
+                             ]
+                             ++
+                             filter
+                             (\case
+                                Connection { pointFrom = pF:_
+                                           , pointTo = pT:_ }
+                                  -> pF /= combineAddress &&
+                                     pT /= combineAddress
+                                _ -> False
+                             ) globalConnections
+
+rewireJoinOutFlows :: (Eq l, Ord l, Show l) => Either l l -> [Either l l] -> [(Either l [[l]], Either l l)] -> [Connection (Either l l)] -> [Connection (Either l l)]
+rewireJoinOutFlows combineAddress joinAddresses cartesianRelation connections
+  = concatMap (\case
+                 -- rewire triggered outgoing connection from join by taking its immediate inbound flows; (a,b) -> (b,c) => (a,c)
+                 connection@Connection { pointFrom = [pF]
+                                       , pointTo = pT }
+                   -> if pF `elem` joinAddresses &&
+                         any (\case
+                                Connection { pointTo = [pT']
+                                           , pointFrom = pf':_}
+                                  -> pT' == pF && pf' == combineAddress
+                                _ -> False)
+                             connections
+                      then [ Connection { pointTo = pT
+                                        , transition
+                                            = maybe (error "no outbound join transition found or missing label")
+                                              transition
+                                              (find (\case
+                                                          Connection { pointFrom = pf:_
+                                                                     , pointTo = [pt] }
+                                                            -> pf == combineAddress &&
+                                                               pt == pF
+                                                          _ -> False)
+                                                 connections)
+                                        , pointFrom
+                                            = singleton $
+                                              translateTo cartesianRelation $
+                                              Right $
+                                              map (map fromLeft' . pointFrom) (filter (\case
+                                                          Connection { pointFrom = pf:_
+                                                                     , pointTo = [pt] }
+                                                            -> pf == combineAddress &&
+                                                               pt == pF
+                                                          _ -> False)
+                                                 connections)
+                                          }
+                           ]
+                      else [connection]
+                -- remove inbound join connection; (a,b) -> (b,c) => drop (a,b)
+                 connection@Connection { pointFrom = pF:_
+                                       , pointTo = [pT] }
+                   -> if pF == combineAddress &&
+                         pT `elem` joinAddresses
+                      then []
+                      else singleton
+                           connection
+                 -- do not alter other connections
+                 connection -> singleton connection
+              ) connections
+
+rewireForkInFlows :: (Eq l, Ord l, Show l) => [Either l l] -> [Connection (Either l l)] -> [Connection (Either l l)]
+rewireForkInFlows forkAddresses connections
+  = concatMap (\case
+                 -- rewire triggered outgoing connection from fork to its immediate source; (a,b) -> (b,c) => (a,c)
+                 connection@Connection { pointFrom = [pF]
+                                       , pointTo = [Right _] }
+                   -> if pF `elem` forkAddresses
+                      then singleton $
+                           connection { pointFrom
+                                          = maybe (error "fork is not triggered by any incoming connection")
+                                                  pointFrom
+                                                  (find (\case
+                                                           Connection { pointTo = [pT'] }
+                                                             -> pT' == pF
+                                                           _ -> False)
+                                                        connections)
+                                      , transition
+                                          = maybe (error "fork is not triggered by any incoming connection or without a literal")
+                                                  transition
+                                                  (find (\case
+                                                           Connection { pointTo = [pT']
+                                                                      , transition = name }
+                                                             -> pT' == pF && not (null name)
+                                                           _ -> False)
+                                                        connections)
+                                      }
+                      else [connection]
+                -- remove flow into triggered fork; (a,b) -> (b,c) => drop (a,b)
+                 connection@Connection { pointTo = [pT] }
+                   -> if (pT `elem` forkAddresses) &&
+                         any (\case
+                                  Connection { pointFrom = [pF']
+                                             , pointTo = [Right _] }
+                                    -> (pF' == pT)
+                                  _ -> False)
+                          connections
+                      then []
+                      else singleton
+                           connection
+                 -- do not alter other connections
+                 connection -> singleton connection
+              ) connections
+
+rewireCombineEntries :: (Ord l, Show l, Num l, Enum l) => Either l l -> [[Either l l]] -> [(Either l [[l]], Either l l)] -> [Connection (Either l l)] -> [Connection (Either l l)]
+rewireCombineEntries combineAddress combineInitialStates cartesianRelation connections
+  = concatMap (concatMap (toCartesianTarget combineAddress combineInitialStates cartesianRelation) .
+    (groupBy (\x y -> transition x == transition y) .  -- transition groups
+    sortBy (\x y -> compare (transition x) (transition y))))
+    ((groupBy (\x y -> pointFrom x == pointFrom y) .  -- source groups
+    sortBy (\x y -> compare (pointFrom x) (pointFrom y)))
+    connections)
+  where
+  -- single implicit combine node activation
+  toCartesianTarget combineAddress' combineInitialStates' cartesianRelation'
+                    [Connection { pointTo = [pT]
+                                , pointFrom = pF@(pf:_)
+                                , transition = name } ]
+    | pT == combineAddress' &&
+      pf /= combineAddress'
+    = singleton $
+      Connection { pointFrom = map (Left . fromLeft') pF
+                 , pointTo
+                     = singleton $
+                       translateTo cartesianRelation' $
+                       Right (map (map fromLeft') combineInitialStates')
+                 , transition = name }
+  -- fork activation of combine node (partial, or complete)
+  toCartesianTarget combineAddress' combineInitialStates' cartesianRelation'
+                    connectionGroup@(Connection { pointTo = pT:_
+                                                , pointFrom = pF@(pf:_)
+                                                , transition = name }:_)
+    | pT == combineAddress' &&
+      pf /= combineAddress'
+    = singleton $
+      Connection { pointFrom = map (Left . fromLeft') pF
+                 , pointTo
+                     = singleton $
+                       translateTo cartesianRelation' $
+                       Right $
+                       -- override initial state with forked entries
+                       map (map fromLeft' . (\case
+                              initialState@(_:region:_)
+                                -> case find (\case
+                                                Connection { pointTo = (_:region':_) }
+                                                  -> region == region'
+                                                _ -> False )
+                                        connectionGroup
+                                   of
+                                   (Just (Connection { pointTo = overrideInitial }))
+                                     -> overrideInitial
+                                   Nothing -> initialState
+                              _ -> error "malformed initial state"
+                            )) combineInitialStates'
+                , transition = name }
+    -- leave connections not causing an activation of the combine node unaltered
+    | otherwise = connectionGroup
+  toCartesianTarget _ _ _ connections' = connections'
+
+mapNotRewired :: ([Connection (Either a b)] -> [Connection (Either a b)]) -> [Connection (Either a b)] -> [Connection (Either a b)]
+mapNotRewired f c
+  = f (filter notRewired c) ++ filter rewired c
+  where
+  notRewired Connection { pointFrom = (Left _:_)
+                        , pointTo = (Left _:_) }
+    = True
+  notRewired _ = False
+  rewired Connection { pointTo = [Right _] }
+    = True
+  rewired Connection { pointFrom = [Right _] }
+    = True
+  rewired _ = False
 
 inheritName :: [n] -> StateDiagram [n] l c -> StateDiagram [n] l c
 inheritName pName sd@StateDiagram { name = sdName }
@@ -394,7 +498,7 @@ rewireExiting liftedNodeAddress elevatedSubstates from
 rewireExiting liftedNodeAddress _ from
   = [ rewireAny liftedNodeAddress from ]
 
-distinctLabels :: (Eq l, Enum l, Num l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
+distinctLabels :: (Eq l, Enum l, Num l, Show l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
 distinctLabels
   = umlStateDiagram . unUML
     (\name substates connections startState ->
@@ -414,15 +518,15 @@ distinctLabels
                     }
     )
 
-matchToRelation :: (Eq a) => a -> [(a, b)] -> b
+matchToRelation :: (Eq a, Show a, Show b) => a -> [(a, b)] -> b
 matchToRelation x r
   = case lookup x r of
      Just u
        -> u
      Nothing
-       -> error "no matching label can be found"
+       -> error ("no matching label can be found for " ++ show x ++ " in " ++ show r)
 
-matchNodeToRelation :: (Eq l) => [(Either l l, l)] -> StateDiagram n (Either l l) [Connection (Either b b)] -> StateDiagram n l [Connection b]
+matchNodeToRelation :: (Eq l, Show l) => [(Either l l, l)] -> StateDiagram n (Either l l) [Connection (Either b b)] -> StateDiagram n l [Connection b]
 matchNodeToRelation r
       = \case
            StateDiagram { label
@@ -469,7 +573,7 @@ mapHead :: (a -> a) -> [a] -> [a]
 mapHead _ []     = error "impossible!"
 mapHead f (x:xs) = f x : xs
 
-matchConnectionToRelation :: (Eq l) => [Connection (Either l l)] -> [(Either l l, l)] -> [Connection l]
+matchConnectionToRelation :: (Eq l, Show l) => [Connection (Either l l)] -> [(Either l l, l)] -> [Connection l]
 matchConnectionToRelation connections r
   = [ c { pointFrom
             = mapHeadTail (`matchToRelation` r) fromLeft' (pointFrom c)
