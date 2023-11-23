@@ -37,26 +37,22 @@ data SDConfig
     , maxJoinNodes :: Int
     , minHistoryNodes :: Int
     , maxHistoryNodes :: Int
+    , minFlows :: Int
+    , maxFlows :: Int
     } deriving (Show)
 
-{-
-  to match scenario1ext, there is some fine tuning necessary
-  and quite a number of state charts obtained from Alloy must be
-  flushed out as they are not suitable to serve as tasks (missing states,
-  empty names or transitions)
--}
 defaultSDConfig :: SDConfig
 defaultSDConfig
   = SDConfig { minRegionStates = 0
              , maxRegionStates = 0
              , minHierarchicalStates = 1
-             , maxHierarchicalStates = 2
+             , maxHierarchicalStates = 2 -- stalls on 1
              , minRegions = 0
              , maxRegions = 0
              , minNormalStates = 0
-             , maxNormalStates = 3
+             , maxNormalStates = 5
              , minComponentNames = 0
-             , maxComponentNames = 9
+             , maxComponentNames = 11
              , minEndNodes = 1
              , maxEndNodes = 1
              , minForkNodes = 0
@@ -65,6 +61,9 @@ defaultSDConfig
              , maxJoinNodes = 0
              , minHistoryNodes = 0
              , maxHistoryNodes = 0
+             , minFlows = 7
+             , maxFlows = 10
+             -- minStartNodes
     }
 
 checkSDConfig :: SDConfig -> Maybe String
@@ -87,6 +86,8 @@ checkSDConfig SDConfig {
               , maxJoinNodes
               , minHistoryNodes
               , maxHistoryNodes
+              , minFlows
+              , maxFlows
               }
   | minRegionStates > maxRegionStates = Just "minRegionStates must be less than or equal to maxRegionStates"
   | minHierarchicalStates > maxHierarchicalStates = Just "minHierarchicalStates must be less than or equal to maxHierarchicalStates"
@@ -105,9 +106,9 @@ checkSDConfig SDConfig {
   | maxForkNodes > 3 = Just "you likely want to have less than 4 ForkNodes in the chart"
   | maxJoinNodes > 3 = Just "you likely want to have less than 4 JoinNodes in the chart"
   | maxHistoryNodes > 5 = Just "you likely want to have less than 6 HistoryNodes in the chart"
+  | minFlows > maxFlows = Just "minFlows must be less than or equal to maxFlows"
   | otherwise = Nothing
 
-{- do we want to inject extra predicates? -}
 sdConfigToAlloy :: Int -> Int -> SDConfig -> String
 sdConfigToAlloy scope bitwidth SDConfig { maxRegionStates
                                         , maxHierarchicalStates
@@ -118,6 +119,7 @@ sdConfigToAlloy scope bitwidth SDConfig { maxRegionStates
                                         , maxForkNodes
                                         , maxJoinNodes
                                         , maxHistoryNodes
+                                        , maxFlows
                                         }
   = [i|module GenUMLStateDiagram
       #{componentsSigRules}
@@ -132,9 +134,9 @@ sdConfigToAlloy scope bitwidth SDConfig { maxRegionStates
       #{substateRules}
       #{nameRules}
 
-run {} for #{scope} but #{bitwidth} Int, #{maxRegionStates} RegionsStates, #{maxHierarchicalStates} HierarchicalStates,
-#{maxRegions} Regions, #{maxNormalStates} NormalStates, #{maxComponentNames} ComponentNames, #{maxEndNodes} EndNodes,
-#{maxForkNodes} ForkNodes, #{maxJoinNodes} JoinNodes, #{maxHistoryNodes} HistoryNodes
+run {} for #{scope} but #{bitwidth} Int, #{maxRegionStates} RegionsStates, exactly #{maxHierarchicalStates} HierarchicalStates,
+#{maxRegions} Regions, exactly #{maxNormalStates} NormalStates, #{maxComponentNames} ComponentNames, #{maxEndNodes} EndNodes,
+#{maxForkNodes} ForkNodes, #{maxJoinNodes} JoinNodes, #{maxHistoryNodes} HistoryNodes, exactly #{maxFlows} Flows
     |]
 
 

@@ -11,3 +11,4 @@ extra-deps:
   - git: https://github.com/fmidue/modelling-tasks.git
     commit: f047bce8f2d1641b4161d5f25ebb063821340efa
   - call-plantuml-0.0.1.2
+

@@ -6,7 +6,8 @@
 
 module Modelling.StateDiagram.Flatten(flatten
                                      ,flatten'
-                                     ,lift) where
+                                     ,lift
+                                     ,mergeEqSourceAndTarget) where
 
 import Modelling.StateDiagram.Datatype (UMLStateDiagram
                 ,umlStateDiagram
@@ -262,6 +263,23 @@ cartesianProductOf' combineAddress combineRegionNodes
         $ toList
         $ cartesianProduct x y) h t
       Nothing -> error "an empty CombineDiagram node, without any regions is ~not~ supported"
+
+mergeEqSourceAndTarget :: UMLStateDiagram String Int -> UMLStateDiagram String Int
+mergeEqSourceAndTarget stateChart
+  = umlStateDiagram $
+    unUML (\name substates connections startState
+      -> StateDiagram { name = name
+                      , substates = substates
+                      , connections
+                          = map
+                            (\z -> foldl (\x y -> x { transition = transition x ++ "," ++ transition y } ) (head z) (tail z))
+                            (groupBy (\x y -> pointFrom x == pointFrom y && pointTo x == pointTo y)
+                            (sortBy (\x y -> compare (pointFrom x) (pointFrom y) <> compare (pointTo x) (pointTo y))
+                            connections))
+                      , startState = startState
+                      , label = undefined
+                      }
+    ) stateChart
 
 -- todo: get rid of the trifunctor
 cartesianConnections' :: (Ord l, Ord a1, Ord (z (Either a2 [[b]])), TrifunctorW StateDiagram z, Show l) => Either l l -> [StateDiagram [a1] (Either l l) [z (Either a2 b)]]

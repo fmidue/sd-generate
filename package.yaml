@@ -51,10 +51,28 @@ library:
     - Modelling.StateDiagram.PlantUMLDiagrams
     - Modelling.StateDiagram.Style
     - Modelling.StateDiagram.Simulate
+    - Modelling.StateDiagram.EnumArrows
   ghc-options:
     - -Wall
     - -Werror
 executables:
+  enumeratedArrowsDemo:
+    main: enumeratedArrowsDemo.hs
+    source-dirs:
+      - app
+      - .
+      - app/common
+    dependencies:
+      - ba-sergei-lestsenski
+      - output-monad
+      - transformers
+      - time
+      - directory
+    other-modules:
+      - Common
+    ghc-options:
+      - -Wall
+      - -Werror
   sampling:
     main: sampling.hs
     source-dirs: app

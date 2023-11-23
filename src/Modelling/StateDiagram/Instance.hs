@@ -2,6 +2,7 @@
 {-# OPTIONS_GHC -Wwarn=incomplete-patterns #-}
 module Modelling.StateDiagram.Instance (
   parseInstance,
+  failWith
   ) where
 
 import qualified Data.Map               as M (fromAscList, elems, lookup, empty, insert, fromList)
@@ -375,3 +376,6 @@ toNode ns x i = ifX CNode CompositeState cNodes
       in if node `S.member` which ns
          then return $ f node
          else h
+
+failWith :: (a -> String) -> Either a c -> c
+failWith f = either (error . f) id
