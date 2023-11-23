@@ -99,7 +99,7 @@ defaultEnumArrowsConfig :: EnumArrowsConfig
 defaultEnumArrowsConfig
   = EnumArrowsConfig {
       sdConfig = defaultSDConfig
-    , maxInstances = Just 500
+    , maxInstances = Just 1000
     , printExtendedFeedback = False
     , syntaxWarnTooManyArrows = False
   }

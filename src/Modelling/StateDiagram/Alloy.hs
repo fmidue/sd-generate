@@ -60,4 +60,4 @@ trueReachability :: String
 trueReachability = unlines $ drop 4 $ lines $(embedStringFile "./alloy/sd/trueReachability.als")
 
 scenarioCases :: String
-scenarioCases = unlines $ drop 4 $ lines $(embedStringFile "./alloy/sd/examples_based_on_version_4/teaching_examples.als")
+scenarioCases = unlines $ reverse $ drop 6 $ reverse $ drop 4 $ lines $(embedStringFile "./alloy/sd/examples_based_on_version_4/teaching_examples.als")
