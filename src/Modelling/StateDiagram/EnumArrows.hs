@@ -82,20 +82,6 @@ import Data.Tuple.Extra(second)
 import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
 
-
-
-import Modelling.StateDiagram.Checkers
-    ( checkCrossings,
-      checkDrawability,
-      checkEndState,
-      checkForkAndJoin,
-      checkHistory,
-      checkNameUniqueness,
-      checkRepresentation,
-      checkSemantics,
-      checkStructure,
-      checkUniqueness )
-
 newtype EnumArrowsInstance
   = EnumArrowsInstance {
       hierarchicalSD :: UMLStateDiagram String Int
@@ -105,7 +91,6 @@ data EnumArrowsConfig
   = EnumArrowsConfig {
       sdConfig :: SDConfig
     , maxInstances :: Maybe Integer
-    , minTransitions :: Int
     , syntaxWarnTooManyArrows :: Bool
     , printExtendedFeedback :: Bool
   }
@@ -114,8 +99,7 @@ defaultEnumArrowsConfig :: EnumArrowsConfig
 defaultEnumArrowsConfig
   = EnumArrowsConfig {
       sdConfig = defaultSDConfig
-    , maxInstances = Just 2000
-    , minTransitions = 11
+    , maxInstances = Just 500
     , printExtendedFeedback = False
     , syntaxWarnTooManyArrows = False
   }
@@ -168,11 +152,11 @@ enumArrowsTask path task
     ) (mergeEqSourceAndTarget (rename concat (flatten stateChart)))
 
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
-enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _ _)
+enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _)
   = do
-    inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy 13 8 sdConfig)
-    r <- liftIO (randomRIO (0, (fromIntegral maxInstances `div` 2) - 1) :: IO Int)
-    pure (EnumArrowsInstance (filter (\d -> all (\c -> isNothing $ snd c d) checkers ) ({- drop (fromInteger maxInstances `div` 2) -} map (failWith id . parseInstance "this") inst)  !! r))
+    inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy 10 6 (Just "scenario1") sdConfig)
+    r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
+    pure (EnumArrowsInstance ( map (failWith id . parseInstance "this") inst !! r))
 enumArrowsInstance _ = undefined
 
 
@@ -286,18 +270,3 @@ defaultEnumInstance
   = EnumArrowsInstance {
     hierarchicalSD = flatCase1
   }
-
--- todo: refactor me and move this to helpers
-checkers :: [(String, UMLStateDiagram String Int -> Maybe String)]
-checkers =
-  [ ("checkRepresentation", checkRepresentation)
-  , ("checkStructure", checkStructure)
-  , ("checkCrossings", checkCrossings)
-  , ("checkNameUniqueness", checkNameUniqueness)
-  , ("checkUniqueness", checkUniqueness)
-  , ("checkEndState", checkEndState)
-  , ("checkForkAndJoin", checkForkAndJoin)
-  , ("checkHistory", checkHistory)
-  , ("checkSemantics", checkSemantics)
-  , ("checkDrawability", checkDrawability)
-  ]

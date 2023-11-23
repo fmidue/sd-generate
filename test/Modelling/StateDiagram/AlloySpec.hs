@@ -35,7 +35,7 @@ import Modelling.StateDiagram.Checkers
       checkSemantics,
       checkStructure,
       checkUniqueness )
-import Data.Maybe (isNothing)
+import Data.Maybe(isNothing)
 
 spec :: Spec
 spec
@@ -45,37 +45,28 @@ spec
       it "print default alloy sd config to \"./temp/sd.als\"" $
         do
         createDirectoryIfMissing True "./temp"
-        writeFile "./temp/sd.als" $ sdConfigToAlloy 6 3 defaultSDConfig
+        writeFile "./temp/sd.als" $ sdConfigToAlloy 10 6 (Just "scenario1") defaultSDConfig
         return ()
       it "parsing an Alloy chart instance yields some result" $
         do
-        inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
+        inst <- getInstances (Just 500) (sdConfigToAlloy 10 6 (Just "scenario1") defaultSDConfig)
         let chart = map (failWith id . parseInstance "this") inst !! 499
         show chart `shouldNotBe` ""
       it "default Alloy sd config wont return empty chart instances (as checkers might still pass on [])" $
         do
-        inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
+        inst <- getInstances (Just 500) (sdConfigToAlloy 10 6 (Just "scenario1") defaultSDConfig)
         length inst `shouldBe` 500
       it "retrieving default Alloy SD chart instances does satisfy the Haskell chart checkers" $
         do
-        inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
+        inst <- getInstances (Just 500) (sdConfigToAlloy 10 6 (Just "scenario1") defaultSDConfig)
         and (concatMap (zipWith (\ checker chart' -> isNothing (checker chart')) (map snd checkers) . repeat . failWith id . parseInstance "this") inst) `shouldBe` True
-      --it "config checker denies unreasonable requests" $
-      --  True `shouldBe` True
-{-
-      it "render some charts obtained from Alloy" $
-        do
-        inst <- getInstances (Just 500) (sdConfigToAlloy 9 6 defaultSDConfig)
-        mainWith $ (drawDiagram Unstyled) $ head (drop 499 (map (failWith id . parseInstance "this") inst))
-        --mapM (\x -> mainWith (drawDiagram Unstyled x)) (drop 480 (map (failWith id . parseInstance "this") inst))
-        --adjust output names
-        return ()
--}
+      -- it "config checker denies unreasonable requests" $
 
-#if __GLASGOW_HASKELL__ >= 808
+
+
 instance IsString a => MonadFail (Either a) where
   fail = Left . fromString
-#endif
+
 
 failWith :: (a -> String) -> Either a c -> c
 failWith f = either (error . f) id
@@ -94,3 +85,4 @@ checkers =
   , ("checkSemantics", checkSemantics)
   , ("checkDrawability", checkDrawability)
   ]
+

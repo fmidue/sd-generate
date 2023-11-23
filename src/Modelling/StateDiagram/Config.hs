@@ -45,12 +45,12 @@ defaultSDConfig :: SDConfig
 defaultSDConfig
   = SDConfig { minRegionStates = 0
              , maxRegionStates = 0
-             , minHierarchicalStates = 1
-             , maxHierarchicalStates = 2 -- stalls on 1
+             , minHierarchicalStates = 0
+             , maxHierarchicalStates = 1
              , minRegions = 0
              , maxRegions = 0
              , minNormalStates = 0
-             , maxNormalStates = 5
+             , maxNormalStates = 6
              , minComponentNames = 0
              , maxComponentNames = 11
              , minEndNodes = 1
@@ -109,18 +109,18 @@ checkSDConfig SDConfig {
   | minFlows > maxFlows = Just "minFlows must be less than or equal to maxFlows"
   | otherwise = Nothing
 
-sdConfigToAlloy :: Int -> Int -> SDConfig -> String
-sdConfigToAlloy scope bitwidth SDConfig { maxRegionStates
-                                        , maxHierarchicalStates
-                                        , maxRegions
-                                        , maxNormalStates
-                                        , maxComponentNames
-                                        , maxEndNodes
-                                        , maxForkNodes
-                                        , maxJoinNodes
-                                        , maxHistoryNodes
-                                        , maxFlows
-                                        }
+sdConfigToAlloy :: Int -> Int -> Maybe String -> SDConfig -> String
+sdConfigToAlloy scope bitwidth predicates SDConfig { maxRegionStates
+                                                   , maxHierarchicalStates
+                                                   , maxRegions
+                                                   , maxNormalStates
+                                                   , maxComponentNames
+                                                   , maxEndNodes
+                                                   , maxForkNodes
+                                                   , maxJoinNodes
+                                                   , maxHistoryNodes
+                                                   , maxFlows
+                                                   }
   = [i|module GenUMLStateDiagram
       #{componentsSigRules}
       #{trueReachability}
@@ -134,9 +134,11 @@ sdConfigToAlloy scope bitwidth SDConfig { maxRegionStates
       #{substateRules}
       #{nameRules}
 
-run {} for #{scope} but #{bitwidth} Int, #{maxRegionStates} RegionsStates, exactly #{maxHierarchicalStates} HierarchicalStates,
+      #{scenarioCases}
+
+run #{maybe noPred id predicates} for #{scope} but #{bitwidth} Int, #{maxRegionStates} RegionsStates, exactly #{maxHierarchicalStates} HierarchicalStates,
 #{maxRegions} Regions, exactly #{maxNormalStates} NormalStates, #{maxComponentNames} ComponentNames, #{maxEndNodes} EndNodes,
 #{maxForkNodes} ForkNodes, #{maxJoinNodes} JoinNodes, #{maxHistoryNodes} HistoryNodes, exactly #{maxFlows} Flows
     |]
-
-
+  where
+  noPred = "{}"
