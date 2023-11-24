@@ -1,10 +1,14 @@
 # See https://github.com/check-spelling/check-spelling/wiki/Configuration-Examples:-patterns
 
 # acceptable duplicates
+Int Int
+
 # ls directory listings
 [-bcdlpsw](?:[-r][-w][-sx]){3}\s+\d+\s+(\S+)\s+\g{-1}\s+\d+\s+
+
 # C types
 \s(long|LONG) \g{-1}\s
+
 # javadoc / .net
 (?:\@(?:groupname|param)|(?:public|private)(?:\s+static|\s+readonly)*)\s+(\w+)\s+\g{-1}\s
 
@@ -16,4 +20,6 @@ https?://[-+0-9a-zA-Z?&=_\/%.]*
 
 # ignore option lines
 ^.*\sOPTIONS_GHC\s.*$
-^.*Int Int.*$
+
+# ignore lines starting with 'german' (german task descriptions and warnings)
+^\s*german.*$
