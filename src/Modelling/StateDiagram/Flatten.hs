@@ -272,7 +272,7 @@ mergeEqSourceAndTarget stateChart
                       , substates = substates
                       , connections
                           = map
-                            (\z -> foldl (\x y -> x { transition = transition x ++ "," ++ transition y } ) (head z) (tail z))
+                            (foldl1 (\x y -> x { transition = transition x ++ "," ++ transition y } ))
                             (groupBy (\x y -> pointFrom x == pointFrom y && pointTo x == pointTo y)
                             (sortBy (\x y -> compare (pointFrom x) (pointFrom y) <> compare (pointTo x) (pointTo y))
                             connections))
