@@ -123,20 +123,14 @@ enumArrowsTask path task
       english "Please supply a list of tuples, where the first element is the integer label of the transition\n\
                \ and the second element is a string transition literals, seperated by commas, that are supposed\
                \ to be at that place."
-      german "Bitte geben Sie eine Liste von Tupeln an, wobei das erste Element die Nummer der Transition ist\n\
-             \ und das zweite Element eine Liste von Transitionsliteralen, jeweils mit einem Komma getrennt als String,\
-             \ das an dieser Stelle stehen soll."
+      german "Bitte geben Sie eine Liste von Tupeln an, wobei das erste Element die Nummer der Transition ist\n und das zweite Element eine Liste von Transitionsliteralen, jeweils mit einem Komma getrennt als String, das an dieser Stelle stehen soll."
     paragraph $ translate $ do
       english "You may use the following syntax to denote the missing arrows:\n\
                \ [(1,\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be the literal 'a'\n\
                \ if multiple literals are possible for a transition, please specify them separately by comma, e.g. [(1,\"a,b\")]\n\
                \ would be the list of literals for transition (1) that can be either 'a' or 'b'.\n\
                \ The order of the literals does not matter."
-      german "Sie können die folgende Syntax verwenden, um die fehlenden Pfeile anzugeben:\n\
-             \ [(1,\"a\")] ist eine Liste, die sich auf eine einzelne Transition mit der Nummer (1) bezieht, an welche das Literal 'a' gebunden sein soll.\n\
-             \ Wenn mehrere Literale für eine Transition möglich sind, geben Sie diese bitte separat durch Komma an, z.B. [(1,\"a,b\")]\n\
-             \ wäre die Liste der Literale für die Transition (1), die entweder 'a' oder 'b' sein können.\n\
-             \ Die Reihenfolge der Literale spielt keine Rolle."
+      german "Sie können die folgende Syntax verwenden, um die fehlenden Pfeile anzugeben:\n [(1,\"a\")] ist eine Liste, die sich auf eine einzelne Transition mit der Nummer (1) bezieht, an welche das Literal 'a' gebunden sein soll.\n Wenn mehrere Literale für eine Transition möglich sind, geben Sie diese bitte separat durch Komma an, z.B. [(1,\"a,b\")]\n wäre die Liste der Literale für die Transition (1), die entweder 'a' oder 'b' sein können.\n Die Reihenfolge der Literale spielt keine Rolle." -- 500
 
     pure ()
   where
@@ -186,9 +180,7 @@ enumArrowsSyntax task answer
     assertion (null answer) $ translate $ do
       english "Please supply a list of tuples, where the first element is the integer of the transition\n\
                \ and the second element is the transition literal as string that is supposed to be at that place."
-      german "Bitte geben Sie eine Liste von Tupeln an, wobei das erste Element die Nummer der Transition ist\n\
-             \ und das zweite Element eine Liste von Transitionsliteralen, jeweils mit einem Komma getrennt als String,\
-             \ das an dieser Stelle stehen soll."
+      german "Bitte geben Sie eine Liste von Tupeln an, wobei das erste Element die Nummer der Transition ist\n und das zweite Element eine Liste von Transitionsliteralen, jeweils mit einem Komma getrennt als String das an dieser Stelle stehen soll."
     return ()
 
 -- ask siegburg about evalLangM, how to deploy this function into main() without having missing instances
@@ -211,16 +203,14 @@ enumArrowsFeedback task answer
                          paragraph $ translate $ do
                            english ("the enumerated transition " ++ show i ++
                                     " is not present in the chart.")
-                           german ("die nummerierte Transition " ++ show i ++
-                                   " ist nicht in der Aufgabenstellung vorhanden.")
+                           german ("die nummerierte Transition " ++ show i ++ " ist nicht in der Aufgabenstellung vorhanden.")
                 )
       (lookup i answer) ) (filter (\x -> sortLiterals x `notElem` map sortLiterals (enumArrowsSolution task) ) answer)
     mapM_ (\(i,l) -> do
                      paragraph $ translate $ do
                        english ("the enumerated transition: " ++ show i ++
                                 " is missing, the expected literal for it is: " ++ show l)
-                       german ("die Transition mit der Nummer: " ++ show i ++
-                               " fehlt, das dort erwartete Literal ist: " ++ show l)
+                       german ("die Transition mit der Nummer: " ++ show i ++ " fehlt, das dort erwartete Literal ist: " ++ show l)
           )
       (filter (isNothing . flip lookup answer . fst) (enumArrowsSolution task))
   where
