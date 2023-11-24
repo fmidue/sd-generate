@@ -12,8 +12,7 @@ module Modelling.StateDiagram.Alloy(alloySDGenerator
                                    ,transitionRules
                                    ,substateRules
                                    ,nameRules
-                                   ,trueReachability
-                                   ,scenarioCases)
+                                   ,trueReachability)
 where
 
 import Data.FileEmbed (embedStringFile)
@@ -58,6 +57,3 @@ nameRules = unlines $ drop 4 $ lines $(embedStringFile "./alloy/sd/name_rules.al
 
 trueReachability :: String
 trueReachability = unlines $ drop 4 $ lines $(embedStringFile "./alloy/sd/trueReachability.als")
-
-scenarioCases :: String
-scenarioCases = unlines $ reverse $ drop 6 $ reverse $ drop 4 $ lines $(embedStringFile "./alloy/sd/examples_based_on_version_4/teaching_examples.als")

@@ -154,11 +154,10 @@ enumArrowsTask path task
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
 enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _)
   = do
-    inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy 10 6 (Just "scenario1") sdConfig)
+    inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy sdConfig)
     r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
     pure (EnumArrowsInstance ( map (failWith id . parseInstance "this") inst !! r))
 enumArrowsInstance _ = undefined
-
 
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
 enumArrowsInstanceCheck _ task

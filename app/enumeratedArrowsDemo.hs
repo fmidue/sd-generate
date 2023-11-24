@@ -18,7 +18,7 @@ main
     (timestamp::Int) <- round <$> getPOSIXTime
     createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
     putStrLn $ "Seed: " ++ show timestamp
-    -- initialize Alloy and instance selctor
+    -- initialize Alloy and instance selector
     taskEnv <- enumArrows defaultEnumArrowsConfig timestamp
     -- pick a concrete instance
     task <- enumArrowsTask ("./session_temp/enumArrows"::FilePath) taskEnv `withLang` English
