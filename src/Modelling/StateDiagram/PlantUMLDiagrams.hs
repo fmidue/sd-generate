@@ -54,14 +54,12 @@ renderAll style sd = do
 
 renderUML :: Styling -> [Int] -> UMLStateDiagram String Int -> (String, [String])
 renderUML style ctxt =
-  unUML $ \_ substates connections startState ->
-                                    let hn = getAllHistory substates ctxt
-                                        (theSubstates, relevantNames) = renderSubstates substates style ctxt
-                                    in
-                                    ([i|
-#{theSubstates}
-#{renderStart startState ctxt}
-#{renderConnections hn connections ctxt}|], relevantNames)
+  unUML $ \_ substates connections startState
+    -> let hn = getAllHistory substates ctxt
+           (theSubstates, relevantNames)
+             = renderSubstates substates style ctxt
+       in
+       ([i|#{"\n"}#{theSubstates}#{"\n"}#{renderStart startState ctxt}#{"\n"}#{renderConnections hn connections ctxt}|], relevantNames)
 
 renderSubstates :: [StateDiagram String Int [Connection Int]] -> Styling -> [Int] -> (String, [String])
 renderSubstates [] _ _ = ("",[])
