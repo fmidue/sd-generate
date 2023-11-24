@@ -26,11 +26,11 @@ main
     print task
     putStrLn ("\ncheat solution:" ++ show (enumArrowsSolution taskEnv))
     -- user response (task assignment -> solution submission)
-    subm <- fmap read getLine
+    sub <- fmap read getLine
     -- user syntax checking function
-    enumArrowsSyntax taskEnv subm `withLang` English
+    enumArrowsSyntax taskEnv sub `withLang` English
     -- task submission evaluation function
-    points <- enumArrowsEvaluation taskEnv subm `withLang` English
+    points <- enumArrowsEvaluation taskEnv sub `withLang` English
     -- user result
     print points
     return ()
