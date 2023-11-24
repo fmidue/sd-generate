@@ -24,18 +24,8 @@ import Modelling.StateDiagram.Config(defaultSDConfig
                                     ,sdConfigToAlloy)
 import Modelling.StateDiagram.Instance(parseInstance)
 import Modelling.StateDiagram.Datatype(UMLStateDiagram)
-import Modelling.StateDiagram.Checkers
-    ( checkCrossings,
-      checkDrawability,
-      checkEndState,
-      checkForkAndJoin,
-      checkHistory,
-      checkNameUniqueness,
-      checkRepresentation,
-      checkSemantics,
-      checkStructure,
-      checkUniqueness )
 import Data.Maybe(isNothing)
+import Modelling.StateDiagram.ExampleSpec(allTheCheckers)
 
 spec :: Spec
 spec
@@ -68,17 +58,5 @@ instance IsString a => MonadFail (Either a) where
 failWith :: (a -> String) -> Either a c -> c
 failWith f = either (error . f) id
 
--- todo: use the version from Checkers module and filter the removed test out by "str" /= fst .
 checkers :: [(String, UMLStateDiagram String Int -> Maybe String)]
-checkers =
-  [ ("checkRepresentation", checkRepresentation)
-  , ("checkStructure", checkStructure)
-  , ("checkCrossings", checkCrossings)
-  , ("checkNameUniqueness", checkNameUniqueness)
-  , ("checkUniqueness", checkUniqueness)
-  , ("checkEndState", checkEndState)
-  , ("checkForkAndJoin", checkForkAndJoin)
-  , ("checkHistory", checkHistory)
-  , ("checkSemantics", checkSemantics)
-  , ("checkDrawability", checkDrawability)
-  ]
+checkers = filter ((/= "checkWrapper") . fst) allTheCheckers
