@@ -18,7 +18,8 @@ import Modelling.StateDiagram.Datatype (StateDiagram(..)
                 ,unUML'
                 )
 import Modelling.StateDiagram.Flatten (flatten
-               ,flatten')
+                                      ,flatten'
+                                      ,lift)
 import Modelling.StateDiagram.ExampleSpec (allTheCheckers)
 import System.Directory(createDirectoryIfMissing)
 import Diagrams.Backend.SVG (renderSVG)
@@ -26,7 +27,6 @@ import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Modelling.StateDiagram.Layout (drawDiagram)
 import Diagrams (dims)
 import Diagrams.Prelude (V2(V2))
-import Modelling.StateDiagram.Flatten (lift)
 import Data.List (singleton)
 
 -- this chart should cover most cases within one instance
@@ -310,11 +310,4 @@ spec
         renderSVG "./temp/probeChart.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable probeChart)
         renderSVG "./temp/probeChartLiftedSDe.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten probeChart)))
         renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
-        return ()
-      it "debug print liftCD after lifting SD" $ do
-        let result = flatten' $ flatten probeChart
-        -- let result' = lift (fmap Left result)
-        let result' = lift (fmap Left $ rename singleton result)
-        putStrLn (show result')
-        putStrLn (show $ flatten' result)
         return ()
