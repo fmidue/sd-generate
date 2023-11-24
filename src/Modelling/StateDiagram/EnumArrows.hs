@@ -121,7 +121,7 @@ enumArrowsTask path task
     image $=<< liftIO $ drawSDToFile (combine path "flattened") (flatAndEnumerated (hierarchicalSD task))
     paragraph $ translate $ do
       english "Please supply a list of tuples, where the first element is the integer label of the transition\n\
-               \ and the second element is a string transition literals, seperated by commas, that are supposed\
+               \ and the second element is a string transition literals, separated by commas, that are supposed\
                \ to be at that place."
       german "Bitte geben Sie eine Liste von Tupeln an, wobei das erste Element die Nummer der Transition ist\n und das zweite Element eine Liste von Transitionsliteralen, jeweils mit einem Komma getrennt als String, das an dieser Stelle stehen soll."
     paragraph $ translate $ do
@@ -156,7 +156,7 @@ enumArrowsInstance _ = undefined
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
 enumArrowsInstanceCheck _ task
   | length (enumArrowsSolution task) > 30
-    = return $ Just "The solution chart exceeds a reasonable ammout of transitions, it would be tedious to enumerate them all."
+    = return $ Just "The solution chart exceeds a reasonable ammount of transitions, it would be tedious to enumerate them all."
   | otherwise = return Nothing
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(Int,String)] -> LangM m
@@ -164,7 +164,7 @@ enumArrowsSyntax task answer
   = do
     -- todo: fix this assertion
     --assertion (not $ any (\(i,_) -> any (\(i',_) -> i' == i) answer) answer) $ translate $ do
-    --  english "You can only assign one set of literals as a comma sperated string for every enumerated arrow at most once."
+    --  english "You can only assign one set of literals as a comma separated string for every enumerated arrow at most once."
     --  german "Eine Menge von Literalen kann als kommaseparierter String höchstens ein Mal für einen konkreten nummerierten Pfeil zugewiesen werden."
     assertion (any (\(i,_) -> i < 1) answer) $ translate $ do
       english "Transition enumeration must be positive integers."
