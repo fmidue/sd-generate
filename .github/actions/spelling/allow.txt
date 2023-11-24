@@ -119,3 +119,8 @@ XML
 yaml
 yml
 refactor
+args
+manr
+matrikel
+vnr
+enum
