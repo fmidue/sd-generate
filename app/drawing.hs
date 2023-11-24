@@ -10,5 +10,4 @@ main :: IO ()
 main = do
   putStrLn "Drawing... (Nothing)"
   mainWith ( drawDiagram Unstyled undefined )
-  where
   -- renderable x = umlStateDiagram . (\s -> s { label = 999 }) $ unUML' $ rename concat x
