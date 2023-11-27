@@ -169,7 +169,9 @@ enumArrowsSyntax task answer
 
 enumArrowsEvaluation :: (OutputMonad m) => EnumArrowsInstance -> [(Int,String)] -> Rated m
 enumArrowsEvaluation task answer
-  = printSolutionAndAssert (Just $ show $ enumArrowsSolution task) (rate (enumArrowsSolution task) answer)
+  = printSolutionAndAssert
+    (Just $ show (concatMap (uncurry zip) $ enumArrowsSolution task))
+    (rate (enumArrowsSolution task) answer)
 
 enumArrowsSolution :: EnumArrowsInstance -> [([Int], [String])]
 enumArrowsSolution EnumArrowsInstance {hierarchicalSD}
