@@ -57,8 +57,8 @@ scenario1ChartConfig
                 , joinNodes = (0,0)
                 , historyNodes = (0,0)
                 , flows = (10,10)
-                , protoFlows = (15,15)
-                , totalNodes = (10,12)
+                , protoFlows = (10,10)
+                , totalNodes = (10,10)
                 }
 
 scenario2ChartConfig :: ChartConfig
@@ -100,7 +100,6 @@ data SDConfig
              , distinctNormalStateNames :: Bool
              , noEmptyTriggers :: Bool
              , noNestedEndNodes :: Bool
-             , ensureReachability :: Bool
              , chartConfig :: ChartConfig
              } deriving (Show)
 
@@ -116,7 +115,6 @@ defaultSDConfigScenario1
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = False
-             , ensureReachability = True
              , chartConfig = scenario1ChartConfig
     }
 
@@ -128,7 +126,6 @@ defaultSDConfigScenario2
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = True
-             , ensureReachability = True
              , chartConfig = scenario2ChartConfig
     }
 
@@ -140,7 +137,6 @@ defaultSDConfigScenario3
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = False
-             , ensureReachability = True
              , chartConfig = scenario3ChartConfig
     }
 
@@ -163,7 +159,7 @@ checkSDConfig SDConfig { scope
                                                    , totalNodes
                                                    }
                        }
-  | protoFlows < flows = Just "protoFlows must be greater than or equal to flows"
+  | fst protoFlows < fst flows = Just "the minimum amount of protoFlows must at least match or better even exceed the lower bound of 'normal' flows"
   | scope < 1 = Just "scope must be greater than 0"
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
   | uncurry (>) regionStates = Just "minRegionStates must be less than or equal to maxRegionStates"
@@ -196,7 +192,6 @@ sdConfigToAlloy  SDConfig { scope
                           , enforceNormalStateNames
                           , distinctNormalStateNames
                           , noNestedEndNodes
-                          , ensureReachability
                           , chartConfig = ChartConfig { regionStates
                                                       , hierarchicalStates
                                                       , regions
@@ -232,7 +227,6 @@ pred scenarioConfig #{oB}
   #{if noEmptyTriggers then "EmptyTrigger not in from.States.label" else ""}
   //#{if snd joinNodes >= 1 && snd forkNodes >= 1 then "some (ForkNodes + JoinNodes)" else ""}
   #{if noNestedEndNodes then "EndNodes not in allContainedNodes" else ""}
-  #{if ensureReachability then "all s : States | some (Flows <: from).s" else ""}
   #{bounded regions "Regions"}
   #{bounded hierarchicalStates "HierarchicalStates"}
   #{bounded endNodes "EndNodes"}
