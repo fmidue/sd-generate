@@ -15,12 +15,17 @@ jobs:
           - ubuntu-latest
         plan:
           - {build: stack}
+        include:
+          - os: ubuntu-latest
+            apt-get: graphviz
 
     runs-on: ${{ matrix.os }}
 
     steps:
       - name: Install ${{ matrix.os }} Packages
         uses: mstksg/get-package@v1
+        with:
+          apt-get: ${{ matrix.apt-get }}
 
       - uses: actions/checkout@v2
 
