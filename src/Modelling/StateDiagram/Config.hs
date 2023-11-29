@@ -1,4 +1,4 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 module Modelling.StateDiagram.Config(defaultSDConfig
@@ -25,6 +25,7 @@ import Modelling.StateDiagram.Alloy(componentsSigRules
                                    ,transitionRules
                                    ,trueReachability)
 import Data.String.Interpolate(i)
+import Control.Applicative (Alternative ((<|>)))
 
 data ChartLimits
   = ChartLimits { regionsStates :: (Int,Int)
@@ -153,55 +154,47 @@ checkSDConfig SDConfig { scope
                        , bitwidth
                        , enforceNormalStateNames
                        , distinctNormalStateNames
-                       , chartLimits = ChartLimits { regionsStates
-                                                   , hierarchicalStates
-                                                   , regions
-                                                   , normalStates
-                                                   , componentNames
-                                                   , triggerNames
-                                                   , startNodes
-                                                   , endNodes
-                                                   , forkNodes
-                                                   , joinNodes
-                                                   , shallowHistoryNodes
-                                                   , deepHistoryNodes
-                                                   , flows
-                                                   , protoFlows
-                                                   , totalNodes
-                                                   }
+                       , chartLimits = chartLimits@ChartLimits{..}
                        }
   | fst protoFlows < fst flows = Just "the minimum amount of protoFlows must at least match or better even exceed the lower bound of 'normal' flows"
+  | snd protoFlows < snd flows = Just "the maximum amount of protoFlows must at least match or better even exceed the upper bound of 'normal' flows"
   | scope < 1 = Just "scope must be greater than 0"
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
-  | uncurry (>) regionsStates = Just "minRegionsStates must be less than or equal to maxRegionsStates"
-  | uncurry (>) hierarchicalStates = Just "minHierarchicalStates must be less than or equal to maxHierarchicalStates"
-  | uncurry (>) regions = Just "minRegions must be less than or equal to maxRegions"
-  | uncurry (>) normalStates = Just "minNormalStates must be less than or equal to maxNormalStates"
-  | fst componentNames < 0 = Just "componentNames must be greater than or equal to 0"
-  | fst triggerNames < 0 = Just "triggerNames must be greater than or equal to 0"
-  | uncurry (>) startNodes = Just "minStartNodes must be less than or equal to maxStartNodes"
-  | uncurry (>) endNodes = Just "minEndNodes must be less than or equal to maxEndNodes"
-  | uncurry (>) forkNodes = Just "minForkNodes must be less than or equal to maxForkNodes"
-  | uncurry (>) joinNodes = Just "minJoinNodes must be less than or equal to maxJoinNodes"
-  | uncurry (>) shallowHistoryNodes = Just "minShallowHistoryNodes must be less than or equal to maxShallowHistoryNodes"
-  | uncurry (>) deepHistoryNodes = Just "minDeepHistoryNodes must be less than or equal to maxDeepHistoryNodes"
-  | uncurry (>) flows = Just "minFlows must be less than or equal to maxFlows"
-  | fst protoFlows < 0 = Just "protoFlows must be greater than or equal to 0"
   | fst startNodes < 1 = Just "you likely want to have at least one startNode in the chart"
-  | fst endNodes < 1 = Just "you likely want to have at least one EndNode in the chart"
-  | snd regions > 6 = Just "you likely want to have less than 7 Regions in the chart"
-  | snd normalStates > 15 = Just "you likely want to have less than 16 NormalStates in the chart"
-  | snd componentNames > 16 = Just "you likely want to have less than 16 ComponentNames in the chart"
-  | snd triggerNames > 16 = Just "you likely want to have less than 16 TriggerNames in the chart"
-  | snd startNodes > 4 = Just "you likely want to have less than 4 StartNodes in the chart"
-  | snd endNodes > 4 = Just "you likely want to have less than 4 EndNodes in the chart"
-  | snd forkNodes > 3 = Just "you likely want to have less than 4 ForkNodes in the chart"
-  | snd joinNodes > 3 = Just "you likely want to have less than 4 JoinNodes in the chart"
-  | snd shallowHistoryNodes > 5 = Just "you likely want to have less than 6 ShallowHistoryNodes in the chart"
-  | snd deepHistoryNodes > 5 = Just "you likely want to have less than 6 DeepHistoryNodes in the chart"
+  | fst regions > 0 && fst regionsStates < 1 = Just "you cannot have Regions when you have no RegionsStates"
+  | fst regions < 2 * fst regionsStates = Just "each RegionsState needs at least two Regions"
+  | snd regions < 2 * snd regionsStates = Just "each RegionsState needs at least two Regions"
+  | fst forkNodes > 0 && fst regionsStates < 1 = Just "you cannot have ForkNodes when you have no RegionsStates"
+  | fst joinNodes > 0 && fst regionsStates < 1 = Just "you cannot have JoinNodes when you have no RegionsStates"
   | distinctNormalStateNames && not enforceNormalStateNames = Just "you cannot enforce distinct normal state names without enforcing normal state names"
-  | uncurry (>) totalNodes = Just "you likely want to have at least 4 Nodes in the chart"
-  | otherwise = Nothing
+  | fst totalNodes < fst normalStates + fst hierarchicalStates + fst regionsStates + fst startNodes + fst endNodes + fst forkNodes + fst joinNodes + fst shallowHistoryNodes + fst deepHistoryNodes
+  = Just "The minimum total number for Nodes is too small, compared to the other numbers."
+  | snd totalNodes < snd normalStates + snd hierarchicalStates + snd regionsStates + snd startNodes + snd endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
+  = Just "The maximum total number for Nodes is too small, compared to the other numbers."
+  | otherwise = checkLimits chartLimits
+
+checkLimits :: ChartLimits -> Maybe String
+checkLimits ChartLimits{..}
+  = checkPair regionsStates "RegionsStates"
+    <|> checkPair hierarchicalStates "HierarchicalStates"
+    <|> checkPair regions "Regions"
+    <|> checkPair normalStates "NormalStates"
+    <|> checkPair startNodes "StartNodes"
+    <|> checkPair endNodes "EndNodes"
+    <|> checkPair forkNodes "ForkNodes"
+    <|> checkPair joinNodes "JoinNodes"
+    <|> checkPair shallowHistoryNodes "ShallowHistoryNodes"
+    <|> checkPair deepHistoryNodes "DeepHistoryNodes"
+    <|> checkPair flows "Flows"
+    <|> checkPair protoFlows "ProtoFlows"
+    <|> checkPair totalNodes "Nodes"
+    <|> checkPair componentNames "ComponentNames"
+    <|> checkPair triggerNames "TriggerNames"
+  where
+    checkPair pair name
+      | uncurry (>) pair = Just $ "minimum of " ++ name ++ " must be less than or equal to maximum of " ++ name
+      | fst pair < 0 = Just $ name ++ " must be greater than or equal to 0"
+      | otherwise = Nothing
 
 sdConfigToAlloy :: SDConfig -> String
 sdConfigToAlloy  SDConfig { scope
