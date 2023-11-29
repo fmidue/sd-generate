@@ -16,7 +16,7 @@ import Modelling.StateDiagram.EnumArrows(defaultEnumArrowsConfig
                                         ,defaultEnumInstance
                                         ,enumArrowsSolution
                                         ,enumArrowsEvaluation
-
+                                        ,EnumArrowsInstance(taskSolution)
                                         ,enumArrowsSyntax
                                         ,rate, enumArrows, enumArrowsTask, enumArrowsFeedback
                                         )
@@ -48,7 +48,7 @@ spec
         enumArrowsSyntax taskEnv sub `withLang` English
         _ <- enumArrowsEvaluation taskEnv sub `withLang` English
         _ <- enumArrowsFeedback taskEnv sub `withLang` English
-        rate (enumArrowsSolution taskEnv) sub `shouldBe` 1
+        rate (taskSolution taskEnv) sub `shouldBe` 1
       it "generate chart and solve it incorrectly" $ do
         (timestamp::Int) <- pure 1111111111
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
@@ -58,7 +58,7 @@ spec
         enumArrowsSyntax taskEnv sub `withLang` English
         _ <- enumArrowsEvaluation taskEnv sub `withLang` English
         _ <- enumArrowsFeedback taskEnv sub `withLang` English
-        rate (enumArrowsSolution taskEnv) sub `shouldBe` (2 % 3)
+        rate (taskSolution taskEnv) sub `shouldBe` (2 % 3)
       it "generate chart and solve it entirely wrong" $ do
         (timestamp::Int) <- pure 1111111111
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
@@ -68,7 +68,7 @@ spec
         enumArrowsSyntax taskEnv sub `withLang` English
         _ <- enumArrowsEvaluation taskEnv sub `withLang` English
         _ <- enumArrowsFeedback taskEnv sub `withLang` English
-        rate (enumArrowsSolution taskEnv) sub `shouldBe` 0
+        rate (taskSolution taskEnv) sub `shouldBe` 0
       it "answer test" $ do
         enumArrowsSolution defaultEnumInstance
         `shouldBe`

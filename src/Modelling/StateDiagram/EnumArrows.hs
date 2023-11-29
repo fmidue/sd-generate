@@ -11,6 +11,7 @@
 
 module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSolution
+                                         ,correctEnumeration
                                          ,enumArrowsInstance
                                          ,enumArrowsSyntax
                                          ,enumArrowsEvaluation
@@ -73,17 +74,26 @@ import Language.Alloy.Call (getInstances)
 import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
 import Modelling.StateDiagram.Flatten (flatten)
-
-import Data.List(groupBy,nub, singleton, sortBy, find)
-
+import Data.List(groupBy
+                ,nub
+                ,singleton
+                ,sortBy
+                ,find)
 import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
-import Data.Either (rights, lefts)
+import Data.Either (rights
+                   ,lefts)
 
-newtype EnumArrowsInstance
+data EnumArrowsInstance
   = EnumArrowsInstance {
-      hierarchicalSD :: UMLStateDiagram String Int
+        hierarchicalSD :: UMLStateDiagram String Int
+      , flatAndEnumeratedSD :: UMLStateDiagram String Int
+      , taskSolution :: [([Int], [String])]
     }
+
+data RenamingStrategy
+  = HierarchicalConcatenation
+  | JustTheInnermostName
 
 data EnumArrowsConfig
   = EnumArrowsConfig {
@@ -91,6 +101,7 @@ data EnumArrowsConfig
     , maxInstances :: Maybe Integer
     , syntaxWarnTooManyArrows :: Bool
     , printExtendedFeedback :: Bool
+    , renamingStrategy :: RenamingStrategy
   }
 
 defaultEnumArrowsConfig :: EnumArrowsConfig
@@ -100,6 +111,7 @@ defaultEnumArrowsConfig
     , maxInstances = Just 1000
     , printExtendedFeedback = False
     , syntaxWarnTooManyArrows = False
+    , renamingStrategy = JustTheInnermostName
   }
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
@@ -114,7 +126,7 @@ enumArrowsTask path task
     image $=<< liftIO $ drawSDToFile (combine path "plain") (hierarchicalSD task)
     paragraph $ translate $ do
       english "Which was flattened, having the transition literals replaced by integers."
-    image $=<< liftIO $ drawSDToFile (combine path "flattened") (flatAndEnumerated (hierarchicalSD task))
+    image $=<< liftIO $ drawSDToFile (combine path "flattened") (flatAndEnumeratedSD task)
     paragraph $ translate $ do
       english "Please supply a list of tuples, where the first element is the integer label of the transition\n\
                \ and the second element is a transition literal string, that is supposed\
@@ -123,24 +135,40 @@ enumArrowsTask path task
       english "You may use the following syntax to denote the missing arrows:\n\
                \ [(1,\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be the literal 'a'."
     pure ()
-  where
-  flatAndEnumerated stateChart
-    = umlStateDiagram $ unUML (\name substates connection startState ->
-        StateDiagram {
-          name = name
-        , substates = substates
-        , connections = zipWith (\c l -> c {transition = (show::Int -> String) l}) connection [1..]
-        , startState = startState
-        , label = 999
-        }
-    ) (rename concat (flatten stateChart))
 
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
-enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _)
+enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _ renamingStrategy)
   = do
     inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy sdConfig)
     r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
-    pure (EnumArrowsInstance ( map (failWith id . parseInstance "this") inst !! r))
+    let chart = map (failWith id . parseInstance "this") inst !! r
+    let flatChart = flatten chart
+    pure EnumArrowsInstance {
+           hierarchicalSD = chart
+         , taskSolution
+             = correctEnumeration $
+               rename last flatChart
+         , flatAndEnumeratedSD
+             = umlStateDiagram $
+               unUML (\name substates connection startState
+                         -> StateDiagram {
+                              name = name
+                            , substates = substates
+                            , connections
+                                = zipWith (\c l
+                                               -> c {transition = (show::Int -> String) l})
+                                  connection [1..]
+                            , startState = startState
+                            , label = 999
+                            }
+                     ) (rename (case renamingStrategy of
+                                  HierarchicalConcatenation
+                                    -> concat
+                                  JustTheInnermostName
+                                    -> last
+                               )
+                       flatChart)
+         }
 enumArrowsInstance _ = undefined
 
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
@@ -173,7 +201,11 @@ enumArrowsEvaluation task answer
     (rate (enumArrowsSolution task) answer)
 
 enumArrowsSolution :: EnumArrowsInstance -> [([Int], [String])]
-enumArrowsSolution EnumArrowsInstance {hierarchicalSD}
+enumArrowsSolution EnumArrowsInstance {taskSolution}
+  = taskSolution
+
+correctEnumeration :: UMLStateDiagram String Int -> [([Int], [String])]
+correctEnumeration
   = unUML (\_ _ connection _
              -> map (\x
                        -> (,)
@@ -189,7 +221,7 @@ enumArrowsSolution EnumArrowsInstance {hierarchicalSD}
                                      (pointFrom y, pointTo y))
                 $
                 zip [1..] connection
-    ) (rename concat (flatten hierarchicalSD))
+    )
 
 -- we must assert before calling this function that every label
 -- is only used once in the submission; for all (i1,_) (i2,_) => i1 /= i2
@@ -237,7 +269,9 @@ enumArrowsFeedback task submission
     in
     do
     paragraph $ translate $ do
-      english ("correct: " ++ show (rights answers) ++ "\n" ++ "wrong: " ++ show (lefts answers) ++ "\n" ++ "missing: " ++ show missing ++ "\n")
+      english ("correct: " ++ show (rights answers) ++ "\n" ++
+               "wrong: " ++ show (lefts answers) ++ "\n" ++
+               "missing: " ++ show missing ++ "\n")
     return ()
 
 
@@ -245,4 +279,17 @@ defaultEnumInstance :: EnumArrowsInstance
 defaultEnumInstance
   = EnumArrowsInstance {
     hierarchicalSD = flatCase1
+  , flatAndEnumeratedSD = umlStateDiagram $ unUML (\name substates connection startState
+                                         -> StateDiagram {
+                                              name = name
+                                            , substates = substates
+                                            , connections
+                                                = zipWith (\c l
+                                                               -> c {transition = (show::Int -> String) l})
+                                                  connection [1..]
+                                            , startState = startState
+                                            , label = 999
+                                            }
+                                   ) (rename concat (flatten flatCase1))
+  , taskSolution = correctEnumeration (rename concat $ flatten flatCase1)
   }

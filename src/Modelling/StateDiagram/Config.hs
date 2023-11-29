@@ -50,14 +50,14 @@ scenario1ChartConfig
   = ChartConfig { regionStates = (0,0)
                 , hierarchicalStates = (1,1)
                 , regions = (0,0)
-                , normalStates = (8,8)
+                , normalStates = (7,7)
                 , componentNames = (0,10)
                 , endNodes = (0,0)
                 , forkNodes = (0,0)
                 , joinNodes = (0,0)
                 , historyNodes = (0,0)
-                , flows = (10,10)
-                , protoFlows = (10,10)
+                , flows = (11,11)
+                , protoFlows = (17,17)
                 , totalNodes = (10,10)
                 }
 
@@ -100,6 +100,8 @@ data SDConfig
              , distinctNormalStateNames :: Bool
              , noEmptyTriggers :: Bool
              , noNestedEndNodes :: Bool
+             , preventMultiEdges :: Maybe Bool
+             , enforceOutgoingEdges :: Bool
              , chartConfig :: ChartConfig
              } deriving (Show)
 
@@ -115,6 +117,8 @@ defaultSDConfigScenario1
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = False
+             , preventMultiEdges = Just False
+             , enforceOutgoingEdges = True
              , chartConfig = scenario1ChartConfig
     }
 
@@ -126,6 +130,8 @@ defaultSDConfigScenario2
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = True
+             , preventMultiEdges = Just False
+             , enforceOutgoingEdges = True
              , chartConfig = scenario2ChartConfig
     }
 
@@ -137,6 +143,8 @@ defaultSDConfigScenario3
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = False
+             , preventMultiEdges = Just False
+             , enforceOutgoingEdges = True
              , chartConfig = scenario3ChartConfig
     }
 
@@ -192,6 +200,8 @@ sdConfigToAlloy  SDConfig { scope
                           , enforceNormalStateNames
                           , distinctNormalStateNames
                           , noNestedEndNodes
+                          , preventMultiEdges
+                          , enforceOutgoingEdges
                           , chartConfig = ChartConfig { regionStates
                                                       , hierarchicalStates
                                                       , regions
@@ -226,6 +236,11 @@ pred scenarioConfig #{oB}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
   #{if noEmptyTriggers then "EmptyTrigger not in from.States.label" else ""}
   //#{if snd joinNodes >= 1 && snd forkNodes >= 1 then "some (ForkNodes + JoinNodes)" else ""}
+  #{maybe "" (\p
+                -> if p
+                   then "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)"
+                   else "not (all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2))")
+   preventMultiEdges}
   #{if noNestedEndNodes then "EndNodes not in allContainedNodes" else ""}
   #{bounded regions "Regions"}
   #{bounded hierarchicalStates "HierarchicalStates"}
@@ -236,7 +251,12 @@ pred scenarioConfig #{oB}
   #{bounded forkNodes "ForkNodes"}
   #{bounded joinNodes "JoinNodes"}
   #{bounded flows "Flows"}
-  #{if uncurry (<) totalNodes then "#Nodes >= " ++ show (fst totalNodes) ++ " and #Nodes <= " ++ show (snd totalNodes)  else "#Nodes = " ++ show (snd totalNodes)}
+  #{if uncurry (<) totalNodes
+    then "#Nodes >= " ++ show (fst totalNodes) ++ " and #Nodes <= " ++ show (snd totalNodes)
+    else "#Nodes = " ++ show (snd totalNodes)}
+  #{if enforceOutgoingEdges
+    then "all s : States | some (Flows <: from).s"
+    else ""}
 #{cB}
 
 run scenarioConfig for #{scope} but #{bitwidth} Int,
@@ -245,7 +265,7 @@ run scenarioConfig for #{scope} but #{bitwidth} Int,
 #{caseExact historyNodes "HistoryNodes"},
 #{caseExact hierarchicalStates "HierarchicalStates"},
 #{caseExact flows "Flows"},
-#{caseExact protoFlows "ProtoFlows"},
+#{show (snd protoFlows) ++ " ProtoFlows"},
 #{caseExact componentNames "ComponentNames"},
 #{caseExact regionStates "RegionsStates"},
 #{caseExact forkNodes "ForkNodes"},

@@ -8,7 +8,7 @@ import Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSyntax
                                          ,enumArrowsEvaluation
                                          ,defaultEnumArrowsConfig
-                                         ,enumArrowsSolution
+                                         ,EnumArrowsInstance(taskSolution)
                                          ,enumArrows)
 
 -- run with: stack run enumeratedArrowsDemo --
@@ -24,7 +24,7 @@ main
     task <- enumArrowsTask ("./session_temp/enumArrows"::FilePath) taskEnv `withLang` English
     -- visualize task
     print task
-    putStrLn ("\n cheat solution:" ++ show (enumArrowsSolution taskEnv))
+    putStrLn ("\n cheat solution:" ++ show (taskSolution taskEnv))
     -- user response (task assignment -> solution submission)
     sub <- fmap read getLine
     -- user syntax checking function
