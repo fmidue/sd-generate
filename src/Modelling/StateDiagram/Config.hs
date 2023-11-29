@@ -47,9 +47,8 @@ data ChartLimits
   deriving (Show)
 
 data SDConfig
-  = SDConfig { scope :: Int
-             , bitwidth :: Int
-             ,  enforceNormalStateNames :: Bool
+  = SDConfig { bitwidth :: Int
+             , enforceNormalStateNames :: Bool
              , distinctNormalStateNames :: Bool
              , noEmptyTriggers :: Bool
              , noNestedEndNodes :: Bool
@@ -71,9 +70,8 @@ defaultSDConfig
 
 defaultSDConfigScenario1 :: SDConfig
 defaultSDConfigScenario1
-  = SDConfig { scope = 10
-             , bitwidth = 6
-             ,  enforceNormalStateNames = True
+  = SDConfig { bitwidth = 6
+             , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = False
@@ -100,9 +98,8 @@ defaultSDConfigScenario1
 
 defaultSDConfigScenario2 :: SDConfig
 defaultSDConfigScenario2
-  = SDConfig { scope = 15
-             , bitwidth = 6
-             ,  enforceNormalStateNames = True
+  = SDConfig { bitwidth = 6
+             , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = True
@@ -129,9 +126,8 @@ defaultSDConfigScenario2
 
 defaultSDConfigScenario3 :: SDConfig
 defaultSDConfigScenario3
-  = SDConfig { scope = 10
-             , bitwidth = 6
-             ,  enforceNormalStateNames = True
+  = SDConfig { bitwidth = 6
+             , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = False
@@ -157,15 +153,13 @@ defaultSDConfigScenario3
              }
 
 checkSDConfig :: SDConfig -> Maybe String
-checkSDConfig SDConfig { scope
-                       , bitwidth
+checkSDConfig SDConfig { bitwidth
                        , enforceNormalStateNames
                        , distinctNormalStateNames
                        , chartLimits = chartLimits@ChartLimits{..}
                        }
   | fst protoFlows < fst flows = Just "the minimum amount of protoFlows must at least match or better even exceed the lower bound of 'normal' flows"
   | snd protoFlows < snd flows = Just "the maximum amount of protoFlows must at least match or better even exceed the upper bound of 'normal' flows"
-  | scope < 1 = Just "scope must be greater than 0"
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
   | fst startNodes < 1 = Just "you likely want to have at least one startNode in the chart"
   | fst regions > 0 && fst regionsStates < 1 = Just "you cannot have Regions when you have no RegionsStates"
@@ -204,8 +198,7 @@ checkLimits ChartLimits{..}
       | otherwise = Nothing
 
 sdConfigToAlloy :: SDConfig -> String
-sdConfigToAlloy  SDConfig { scope
-                          , bitwidth
+sdConfigToAlloy  SDConfig { bitwidth
                           , noEmptyTriggers
                           , enforceNormalStateNames
                           , distinctNormalStateNames
@@ -274,7 +267,7 @@ pred scenarioConfig #{oB}
     else ""}
 #{cB}
 
-run scenarioConfig for #{scope} but #{bitwidth} Int,
+run scenarioConfig for #{bitwidth} Int,
 #{caseExact startNodes "StartNodes"},
 #{caseExact endNodes "EndNodes"},
 #{caseExact normalStates "NormalStates"},
