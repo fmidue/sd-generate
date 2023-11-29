@@ -5,7 +5,7 @@ module Modelling.StateDiagram.Config(defaultSDConfig
                                     ,checkSDConfig
                                     ,sdConfigToAlloy
                                     ,SDConfig(..)
-                                    ,ChartConfig(..)
+                                    ,ChartLimits(..)
                                     ,defaultSDConfigScenario1
                                     ,defaultSDConfigScenario2
                                     ,defaultSDConfigScenario3
@@ -26,8 +26,8 @@ import Modelling.StateDiagram.Alloy(componentsSigRules
                                    ,trueReachability)
 import Data.String.Interpolate(i)
 
-data ChartConfig
-  = ChartConfig { regionStates :: (Int,Int)
+data ChartLimits
+  = ChartLimits { regionStates :: (Int,Int)
                 , hierarchicalStates :: (Int,Int)
                 , regions :: (Int,Int)
                 , normalStates :: (Int,Int)
@@ -51,7 +51,7 @@ data SDConfig
              , noNestedEndNodes :: Bool
              , preventMultiEdges :: Maybe Bool
              , enforceOutgoingEdges :: Bool
-             , chartConfig :: ChartConfig
+             , chartLimits :: ChartLimits
              } deriving (Show)
 
 defaultSDConfig :: SDConfig
@@ -68,8 +68,8 @@ defaultSDConfigScenario1
              , noNestedEndNodes = False
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
-             , chartConfig =
-                 ChartConfig { regionStates = (0,0)
+             , chartLimits =
+                 ChartLimits { regionStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
                              , normalStates = (7,7)
@@ -94,8 +94,8 @@ defaultSDConfigScenario2
              , noNestedEndNodes = True
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
-             , chartConfig =
-                 ChartConfig { regionStates = (0,0)
+             , chartLimits =
+                 ChartLimits { regionStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (2,2)
                              , normalStates = (8,8)
@@ -120,8 +120,8 @@ defaultSDConfigScenario3
              , noNestedEndNodes = False
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
-             , chartConfig =
-                 ChartConfig { regionStates = (0,0)
+             , chartLimits =
+                 ChartLimits { regionStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
                              , normalStates = (8,8)
@@ -141,7 +141,7 @@ checkSDConfig SDConfig { scope
                        , bitwidth
                        , enforceNormalStateNames
                        , distinctNormalStateNames
-                       , chartConfig = ChartConfig { regionStates
+                       , chartLimits = ChartLimits { regionStates
                                                    , hierarchicalStates
                                                    , regions
                                                    , normalStates
@@ -190,7 +190,7 @@ sdConfigToAlloy  SDConfig { scope
                           , noNestedEndNodes
                           , preventMultiEdges
                           , enforceOutgoingEdges
-                          , chartConfig = ChartConfig { regionStates
+                          , chartLimits = ChartLimits { regionStates
                                                       , hierarchicalStates
                                                       , regions
                                                       , normalStates
