@@ -6,9 +6,6 @@ module Modelling.StateDiagram.Config(defaultSDConfig
                                     ,sdConfigToAlloy
                                     ,SDConfig(..)
                                     ,ChartConfig(..)
-                                    ,scenario1ChartConfig
-                                    ,scenario2ChartConfig
-                                    ,scenario3ChartConfig
                                     ,defaultSDConfigScenario1
                                     ,defaultSDConfigScenario2
                                     ,defaultSDConfigScenario3
@@ -45,54 +42,6 @@ data ChartConfig
                 }
   deriving (Show)
 
-scenario1ChartConfig :: ChartConfig
-scenario1ChartConfig
-  = ChartConfig { regionStates = (0,0)
-                , hierarchicalStates = (1,1)
-                , regions = (0,0)
-                , normalStates = (7,7)
-                , componentNames = (0,10)
-                , endNodes = (0,0)
-                , forkNodes = (0,0)
-                , joinNodes = (0,0)
-                , historyNodes = (0,0)
-                , flows = (11,11)
-                , protoFlows = (17,17)
-                , totalNodes = (10,10)
-                }
-
-scenario2ChartConfig :: ChartConfig
-scenario2ChartConfig
-  = ChartConfig { regionStates = (0,0)
-                , hierarchicalStates = (1,1)
-                , regions = (2,2)
-                , normalStates = (8,8)
-                , endNodes = (1,1)
-                , componentNames = (9,9)
-                , forkNodes = (0,0)
-                , joinNodes = (0,0)
-                , historyNodes = (0,0)
-                , flows = (10,10)
-                , protoFlows = (10,10)
-                , totalNodes = (12,12)
-                }
-
-scenario3ChartConfig :: ChartConfig
-scenario3ChartConfig
-  = ChartConfig { regionStates = (0,0)
-                , hierarchicalStates = (1,1)
-                , regions = (0,0)
-                , normalStates = (8,8)
-                , componentNames = (11,11)
-                , endNodes = (0,0)
-                , forkNodes = (0,0)
-                , joinNodes = (0,0)
-                , historyNodes = (2,2)
-                , flows = (10,10)
-                , protoFlows = (10,10)
-                , totalNodes = (11,11)
-                }
-
 data SDConfig
   = SDConfig { scope :: Int
              , bitwidth :: Int
@@ -119,8 +68,21 @@ defaultSDConfigScenario1
              , noNestedEndNodes = False
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
-             , chartConfig = scenario1ChartConfig
-    }
+             , chartConfig =
+                 ChartConfig { regionStates = (0,0)
+                             , hierarchicalStates = (1,1)
+                             , regions = (0,0)
+                             , normalStates = (7,7)
+                             , componentNames = (0,10)
+                             , endNodes = (0,0)
+                             , forkNodes = (0,0)
+                             , joinNodes = (0,0)
+                             , historyNodes = (0,0)
+                             , flows = (11,11)
+                             , protoFlows = (17,17)
+                             , totalNodes = (10,10)
+                             }
+             }
 
 defaultSDConfigScenario2 :: SDConfig
 defaultSDConfigScenario2
@@ -132,8 +94,21 @@ defaultSDConfigScenario2
              , noNestedEndNodes = True
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
-             , chartConfig = scenario2ChartConfig
-    }
+             , chartConfig =
+                 ChartConfig { regionStates = (0,0)
+                             , hierarchicalStates = (1,1)
+                             , regions = (2,2)
+                             , normalStates = (8,8)
+                             , endNodes = (1,1)
+                             , componentNames = (9,9)
+                             , forkNodes = (0,0)
+                             , joinNodes = (0,0)
+                             , historyNodes = (0,0)
+                             , flows = (10,10)
+                             , protoFlows = (10,10)
+                             , totalNodes = (12,12)
+                             }
+             }
 
 defaultSDConfigScenario3 :: SDConfig
 defaultSDConfigScenario3
@@ -145,8 +120,21 @@ defaultSDConfigScenario3
              , noNestedEndNodes = False
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
-             , chartConfig = scenario3ChartConfig
-    }
+             , chartConfig =
+                 ChartConfig { regionStates = (0,0)
+                             , hierarchicalStates = (1,1)
+                             , regions = (0,0)
+                             , normalStates = (8,8)
+                             , componentNames = (11,11)
+                             , endNodes = (0,0)
+                             , forkNodes = (0,0)
+                             , joinNodes = (0,0)
+                             , historyNodes = (2,2)
+                             , flows = (10,10)
+                             , protoFlows = (10,10)
+                             , totalNodes = (11,11)
+                             }
+             }
 
 checkSDConfig :: SDConfig -> Maybe String
 checkSDConfig SDConfig { scope
