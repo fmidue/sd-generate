@@ -54,11 +54,12 @@ spec
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
         taskEnv <- enumArrows defaultEnumArrowsConfig timestamp
         _ <- enumArrowsTask ("./session_temp/enumArrows"::FilePath) taskEnv `withLang` English
-        let sub = drop 3 $ concatMap (uncurry zip) $ enumArrowsSolution taskEnv
+        let sub = concatMap (uncurry zip) $ enumArrowsSolution taskEnv
+        let sub' = drop 3 sub
         enumArrowsSyntax taskEnv sub `withLang` English
-        _ <- enumArrowsEvaluation taskEnv sub `withLang` English
-        _ <- enumArrowsFeedback taskEnv sub `withLang` English
-        rate (taskSolution taskEnv) sub `shouldBe` (2 % 3)
+        _ <- enumArrowsEvaluation taskEnv sub' `withLang` English
+        _ <- enumArrowsFeedback taskEnv sub' `withLang` English
+        rate (taskSolution taskEnv) sub' `shouldBe` fromIntegral (length sub - 3) % fromIntegral (length sub)
       it "generate chart and solve it entirely wrong" $ do
         (timestamp::Int) <- pure 1111111111
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
