@@ -142,12 +142,17 @@ enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _ renamingS
     inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy sdConfig)
     r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
     let chart = map (failWith id . parseInstance "this") inst !! r
-    let flatChart = flatten chart
+    let flatChart
+          = rename (case renamingStrategy of
+                                  HierarchicalConcatenation
+                                    -> concat
+                                  JustTheInnermostName
+                                    -> last
+                   ) (flatten chart)
     pure EnumArrowsInstance {
            hierarchicalSD = chart
          , taskSolution
-             = correctEnumeration $
-               rename last flatChart
+             = correctEnumeration flatChart
          , flatAndEnumeratedSD
              = umlStateDiagram $
                unUML (\name substates connection startState
@@ -161,13 +166,7 @@ enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _ renamingS
                             , startState = startState
                             , label = 999
                             }
-                     ) (rename (case renamingStrategy of
-                                  HierarchicalConcatenation
-                                    -> concat
-                                  JustTheInnermostName
-                                    -> last
-                               )
-                       flatChart)
+                     ) flatChart
          }
 enumArrowsInstance _ = undefined
 
