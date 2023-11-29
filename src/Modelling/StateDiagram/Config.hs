@@ -60,7 +60,14 @@ data SDConfig
 
 defaultSDConfig :: SDConfig
 defaultSDConfig
-  = defaultSDConfigScenario1
+  = let SDConfig { chartLimits = ChartLimits{ .. }, .. } = defaultSDConfigScenario1
+    in SDConfig { preventMultiEdges = Just False
+                , chartLimits = ChartLimits{ totalNodes = (10,10)
+                                           , normalStates = (7,7)
+                                           , flows = (11,11)
+                                           , protoFlows = (0,17)
+                                           , .. }
+                , .. }
 
 defaultSDConfigScenario1 :: SDConfig
 defaultSDConfigScenario1
@@ -70,24 +77,24 @@ defaultSDConfigScenario1
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
              , noNestedEndNodes = False
-             , preventMultiEdges = Just False
+             , preventMultiEdges = Nothing
              , enforceOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
-                             , normalStates = (7,7)
+                             , normalStates = (5,8)
                              , componentNames = (0,10)
                              , triggerNames = (0,10)
-                             , startNodes = (0,0)
+                             , startNodes = (0,10)
                              , endNodes = (0,0)
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
-                             , flows = (11,11)
-                             , protoFlows = (17,17)
-                             , totalNodes = (10,10)
+                             , flows = (0,10)
+                             , protoFlows = (0,10)
+                             , totalNodes = (8,10)
                              }
              }
 
@@ -243,12 +250,12 @@ pred scenarioConfig #{oB}
   #{if noEmptyTriggers then "EmptyTrigger not in from.States.label" else ""}
   //#{if snd joinNodes >= 1 && snd forkNodes >= 1 then "some (ForkNodes + JoinNodes)" else ""}
   #{maybe "" (\p
-                -> if p
-                   then "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)"
-                   else "not (all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2))")
+                -> (if p then id else \c -> "not (" ++ c ++ ")")
+                   "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
    preventMultiEdges}
   #{if noNestedEndNodes then "EndNodes not in allContainedNodes" else ""}
   #{bounded regions "Regions"}
+  #{bounded regionsStates "RegionsStates"}
   #{bounded hierarchicalStates "HierarchicalStates"}
   #{bounded startNodes "StartNodes"}
   #{bounded endNodes "EndNodes"}
@@ -260,9 +267,8 @@ pred scenarioConfig #{oB}
   #{bounded forkNodes "ForkNodes"}
   #{bounded joinNodes "JoinNodes"}
   #{bounded flows "Flows"}
-  #{if uncurry (<) totalNodes
-    then "#Nodes >= " ++ show (fst totalNodes) ++ " and #Nodes <= " ++ show (snd totalNodes)
-    else "#Nodes = " ++ show (snd totalNodes)}
+  #{bounded protoFlows "ProtoFlows"}
+  #{bounded totalNodes "Nodes"}
   #{if enforceOutgoingEdges
     then "all s : States | some (Flows <: from).s"
     else ""}
@@ -276,20 +282,21 @@ run scenarioConfig for #{scope} but #{bitwidth} Int,
 #{caseExact deepHistoryNodes "DeepHistoryNodes"},
 #{caseExact hierarchicalStates "HierarchicalStates"},
 #{caseExact flows "Flows"},
-#{show (snd protoFlows) ++ " ProtoFlows"},
+#{caseExact protoFlows "ProtoFlows"},
 #{caseExact componentNames "ComponentNames"},
 #{caseExact triggerNames "TriggerNames"},
 #{caseExact regionsStates "RegionsStates"},
 #{caseExact forkNodes "ForkNodes"},
 #{caseExact joinNodes "JoinNodes"},
-#{caseExact regions "Regions"}
+#{caseExact regions "Regions"},
+#{caseExact totalNodes "Nodes"}
     |]
   where
   oB = "{"
   cB = "}"
   bounded x entry | uncurry (==) x && fst x == 0 = "no " ++ entry
                   | uncurry (==) x && fst x == 1 = "one " ++ entry
-                  | uncurry (<) x = "#" ++ entry ++ " >= " ++ show (fst x)
+                  | uncurry (<) x && fst x > 0 = "#" ++ entry ++ " >= " ++ show (fst x)
                   | otherwise = ""
   caseExact x entry | uncurry (==) x && fst x == 0 = "0 " ++ entry
                     | uncurry (==) x = "exactly " ++ show (fst x) ++ " " ++ entry
