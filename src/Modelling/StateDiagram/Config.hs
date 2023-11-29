@@ -27,7 +27,7 @@ import Modelling.StateDiagram.Alloy(componentsSigRules
 import Data.String.Interpolate(i)
 
 data ChartLimits
-  = ChartLimits { regionStates :: (Int,Int)
+  = ChartLimits { regionsStates :: (Int,Int)
                 , hierarchicalStates :: (Int,Int)
                 , regions :: (Int,Int)
                 , normalStates :: (Int,Int)
@@ -72,7 +72,7 @@ defaultSDConfigScenario1
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
              , chartLimits =
-                 ChartLimits { regionStates = (0,0)
+                 ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
                              , normalStates = (7,7)
@@ -101,7 +101,7 @@ defaultSDConfigScenario2
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
              , chartLimits =
-                 ChartLimits { regionStates = (0,0)
+                 ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (2,2)
                              , normalStates = (8,8)
@@ -130,7 +130,7 @@ defaultSDConfigScenario3
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
              , chartLimits =
-                 ChartLimits { regionStates = (0,0)
+                 ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
                              , normalStates = (8,8)
@@ -153,7 +153,7 @@ checkSDConfig SDConfig { scope
                        , bitwidth
                        , enforceNormalStateNames
                        , distinctNormalStateNames
-                       , chartLimits = ChartLimits { regionStates
+                       , chartLimits = ChartLimits { regionsStates
                                                    , hierarchicalStates
                                                    , regions
                                                    , normalStates
@@ -173,7 +173,7 @@ checkSDConfig SDConfig { scope
   | fst protoFlows < fst flows = Just "the minimum amount of protoFlows must at least match or better even exceed the lower bound of 'normal' flows"
   | scope < 1 = Just "scope must be greater than 0"
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
-  | uncurry (>) regionStates = Just "minRegionStates must be less than or equal to maxRegionStates"
+  | uncurry (>) regionsStates = Just "minRegionsStates must be less than or equal to maxRegionsStates"
   | uncurry (>) hierarchicalStates = Just "minHierarchicalStates must be less than or equal to maxHierarchicalStates"
   | uncurry (>) regions = Just "minRegions must be less than or equal to maxRegions"
   | uncurry (>) normalStates = Just "minNormalStates must be less than or equal to maxNormalStates"
@@ -212,7 +212,7 @@ sdConfigToAlloy  SDConfig { scope
                           , noNestedEndNodes
                           , preventMultiEdges
                           , enforceOutgoingEdges
-                          , chartLimits = ChartLimits { regionStates
+                          , chartLimits = ChartLimits { regionsStates
                                                       , hierarchicalStates
                                                       , regions
                                                       , normalStates
@@ -286,7 +286,7 @@ run scenarioConfig for #{scope} but #{bitwidth} Int,
 #{show (snd protoFlows) ++ " ProtoFlows"},
 #{caseExact componentNames "ComponentNames"},
 #{caseExact triggerNames "TriggerNames"},
-#{caseExact regionStates "RegionsStates"},
+#{caseExact regionsStates "RegionsStates"},
 #{caseExact forkNodes "ForkNodes"},
 #{caseExact joinNodes "JoinNodes"},
 #{caseExact regions "Regions"}
