@@ -116,7 +116,6 @@ data RenderPath
 data RenderPolicy
   = RegenerateOnFailure
   | FailOnFailure
-  -- | FailOver    -- maybe failover for debug runs?
   deriving (Show)
 
 data Renderer
