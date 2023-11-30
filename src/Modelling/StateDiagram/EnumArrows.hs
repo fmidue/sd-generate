@@ -89,12 +89,17 @@ import Data.Either (rights
 import Control.Monad.Loops (iterateUntil)
 import Modelling.StateDiagram.Checkers (checkDrawability)
 import Data.Maybe (isNothing)
+import Modelling.StateDiagram.Layout (drawDiagram)
+import Modelling.StateDiagram.Style (Styling(Unstyled))
+import Diagrams.Backend.SVG (renderSVG)
+import Diagrams (dims, V2 (V2))
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
         hierarchicalSD :: UMLStateDiagram String Int
       , flatAndEnumeratedSD :: UMLStateDiagram String Int
       , taskSolution :: [([Int], [String])]
+      , chartRenderer :: Renderer
     }
 
 data RenamingStrategy
@@ -153,10 +158,30 @@ enumArrowsTask path task
   = do
     paragraph $ translate $ do
       english "Consider the following state chart."
-    image $=<< liftIO $ drawSDToFile (combine path "plain") (hierarchicalSD task)
+    case chartRenderer task of
+       PlantUML
+         -> do
+            image $=<< liftIO $ drawSDToFile (combine path "plain") (hierarchicalSD task)
+       Diagrams
+         -> do
+            image $=<< do liftIO (renderSVG
+                                 (combine path "plainDiagram.svg")
+                                 (dims (V2 800 600))
+                                 (drawDiagram Unstyled (hierarchicalSD task)))
+                          return (combine path "plainDiagram.svg")
     paragraph $ translate $ do
       english "Which was flattened, having the transition literals replaced by integers."
-    image $=<< liftIO $ drawSDToFile (combine path "flattened") (flatAndEnumeratedSD task)
+    case chartRenderer task of
+       PlantUML
+         -> do
+            image $=<< liftIO $ drawSDToFile (combine path "flattened") (flatAndEnumeratedSD task)
+       Diagrams
+         -> do
+            image $=<< do liftIO (renderSVG
+                                 (combine path "flattenedDiagram.svg")
+                                 (dims (V2 800 600))
+                                 (drawDiagram Unstyled (flatAndEnumeratedSD task)))
+                          return (combine path "flattenedDiagram.svg")
     paragraph $ translate $ do
       english "Please supply a list of tuples, where the first element is the integer label of the transition\n\
                \ and the second element is a transition literal string, that is supposed\
@@ -216,6 +241,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                       ) (flatten chart)
        return EnumArrowsInstance {
            hierarchicalSD = chart
+         , chartRenderer = renderer renderPath
          , taskSolution
              = correctEnumeration flatChart
          , flatAndEnumeratedSD
@@ -368,4 +394,5 @@ defaultEnumInstance
   , taskSolution
       = correctEnumeration
         (rename last $ flatten flatCase1)
+  , chartRenderer = PlantUML
   }
