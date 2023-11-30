@@ -26,6 +26,7 @@ dependencies:
   - filepath
   - MonadRandom
   - monad-loops
+  - modelling-tasks
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
@@ -128,6 +129,7 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - ba-sergei-lestsenski
+      - modelling-tasks
       - output-monad
       - file-embed
       - call-alloy
