@@ -22,7 +22,8 @@ module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrows
                                          ,enumArrowsInstanceCheck
                                          ,rate
-                                         ,enumArrowsFeedback)
+                                         ,enumArrowsFeedback
+                                         ,checkEnumArrowsConfig)
 where
 
 {-
@@ -48,7 +49,7 @@ import Modelling.StateDiagram.Datatype
       rename )
 import Modelling.StateDiagram.Config(SDConfig
                                     ,sdConfigToAlloy
-                                    ,defaultSDConfig)
+                                    ,defaultSDConfig, noEmptyTriggers)
 import Modelling.StateDiagram.Alloy()
 import Modelling.StateDiagram.PlantUMLDiagrams(drawSDToFile)
 import System.FilePath(combine)
@@ -94,6 +95,7 @@ data EnumArrowsInstance
 data RenamingStrategy
   = HierarchicalConcatenation
   | JustTheInnermostName
+  deriving (Show)
 
 data EnumArrowsConfig
   = EnumArrowsConfig {
@@ -102,7 +104,7 @@ data EnumArrowsConfig
     , syntaxWarnTooManyArrows :: Bool
     , printExtendedFeedback :: Bool
     , renamingStrategy :: RenamingStrategy
-  }
+  } deriving (Show)
 
 defaultEnumArrowsConfig :: EnumArrowsConfig
 defaultEnumArrowsConfig
@@ -175,6 +177,12 @@ enumArrowsInstanceCheck _ task
   | length (enumArrowsSolution task) > 30
     = return $ Just "The solution chart exceeds a reasonable amount of transitions, it would be tedious to enumerate them all."
   | otherwise = return Nothing
+
+checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
+checkEnumArrowsConfig config
+  | not (noEmptyTriggers (sdConfig config))
+  = Just "The chart may contain empty triggers, which are not allowed in this task setting."
+  | otherwise = Nothing
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(Int,String)] -> LangM m
 enumArrowsSyntax task answer
@@ -278,17 +286,21 @@ defaultEnumInstance :: EnumArrowsInstance
 defaultEnumInstance
   = EnumArrowsInstance {
     hierarchicalSD = flatCase1
-  , flatAndEnumeratedSD = umlStateDiagram $ unUML (\name substates connection startState
-                                         -> StateDiagram {
-                                              name = name
-                                            , substates = substates
-                                            , connections
-                                                = zipWith (\c l
-                                                               -> c {transition = (show::Int -> String) l})
-                                                  connection [1..]
-                                            , startState = startState
-                                            , label = 999
-                                            }
-                                   ) (rename concat (flatten flatCase1))
-  , taskSolution = correctEnumeration (rename concat $ flatten flatCase1)
+  , flatAndEnumeratedSD
+      = umlStateDiagram $
+         unUML (\name substates connection startState
+                  -> StateDiagram {
+                                    name = name
+                                  , substates = substates
+                                  , connections
+                                      = zipWith (\c l
+                                                     -> c {transition = (show::Int -> String) l})
+                                        connection [1..]
+                                  , startState = startState
+                                  , label = 999
+                                  }
+               ) (rename last (flatten flatCase1))
+  , taskSolution
+      = correctEnumeration
+        (rename last $ flatten flatCase1)
   }
