@@ -134,3 +134,4 @@ Sigs
 trifunctor
 trimap
 uncons
+randomise
