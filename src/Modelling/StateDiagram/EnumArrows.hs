@@ -8,6 +8,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE BlockArguments #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSolution
@@ -56,6 +57,7 @@ import Modelling.StateDiagram.PlantUMLDiagrams
   ,checkDrawabilityPlantUML)
 import System.FilePath(combine)
 import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Catch()
 import Control.Monad.Output (
   GenericOutputMonad (..),
   LangM,
@@ -94,11 +96,13 @@ import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Diagrams.Backend.SVG (renderSVG)
 import Diagrams (dims, V2 (V2))
 
+import Modelling.Auxiliary.Common
+
 data EnumArrowsInstance
   = EnumArrowsInstance {
         hierarchicalSD :: UMLStateDiagram String Int
       , flatAndEnumeratedSD :: UMLStateDiagram String Int
-      , taskSolution :: [([Int], [String])]
+      , taskSolution :: [([String], [String])]
       , chartRenderer :: Renderer
     }
 
@@ -148,6 +152,11 @@ defaultEnumArrowsConfig
                    }
   }
 
+instance Randomise (UMLStateDiagram String Int) where
+  --randomise :: (MonadRandom m, MonadThrow m) => UMLStateDiagram String Int -> m (UMLStateDiagram String Int)
+  randomise
+    = undefined
+
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
 enumArrows config timestamp
   = evalRandT (enumArrowsInstance config) (mkStdGen timestamp)
@@ -182,12 +191,12 @@ enumArrowsTask path task
                                  (drawDiagram Unstyled (flatAndEnumeratedSD task)))
                           return (combine path "flattenedDiagram.svg")
     paragraph $ translate $ do
-      english "Please supply a list of tuples, where the first element is the integer label of the transition\n\
-               \ and the second element is a transition literal string, that is supposed\
+      english "Please supply a list of tuples, where the first element is the label of the transition as string\n\
+               \ and the second element is the transition literal as string, that is supposed\
                \ to be at that place."
     paragraph $ translate $ do
       english "You may use the following syntax to denote the missing arrows:\n\
-               \ [(1,\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be the literal 'a'."
+               \ [(\"1\",\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be the literal 'a'."
     pure ()
 
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
@@ -197,8 +206,6 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                     , renderPath
                                     }
   = do
-    -- renderer tests must happen before we reach the presentation layer
-    -- otherwise we can't regenerate the diagram as needed by the render policy
     iterateUntil
       (\taskInstance
           -> case renderPath of
@@ -274,34 +281,34 @@ checkEnumArrowsConfig taskConfig
   = Just "The chart must have at least one hierarchical state."
   | otherwise = Nothing
 
-enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(Int,String)] -> LangM m
+enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsSyntax task answer
   = do
     assertion (any (\(i,_) -> 1 < length (filter ((==) i . fst) answer)) answer) $ translate $ do
-      english "No literal was assigned more than once."
-    assertion (any (\(i,_) -> i < 1) answer) $ translate $ do
-      english "Transition enumeration must be positive integers."
+      english "No enumeration was used more than once."
+    --assertion (any (\(i,_) -> i < 1) answer) $ translate $ do
+    --  english "Transition enumeration must be positive integers."
     assertion ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
                 length answer > (length (enumArrowsSolution task) +
                (length (enumArrowsSolution task) `div` 2))) $ translate $ do
-      english "Transition enumeration must not exceed the number of transitions in the chart."
+      english "Transitions enumerated must not exceed the number of transitions in the chart."
     assertion (any (\(_,l) -> l == "") answer) $ translate $ do
       english "Transition literals must not be empty."
     assertion (null answer) $ translate $ do
-      english "No empty list of integer to string tuples was supplied."
+      english "No empty list of tuples was supplied."
     return ()
 
-enumArrowsEvaluation :: (OutputMonad m) => EnumArrowsInstance -> [(Int,String)] -> Rated m
+enumArrowsEvaluation :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> Rated m
 enumArrowsEvaluation task answer
   = printSolutionAndAssert
     (Just $ show (concatMap (uncurry zip) $ enumArrowsSolution task))
     (rate (enumArrowsSolution task) answer)
 
-enumArrowsSolution :: EnumArrowsInstance -> [([Int], [String])]
+enumArrowsSolution :: EnumArrowsInstance -> [([String], [String])]
 enumArrowsSolution EnumArrowsInstance {taskSolution}
   = taskSolution
 
-correctEnumeration :: UMLStateDiagram String Int -> [([Int], [String])]
+correctEnumeration :: UMLStateDiagram String Int -> [([String], [String])]
 correctEnumeration
   = unUML (\_ _ connection _
              -> map (\x
@@ -317,12 +324,12 @@ correctEnumeration
                           -> compare (pointFrom x, pointTo x)
                                      (pointFrom y, pointTo y))
                 $
-                zip [1..] connection
+                zip (map show ([1..]::[Int])) connection
     )
 
 -- we must assert before calling this function that every label
 -- is only used once in the submission; for all (i1,_) (i2,_) => i1 /= i2
-rate :: [([Int], [String])] -> [(Int,String)] -> Rational
+rate :: [([String], [String])] -> [(String,String)] -> Rational
 rate solution submission
   = let
     answers
@@ -340,7 +347,7 @@ rate solution submission
     (toRational correct / toRational total)
 
 
-enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(Int,String)] -> LangM m
+enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsFeedback task submission
   = let
     solution = enumArrowsSolution task
@@ -384,8 +391,8 @@ defaultEnumInstance
                                   , substates = substates
                                   , connections
                                       = zipWith (\c l
-                                                     -> c {transition = (show::Int -> String) l})
-                                        connection [1..]
+                                                     -> c {transition = l})
+                                        connection (map show ([1..]::[Int]))
                                   , startState = startState
                                   , label = 999
                                   }

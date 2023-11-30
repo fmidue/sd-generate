@@ -27,6 +27,7 @@ dependencies:
   - MonadRandom
   - monad-loops
   - modelling-tasks
+  - exceptions
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
@@ -137,3 +138,4 @@ tests:
       - filepath
       - hspec
       - transformers
+      - exceptions

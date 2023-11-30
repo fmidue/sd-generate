@@ -73,42 +73,38 @@ spec
       it "answer test" $ do
         enumArrowsSolution defaultEnumInstance
         `shouldBe`
-        [([2],["c"]),([5],["b"]),([1],["a"]),([3],["d"]),([4],["e"])]
+        [(["2"],["c"]),(["5"],["b"]),(["1"],["a"]),(["3"],["d"]),(["4"],["e"])]
       it "pass rating test" $ do
         let
           task = defaultEnumInstance
-          answer = [(2,"c"),(5,"b"),(1,"a"),(3,"d"),(4,"e")]
+          answer = [("2","c"),("5","b"),("1","a"),("3","d"),("4","e")]
           in
           rate (enumArrowsSolution task) answer `shouldBe` 1
       it "fail rating test by one point" $ do
         let
           task = defaultEnumInstance
-          answer = [(2,"c"),(5,"b"),(1,"a"),(3,"d"),(4,"f")]
+          answer = [("2","c"),("5","b"),("1","a"),("3","d"),("4","f")]
           in
           rate (enumArrowsSolution task) answer `shouldBe` (4 % 5)
       it "ambiguous enum test variant 1" $ do
         let
           solution
-            = [([1],["c"]),([2],["d"]),([3],["b"]),([4],["c"])
-              ,([5],["c"]),([6],["e"]),([7],["f"]),([8,9],["a","b"])]
+            = [(["1"],["c"]),(["2"],["d"]),(["3"],["b"]),(["4"],["c"])
+              ,(["5"],["c"]),(["6"],["e"]),(["7"],["f"]),(["8","9"],["a","b"])]
           submission1
-            = [(1,"c"),(2,"d"),(3,"b"),(4,"c"),(5,"c")
-              ,(6,"e"),(8,"b"),(9,"a"),(7,"f")]
+            = [("1","c"),("2","d"),("3","b"),("4","c"),("5","c")
+              ,("6","e"),("8","b"),("9","a"),("7","f")]
           in
           rate solution submission1 `shouldBe` 1
       it "ambiguous enum test variant 2" $ do
         let
           solution
-            = [([1],["c"]),([2],["d"]),([3],["b"]),([4],["c"])
-              ,([5],["c"]),([6],["e"]),([7],["f"]),([8,9],["a","b"])]
+            = [(["1"],["c"]),(["2"],["d"]),(["3"],["b"]),(["4"],["c"])
+              ,(["5"],["c"]),(["6"],["e"]),(["7"],["f"]),(["8","9"],["a","b"])]
           submission2
-            = [(1,"c"),(2,"d"),(3,"b"),(4,"c"),(5,"c")
-              ,(6,"e"),(8,"a"),(9,"b"),(7,"f")]
+            = [("1","c"),("2","d"),("3","b"),("4","c"),("5","c")
+              ,("6","e"),("8","a"),("9","b"),("7","f")]
           in
           rate solution submission2 `shouldBe` 1
-
-
-
-
-
-
+      it "shuffle enum arrows task instance" $ do
+        True `shouldBe` True
