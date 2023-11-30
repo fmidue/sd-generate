@@ -51,7 +51,9 @@ import Modelling.StateDiagram.Config(SDConfig
                                     ,sdConfigToAlloy
                                     ,defaultSDConfig, noEmptyTriggers, hierarchicalStates, chartLimits)
 import Modelling.StateDiagram.Alloy()
-import Modelling.StateDiagram.PlantUMLDiagrams(drawSDToFile)
+import Modelling.StateDiagram.PlantUMLDiagrams
+  (drawSDToFile
+  ,checkDrawabilityPlantUML)
 import System.FilePath(combine)
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Monad.Output (
@@ -84,6 +86,9 @@ import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
                    ,lefts)
+import Control.Monad.Loops (iterateUntil)
+import Modelling.StateDiagram.Checkers (checkDrawability)
+import Data.Maybe (isNothing)
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
@@ -97,6 +102,23 @@ data RenamingStrategy
   | JustTheInnermostName
   deriving (Show)
 
+data RenderPath
+  = RenderPath {
+      renderPolicy :: RenderPolicy
+    , renderer :: Renderer
+  } deriving (Show)
+
+data RenderPolicy
+  = RegenerateOnFailure
+  | FailOnFailure
+  -- | FailOver    -- maybe failover for debug runs?
+  deriving (Show)
+
+data Renderer
+  = PlantUML
+  | Diagrams
+  deriving (Show)
+
 data EnumArrowsConfig
   = EnumArrowsConfig {
       sdConfig :: SDConfig
@@ -104,7 +126,9 @@ data EnumArrowsConfig
     , syntaxWarnTooManyArrows :: Bool
     , printExtendedFeedback :: Bool
     , renamingStrategy :: RenamingStrategy
+    , renderPath :: RenderPath
   } deriving (Show)
+
 
 defaultEnumArrowsConfig :: EnumArrowsConfig
 defaultEnumArrowsConfig
@@ -114,6 +138,10 @@ defaultEnumArrowsConfig
     , printExtendedFeedback = False
     , syntaxWarnTooManyArrows = False
     , renamingStrategy = JustTheInnermostName
+    , renderPath = RenderPath {
+                     renderPolicy = RegenerateOnFailure
+                   , renderer = PlantUML
+                   }
   }
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
@@ -139,19 +167,54 @@ enumArrowsTask path task
     pure ()
 
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
-enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _ renamingStrategy)
+enumArrowsInstance EnumArrowsConfig { sdConfig
+                                    , maxInstances = (Just maxInstances)
+                                    , renamingStrategy
+                                    , renderPath
+                                    }
   = do
-    inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy sdConfig)
-    r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
-    let chart = map (failWith id . parseInstance "this") inst !! r
-    let flatChart
-          = rename (case renamingStrategy of
-                                  HierarchicalConcatenation
-                                    -> concat
-                                  JustTheInnermostName
-                                    -> last
-                   ) (flatten chart)
-    pure EnumArrowsInstance {
+    -- renderer tests must happen before we reach the presentation layer
+    -- otherwise we can't regenerate the diagram as needed by the render policy
+    iterateUntil
+      (\taskInstance
+          -> case renderPath of
+                RenderPath { renderPolicy = FailOnFailure
+                           , renderer = PlantUML
+                           }
+                  -> (isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
+                      isNothing (checkDrawabilityPlantUML (flatAndEnumeratedSD taskInstance)))
+                      || error "PlantUML renderer failed"
+                RenderPath { renderPolicy = RegenerateOnFailure
+                           , renderer = PlantUML
+                           }
+                  -> isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
+                     isNothing (checkDrawabilityPlantUML (flatAndEnumeratedSD taskInstance))
+                RenderPath { renderPolicy = FailOnFailure
+                            , renderer = Diagrams
+                            }
+                  -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
+                     isNothing (checkDrawability (flatAndEnumeratedSD taskInstance))
+                     || error "Diagrams renderer failed"
+                RenderPath { renderPolicy = RegenerateOnFailure
+                           , renderer = Diagrams
+                           }
+                  -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
+                     isNothing (checkDrawability (flatAndEnumeratedSD taskInstance))
+              )
+      (do
+       liftIO $ putStrLn "generating instance"
+       inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy sdConfig)
+       r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
+       liftIO $ putStrLn ("instance " ++ show r ++ " selected")
+       let chart = map (failWith id . parseInstance "this") inst !! r
+       let flatChart
+             = rename (case renamingStrategy of
+                         HierarchicalConcatenation
+                           -> concat
+                         JustTheInnermostName
+                           -> last
+                      ) (flatten chart)
+       return EnumArrowsInstance {
            hierarchicalSD = chart
          , taskSolution
              = correctEnumeration flatChart
@@ -168,8 +231,8 @@ enumArrowsInstance (EnumArrowsConfig sdConfig (Just maxInstances)  _ _ renamingS
                             , startState = startState
                             , label = 999
                             }
-                     ) flatChart
-         }
+                     ) flatChart }
+         )
 enumArrowsInstance _ = undefined
 
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)

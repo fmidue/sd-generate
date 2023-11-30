@@ -4,8 +4,11 @@
 {-# Language NamedFieldPuns #-}
 {-# Language ViewPatterns   #-}
 
-module Modelling.StateDiagram.PlantUMLDiagrams (renderAll
-                                               ,drawSDToFile) where
+module Modelling.StateDiagram.PlantUMLDiagrams
+  (renderAll
+  ,drawSDToFile
+  ,checkDrawabilityPlantUML)
+where
 
 import Modelling.StateDiagram.Datatype
                 (UMLStateDiagram
@@ -183,3 +186,8 @@ drawSDToFile path chart
     picture <- drawPlantUMLDiagram SVG plantUML
     writeFile (path ++ "Diagram.svg") (unpack picture)
     return (path ++ "Diagram.svg")
+
+-- TODO: i'm a stub, please update me once the reasons
+--       why PlantUML crashes on certain chart instances are known better
+checkDrawabilityPlantUML :: UMLStateDiagram String Int -> Maybe String
+checkDrawabilityPlantUML _ = Nothing -- Just "broken chart"

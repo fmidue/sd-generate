@@ -25,6 +25,7 @@ dependencies:
   - file-embed
   - filepath
   - MonadRandom
+  - monad-loops
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
