@@ -9,13 +9,18 @@ import Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSyntax
                                          ,enumArrowsEvaluation
                                          ,defaultEnumArrowsConfig
+                                         ,checkEnumArrowsConfig
                                          ,EnumArrowsInstance(taskSolution)
                                          ,enumArrows)
+import Data.Foldable(forM_)
 
 -- run with: stack run enumeratedArrowsDemo --
 main :: IO ()
 main
   = do
+    -- check the task configuration
+    forM_ (checkEnumArrowsConfig defaultEnumArrowsConfig) error
+    putStrLn "configuration looking good"
     (timestamp::Int) <- round <$> getPOSIXTime
     createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
     putStrLn $ "Seed: " ++ show timestamp
@@ -29,12 +34,12 @@ main
 
     -- rename the session files and store the solution
     putStrLn ("the .svg files have been renamed to include the seed: " ++ show timestamp)
-    renameFile (("./session_temp/enumArrows" ++ "/plainDiagram.svg")::FilePath)
-               (("./session_temp/enumArrows/" ++ show timestamp ++ "_plainDiagram.svg")::FilePath)
-    renameFile (("./session_temp/enumArrows" ++ "/flattenedDiagram.svg")::FilePath)
-               (("./session_temp/enumArrows/" ++ show timestamp ++ "_flattenedDiagram.svg")::FilePath)
-    writeFile (("./session_temp/enumArrows/" ++ show timestamp ++ "_solution.txt")::FilePath) (show (taskSolution task))
-    writeFile (("./session_temp/enumArrows/" ++ show timestamp ++ "_generatorConfig.txt")::FilePath) (show defaultEnumArrowsConfig)
+    renameFile ("./session_temp/enumArrows" ++ "/plainDiagram.svg")
+               ("./session_temp/enumArrows/" ++ show timestamp ++ "_plainDiagram.svg")
+    renameFile ("./session_temp/enumArrows" ++ "/flattenedDiagram.svg")
+               ("./session_temp/enumArrows/" ++ show timestamp ++ "_flattenedDiagram.svg")
+    writeFile ("./session_temp/enumArrows/" ++ show timestamp ++ "_solution.txt") (show (taskSolution task))
+    writeFile ("./session_temp/enumArrows/" ++ show timestamp ++ "_generatorConfig.txt") (show defaultEnumArrowsConfig)
 
     sub <- fmap read getLine
     -- user syntax checking function
