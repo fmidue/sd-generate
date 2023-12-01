@@ -318,9 +318,7 @@ run scenarioConfig for #{bitwidth} Int,
   where
   oB = "{"
   cB = "}"
-  bounded x entry | uncurry (==) x && fst x == 0 = "no " ++ entry
-                  | uncurry (==) x && fst x == 1 = "one " ++ entry
-                  | uncurry (<) x && fst x > 0 = "#" ++ entry ++ " >= " ++ show (fst x)
+  bounded x entry | uncurry (<) x && fst x > 0 = "#" ++ entry ++ " >= " ++ show (fst x)
                   | otherwise = ""
   caseExact x entry | uncurry (==) x && fst x == 0 = "0 " ++ entry
                     | uncurry (==) x = "exactly " ++ show (fst x) ++ " " ++ entry
