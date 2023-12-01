@@ -87,7 +87,7 @@ defaultSDConfigScenario1
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
                              , normalStates = (5,8)
-                             , componentNames = (5,9)
+                             , componentNames = (5,8)
                              , triggerNames = (0,10)
                              , startNodes = (0,2)
                              , endNodes = (0,0)
@@ -101,7 +101,9 @@ defaultSDConfigScenario1
                              }
              , extraConstraint =
                "let hs = HierarchicalStates, inner = hs + hs.contains |\n\
-               \  some ((Flows <: from).hs.to & (Nodes - inner))"
+               \  some ((Flows <: from).hs.to & (Nodes - inner))\n\
+               \  and mul[2,#inner] >= #Nodes\n\
+               \  and no hs.name"
              }
 
 defaultSDConfigScenario2 :: SDConfig
