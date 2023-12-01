@@ -16,9 +16,15 @@ import Modelling.StateDiagram.EnumArrows(defaultEnumArrowsConfig
                                         ,defaultEnumInstance
                                         ,enumArrowsSolution
                                         ,enumArrowsEvaluation
-                                        ,EnumArrowsInstance(taskSolution)
+                                        ,EnumArrowsInstance(taskSolution, hierarchicalSD)
+                                        ,EnumArrowsConfig (shuffle)
                                         ,enumArrowsSyntax
-                                        ,rate, enumArrows, enumArrowsTask, enumArrowsFeedback
+                                        ,rate
+                                        ,enumArrows
+                                        ,enumArrowsTask
+                                        ,enumArrowsFeedback
+                                        ,ShufflePolicy(ShuffleLiterals)
+                                        ,randomise
                                         )
 import System.Directory(createDirectoryIfMissing)
 import Modelling.StateDiagram.Datatype.ClassInstances()
@@ -29,6 +35,9 @@ import Control.Monad.Output ( Language(English), LangM', ReportT )
 import qualified Control.Monad.Output.Generic     as GenericOutput (withLang)
 import Data.Maybe                       (fromMaybe)
 import Data.Char (toUpper)
+import Modelling.StateDiagram.Datatype( unUML
+                                      ,Connection(transition,pointFrom, pointTo))
+import Data.List(sortBy)
 
 withLang :: LangM' (ReportT (IO ()) IO) a -> Language -> IO a
 withLang x l =
@@ -42,34 +51,37 @@ spec
       it "generate chart and solve it correctly" $ do
         (timestamp::Int) <- pure 1111111111
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
-        taskEnv <- enumArrows defaultEnumArrowsConfig timestamp
-        _ <- enumArrowsTask ("./session_temp/enumArrows"::FilePath) taskEnv `withLang` English
-        let sub = concatMap (uncurry zip) $ enumArrowsSolution taskEnv
-        enumArrowsSyntax taskEnv sub `withLang` English
-        _ <- enumArrowsEvaluation taskEnv sub `withLang` English
-        _ <- enumArrowsFeedback taskEnv sub `withLang` English
-        rate (taskSolution taskEnv) sub `shouldBe` 1
+        task <- enumArrows defaultEnumArrowsConfig timestamp
+        enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+        let sub = concatMap (uncurry zip) $ enumArrowsSolution task
+        enumArrowsSyntax task sub `withLang` English
+        enumArrowsEvaluation task sub `withLang` English
+        enumArrowsFeedback task sub `withLang` English
+        rate (taskSolution task) sub `shouldBe` 1
+
       it "generate chart and solve it incorrectly" $ do
         (timestamp::Int) <- pure 1111111111
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
-        taskEnv <- enumArrows defaultEnumArrowsConfig timestamp
-        _ <- enumArrowsTask ("./session_temp/enumArrows"::FilePath) taskEnv `withLang` English
-        let sub = concatMap (uncurry zip) $ enumArrowsSolution taskEnv
+        task <- enumArrows defaultEnumArrowsConfig timestamp
+        enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+        let sub = concatMap (uncurry zip) $ enumArrowsSolution task
         let sub' = drop 3 sub
-        enumArrowsSyntax taskEnv sub `withLang` English
-        _ <- enumArrowsEvaluation taskEnv sub' `withLang` English
-        _ <- enumArrowsFeedback taskEnv sub' `withLang` English
-        rate (taskSolution taskEnv) sub' `shouldBe` fromIntegral (length sub - 3) % fromIntegral (length sub)
+        enumArrowsSyntax task sub `withLang` English
+        enumArrowsEvaluation task sub' `withLang` English
+        enumArrowsFeedback task sub' `withLang` English
+        rate (taskSolution task) sub' `shouldBe` fromIntegral (length sub - 3) % fromIntegral (length sub)
+
       it "generate chart and solve it entirely wrong" $ do
         (timestamp::Int) <- pure 1111111111
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
-        taskEnv <- enumArrows defaultEnumArrowsConfig timestamp
-        _ <- enumArrowsTask ("./session_temp/enumArrows"::FilePath) taskEnv `withLang` English
-        let sub = map (\(x,y) -> (,) x $ map toUpper y) $ concatMap (uncurry zip) $ enumArrowsSolution taskEnv
-        enumArrowsSyntax taskEnv sub `withLang` English
-        _ <- enumArrowsEvaluation taskEnv sub `withLang` English
-        _ <- enumArrowsFeedback taskEnv sub `withLang` English
-        rate (taskSolution taskEnv) sub `shouldBe` 0
+        task <- enumArrows defaultEnumArrowsConfig timestamp
+        enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+        let sub = map (\(x,y) -> (,) x $ map toUpper y) $ concatMap (uncurry zip) $ enumArrowsSolution task
+        enumArrowsSyntax task sub `withLang` English
+        enumArrowsEvaluation task sub `withLang` English
+        enumArrowsFeedback task sub `withLang` English
+        rate (taskSolution task) sub `shouldBe` 0
+
       it "answer test" $ do
         enumArrowsSolution defaultEnumInstance
         `shouldBe`
@@ -106,5 +118,40 @@ spec
               ,("6","e"),("8","a"),("9","b"),("7","f")]
           in
           rate solution submission2 `shouldBe` 1
-      it "shuffle enum arrows task instance" $ do
-        True `shouldBe` True
+      it "shuffle transition labels" $ do
+        (timestamp::Int) <- pure 1111111111
+        createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
+        task <- enumArrows (defaultEnumArrowsConfig { shuffle = Just ShuffleLiterals }) timestamp
+        enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+        task' <- randomise task
+
+        let c1 = sortBy (\x y -> compare (transition x) (transition y)) $
+                 unUML (\_ _ cons _  -> cons) $ hierarchicalSD task
+
+        let c2 = unUML (\_ _ cons _  -> cons) $ hierarchicalSD task'
+
+        let srcs = zipWith (\x y -> pointFrom x == pointFrom y) c1 c2
+        let dsts = zipWith (\x y -> pointTo x == pointTo y) c1 c2
+
+        let epsilon1
+              = zipWith (\x y
+                          -> (transition x /= "") || (transition y == "")) c1 c2
+
+        let epsilon2
+              = zipWith (\x y
+                           -> (transition y /= "") || (transition x == "") ) c1 c2
+
+        (c1 `shouldNotBe` c2) *> (and epsilon1 `shouldBe` True)
+         *> (and srcs `shouldBe` True) *> (and dsts `shouldBe` True)
+         *> (and epsilon2 `shouldBe` True) -- only the transition labels have been shuffled
+
+
+
+
+
+
+
+
+
+
+
