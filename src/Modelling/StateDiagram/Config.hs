@@ -64,8 +64,9 @@ defaultSDConfig
     in SDConfig { preventMultiEdges = Just False
                 , chartLimits = ChartLimits{ totalNodes = (10,10)
                                            , normalStates = (7,7)
+                                           , componentNames = (7,7)
                                            , flows = (11,11)
-                                           , protoFlows = (0,17)
+                                           , protoFlows = (11,17)
                                            , .. }
                 , extraConstraint = ""
                 , .. }
@@ -84,16 +85,16 @@ defaultSDConfigScenario1
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
                              , normalStates = (5,8)
-                             , componentNames = (0,10)
+                             , componentNames = (5,9)
                              , triggerNames = (0,10)
-                             , startNodes = (0,10)
+                             , startNodes = (0,2)
                              , endNodes = (0,0)
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
                              , flows = (0,10)
-                             , protoFlows = (0,10)
+                             , protoFlows = (0,20)
                              , totalNodes = (8,10)
                              }
              , extraConstraint =
@@ -111,7 +112,7 @@ defaultSDConfigScenario2
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
              , chartLimits =
-                 ChartLimits { regionsStates = (0,0)
+                 ChartLimits { regionsStates = (1,1)
                              , hierarchicalStates = (1,1)
                              , regions = (2,2)
                              , normalStates = (8,8)
@@ -144,8 +145,8 @@ defaultSDConfigScenario3
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
                              , normalStates = (8,8)
-                             , componentNames = (11,11)
-                             , triggerNames = (11,11)
+                             , componentNames = (9,9)
+                             , triggerNames = (0,10)
                              , startNodes = (0,0)
                              , endNodes = (0,0)
                              , forkNodes = (0,0)
