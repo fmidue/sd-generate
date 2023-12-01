@@ -27,7 +27,6 @@ dependencies:
   - MonadRandom
   - monad-loops
   - modelling-tasks
-  - exceptions
   - random-shuffle
 default-extensions:
   - TupleSections
@@ -139,4 +138,3 @@ tests:
       - filepath
       - hspec
       - transformers
-      - exceptions
