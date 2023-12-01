@@ -8,6 +8,7 @@
 {-# LANGUAGE ApplicativeDo #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-deprecations #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Modelling.StateDiagram.EnumArrowsSpec (spec) where
 
@@ -23,7 +24,7 @@ import Modelling.StateDiagram.EnumArrows(defaultEnumArrowsConfig
                                         ,enumArrows
                                         ,enumArrowsTask
                                         ,enumArrowsFeedback
-                                        ,ShufflePolicy(ShuffleLiterals)
+                                        ,ShufflePolicy(..)
                                         ,randomise
                                         )
 import System.Directory(createDirectoryIfMissing)
@@ -35,9 +36,10 @@ import Control.Monad.Output ( Language(English), LangM', ReportT )
 import qualified Control.Monad.Output.Generic     as GenericOutput (withLang)
 import Data.Maybe                       (fromMaybe)
 import Data.Char (toUpper)
-import Modelling.StateDiagram.Datatype( unUML
+import Modelling.StateDiagram.Datatype(StateDiagram(..)
+                                      ,unUML
                                       ,Connection(transition,pointFrom, pointTo))
-import Data.List(sortBy)
+import Data.List(partition)
 
 withLang :: LangM' (ReportT (IO ()) IO) a -> Language -> IO a
 withLang x l =
@@ -121,36 +123,102 @@ spec
       it "shuffle transition labels" $ do
         (timestamp::Int) <- pure 1111111111
         createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
-        task <- enumArrows (defaultEnumArrowsConfig { shuffle = Just ShuffleLiterals }) timestamp
+        task <- enumArrows (defaultEnumArrowsConfig { shuffle = Just ShuffleTriggers }) timestamp
         enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
         task' <- randomise task
-
-        let c1 = sortBy (\x y -> compare (transition x) (transition y)) $
+        print (hierarchicalSD task)
+        print (hierarchicalSD task')
+        let c1 = uncurry (++) $
+                 partition (\c -> "" /= transition c) $
                  unUML (\_ _ cons _  -> cons) $ hierarchicalSD task
 
         let c2 = unUML (\_ _ cons _  -> cons) $ hierarchicalSD task'
 
-        let sources = zipWith (\x y -> pointFrom x == pointFrom y) c1 c2
-        let destinations = zipWith (\x y -> pointTo x == pointTo y) c1 c2
+        let sameSources = zipWith (\x y -> pointFrom x == pointFrom y) c1 c2
+        let sameDestinations = zipWith (\x y -> pointTo x == pointTo y) c1 c2
 
-        let epsilon1
+        let epsilonTransitionsAreNotShuffled1
               = zipWith (\x y
                           -> (transition x /= "") || (transition y == "")) c1 c2
 
-        let epsilon2
+        let epsilonTransitionsAreNotShuffled2
               = zipWith (\x y
                            -> (transition y /= "") || (transition x == "") ) c1 c2
 
-        (c1 `shouldNotBe` c2) *> (and epsilon1 `shouldBe` True)
-         *> (and sources `shouldBe` True) *> (and destinations `shouldBe` True)
-         *> (and epsilon2 `shouldBe` True) -- only the transition labels have been shuffled
 
 
 
+        (c1 `shouldNotBe` c2) *>  -- only the transition labels have been shuffled
+         (and epsilonTransitionsAreNotShuffled1 `shouldBe` True) *>
+         (and sameSources `shouldBe` True) *>
+         (and sameDestinations `shouldBe` True) *>
+         (and epsilonTransitionsAreNotShuffled2 `shouldBe` True)
+      it "shuffle node names" $ do
+        (timestamp::Int) <- pure 1111111111
+        createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
+        task <- enumArrows (defaultEnumArrowsConfig { shuffle = Just ShuffleNames }) timestamp
+        enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+        task' <- randomise task
+        print (hierarchicalSD task)
+        print (hierarchicalSD task')
+        let nodeNames t = unUML (\_ substatesX _ _
+                         -> head $
+                            traverse
+                             (\case
+                                InnerMostState { name = "" } -> [""]
+                                InnerMostState { name = innerName } -> [innerName]
+
+                                StateDiagram { name = "" } -> [""]
+                                StateDiagram { name = stateName } -> [stateName]
+
+                                _ -> [""]) substatesX) (hierarchicalSD t)
 
 
+        nodeNames task `shouldNotBe` nodeNames task'
+      it "shuffle node names and transition labels" $ do
+        (timestamp::Int) <- pure 1111111111
+        createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
+        task <- enumArrows (defaultEnumArrowsConfig { shuffle = Just ShuffleNamesAndTriggers }) timestamp
+        enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+        task' <- randomise task
 
+        let nodeNames t = unUML (\_ substatesX _ _
+                         -> head $
+                            traverse
+                             (\case
+                                InnerMostState { name = "" } -> [""]
+                                InnerMostState { name = innerName } -> [innerName]
 
+                                StateDiagram { name = "" } -> [""]
+                                StateDiagram { name = stateName } -> [stateName]
+
+                                _ -> [""]) substatesX) (hierarchicalSD t)
+        print (hierarchicalSD task)
+        print (hierarchicalSD task')
+        nodeNames task `shouldNotBe` nodeNames task'
+        -- todo: use upper statements to check that the transition labels have been shuffled
+      it "shuffle nothing" $ do
+        (timestamp::Int) <- pure 1111111111
+        createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
+        task <- enumArrows (defaultEnumArrowsConfig { shuffle = Just DoNotShuffle }) timestamp
+        enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+        task' <- randomise task
+        let nodeNames t = unUML (\_ substatesX _ _
+                         -> head $
+                            traverse
+                             (\case
+                                InnerMostState { name = "" } -> [""]
+                                InnerMostState { name = innerName } -> [innerName]
+
+                                StateDiagram { name = "" } -> [""]
+                                StateDiagram { name = stateName } -> [stateName]
+
+                                _ -> [""]) substatesX) (hierarchicalSD t)
+        let n1 = unUML (\_ _ cons _  -> cons) (hierarchicalSD task)
+        let n2 = unUML (\_ _ cons _  -> cons) (hierarchicalSD task')
+        -- no changes
+        (nodeNames task `shouldBe` nodeNames task')
+          *> ((n1 == n2) `shouldBe` True)
 
 
 
