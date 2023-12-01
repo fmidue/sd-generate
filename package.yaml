@@ -63,7 +63,6 @@ executables:
     main: enumeratedArrowsDemo.hs
     source-dirs:
       - app
-      - .
       - app/common
     dependencies:
       - ba-sergei-lestsenski
@@ -130,11 +129,8 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - ba-sergei-lestsenski
-      - modelling-tasks
-      - output-monad
       - file-embed
       - call-alloy
       - directory
       - filepath
       - hspec
-      - transformers

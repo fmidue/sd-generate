@@ -14,6 +14,5 @@ extra-deps:
   - latex-svg-image-0.2
   - hgal-2.0.0.3
   - diagrams-graphviz-1.4.1.1
-  - ilist-0.4.0.1
   - random-shuffle-0.0.4
 allow-newer: true
