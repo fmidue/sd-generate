@@ -55,6 +55,7 @@ data SDConfig
              , preventMultiEdges :: Maybe Bool
              , enforceOutgoingEdges :: Bool
              , chartLimits :: ChartLimits
+             , extraConstraint :: String
              } deriving (Show)
 
 defaultSDConfig :: SDConfig
@@ -66,6 +67,7 @@ defaultSDConfig
                                            , flows = (11,11)
                                            , protoFlows = (0,17)
                                            , .. }
+                , extraConstraint = ""
                 , .. }
 
 defaultSDConfigScenario1 :: SDConfig
@@ -94,6 +96,9 @@ defaultSDConfigScenario1
                              , protoFlows = (0,10)
                              , totalNodes = (8,10)
                              }
+             , extraConstraint =
+               "let hs = HierarchicalStates, inner = hs + hs.contains |\n\
+               \  some ((Flows <: from).hs.to & (Nodes - inner))"
              }
 
 defaultSDConfigScenario2 :: SDConfig
@@ -122,6 +127,7 @@ defaultSDConfigScenario2
                              , protoFlows = (10,10)
                              , totalNodes = (12,12)
                              }
+             , extraConstraint = ""
              }
 
 defaultSDConfigScenario3 :: SDConfig
@@ -150,6 +156,7 @@ defaultSDConfigScenario3
                              , protoFlows = (10,10)
                              , totalNodes = (11,11)
                              }
+             , extraConstraint = ""
              }
 
 checkSDConfig :: SDConfig -> Maybe String
@@ -221,6 +228,7 @@ sdConfigToAlloy  SDConfig { bitwidth
                                                       , protoFlows
                                                       , totalNodes
                                                       }
+                          , extraConstraint
                           }
   = [i|module GenUMLStateDiagram
       #{componentsSigRules}
@@ -265,6 +273,7 @@ pred scenarioConfig #{oB}
   #{if enforceOutgoingEdges
     then "all s : States | some (Flows <: from).s"
     else ""}
+#{extraConstraint}
 #{cB}
 
 run scenarioConfig for #{bitwidth} Int,
