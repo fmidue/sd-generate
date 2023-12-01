@@ -225,12 +225,12 @@ sdConfigToAlloy  SDConfig { bitwidth
   = [i|module GenUMLStateDiagram
       #{componentsSigRules}
       #{trueReachability}
-      #{startstateRules}
-      #{endstateRules}
-      #{regionRules}
-      #{nodeRules}
+      #{if snd startNodes > 0 then startstateRules else ""}
+      #{if snd endNodes > 0 then endstateRules else ""}
+      #{if snd regionsStates > 0 then regionRules else ""}
+      #{if snd forkNodes + snd joinNodes > 0 then nodeRules else ""}
       #{reachabilityRules}
-      #{historyRules}
+      #{if snd shallowHistoryNodes + snd deepHistoryNodes > 0 then historyRules else ""}
       #{transitionRules}
       #{substateRules}
       #{nameRules}
