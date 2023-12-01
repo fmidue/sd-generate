@@ -165,21 +165,21 @@ checkSDConfig SDConfig { bitwidth
                        , distinctNormalStateNames
                        , chartLimits = chartLimits@ChartLimits{..}
                        }
-  | fst protoFlows < fst flows = Just "the minimum amount of protoFlows must at least match or better even exceed the lower bound of 'normal' flows"
-  | snd protoFlows < snd flows = Just "the maximum amount of protoFlows must at least match or better even exceed the upper bound of 'normal' flows"
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
-  | fst startNodes < 1 = Just "you likely want to have at least one startNode in the chart"
   | fst regions > 0 && fst regionsStates < 1 = Just "you cannot have Regions when you have no RegionsStates"
   | fst regions < 2 * fst regionsStates = Just "each RegionsState needs at least two Regions"
   | snd regions < 2 * snd regionsStates = Just "each RegionsState needs at least two Regions"
   | fst forkNodes > 0 && fst regionsStates < 1 = Just "you cannot have ForkNodes when you have no RegionsStates"
   | fst joinNodes > 0 && fst regionsStates < 1 = Just "you cannot have JoinNodes when you have no RegionsStates"
   | distinctNormalStateNames && not enforceNormalStateNames = Just "you cannot enforce distinct normal state names without enforcing normal state names"
+  | distinctNormalStateNames && (fst normalStates > fst componentNames || snd normalStates > snd componentNames)
+  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names."
   | fst totalNodes < fst normalStates + fst hierarchicalStates + fst regionsStates + fst startNodes + fst endNodes + fst forkNodes + fst joinNodes + fst shallowHistoryNodes + fst deepHistoryNodes
   = Just "The minimum total number for Nodes is too small, compared to the other numbers."
-  | snd totalNodes < snd normalStates + snd hierarchicalStates + snd regionsStates + snd startNodes + snd endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
-  = Just "The maximum total number for Nodes is too small, compared to the other numbers."
-  | otherwise = checkLimits chartLimits
+  | snd totalNodes > snd normalStates + snd hierarchicalStates + snd regionsStates + snd startNodes + snd endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
+  = Just "The maximum total number for Nodes is too big, compared to the other numbers."
+  | otherwise
+  = checkLimits chartLimits <|> checkAmounts chartLimits
 
 checkLimits :: ChartLimits -> Maybe String
 checkLimits ChartLimits{..}
@@ -202,6 +202,21 @@ checkLimits ChartLimits{..}
     checkPair pair name
       | uncurry (>) pair = Just $ "minimum of " ++ name ++ " must be less than or equal to maximum of " ++ name
       | fst pair < 0 = Just $ name ++ " must be greater than or equal to 0"
+      | otherwise = Nothing
+
+checkAmounts :: ChartLimits -> Maybe String
+checkAmounts ChartLimits{..}
+  = sumNotExceededBy [flows] triggerNames "trigger names"
+    <|> sumNotExceededBy [normalStates, hierarchicalStates, regions] componentNames "component names"
+    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] startNodes "start nodes"
+    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] endNodes "end nodes"
+    <|> sumNotExceededBy [hierarchicalStates, regions] shallowHistoryNodes "shallow history nodes"
+    <|> sumNotExceededBy [hierarchicalStates, regions] deepHistoryNodes "deep history nodes"
+    <|> sumNotExceededBy [protoFlows] flows "flows, relatively to the proto flows"
+  where
+    sumNotExceededBy these that ofIt
+      | sum (map fst these) < fst that || sum (map snd these) < snd that
+      = Just $ "You seem to be requesting too many " ++ ofIt ++ "."
       | otherwise = Nothing
 
 sdConfigToAlloy :: SDConfig -> String
