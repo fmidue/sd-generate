@@ -51,6 +51,7 @@ data SDConfig
              , enforceNormalStateNames :: Bool
              , distinctNormalStateNames :: Bool
              , noEmptyTriggers :: Bool
+             , distinctTriggerNames :: Bool
              , noNestedEndNodes :: Bool
              , preventMultiEdges :: Maybe Bool
              , enforceOutgoingEdges :: Bool
@@ -77,6 +78,7 @@ defaultSDConfigScenario1
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
+             , distinctTriggerNames = True
              , noNestedEndNodes = False
              , preventMultiEdges = Nothing
              , enforceOutgoingEdges = True
@@ -108,6 +110,7 @@ defaultSDConfigScenario2
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
+             , distinctTriggerNames = False
              , noNestedEndNodes = True
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
@@ -137,6 +140,7 @@ defaultSDConfigScenario3
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
+             , distinctTriggerNames = True
              , noNestedEndNodes = False
              , preventMultiEdges = Just False
              , enforceOutgoingEdges = True
@@ -223,6 +227,7 @@ checkAmounts ChartLimits{..}
 sdConfigToAlloy :: SDConfig -> String
 sdConfigToAlloy  SDConfig { bitwidth
                           , noEmptyTriggers
+                          , distinctTriggerNames
                           , enforceNormalStateNames
                           , distinctNormalStateNames
                           , noNestedEndNodes
@@ -264,6 +269,7 @@ sdConfigToAlloy  SDConfig { bitwidth
 pred scenarioConfig #{oB}
   #{if enforceNormalStateNames then "no s : NormalStates | no s.name" else ""}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
+  #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label)" else ""}
   #{if noEmptyTriggers then "EmptyTrigger not in from.States.label" else ""}
   //#{if snd joinNodes >= 1 && snd forkNodes >= 1 then "some (ForkNodes + JoinNodes)" else ""}
   #{maybe "" (\p

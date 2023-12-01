@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
@@ -51,9 +51,9 @@ import Modelling.StateDiagram.Datatype
       unUML,
       umlStateDiagram,
       rename, globalise )
-import Modelling.StateDiagram.Config(SDConfig
+import Modelling.StateDiagram.Config(SDConfig(..)
                                     ,sdConfigToAlloy
-                                    ,defaultSDConfig, noEmptyTriggers, hierarchicalStates, chartLimits)
+                                    ,defaultSDConfig, noEmptyTriggers, hierarchicalStates, ChartLimits(..))
 import Modelling.StateDiagram.Alloy()
 import Modelling.StateDiagram.PlantUMLDiagrams
   (drawSDToFile
@@ -375,11 +375,13 @@ enumArrowsInstanceCheck _ task
   | otherwise = return Nothing
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
-checkEnumArrowsConfig taskConfig
-  | not (noEmptyTriggers (sdConfig taskConfig))
+checkEnumArrowsConfig EnumArrowsConfig{ sdConfig = SDConfig { chartLimits = ChartLimits { .. }, .. } }
+  | not noEmptyTriggers
   = Just "The chart may contain empty triggers, which are not allowed in this task setting."
-  | fst (hierarchicalStates (chartLimits (sdConfig taskConfig))) < 1
+  | fst hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
+  | not distinctTriggerNames
+  = Just "For this task type, triggers in the original diagram should be all made distinct."
   | otherwise = Nothing
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
