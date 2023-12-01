@@ -130,8 +130,8 @@ spec
 
         let c2 = unUML (\_ _ cons _  -> cons) $ hierarchicalSD task'
 
-        let srcs = zipWith (\x y -> pointFrom x == pointFrom y) c1 c2
-        let dsts = zipWith (\x y -> pointTo x == pointTo y) c1 c2
+        let sources = zipWith (\x y -> pointFrom x == pointFrom y) c1 c2
+        let destinations = zipWith (\x y -> pointTo x == pointTo y) c1 c2
 
         let epsilon1
               = zipWith (\x y
@@ -142,7 +142,7 @@ spec
                            -> (transition y /= "") || (transition x == "") ) c1 c2
 
         (c1 `shouldNotBe` c2) *> (and epsilon1 `shouldBe` True)
-         *> (and srcs `shouldBe` True) *> (and dsts `shouldBe` True)
+         *> (and sources `shouldBe` True) *> (and destinations `shouldBe` True)
          *> (and epsilon2 `shouldBe` True) -- only the transition labels have been shuffled
 
 
