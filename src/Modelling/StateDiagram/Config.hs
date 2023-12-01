@@ -269,7 +269,7 @@ sdConfigToAlloy  SDConfig { bitwidth
 pred scenarioConfig #{oB}
   #{if enforceNormalStateNames then "no s : NormalStates | no s.name" else ""}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
-  #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label)" else ""}
+  #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label" else ""}
   #{if noEmptyTriggers then "EmptyTrigger not in from.States.label" else ""}
   //#{if snd joinNodes >= 1 && snd forkNodes >= 1 then "some (ForkNodes + JoinNodes)" else ""}
   #{maybe "" (\p
