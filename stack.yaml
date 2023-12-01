@@ -1,11 +1,11 @@
 ---
-resolver: lts-20.14
+resolver: lts-20.18
 packages:
   - .
 extra-deps:
   - call-alloy-0.4.0.3
   - git: https://github.com/fmidue/output-monad.git
-    commit: a0758bd19e830d8c3f6e5898a07b3dbf57ad013c
+    commit: 4ca058f25d2d377454df1b4ffb0dcda1753a2738
     subdirs:
       - output-monad
   - git: https://github.com/fmidue/modelling-tasks.git
