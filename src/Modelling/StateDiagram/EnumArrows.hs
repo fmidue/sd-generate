@@ -1,15 +1,16 @@
 
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE NamedFieldPuns, RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE BlockArguments #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSolution
@@ -27,6 +28,7 @@ module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsFeedback
                                          ,checkEnumArrowsConfig
                                          ,randomise
+                                         ,randomiseLayout
                                          ,ShufflePolicy(..))
 where
 
@@ -40,17 +42,12 @@ for all enumerated arrows of the chart.
 -}
 
 import Modelling.StateDiagram.Datatype
-    ( StateDiagram(StateDiagram
-                  ,label
-                  ,name
-                  ,substates
-                  ,connections
-                  ,startState, InnerMostState),
+    ( StateDiagram(..),
       UMLStateDiagram,
-      Connection(transition, pointFrom, pointTo),
+      Connection(..),
       unUML,
       umlStateDiagram,
-      rename, globalise )
+      rename )
 import Modelling.StateDiagram.Config(SDConfig(..)
                                     ,sdConfigToAlloy
                                     ,defaultSDConfig, noEmptyTriggers, hierarchicalStates, ChartLimits(..))
@@ -70,13 +67,12 @@ import Control.Monad.Output (
   translate,
   printSolutionAndAssert
   )
-import Control.Monad.Random (
-  MonadRandom,
-  RandT,
-  RandomGen,
-  evalRandT,
-  mkStdGen
-  )
+import Control.Monad.Random
+    ( MonadRandom,
+      RandT,
+      RandomGen,
+      evalRandT,
+      mkStdGen )
 import Language.Alloy.Call (getInstances)
 import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
@@ -85,7 +81,7 @@ import Data.List(groupBy
                 ,nub
                 ,singleton
                 ,sortBy
-                ,find, partition)
+                ,find)
 import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
@@ -97,7 +93,7 @@ import Modelling.StateDiagram.Layout (drawDiagram)
 import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Diagrams.Backend.SVG (renderSVG)
 import Diagrams (dims, V2 (V2))
-import System.Random.Shuffle (shuffleM)
+import System.Random.Shuffle (shuffleM, shuffle')
 
 import Modelling.Auxiliary.Common
 import Data.List.Extra (notNull)
@@ -151,7 +147,6 @@ data EnumArrowsConfig
     , shuffle :: Maybe ShufflePolicy
   } deriving (Show)
 
-
 defaultEnumArrowsConfig :: EnumArrowsConfig
 defaultEnumArrowsConfig
   = EnumArrowsConfig {
@@ -179,9 +174,9 @@ instance Randomise EnumArrowsInstance where
               ShuffleNames
                 -> shuffleNodeNames hierarchicalSD
               ShuffleTriggers
-                -> shuffleTriggers' hierarchicalSD
+                -> shuffleTriggers hierarchicalSD
               ShuffleNamesAndTriggers
-                -> shuffleNodeNames hierarchicalSD >>= shuffleTriggers'
+                -> shuffleNodeNames hierarchicalSD >>= shuffleTriggers
       let flatAndEnumeratedSD'
             = flattenAndEnumerate renamingPolicy hierarchicalSD'
       return
@@ -196,62 +191,144 @@ instance Randomise EnumArrowsInstance where
 
 shuffleNodeNames :: MonadRandom m => UMLStateDiagram String Int -> m (UMLStateDiagram String Int)
 shuffleNodeNames hierarchicalSD
-  = unUML (\_
-            substates
-            _
-            _
-             -> do
-                let names'
-                       = filter notNull $
-                         head $ -- help
-                         traverse (\case
-                                     InnerMostState { name = innerName } -> [innerName]
-                                     StateDiagram { name = "" } -> [""]  -- apparently, this is needed to avoid null returns
-                                     StateDiagram { name = stateName } -> [stateName]
-                                     _ -> [""]
-                                  ) substates
-                shuffledNames <- shuffleM names'
-                let nameToShuffledName = zip names' shuffledNames
-                let toShuffled name'
-                        = fromMaybe name' (lookup name' nameToShuffledName)
-                pure $ rename toShuffled hierarchicalSD
-        ) hierarchicalSD
+  = do
+    let names'
+          = nub $
+            filter notNull $
+            collectNames hierarchicalSD
+    shuffledNames <- shuffleM names'
+    let nameToShuffledName = zip names' shuffledNames
+    let toShuffled name'
+          = fromMaybe name' (lookup name' nameToShuffledName)
+    pure $ rename toShuffled hierarchicalSD
 
-shuffleTriggers' :: (MonadRandom m) => UMLStateDiagram n a -> m (UMLStateDiagram n a)
-shuffleTriggers' hierarchicalSD
-  =
-    unUML (\name
-            substates
-            connections
-            startState
-             -> do
-                let withoutAndWithTriggers
-                      = partition ((==) "" . transition) connections
-                shuffledLiterals
-                  <- shuffleM (map transition $ snd withoutAndWithTriggers)
-                return $
-                  umlStateDiagram $
-                    StateDiagram {
-                      name
-                        = name
-                    , substates
-                        = substates
-                    , connections
-                        = fst withoutAndWithTriggers ++
-                          zipWith (\c sl -> c {transition = sl})
-                                  (snd withoutAndWithTriggers)
-                                  shuffledLiterals
-                    , startState
-                        = startState
-                    , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
-                    }) (globalise hierarchicalSD)
+
+shuffleTriggers :: (MonadRandom m) => UMLStateDiagram String Int -> m (UMLStateDiagram String Int)
+shuffleTriggers hierarchicalSD
+  = do
+    let nonEmptyTriggers
+          = nub $
+            filter notNull $
+            collectTriggers hierarchicalSD
+    shuffledTriggers
+      <- shuffleM nonEmptyTriggers
+    let toShuffledTrigger
+          = zip nonEmptyTriggers shuffledTriggers
+    return $
+      overConnections
+        (map (\case
+          c@Connection { transition = ""}
+            -> c -- empty triggers are not shuffled
+          c@Connection { transition = trigger }
+            -> c { transition
+                     = fromMaybe (error "trigger to shuffle not found")
+                       (lookup trigger toShuffledTrigger)
+                       -- triggers are shuffled uniformly
+                 }
+         )) hierarchicalSD
+
+overConnections :: ([Connection Int] -> [Connection Int]) -> UMLStateDiagram String Int -> UMLStateDiagram String Int
+overConnections g
+  = unUML (\name substates connections startState
+             -> umlStateDiagram $
+                StateDiagram {
+                  name = name
+                , substates = map (recurseConnections g) substates
+                , connections = g connections
+                , startState = startState
+                , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
+                }
+          )
+  where
+    recurseConnections f StateDiagram {connections
+                                      , substates
+                                      , .. }
+      = StateDiagram {
+          connections = f connections
+        , substates = map (recurseConnections f) substates
+        , ..
+        }
+    recurseConnections f CombineDiagram { substates , ..}
+      = CombineDiagram {
+          substates = map (recurseConnections f) substates
+        , ..
+        }
+    recurseConnections _ x = x
+
+overSubstates :: ([StateDiagram String Int [Connection Int]] -> [StateDiagram String Int [Connection Int]]) -> UMLStateDiagram String Int -> UMLStateDiagram String Int
+overSubstates g
+  = unUML (\name substates connections startState
+             -> umlStateDiagram $
+                StateDiagram {
+                  name = name
+                , substates = g (map (recurseSubstates g) substates)
+                , connections = connections
+                , startState = startState
+                , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
+                }
+          )
+  where
+    recurseSubstates f StateDiagram { substates
+                                    , .. }
+      = StateDiagram {
+          substates = f (map (recurseSubstates f) substates)
+        , ..
+        }
+    recurseSubstates f CombineDiagram { substates
+                                      , .. }
+      = CombineDiagram {
+          substates = f (map (recurseSubstates f) substates)
+        , ..
+        }
+    recurseSubstates _ x = x
+
+
+collectNames :: UMLStateDiagram n a -> [n]
+collectNames
+  = unUML (\name substates _ _
+             -> name : concatMap names substates
+          )
+  where
+    names StateDiagram { name
+                       , substates = substates' }
+            = name : concatMap names substates'
+    names CombineDiagram { substates = substates' }
+            = concatMap names substates'
+    names _ = []
+
+collectTriggers :: UMLStateDiagram n a -> [String]
+collectTriggers
+  = unUML (\_ substates connections _
+             -> concatMap triggers substates ++
+                map transition connections
+          )
+  where
+    triggers StateDiagram {connections
+                          , substates }
+      = map transition connections ++
+        concatMap triggers substates
+    triggers CombineDiagram { substates }
+      = concatMap triggers substates
+    triggers _ = []
 
 instance RandomiseLayout EnumArrowsInstance where
-  randomiseLayout _
-    = error "randomizing the chart layout would violate the constraints of the Alloy model"
-      -- though we could shuffle the entries in all lists.
-      -- that might alter the layout printed by the renderer
-      -- while the chart remains semantically the same
+  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD }
+    = do
+      let gen = mkStdGen 953421
+      let hierarchicalSD'
+            = overConnections (\c -> shuffle' c (length c) gen) $
+              overSubstates (\s -> shuffle' s (length s) gen) hierarchicalSD
+      let flatAndEnumeratedSD'
+            = flattenAndEnumerate (renamingPolicy taskInstance) hierarchicalSD'
+      return $
+        taskInstance {
+          hierarchicalSD
+            = hierarchicalSD'
+        , flatAndEnumeratedSD
+            = flatAndEnumeratedSD'
+        , taskSolution
+            = correctEnumeration flatAndEnumeratedSD'
+        }
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
 enumArrows config timestamp
