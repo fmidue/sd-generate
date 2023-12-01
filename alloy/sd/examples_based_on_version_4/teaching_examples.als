@@ -16,7 +16,7 @@ pred scenario1{
         no Regions
         no EndNodes
         no s : NormalStates | no s.name
-        no disjoint s1,s2 : NormalStates | s1.name = s2.name
+        no disj s1,s2 : NormalStates | s1.name = s2.name
         EmptyTrigger not in from.States.label
         all s : States | some (Flows <: from).s
         one HierarchicalStates
@@ -34,7 +34,7 @@ pred scenario2{
         one EndNodes
         EndNodes not in allContainedNodes
         no s : NormalStates | no s.name
-        no disjoint s1,s2 : NormalStates | s1.name = s2.name
+        no disj s1,s2 : NormalStates | s1.name = s2.name
         EmptyTrigger not in from.States.label
         all s : NormalStates | some (Flows <: from).s
         no HierarchicalStates
@@ -52,7 +52,7 @@ pred scenario3{
         no Regions
         no EndNodes
         no s : NormalStates | no s.name
-        no disjoint s1,s2 : NormalStates | s1.name = s2.name
+        no disj s1,s2 : NormalStates | s1.name = s2.name
         EmptyTrigger not in from.States.label
         all s : States | some (Flows <: from).s
         one HierarchicalStates
