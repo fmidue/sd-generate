@@ -9,8 +9,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -Wno-deprecations #-}
+
 
 module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSolution
@@ -43,14 +44,17 @@ for all enumerated arrows of the chart.
 
 import Modelling.StateDiagram.Datatype
     ( StateDiagram(..),
-      UMLStateDiagram,
+      UMLStateDiagram (unUML'),
       Connection(..),
       unUML,
       umlStateDiagram,
       rename )
 import Modelling.StateDiagram.Config(SDConfig(..)
                                     ,sdConfigToAlloy
-                                    ,defaultSDConfig, noEmptyTriggers, hierarchicalStates, ChartLimits(..))
+                                    ,defaultSDConfig
+                                    ,noEmptyTriggers
+                                    ,hierarchicalStates
+                                    ,ChartLimits(..))
 import Modelling.StateDiagram.Alloy()
 import Modelling.StateDiagram.PlantUMLDiagrams
   (drawSDToFile
@@ -78,7 +82,6 @@ import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
 import Modelling.StateDiagram.Flatten (flatten)
 import Data.List(groupBy
-                ,nub
                 ,singleton
                 ,sortBy
                 ,find)
@@ -96,12 +99,12 @@ import Diagrams (dims, V2 (V2))
 import System.Random.Shuffle (shuffleM, shuffle')
 
 import Modelling.Auxiliary.Common
-import Data.List.Extra (notNull)
+import Data.List.Extra (notNull, nubOrd)
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
         hierarchicalSD :: UMLStateDiagram String Int
-      , flatAndEnumeratedSD :: UMLStateDiagram String Int
+      , flatAndEnumeratedSD :: UMLStateDiagram [String] Int
       , taskSolution :: [([String], [String])]
       , chartRenderer :: Renderer
       , shufflePolicy :: ShufflePolicy
@@ -164,98 +167,79 @@ defaultEnumArrowsConfig
 
 instance Randomise EnumArrowsInstance where
   randomise taskInstance@EnumArrowsInstance{ shufflePolicy
-                                           , renamingPolicy
-                                           , hierarchicalSD }
+                                           , hierarchicalSD
+                                           , flatAndEnumeratedSD }
     = do
-      hierarchicalSD'
+      shuffled
         <- case shufflePolicy of
               DoNotShuffle
-                -> return hierarchicalSD
+                -> return $ (,) hierarchicalSD flatAndEnumeratedSD
               ShuffleNames
-                -> shuffleNodeNames hierarchicalSD
+                -> shuffleNodeNames hierarchicalSD flatAndEnumeratedSD
               ShuffleTriggers
-                -> shuffleTriggers hierarchicalSD
+                -> shuffleTriggers hierarchicalSD flatAndEnumeratedSD
               ShuffleNamesAndTriggers
-                -> shuffleNodeNames hierarchicalSD >>= shuffleTriggers
-      let flatAndEnumeratedSD'
-            = flattenAndEnumerate renamingPolicy hierarchicalSD'
+                -> shuffleNodeNames hierarchicalSD flatAndEnumeratedSD >>= uncurry shuffleTriggers
       return
         taskInstance {
           hierarchicalSD
-            = hierarchicalSD'
+            = fst shuffled
         , flatAndEnumeratedSD
-            = flatAndEnumeratedSD'
+            = snd shuffled
         , taskSolution
-            = correctEnumeration flatAndEnumeratedSD'
+            = correctEnumeration (snd shuffled)
         }
 
-shuffleNodeNames :: MonadRandom m => UMLStateDiagram String Int -> m (UMLStateDiagram String Int)
-shuffleNodeNames hierarchicalSD
+shuffleNodeNames :: MonadRandom m => UMLStateDiagram String Int
+  -> UMLStateDiagram [String] Int -> m (UMLStateDiagram String Int,UMLStateDiagram [String] Int)
+shuffleNodeNames hierarchicalSD flatAndEnumeratedSD
   = do
     let names'
-          = nub $
+          = nubOrd $
             filter notNull $
             collectNames hierarchicalSD
     shuffledNames <- shuffleM names'
     let nameToShuffledName = zip names' shuffledNames
     let toShuffled name'
           = fromMaybe name' (lookup name' nameToShuffledName)
-    pure $ rename toShuffled hierarchicalSD
+    let toShuffled' = map (\n -> fromMaybe n (lookup n nameToShuffledName))
+    return $
+      (,)
+      (rename toShuffled hierarchicalSD)
+      (rename toShuffled' flatAndEnumeratedSD)
 
-
-shuffleTriggers :: (MonadRandom m) => UMLStateDiagram String Int -> m (UMLStateDiagram String Int)
-shuffleTriggers hierarchicalSD
+shuffleTriggers :: (MonadRandom m) => UMLStateDiagram String Int
+  -> UMLStateDiagram [String] Int -> m (UMLStateDiagram String Int,UMLStateDiagram [String] Int)
+shuffleTriggers hierarchicalSD flatAndEnumeratedSD
   = do
     let nonEmptyTriggers
-          = nub $
+          = nubOrd $
             filter notNull $
-            collectTriggers hierarchicalSD
+            concatMap (map transition) . unUML' $ hierarchicalSD
     shuffledTriggers
       <- shuffleM nonEmptyTriggers
     let toShuffledTrigger
           = zip nonEmptyTriggers shuffledTriggers
     return $
-      overConnections
-        (map (\case
-          c@Connection { transition = ""}
-            -> c -- empty triggers are not shuffled
-          c@Connection { transition = trigger }
-            -> c { transition
-                     = fromMaybe (error "trigger to shuffle not found")
-                       (lookup trigger toShuffledTrigger)
-                       -- triggers are shuffled uniformly
-                 }
-         )) hierarchicalSD
-
-overConnections :: ([Connection Int] -> [Connection Int]) -> UMLStateDiagram String Int -> UMLStateDiagram String Int
-overConnections g
-  = unUML (\name substates connections startState
-             -> umlStateDiagram $
-                StateDiagram {
-                  name = name
-                , substates = map (recurseConnections g) substates
-                , connections = g connections
-                , startState = startState
-                , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
-                }
-          )
+      (,)
+      (umlStateDiagram . fmap
+        (shuffleTrigger toShuffledTrigger) . unUML' $ hierarchicalSD)
+      (umlStateDiagram . fmap
+        (shuffleTrigger toShuffledTrigger) . unUML' $ flatAndEnumeratedSD)
   where
-    recurseConnections f StateDiagram {connections
-                                      , substates
-                                      , .. }
-      = StateDiagram {
-          connections = f connections
-        , substates = map (recurseConnections f) substates
-        , ..
-        }
-    recurseConnections f CombineDiagram { substates , ..}
-      = CombineDiagram {
-          substates = map (recurseConnections f) substates
-        , ..
-        }
-    recurseConnections _ x = x
+    shuffleTrigger toShuffledTrigger
+      = map (\case
+             c@Connection { transition = ""}
+               -> c -- empty triggers are not shuffled
+             c@Connection { transition = trigger }
+               -> c { transition
+                        = fromMaybe (error "trigger to shuffle not found")
+                          (lookup trigger toShuffledTrigger)
+                          -- triggers are shuffled uniformly
+                    }
+            )
 
-overSubstates :: ([StateDiagram String Int [Connection Int]] -> [StateDiagram String Int [Connection Int]]) -> UMLStateDiagram String Int -> UMLStateDiagram String Int
+overSubstates :: ([StateDiagram a Int [Connection Int]] -> [StateDiagram a Int [Connection Int]]) -> UMLStateDiagram a Int -> UMLStateDiagram a Int
 overSubstates g
   = unUML (\name substates connections startState
              -> umlStateDiagram $
@@ -282,7 +266,6 @@ overSubstates g
         }
     recurseSubstates _ x = x
 
-
 collectNames :: UMLStateDiagram n a -> [n]
 collectNames
   = unUML (\name substates _ _
@@ -296,38 +279,18 @@ collectNames
             = concatMap names substates'
     names _ = []
 
-collectTriggers :: UMLStateDiagram n a -> [String]
-collectTriggers
-  = unUML (\_ substates connections _
-             -> concatMap triggers substates ++
-                map transition connections
-          )
-  where
-    triggers StateDiagram {connections
-                          , substates }
-      = map transition connections ++
-        concatMap triggers substates
-    triggers CombineDiagram { substates }
-      = concatMap triggers substates
-    triggers _ = []
-
 instance RandomiseLayout EnumArrowsInstance where
-  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD }
+  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD }
     = do
       let gen = mkStdGen 953421
-      let hierarchicalSD'
-            = overConnections (\c -> shuffle' c (length c) gen) $
-              overSubstates (\s -> shuffle' s (length s) gen) hierarchicalSD
-      let flatAndEnumeratedSD'
-            = flattenAndEnumerate (renamingPolicy taskInstance) hierarchicalSD'
       return $
         taskInstance {
           hierarchicalSD
-            = hierarchicalSD'
+            = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML'  $
+              overSubstates (\s -> shuffle' s (length s) gen) hierarchicalSD
         , flatAndEnumeratedSD
-            = flatAndEnumeratedSD'
-        , taskSolution
-            = correctEnumeration flatAndEnumeratedSD'
+            = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML' $
+              overSubstates (\s -> shuffle' s (length s) gen) flatAndEnumeratedSD
         }
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
@@ -350,14 +313,24 @@ enumArrowsTask path task
                           return (combine path "plainDiagram.svg")
     paragraph $ translate $ do
       english "Which was flattened, having the transition literals replaced by integers."
+    let flatAndEnumeratedSD' -- renaming policy is just a view on data
+          = case renamingPolicy task of
+              HierarchicalConcatenation
+                -> rename concat (flatAndEnumeratedSD task)
+              JustTheInnermostName
+                -> rename last (flatAndEnumeratedSD task)
     case chartRenderer task of
        PlantUML
-         -> image $=<< liftIO $ drawSDToFile (combine path "flattened") (flatAndEnumeratedSD task)
+         -> image $=<< liftIO $
+                        drawSDToFile
+                        (combine path "flattened")
+                        flatAndEnumeratedSD'
        Diagrams
          -> image $=<< do liftIO (renderSVG
                                  (combine path "flattenedDiagram.svg")
                                  (dims (V2 800 600))
-                                 (drawDiagram Unstyled (flatAndEnumeratedSD task)))
+                                 (drawDiagram Unstyled
+                                 flatAndEnumeratedSD'))
                           return (combine path "flattenedDiagram.svg")
     paragraph $ translate $ do
       english "Please supply a list of tuples, where the first element is the label of the transition as string\n\
@@ -378,29 +351,36 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
   = do
     iterateUntil
       (\taskInstance
-          -> case renderPath of
+          -> let flatAndEnumeratedSD'
+                   = case renamingStrategy of
+                       HierarchicalConcatenation
+                         -> rename concat (flatAndEnumeratedSD taskInstance)
+                       JustTheInnermostName
+                         -> rename last (flatAndEnumeratedSD taskInstance)
+             in
+             case renderPath of
                 RenderPath { renderPolicy = FailOnFailure
                            , renderer = PlantUML
                            }
                   -> (isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
-                      isNothing (checkDrawabilityPlantUML (flatAndEnumeratedSD taskInstance)))
+                      isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD'))
                       || error "PlantUML renderer failed"
                 RenderPath { renderPolicy = RegenerateOnFailure
                            , renderer = PlantUML
                            }
                   -> isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawabilityPlantUML (flatAndEnumeratedSD taskInstance))
+                     isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD')
                 RenderPath { renderPolicy = FailOnFailure
                             , renderer = Diagrams
                             }
                   -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawability (flatAndEnumeratedSD taskInstance))
+                     isNothing (checkDrawability flatAndEnumeratedSD')
                      || error "Diagrams renderer failed"
                 RenderPath { renderPolicy = RegenerateOnFailure
                            , renderer = Diagrams
                            }
                   -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawability (flatAndEnumeratedSD taskInstance))
+                     isNothing (checkDrawability flatAndEnumeratedSD')
               )
       (do
        liftIO $ putStrLn "generating instance"
@@ -409,7 +389,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
        liftIO $ putStrLn ("instance " ++ show r ++ " selected")
        let chart = map (failWith id . parseInstance "this") inst !! r
        let flatChart
-             = flattenAndEnumerate renamingStrategy chart
+             = flattenAndEnumerate chart
        return EnumArrowsInstance {
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
@@ -424,8 +404,8 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
       )
 enumArrowsInstance _ = undefined
 
-flattenAndEnumerate :: RenamingStrategy -> UMLStateDiagram String Int -> UMLStateDiagram String Int
-flattenAndEnumerate renamingStrategy chart
+flattenAndEnumerate :: UMLStateDiagram String Int -> UMLStateDiagram [String] Int
+flattenAndEnumerate chart
   = umlStateDiagram $
                unUML (\name substates connection startState
                          -> StateDiagram {
@@ -438,12 +418,7 @@ flattenAndEnumerate renamingStrategy chart
                             , startState = startState
                             , label = 999
                             }
-                     ) (rename (case renamingStrategy of
-                         HierarchicalConcatenation
-                           -> concat
-                         JustTheInnermostName
-                           -> last
-                      ) (flatten chart))
+                     ) (flatten chart)
 
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
 enumArrowsInstanceCheck _ task
@@ -488,7 +463,7 @@ enumArrowsSolution :: EnumArrowsInstance -> [([String], [String])]
 enumArrowsSolution EnumArrowsInstance {taskSolution}
   = taskSolution
 
-correctEnumeration :: UMLStateDiagram String Int -> [([String], [String])]
+correctEnumeration :: UMLStateDiagram [String] Int -> [([String], [String])]
 correctEnumeration
   = unUML (\_ _ connection _
              -> map (\x
@@ -520,7 +495,7 @@ rate solution submission
                            then Right $ (,) i l
                            else Left $ (,) i l)
                     (find (elem i . fst) solution)
-           ) (nub submission)
+           ) (nubOrd submission)
     correct = sum $ map (length . snd) (rights answers)
     total = sum $ map (length . snd) solution
     in
@@ -538,7 +513,7 @@ enumArrowsFeedback task submission
                            then Right $ (,) i l
                            else Left $ (,) i l)
                     (find (elem i . fst) solution)
-           ) (nub submission)
+           ) (nubOrd submission)
     missing
       = concatMap (uncurry zip) $
         filter (\(_,ls) -> ls /= []) $
@@ -562,10 +537,10 @@ defaultEnumInstance
   = EnumArrowsInstance {
     hierarchicalSD = flatCase1
   , flatAndEnumeratedSD
-      = flattenAndEnumerate JustTheInnermostName flatCase1
+      = flattenAndEnumerate flatCase1
   , taskSolution
       = correctEnumeration
-        (rename last $ flatten flatCase1)
+        (flatten flatCase1)
   , chartRenderer = PlantUML
   , shufflePolicy = DoNotShuffle
   , renamingPolicy = JustTheInnermostName
