@@ -12,7 +12,8 @@ import Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,checkEnumArrowsConfig
                                          ,EnumArrowsInstance(taskSolution)
                                          ,enumArrows
-                                         --,randomise
+                                         , randomise, enumArrowsFeedback
+
                                          )
 import Data.Foldable(forM_)
 
@@ -29,11 +30,11 @@ main
     -- initialize Alloy and instance selector
 
     -- and pick a concrete instance, and optionally randomise triggers and names
-    task <- enumArrows defaultEnumArrowsConfig timestamp -- >>= randomise
-    print task
+    task <- enumArrows defaultEnumArrowsConfig timestamp >>= randomise
     -- visualize task
     enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
-    putStrLn ("\n" ++ "cheat solution:" ++ show (concatMap (uncurry zip) $ taskSolution task))
+    print task
+    putStrLn ("\n" ++ "cheat solution: " ++ show (concatMap (uncurry zip) $ taskSolution task))
     -- user response (task assignment -> solution submission)
 
     -- rename the session files and store the solution
@@ -47,11 +48,13 @@ main
 
     -- user submission
     sub <- fmap read getLine
-    -- user syntax checking function
+    -- user submission syntax checking
     enumArrowsSyntax task sub `withLang` English
     -- task submission evaluation function
     points <- enumArrowsEvaluation task sub `withLang` English
-    -- user result
+    -- submission rating
     print points
+    -- extended submission feedback
+    enumArrowsFeedback task sub `withLang` English
     return ()
 

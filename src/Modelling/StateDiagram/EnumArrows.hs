@@ -81,10 +81,11 @@ import Language.Alloy.Call (getInstances)
 import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
 import Modelling.StateDiagram.Flatten (flatten)
-import Data.List(groupBy
-                ,singleton
-                ,sortBy
-                ,find)
+import Data.List (groupBy
+                 ,singleton
+                 ,sortBy
+                 ,find
+                 ,nubBy)
 import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
@@ -100,7 +101,11 @@ import System.Random.Shuffle (shuffleM, shuffle')
 
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
-import Data.List.Extra (notNull, nubOrd)
+import Data.List.Extra (notNull, nubOrd
+--, nubOrdBy
+  )
+import Data.Function (on)
+import Data.Tuple (swap)
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
@@ -163,37 +168,25 @@ defaultEnumArrowsConfig
                      renderPolicy = RegenerateOnFailure
                    , renderer = PlantUML
                    }
-    , shuffle = Nothing
+    , shuffle = Just ShuffleNamesAndTriggers
   }
 
 instance Randomise EnumArrowsInstance where
-  randomise taskInstance@EnumArrowsInstance{ shufflePolicy
-                                           , hierarchicalSD
-                                           , flatAndEnumeratedSD }
+  randomise taskInstance@EnumArrowsInstance{ shufflePolicy }
     = do
-      shuffled
-        <- case shufflePolicy of
-              DoNotShuffle
-                -> return $ (,) hierarchicalSD flatAndEnumeratedSD
-              ShuffleNames
-                -> shuffleNodeNames hierarchicalSD flatAndEnumeratedSD
-              ShuffleTriggers
-                -> shuffleTriggers hierarchicalSD flatAndEnumeratedSD
-              ShuffleNamesAndTriggers
-                -> shuffleNodeNames hierarchicalSD flatAndEnumeratedSD >>= uncurry shuffleTriggers
-      return
-        taskInstance {
-          hierarchicalSD
-            = fst shuffled
-        , flatAndEnumeratedSD
-            = snd shuffled
-        , taskSolution
-            = correctEnumeration (snd shuffled)
-        }
+      case shufflePolicy of
+        DoNotShuffle
+          -> return taskInstance
+        ShuffleNames
+          -> shuffleNodeNames taskInstance
+        ShuffleTriggers
+          -> shuffleTriggers taskInstance
+        ShuffleNamesAndTriggers
+          -> shuffleNodeNames taskInstance >>= shuffleTriggers
 
-shuffleNodeNames :: MonadRandom m => UMLStateDiagram String Int
-  -> UMLStateDiagram [String] Int -> m (UMLStateDiagram String Int,UMLStateDiagram [String] Int)
-shuffleNodeNames hierarchicalSD flatAndEnumeratedSD
+
+shuffleNodeNames :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstance
+shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
   = do
     let names'
           = nubOrd $
@@ -205,28 +198,41 @@ shuffleNodeNames hierarchicalSD flatAndEnumeratedSD
           = fromMaybe name' (lookup name' nameToShuffledName)
     let toShuffled' = map (\n -> fromMaybe n (lookup n nameToShuffledName))
     return $
-      (,)
-      (rename toShuffled hierarchicalSD)
-      (rename toShuffled' flatAndEnumeratedSD)
+      task {
+        hierarchicalSD
+          = rename toShuffled hierarchicalSD
+      , flatAndEnumeratedSD
+          = rename toShuffled' flatAndEnumeratedSD
+      }
 
-shuffleTriggers :: (MonadRandom m) => UMLStateDiagram String Int
-  -> UMLStateDiagram [String] Int -> m (UMLStateDiagram String Int,UMLStateDiagram [String] Int)
-shuffleTriggers hierarchicalSD flatAndEnumeratedSD
+shuffleTriggers :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstance
+shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,taskSolution}
   = do
-    let nonEmptyTriggers
-          = nubOrd $
-            filter notNull $
-            concatMap (map transition) . unUML' $ hierarchicalSD
-    shuffledTriggers
-      <- shuffleM nonEmptyTriggers
-    let toShuffledTrigger
-          = zip nonEmptyTriggers shuffledTriggers
+    -- newtype Trigger and newtype Placeholder would be beneficial instead of working with raw Strings
+    let triggers
+          = map fst $ nubBy ((==) `on` fst) . filter ((/=) "" . fst) $ concatMap (uncurry zip . swap) taskSolution
+    let placeholders
+          = map fst $ nubBy ((==) `on` fst) . filter ((/=) "" . fst) $ concatMap (uncurry zip) taskSolution
+    trigger' <- shuffleM triggers
+    let triggerToTrigger' = zip triggers trigger'
+    let placeholderToPlaceholder'
+          = [(fst x, snd y) | x <- zip placeholders trigger', y <- zip triggers placeholders, snd x == fst y]
     return $
-      (,)
-      (umlStateDiagram . fmap
-        (shuffleTrigger toShuffledTrigger) . unUML' $ hierarchicalSD)
-      (umlStateDiagram . fmap
-        (shuffleTrigger toShuffledTrigger) . unUML' $ flatAndEnumeratedSD)
+      task {
+        hierarchicalSD
+          = umlStateDiagram . fmap
+        (shuffleTrigger triggerToTrigger') . unUML' $ hierarchicalSD
+      , flatAndEnumeratedSD
+          = umlStateDiagram . fmap
+        (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
+      , taskSolution
+          = map (unzip .
+                 map (\(placeholder,trigger)
+                         -> (,)
+                            (fromMaybe (error "no placeholder found for " ++ placeholder ++ " in " ++ show placeholderToPlaceholder') (lookup placeholder placeholderToPlaceholder'))
+                            (fromMaybe (error "no trigger found") (lookup trigger triggerToTrigger')) ). uncurry zip)
+            taskSolution
+      }
   where
     shuffleTrigger toShuffledTrigger
       = map (\case
@@ -234,7 +240,7 @@ shuffleTriggers hierarchicalSD flatAndEnumeratedSD
                -> c -- empty triggers are not shuffled
              c@Connection { transition = trigger }
                -> c { transition
-                        = fromMaybe (error "trigger to shuffle not found")
+                        = fromMaybe (error $ "trigger to shuffle not found" ++ show trigger ++ "in " ++ show toShuffledTrigger)
                           (lookup trigger toShuffledTrigger)
                           -- triggers are shuffled uniformly
                     }
@@ -485,6 +491,11 @@ correctEnumeration
                 $
                 zip (map show ([1..]::[Int])) connection
     )
+
+newtype Trigger = Trigger String deriving (Show, Eq, Ord)
+
+newtype Placeholder = Placeholder String deriving (Show, Eq, Ord)
+
 
 -- we must assert before calling this function that every label
 -- is only used once in the submission; for all (i1,_) (i2,_) => i1 /= i2
