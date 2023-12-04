@@ -296,7 +296,7 @@ pred scenarioConfig #{oB}
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
    preventMultiEdges}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
-  #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (States - RegionsStates) | some (Flows <: from).s" else ""}
+  #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
   #{bounded regions "Regions"}
   #{bounded regionsStates "RegionsStates"}
   #{bounded hierarchicalStates "HierarchicalStates"}
