@@ -173,18 +173,23 @@ checkSDConfig SDConfig { bitwidth
                        , chartLimits = chartLimits@ChartLimits{..}
                        }
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
-  | fst regions > 0 && fst regionsStates < 1 = Just "you cannot have Regions when you have no RegionsStates"
-  | fst regions < 2 * fst regionsStates = Just "each RegionsState needs at least two Regions"
-  | snd regions < 2 * snd regionsStates = Just "each RegionsState needs at least two Regions"
-  | fst forkNodes > 0 && fst regionsStates < 1 = Just "you cannot have ForkNodes when you have no RegionsStates"
-  | fst joinNodes > 0 && fst regionsStates < 1 = Just "you cannot have JoinNodes when you have no RegionsStates"
+  | fst regions + fst forkNodes + fst joinNodes > 0 && fst regionsStates < 1
+  = Just "you cannot have Regions, ForkNodes or JoinNodes when you have no RegionsStates (lower bounds inconsistent)"
+  | snd regions + snd forkNodes + snd joinNodes > 0 && snd regionsStates < 1
+  = Just "you cannot have Regions, ForkNodes of JoinNodes when you have no RegionsStates (upper bounds inconsistent)"
+  | fst regions < 2 * fst regionsStates
+  = Just "each RegionsState needs at least two Regions (lower bounds inconsistent)"
+  | snd regions < 2 * snd regionsStates
+  = Just "each RegionsState needs at least two Regions (upper bounds inconsistent)"
   | distinctNormalStateNames && not enforceNormalStateNames = Just "you cannot enforce distinct normal state names without enforcing normal state names"
-  | distinctNormalStateNames && (fst normalStates > fst componentNames || snd normalStates > snd componentNames)
-  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names."
+  | distinctNormalStateNames && fst normalStates > fst componentNames
+  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names (lower bounds inconsistent)."
+  | distinctNormalStateNames && snd normalStates > snd componentNames
+  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names (upper bounds inconsistent)."
   | fst totalNodes < fst normalStates + fst hierarchicalStates + fst regionsStates + fst startNodes + fst endNodes + fst forkNodes + fst joinNodes + fst shallowHistoryNodes + fst deepHistoryNodes
-  = Just "The minimum total number for Nodes is too small, compared to the other numbers."
+  = Just "The minimum total number for Nodes is too small, compared to the other numbers (lower bounds inconsistent)."
   | snd totalNodes > snd normalStates + snd hierarchicalStates + snd regionsStates + snd startNodes + snd endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
-  = Just "The maximum total number for Nodes is too big, compared to the other numbers."
+  = Just "The maximum total number for Nodes is too big, compared to the other numbers (upper bounds inconsistent)."
   | otherwise
   = checkLimits chartLimits <|> checkAmounts chartLimits
 
@@ -213,17 +218,19 @@ checkLimits ChartLimits{..}
 
 checkAmounts :: ChartLimits -> Maybe String
 checkAmounts ChartLimits{..}
-  = sumNotExceededBy [flows] triggerNames "trigger names"
-    <|> sumNotExceededBy [normalStates, hierarchicalStates, regions] componentNames "component names"
-    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] startNodes "start nodes"
-    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] endNodes "end nodes"
-    <|> sumNotExceededBy [hierarchicalStates, regions] shallowHistoryNodes "shallow history nodes"
-    <|> sumNotExceededBy [hierarchicalStates, regions] deepHistoryNodes "deep history nodes"
+  = sumNotExceededBy [flows] triggerNames "trigger names, relatively to the number of flows"
+    <|> sumNotExceededBy [normalStates, hierarchicalStates, regions] componentNames "component names, relatively to entities to be potentially named"
+    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] startNodes "start nodes, relatively to compound entities"
+    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] endNodes "end nodes, relatively to compound entities"
+    <|> sumNotExceededBy [hierarchicalStates, regions] shallowHistoryNodes "shallow history nodes, relatively to compound entities"
+    <|> sumNotExceededBy [hierarchicalStates, regions] deepHistoryNodes "deep history nodes, relatively to compound entities"
     <|> sumNotExceededBy [protoFlows] flows "flows, relatively to the proto flows"
   where
     sumNotExceededBy these that ofIt
-      | sum (map fst these) < fst that || sum (map snd these) < snd that
-      = Just $ "You seem to be requesting too many " ++ ofIt ++ "."
+      | sum (map fst these) < fst that
+      = Just $ "You seem to be requesting too many " ++ ofIt ++ " (lower bounds inconsistent)."
+      | sum (map snd these) < snd that
+      = Just $ "You seem to be requesting too many " ++ ofIt ++ " (upper bounds inconsistent)."
       | otherwise = Nothing
 
 sdConfigToAlloy :: SDConfig -> String
