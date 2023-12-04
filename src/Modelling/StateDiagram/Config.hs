@@ -50,11 +50,11 @@ data SDConfig
   = SDConfig { bitwidth :: Int
              , enforceNormalStateNames :: Bool
              , distinctNormalStateNames :: Bool
-             , noEmptyTriggers :: Bool
+             , noEmptyTriggersFromStates :: Bool
              , distinctTriggerNames :: Bool
              , noNestedEndNodes :: Bool
              , preventMultiEdges :: Maybe Bool
-             , enforceOutgoingEdges :: Bool
+             , enforceOutgoingEdgesFromNormalAndHierarchical :: Bool
              , chartLimits :: ChartLimits
              , extraConstraint :: String
              } deriving (Show)
@@ -69,11 +69,11 @@ defaultSDConfigScenario1
   = SDConfig { bitwidth = 6
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
-             , noEmptyTriggers = True
+             , noEmptyTriggersFromStates = True
              , distinctTriggerNames = False
              , noNestedEndNodes = False
              , preventMultiEdges = Nothing
-             , enforceOutgoingEdges = True
+             , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
                  ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
@@ -103,11 +103,11 @@ defaultSDConfigScenario2
   = SDConfig { bitwidth = 6
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
-             , noEmptyTriggers = True
+             , noEmptyTriggersFromStates = True
              , distinctTriggerNames = False
              , noNestedEndNodes = True
              , preventMultiEdges = Nothing
-             , enforceOutgoingEdges = True
+             , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
                  ChartLimits { regionsStates = (1,1)
                              , hierarchicalStates = (0,0)
@@ -138,11 +138,11 @@ defaultSDConfigScenario3
   = SDConfig { bitwidth = 6
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
-             , noEmptyTriggers = True
+             , noEmptyTriggersFromStates = True
              , distinctTriggerNames = False
              , noNestedEndNodes = False
              , preventMultiEdges = Nothing
-             , enforceOutgoingEdges = True
+             , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
                  ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
@@ -237,13 +237,13 @@ checkAmounts ChartLimits{..}
 
 sdConfigToAlloy :: SDConfig -> String
 sdConfigToAlloy  SDConfig { bitwidth
-                          , noEmptyTriggers
+                          , noEmptyTriggersFromStates
                           , distinctTriggerNames
                           , enforceNormalStateNames
                           , distinctNormalStateNames
                           , noNestedEndNodes
                           , preventMultiEdges
-                          , enforceOutgoingEdges
+                          , enforceOutgoingEdgesFromNormalAndHierarchical
                           , chartLimits = ChartLimits { regionsStates
                                                       , hierarchicalStates
                                                       , regions
@@ -281,12 +281,13 @@ pred scenarioConfig #{oB}
   #{if enforceNormalStateNames then "no s : NormalStates | no s.name" else ""}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
   #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label" else ""}
-  #{if noEmptyTriggers then "EmptyTrigger not in from.States.label" else ""}
+  #{if noEmptyTriggersFromStates then "EmptyTrigger not in from.States.label" else ""}
   #{maybe "" (\p
                 -> (if p then id else \c -> "not (" ++ c ++ ")")
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
    preventMultiEdges}
   #{if noNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
+  #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (States - RegionsStates) | some (Flows <: from).s" else ""}
   #{bounded regions "Regions"}
   #{bounded regionsStates "RegionsStates"}
   #{bounded hierarchicalStates "HierarchicalStates"}
@@ -302,9 +303,6 @@ pred scenarioConfig #{oB}
   #{bounded flows "Flows"}
   #{bounded protoFlows "ProtoFlows"}
   #{bounded totalNodes "Nodes"}
-  #{if enforceOutgoingEdges
-    then "all s : (States - RegionsStates) | some (Flows <: from).s"
-    else ""}
 #{extraConstraint}
 #{cB}
 

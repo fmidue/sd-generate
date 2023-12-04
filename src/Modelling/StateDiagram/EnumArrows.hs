@@ -52,7 +52,7 @@ import Modelling.StateDiagram.Datatype
 import Modelling.StateDiagram.Config(SDConfig(..)
                                     ,sdConfigToAlloy
                                     ,defaultSDConfig
-                                    ,noEmptyTriggers
+                                    ,noEmptyTriggersFromStates
                                     ,hierarchicalStates
                                     ,ChartLimits(..))
 import Modelling.StateDiagram.Alloy()
@@ -447,8 +447,8 @@ enumArrowsInstanceCheck _ task
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
 checkEnumArrowsConfig EnumArrowsConfig{ sdConfig = SDConfig { chartLimits = ChartLimits { .. }, .. } }
-  | not noEmptyTriggers
-  = Just "The chart may contain empty triggers, which are not allowed in this task setting."
+  | not noEmptyTriggersFromStates
+  = Just "The chart may contain empty triggers from states, which are not allowed in this task setting."
   | fst hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
   | not distinctTriggerNames
