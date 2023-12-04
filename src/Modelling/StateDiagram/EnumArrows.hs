@@ -449,7 +449,7 @@ checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
 checkEnumArrowsConfig EnumArrowsConfig{ sdConfig = SDConfig { chartLimits = ChartLimits { .. }, .. } }
   | not preventEmptyTriggersFromStates
   = Just "The chart may contain empty triggers from states, which are not allowed in this task setting."
-  | fst hierarchicalStates < 1
+  | hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
   | not distinctTriggerNames
   = Just "For this task type, triggers in the original diagram should be all made distinct."

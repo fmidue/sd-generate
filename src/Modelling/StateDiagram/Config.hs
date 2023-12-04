@@ -28,19 +28,19 @@ import Data.String.Interpolate(i)
 import Control.Applicative (Alternative ((<|>)))
 
 data ChartLimits
-  = ChartLimits { regionsStates :: (Int,Int)
-                , hierarchicalStates :: (Int,Int)
-                , regions :: (Int,Int)
-                , normalStates :: (Int,Int)
-                , componentNames :: (Int,Int)
+  = ChartLimits { regionsStates :: Int
+                , hierarchicalStates :: Int
+                , regions :: Int
+                , normalStates :: Int
+                , componentNames :: Int
                 , triggerNames :: (Int,Int)
                 , startNodes :: (Int,Int)
-                , endNodes :: (Int,Int)
+                , endNodes :: Int
                 , forkNodes :: (Int,Int)
                 , joinNodes :: (Int,Int)
                 , shallowHistoryNodes :: (Int,Int)
                 , deepHistoryNodes :: (Int,Int)
-                , flows :: (Int,Int)
+                , flows :: Int
                 , protoFlows :: (Int,Int)
                 , totalNodes :: (Int,Int)
                 }
@@ -77,21 +77,21 @@ defaultSDConfigScenario1
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
-                 ChartLimits { regionsStates = (0,0)
-                             , hierarchicalStates = (1,1)
-                             , regions = (0,0)
-                             , normalStates = (8,8)
-                             , componentNames = (8,8)
+                 ChartLimits { regionsStates = 0
+                             , hierarchicalStates = 1
+                             , regions = 0
+                             , normalStates = 8
+                             , componentNames = 8
                              , triggerNames = (1,10)
                              , startNodes = (0,2)
-                             , endNodes = (0,0)
+                             , endNodes = 0
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
-                             , flows = (10,10)
+                             , flows = 10
                              , protoFlows = (10,20)
-                             , totalNodes = (9,10)
+                             , totalNodes = (9,11)
                              }
              , extraConstraint =
                "let hs = HierarchicalStates, inner = hs + hs.contains |\n\
@@ -112,21 +112,21 @@ defaultSDConfigScenario2
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
-                 ChartLimits { regionsStates = (1,1)
-                             , hierarchicalStates = (0,0)
-                             , regions = (2,2)
-                             , normalStates = (5,12)
+                 ChartLimits { regionsStates = 1
+                             , hierarchicalStates = 0
+                             , regions = 2
+                             , normalStates = 10
                              , startNodes = (0,3)
-                             , endNodes = (1,1)
-                             , componentNames = (5,12)
-                             , triggerNames = (1,14)
+                             , endNodes = 1
+                             , componentNames = 10
+                             , triggerNames = (1,11)
                              , forkNodes = (0,1)
                              , joinNodes = (0,1)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
-                             , flows = (5,15)
-                             , protoFlows = (5,30)
-                             , totalNodes = (8,15)
+                             , flows = 12
+                             , protoFlows = (12,24)
+                             , totalNodes = (13,16)
                              }
              , extraConstraint =
                "some (ForkNodes + JoinNodes)\n\
@@ -148,21 +148,21 @@ defaultSDConfigScenario3
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
-                 ChartLimits { regionsStates = (0,0)
-                             , hierarchicalStates = (1,1)
-                             , regions = (0,0)
-                             , normalStates = (4,8)
-                             , componentNames = (4,8)
-                             , triggerNames = (2,10)
+                 ChartLimits { regionsStates = 0
+                             , hierarchicalStates = 1
+                             , regions = 0
+                             , normalStates = 7
+                             , componentNames = 7
+                             , triggerNames = (2,9)
                              , startNodes = (0,2)
-                             , endNodes = (0,0)
+                             , endNodes = 0
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
                              , shallowHistoryNodes = (0,1)
                              , deepHistoryNodes = (0,1)
-                             , flows = (5,10)
-                             , protoFlows = (5,20)
-                             , totalNodes = (8,10)
+                             , flows = 9
+                             , protoFlows = (9,18)
+                             , totalNodes = (9,11)
                              }
              , extraConstraint =
                "one HistoryNodes\n\
@@ -179,42 +179,38 @@ checkSDConfig SDConfig { bitwidth
                        , chartLimits = chartLimits@ChartLimits{..}
                        }
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
-  | fst regions + fst forkNodes + fst joinNodes > 0 && fst regionsStates < 1
+  | regions + fst forkNodes + fst joinNodes > 0 && regionsStates < 1
   = Just "you cannot have Regions, ForkNodes or JoinNodes when you have no RegionsStates (lower bounds inconsistent)"
-  | snd regions + snd forkNodes + snd joinNodes > 0 && snd regionsStates < 1
+  | regions + snd forkNodes + snd joinNodes > 0 && regionsStates < 1
   = Just "you cannot have Regions, ForkNodes of JoinNodes when you have no RegionsStates (upper bounds inconsistent)"
-  | fst regions < 2 * fst regionsStates
-  = Just "each RegionsState needs at least two Regions (lower bounds inconsistent)"
-  | snd regions < 2 * snd regionsStates
-  = Just "each RegionsState needs at least two Regions (upper bounds inconsistent)"
+  | regions < 2 * regionsStates
+  = Just "each RegionsState needs at least two Regions"
   | distinctNormalStateNames && not enforceNormalStateNames = Just "you cannot enforce distinct normal state names without enforcing normal state names"
-  | distinctNormalStateNames && fst normalStates > fst componentNames
-  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names (lower bounds inconsistent)."
-  | distinctNormalStateNames && snd normalStates > snd componentNames
-  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names (upper bounds inconsistent)."
-  | fst totalNodes < fst normalStates + fst hierarchicalStates + fst regionsStates + fst startNodes + fst endNodes + fst forkNodes + fst joinNodes + fst shallowHistoryNodes + fst deepHistoryNodes
+  | distinctNormalStateNames && normalStates > componentNames
+  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names."
+  | fst totalNodes < normalStates + hierarchicalStates + regionsStates + fst startNodes + endNodes + fst forkNodes + fst joinNodes + fst shallowHistoryNodes + fst deepHistoryNodes
   = Just "The minimum total number for Nodes is too small, compared to the other numbers (lower bounds inconsistent)."
-  | snd totalNodes > snd normalStates + snd hierarchicalStates + snd regionsStates + snd startNodes + snd endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
+  | snd totalNodes > normalStates + hierarchicalStates + regionsStates + snd startNodes + endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
   = Just "The maximum total number for Nodes is too big, compared to the other numbers (upper bounds inconsistent)."
   | otherwise
   = checkLimits chartLimits <|> checkAmounts chartLimits
 
 checkLimits :: ChartLimits -> Maybe String
 checkLimits ChartLimits{..}
-  = checkPair regionsStates "RegionsStates"
-    <|> checkPair hierarchicalStates "HierarchicalStates"
-    <|> checkPair regions "Regions"
-    <|> checkPair normalStates "NormalStates"
+  = checkPair (regionsStates, regionsStates) "RegionsStates"
+    <|> checkPair (hierarchicalStates, hierarchicalStates) "HierarchicalStates"
+    <|> checkPair (regions, regions) "Regions"
+    <|> checkPair (normalStates, normalStates) "NormalStates"
     <|> checkPair startNodes "StartNodes"
-    <|> checkPair endNodes "EndNodes"
+    <|> checkPair (endNodes, endNodes) "EndNodes"
     <|> checkPair forkNodes "ForkNodes"
     <|> checkPair joinNodes "JoinNodes"
     <|> checkPair shallowHistoryNodes "ShallowHistoryNodes"
     <|> checkPair deepHistoryNodes "DeepHistoryNodes"
-    <|> checkPair flows "Flows"
+    <|> checkPair (flows, flows) "Flows"
     <|> checkPair protoFlows "ProtoFlows"
     <|> checkPair totalNodes "Nodes"
-    <|> checkPair componentNames "ComponentNames"
+    <|> checkPair (componentNames, componentNames) "ComponentNames"
     <|> checkPair triggerNames "TriggerNames"
   where
     checkPair pair name
@@ -224,13 +220,13 @@ checkLimits ChartLimits{..}
 
 checkAmounts :: ChartLimits -> Maybe String
 checkAmounts ChartLimits{..}
-  = sumNotExceededBy [flows] triggerNames "trigger names, relatively to the number of flows"
-    <|> sumNotExceededBy [normalStates, hierarchicalStates, regions] componentNames "component names, relatively to entities to be potentially named"
-    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] startNodes "start nodes, relatively to compound entities"
-    <|> sumNotExceededBy [hierarchicalStates, regions, (1,1)] endNodes "end nodes, relatively to compound entities"
-    <|> sumNotExceededBy [hierarchicalStates, regions] shallowHistoryNodes "shallow history nodes, relatively to compound entities"
-    <|> sumNotExceededBy [hierarchicalStates, regions] deepHistoryNodes "deep history nodes, relatively to compound entities"
-    <|> sumNotExceededBy [protoFlows] flows "flows, relatively to the proto flows"
+  = sumNotExceededBy [(flows, flows)] triggerNames "trigger names, relatively to the number of flows"
+    <|> sumNotExceededBy [(normalStates, normalStates), (hierarchicalStates, hierarchicalStates), (regions, regions)] (componentNames, componentNames) "component names, relatively to entities to be potentially named"
+    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions), (1,1)] startNodes "start nodes, relatively to compound entities"
+    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions), (1,1)] (endNodes, endNodes) "end nodes, relatively to compound entities"
+    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions)] shallowHistoryNodes "shallow history nodes, relatively to compound entities"
+    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions)] deepHistoryNodes "deep history nodes, relatively to compound entities"
+    <|> sumNotExceededBy [protoFlows] (flows, flows) "flows, relatively to the proto flows"
   where
     sumNotExceededBy these that ofIt
       | sum (map fst these) < fst that
@@ -271,8 +267,8 @@ sdConfigToAlloy  SDConfig { bitwidth
       #{componentsSigRules}
       #{trueReachability}
       #{if snd startNodes > 0 then startstateRules else ""}
-      #{if snd endNodes > 0 then endstateRules else ""}
-      #{if snd regionsStates > 0 then regionRules else ""}
+      #{if endNodes > 0 then endstateRules else ""}
+      #{if regionsStates > 0 then regionRules else ""}
       #{if snd forkNodes + snd joinNodes > 0 then nodeRules else ""}
       #{reachabilityRules}
       #{if snd shallowHistoryNodes + snd deepHistoryNodes > 0 then historyRules else ""}
@@ -297,19 +293,19 @@ pred scenarioConfig #{oB}
    preventMultiEdges}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
   #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
-  #{bounded regions "Regions"}
-  #{bounded regionsStates "RegionsStates"}
-  #{bounded hierarchicalStates "HierarchicalStates"}
+  #{bounded (regions, regions) "Regions"}
+  #{bounded (regionsStates, regionsStates) "RegionsStates"}
+  #{bounded (hierarchicalStates, hierarchicalStates) "HierarchicalStates"}
   #{bounded startNodes "StartNodes"}
-  #{bounded endNodes "EndNodes"}
+  #{bounded (endNodes, endNodes) "EndNodes"}
   #{bounded shallowHistoryNodes "ShallowHistoryNodes"}
   #{bounded deepHistoryNodes "DeepHistoryNodes"}
-  #{bounded normalStates "NormalStates"}
-  #{bounded componentNames "ComponentNames"}
+  #{bounded (normalStates, normalStates) "NormalStates"}
+  #{bounded (componentNames, componentNames) "ComponentNames"}
   #{bounded triggerNames "TriggerNames"}
   #{bounded forkNodes "ForkNodes"}
   #{bounded joinNodes "JoinNodes"}
-  #{bounded flows "Flows"}
+  #{bounded (flows, flows) "Flows"}
   #{bounded protoFlows "ProtoFlows"}
   #{bounded totalNodes "Nodes"}
 #{extraConstraint}
@@ -317,19 +313,19 @@ pred scenarioConfig #{oB}
 
 run scenarioConfig for #{bitwidth} Int,
 #{caseExact startNodes "StartNodes"},
-#{caseExact endNodes "EndNodes"},
-#{caseExact normalStates "NormalStates"},
+#{caseExact (endNodes, endNodes) "EndNodes"},
+#{caseExact (normalStates, normalStates) "NormalStates"},
 #{caseExact shallowHistoryNodes "ShallowHistoryNodes"},
 #{caseExact deepHistoryNodes "DeepHistoryNodes"},
-#{caseExact hierarchicalStates "HierarchicalStates"},
-#{caseExact flows "Flows"},
+#{caseExact (hierarchicalStates, hierarchicalStates) "HierarchicalStates"},
+#{caseExact (flows, flows) "Flows"},
 #{caseExact protoFlows "ProtoFlows"},
-#{caseExact componentNames "ComponentNames"},
+#{caseExact (componentNames, componentNames) "ComponentNames"},
 #{caseExact triggerNames "TriggerNames"},
-#{caseExact regionsStates "RegionsStates"},
+#{caseExact (regionsStates, regionsStates) "RegionsStates"},
 #{caseExact forkNodes "ForkNodes"},
 #{caseExact joinNodes "JoinNodes"},
-#{caseExact regions "Regions"},
+#{caseExact (regions, regions) "Regions"},
 #{caseExact totalNodes "Nodes"}
     |]
   where
