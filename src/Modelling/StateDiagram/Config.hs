@@ -327,8 +327,11 @@ run scenarioConfig for #{bitwidth} Int,
   where
   oB = "{"
   cB = "}"
-  bounded x entry | uncurry (<) x && fst x > 0 = "#" ++ entry ++ " >= " ++ show (fst x)
+  bounded (a,b) entry
+                  | 0 < a && a /= b = "#" ++ entry ++ " >= " ++ show a
                   | otherwise = ""
-  caseExact x entry | uncurry (==) x && fst x == 0 = "0 " ++ entry
-                    | uncurry (==) x = "exactly " ++ show (fst x) ++ " " ++ entry
-                    | otherwise = show (snd x) ++ " " ++ entry
+  caseExact (0,0) entry
+                    = "0 " ++ entry
+  caseExact (a,b) entry
+                    | a == b = "exactly " ++ show a ++ " " ++ entry
+                    | otherwise = show b ++ " " ++ entry
