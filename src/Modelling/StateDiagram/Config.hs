@@ -50,9 +50,9 @@ data SDConfig
   = SDConfig { bitwidth :: Int
              , enforceNormalStateNames :: Bool
              , distinctNormalStateNames :: Bool
-             , noEmptyTriggersFromStates :: Bool
+             , preventEmptyTriggersFromStates :: Bool
              , distinctTriggerNames :: Bool
-             , noNestedEndNodes :: Bool
+             , preventNestedEndNodes :: Bool
              , preventMultiEdges :: Maybe Bool
              , enforceOutgoingEdgesFromNormalAndHierarchical :: Bool
              , chartLimits :: ChartLimits
@@ -69,9 +69,9 @@ defaultSDConfigScenario1
   = SDConfig { bitwidth = 6
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
-             , noEmptyTriggersFromStates = True
+             , preventEmptyTriggersFromStates = True
              , distinctTriggerNames = False
-             , noNestedEndNodes = False
+             , preventNestedEndNodes = False
              , preventMultiEdges = Nothing
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
@@ -103,9 +103,9 @@ defaultSDConfigScenario2
   = SDConfig { bitwidth = 6
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
-             , noEmptyTriggersFromStates = True
+             , preventEmptyTriggersFromStates = True
              , distinctTriggerNames = False
-             , noNestedEndNodes = True
+             , preventNestedEndNodes = True
              , preventMultiEdges = Nothing
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
@@ -138,9 +138,9 @@ defaultSDConfigScenario3
   = SDConfig { bitwidth = 6
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
-             , noEmptyTriggersFromStates = True
+             , preventEmptyTriggersFromStates = True
              , distinctTriggerNames = False
-             , noNestedEndNodes = False
+             , preventNestedEndNodes = False
              , preventMultiEdges = Nothing
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
@@ -237,11 +237,11 @@ checkAmounts ChartLimits{..}
 
 sdConfigToAlloy :: SDConfig -> String
 sdConfigToAlloy  SDConfig { bitwidth
-                          , noEmptyTriggersFromStates
+                          , preventEmptyTriggersFromStates
                           , distinctTriggerNames
                           , enforceNormalStateNames
                           , distinctNormalStateNames
-                          , noNestedEndNodes
+                          , preventNestedEndNodes
                           , preventMultiEdges
                           , enforceOutgoingEdgesFromNormalAndHierarchical
                           , chartLimits = ChartLimits { regionsStates
@@ -281,12 +281,12 @@ pred scenarioConfig #{oB}
   #{if enforceNormalStateNames then "no s : NormalStates | no s.name" else ""}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
   #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label" else ""}
-  #{if noEmptyTriggersFromStates then "EmptyTrigger not in from.States.label" else ""}
+  #{if preventEmptyTriggersFromStates then "EmptyTrigger not in from.States.label" else ""}
   #{maybe "" (\p
                 -> (if p then id else \c -> "not (" ++ c ++ ")")
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
    preventMultiEdges}
-  #{if noNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
+  #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
   #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (States - RegionsStates) | some (Flows <: from).s" else ""}
   #{bounded regions "Regions"}
   #{bounded regionsStates "RegionsStates"}
