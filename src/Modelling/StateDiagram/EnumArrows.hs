@@ -398,13 +398,14 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
        let chart = map (failWith id . parseInstance "this") inst !! r
        stop <- liftIO getPOSIXTime
        liftIO $ putStrLn ("instance generation took " ++ show (stop - start) ++ " seconds")
+       let flattenedChart = flatten chart
        return EnumArrowsInstance {
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
          , taskSolution
-             = correctEnumeration (flatten chart)
+             = correctEnumeration flattenedChart
          , flatAndEnumeratedSD
-             = flattenAndEnumerate chart
+             = enumerateTriggers flattenedChart
          , shufflePolicy
              = fromMaybe DoNotShuffle shuffle
          , renamingPolicy = renamingStrategy
@@ -412,8 +413,8 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
       )
 enumArrowsInstance _ = undefined
 
-flattenAndEnumerate :: UMLStateDiagram String Int -> UMLStateDiagram [String] Int
-flattenAndEnumerate chart
+enumerateTriggers :: UMLStateDiagram [String] Int -> UMLStateDiagram [String] Int
+enumerateTriggers chart
   = umlStateDiagram $
                unUML (\name substates connection startState
                          -> StateDiagram {
@@ -426,7 +427,7 @@ flattenAndEnumerate chart
                             , startState = startState
                             , label = 999
                             }
-                     ) (flatten chart)
+                     ) chart
 
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
 enumArrowsInstanceCheck _ task
@@ -546,7 +547,7 @@ defaultEnumInstance
   = EnumArrowsInstance {
     hierarchicalSD = flatCase1
   , flatAndEnumeratedSD
-      = flattenAndEnumerate flatCase1
+      = enumerateTriggers (flatten flatCase1)
   , taskSolution
       = correctEnumeration
         (flatten flatCase1)
