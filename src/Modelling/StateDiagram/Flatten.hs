@@ -28,7 +28,7 @@ flatten chart
   = go (globalise $ rename singleton chart)
   where
     go c =
-      maybe (checkOutcome c) go (distinctLabels <$> (lift (Left <$> c)))
+      maybe (checkOutcome c) (go . distinctLabels) (lift (Left <$> c))
     checkOutcome c =
       unUML (\_ substates _ _ -> if all isFlatState substates
                                  then c
