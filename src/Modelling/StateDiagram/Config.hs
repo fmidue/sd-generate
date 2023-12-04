@@ -61,16 +61,8 @@ data SDConfig
 
 defaultSDConfig :: SDConfig
 defaultSDConfig
-  = let SDConfig { chartLimits = ChartLimits{ .. }, .. } = defaultSDConfigScenario1
-    in SDConfig { preventMultiEdges = Just False
-                , chartLimits = ChartLimits{ totalNodes = (10,10)
-                                           , normalStates = (7,7)
-                                           , componentNames = (7,7)
-                                           , flows = (11,11)
-                                           , protoFlows = (11,17)
-                                           , .. }
-                , extraConstraint = ""
-                , .. }
+  = let SDConfig { .. } = defaultSDConfigScenario1
+    in SDConfig { distinctTriggerNames = True, .. }
 
 defaultSDConfigScenario1 :: SDConfig
 defaultSDConfigScenario1
@@ -78,7 +70,7 @@ defaultSDConfigScenario1
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
-             , distinctTriggerNames = True
+             , distinctTriggerNames = False
              , noNestedEndNodes = False
              , preventMultiEdges = Nothing
              , enforceOutgoingEdges = True
@@ -88,15 +80,15 @@ defaultSDConfigScenario1
                              , regions = (0,0)
                              , normalStates = (5,8)
                              , componentNames = (5,8)
-                             , triggerNames = (0,10)
+                             , triggerNames = (1,10)
                              , startNodes = (0,2)
                              , endNodes = (0,0)
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
-                             , flows = (0,10)
-                             , protoFlows = (0,20)
+                             , flows = (6,10)
+                             , protoFlows = (6,20)
                              , totalNodes = (8,10)
                              }
              , extraConstraint =
@@ -114,26 +106,31 @@ defaultSDConfigScenario2
              , noEmptyTriggers = True
              , distinctTriggerNames = False
              , noNestedEndNodes = True
-             , preventMultiEdges = Just False
+             , preventMultiEdges = Nothing
              , enforceOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = (1,1)
-                             , hierarchicalStates = (1,1)
+                             , hierarchicalStates = (0,0)
                              , regions = (2,2)
-                             , normalStates = (8,8)
-                             , startNodes = (1,1)
+                             , normalStates = (5,12)
+                             , startNodes = (0,3)
                              , endNodes = (1,1)
-                             , componentNames = (9,9)
-                             , triggerNames = (9,9)
-                             , forkNodes = (0,0)
-                             , joinNodes = (0,0)
+                             , componentNames = (5,12)
+                             , triggerNames = (1,14)
+                             , forkNodes = (0,1)
+                             , joinNodes = (0,1)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
-                             , flows = (10,10)
-                             , protoFlows = (10,10)
-                             , totalNodes = (12,12)
+                             , flows = (5,15)
+                             , protoFlows = (5,30)
+                             , totalNodes = (8,15)
                              }
-             , extraConstraint = ""
+             , extraConstraint =
+               "some (ForkNodes + JoinNodes)\n\
+               \let inner = RegionsStates + Regions.contains |\n\
+               \  some ((Flows <: from).inner.to & (NormalStates - inner))\n\
+               \mul[2,#Regions.contains] >= #Nodes\n\
+               \no Regions.name"
              }
 
 defaultSDConfigScenario3 :: SDConfig
@@ -142,28 +139,33 @@ defaultSDConfigScenario3
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
              , noEmptyTriggers = True
-             , distinctTriggerNames = True
+             , distinctTriggerNames = False
              , noNestedEndNodes = False
-             , preventMultiEdges = Just False
+             , preventMultiEdges = Nothing
              , enforceOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
-                             , normalStates = (8,8)
-                             , componentNames = (9,9)
-                             , triggerNames = (0,10)
-                             , startNodes = (0,0)
+                             , normalStates = (4,8)
+                             , componentNames = (4,8)
+                             , triggerNames = (2,10)
+                             , startNodes = (0,2)
                              , endNodes = (0,0)
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
-                             , shallowHistoryNodes = (1,1)
-                             , deepHistoryNodes = (1,1)
-                             , flows = (10,10)
-                             , protoFlows = (10,10)
-                             , totalNodes = (11,11)
+                             , shallowHistoryNodes = (0,1)
+                             , deepHistoryNodes = (0,1)
+                             , flows = (5,10)
+                             , protoFlows = (5,20)
+                             , totalNodes = (8,10)
                              }
-             , extraConstraint = ""
+             , extraConstraint =
+               "one HistoryNodes\n\
+               \let hs = HierarchicalStates, inner = hs + hs.contains |\n\
+               \  some ((Flows <: from).hs.to & (Nodes - inner))\n\
+               \  and mul[3,#inner] >= #Nodes\n\
+               \  and no hs.name"
              }
 
 checkSDConfig :: SDConfig -> Maybe String
@@ -301,7 +303,7 @@ pred scenarioConfig #{oB}
   #{bounded protoFlows "ProtoFlows"}
   #{bounded totalNodes "Nodes"}
   #{if enforceOutgoingEdges
-    then "all s : States | some (Flows <: from).s"
+    then "all s : (States - RegionsStates) | some (Flows <: from).s"
     else ""}
 #{extraConstraint}
 #{cB}
