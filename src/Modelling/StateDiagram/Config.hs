@@ -280,7 +280,6 @@ pred scenarioConfig #{oB}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
   #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label" else ""}
   #{if noEmptyTriggers then "EmptyTrigger not in from.States.label" else ""}
-  //#{if snd joinNodes >= 1 && snd forkNodes >= 1 then "some (ForkNodes + JoinNodes)" else ""}
   #{maybe "" (\p
                 -> (if p then id else \c -> "not (" ++ c ++ ")")
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
