@@ -54,6 +54,7 @@ data SDConfig
              , distinctTriggerNames :: Bool
              , preventNestedEndNodes :: Bool
              , preventMultiEdges :: Maybe Bool
+             , compoundsHaveNames :: Maybe Bool
              , enforceOutgoingEdgesFromNormalAndHierarchical :: Bool
              , chartLimits :: ChartLimits
              , extraConstraint :: String
@@ -73,6 +74,7 @@ defaultSDConfigScenario1
              , distinctTriggerNames = False
              , preventNestedEndNodes = False
              , preventMultiEdges = Nothing
+             , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
                  ChartLimits { regionsStates = (0,0)
@@ -95,7 +97,7 @@ defaultSDConfigScenario1
                "let hs = HierarchicalStates, inner = hs + hs.contains |\n\
                \  some ((Flows <: from).hs.to & (Nodes - inner))\n\
                \  and mul[2,#inner] >= #Nodes\n\
-               \  and no hs.name"
+               \"
              }
 
 defaultSDConfigScenario2 :: SDConfig
@@ -107,6 +109,7 @@ defaultSDConfigScenario2
              , distinctTriggerNames = False
              , preventNestedEndNodes = True
              , preventMultiEdges = Nothing
+             , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
                  ChartLimits { regionsStates = (1,1)
@@ -130,7 +133,7 @@ defaultSDConfigScenario2
                \let inner = RegionsStates + Regions.contains |\n\
                \  some ((Flows <: from).inner.to & (NormalStates - inner))\n\
                \mul[2,#Regions.contains] >= #Nodes\n\
-               \no Regions.name"
+               \"
              }
 
 defaultSDConfigScenario3 :: SDConfig
@@ -142,6 +145,7 @@ defaultSDConfigScenario3
              , distinctTriggerNames = False
              , preventNestedEndNodes = False
              , preventMultiEdges = Nothing
+             , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
                  ChartLimits { regionsStates = (0,0)
@@ -165,7 +169,7 @@ defaultSDConfigScenario3
                \let hs = HierarchicalStates, inner = hs + hs.contains |\n\
                \  some ((Flows <: from).hs.to & (Nodes - inner))\n\
                \  and mul[3,#inner] >= #Nodes\n\
-               \  and no hs.name"
+               \"
              }
 
 checkSDConfig :: SDConfig -> Maybe String
@@ -243,6 +247,7 @@ sdConfigToAlloy  SDConfig { bitwidth
                           , distinctNormalStateNames
                           , preventNestedEndNodes
                           , preventMultiEdges
+                          , compoundsHaveNames
                           , enforceOutgoingEdgesFromNormalAndHierarchical
                           , chartLimits = ChartLimits { regionsStates
                                                       , hierarchicalStates
@@ -279,6 +284,10 @@ sdConfigToAlloy  SDConfig { bitwidth
 // Please consider that setting a non-exact value to a parameter can cause very slow Alloy execution times.
 pred scenarioConfig #{oB}
   #{if enforceNormalStateNames then "no s : NormalStates | no s.name" else ""}
+  #{maybe "" (\p -> if p
+                    then "no c : (HierarchicalStates + Regions) | no c.name"
+                    else "ComponentNames in NormalStates.name")
+   compoundsHaveNames}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
   #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label" else ""}
   #{if preventEmptyTriggersFromStates then "EmptyTrigger not in from.States.label" else ""}
