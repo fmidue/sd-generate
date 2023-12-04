@@ -63,15 +63,17 @@ instance TrifunctorW StateDiagram Connection where
 
 flatten :: (Eq l, Enum l, Num l, Ord l, Ord n, Show l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
 flatten chart
-  = fromMaybe (error "flattening failed") $
-    until noStateDiagramsAtRoot
-          ((\c -> lift (Left <$> c) >>= (Just . distinctLabels)) =<<)
-          (Just (globalise $ rename singleton chart))
+  = go (globalise $ rename singleton chart)
   where
-    noStateDiagramsAtRoot (Just x) = unUML (\_ substates _ _ -> not (any isSD substates)) x
-    noStateDiagramsAtRoot Nothing = True
-    isSD StateDiagram{} = True
-    isSD _ = False
+    go c =
+      maybe (checkOutcome c) go (distinctLabels <$> (lift (Left <$> c)))
+    checkOutcome c =
+      unUML (\_ substates _ _ -> if all isFlatState substates
+                                 then c
+                                 else error "flattening failed") c
+    isFlatState InnerMostState{} = True
+    isFlatState EndState{} = True
+    isFlatState _ = False
 
 flatten' :: (Eq l, Enum l, Num l, Ord l, Ord n, Show l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
 flatten'
