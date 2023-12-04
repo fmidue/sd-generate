@@ -80,8 +80,8 @@ defaultSDConfigScenario1
                  ChartLimits { regionsStates = (0,0)
                              , hierarchicalStates = (1,1)
                              , regions = (0,0)
-                             , normalStates = (5,8)
-                             , componentNames = (5,8)
+                             , normalStates = (8,8)
+                             , componentNames = (8,8)
                              , triggerNames = (1,10)
                              , startNodes = (0,2)
                              , endNodes = (0,0)
@@ -89,9 +89,9 @@ defaultSDConfigScenario1
                              , joinNodes = (0,0)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
-                             , flows = (6,10)
-                             , protoFlows = (6,20)
-                             , totalNodes = (8,10)
+                             , flows = (10,10)
+                             , protoFlows = (10,20)
+                             , totalNodes = (9,10)
                              }
              , extraConstraint =
                "let hs = HierarchicalStates, inner = hs + hs.contains |\n\
