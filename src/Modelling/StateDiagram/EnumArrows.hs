@@ -84,8 +84,7 @@ import Modelling.StateDiagram.Flatten (flatten)
 import Data.List (groupBy
                  ,singleton
                  ,sortBy
-                 ,find
-                 ,nubBy)
+                 ,find)
 import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
@@ -104,9 +103,6 @@ import Modelling.Auxiliary.Common
 import Data.List.Extra (notNull, nubOrd
 --, nubOrdBy
   )
-import Data.Function (on)
-import Data.Tuple (swap)
-
 data EnumArrowsInstance
   = EnumArrowsInstance {
         hierarchicalSD :: UMLStateDiagram String Int
@@ -208,11 +204,10 @@ shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
 shuffleTriggers :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstance
 shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,taskSolution}
   = do
-    -- newtype Trigger and newtype Placeholder would be beneficial instead of working with raw Strings
     let triggers
-          = map fst $ nubBy ((==) `on` fst) . filter ((/=) "" . fst) $ concatMap (uncurry zip . swap) taskSolution
+          = nubOrd . map snd . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
     let placeholders
-          = map fst $ nubBy ((==) `on` fst) . filter ((/=) "" . fst) $ concatMap (uncurry zip) taskSolution
+          = nubOrd . map fst . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
     trigger' <- shuffleM triggers
     let triggerToTrigger' = zip triggers trigger'
     let placeholderToPlaceholder'
