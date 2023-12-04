@@ -98,6 +98,7 @@ import Diagrams.Backend.SVG (renderSVG)
 import Diagrams (dims, V2 (V2))
 import System.Random.Shuffle (shuffleM, shuffle')
 
+import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
 import Data.List.Extra (notNull, nubOrd)
 
@@ -318,7 +319,7 @@ enumArrowsTask path task
                                  (drawDiagram Unstyled (hierarchicalSD task)))
                           return (combine path "plainDiagram.svg")
     paragraph $ translate $ do
-      english "Which was flattened, having the transition literals replaced by integers."
+      english "Which was flattened, but has all transition triggers disguised through placeholders."
     let flatAndEnumeratedSD' -- renaming policy is just a view on data
           = case renamingPolicy task of
               HierarchicalConcatenation
@@ -339,12 +340,11 @@ enumArrowsTask path task
                                  flatAndEnumeratedSD'))
                           return (combine path "flattenedDiagram.svg")
     paragraph $ translate $ do
-      english "Please supply a list of tuples, where the first element is the label of the transition as string\n\
-               \ and the second element is the transition literal as string, that is supposed\
-               \ to be at that place."
+      english "Please supply a list of tuples, where the first element is the visible placeholder of a transition as string\n\
+               \ and the second element is the transition trigger as string, that is supposed to be at that place."
     paragraph $ translate $ do
       english "You may use the following syntax to denote the missing arrows:\n\
-               \ [(\"1\",\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be the literal 'a'."
+               \ [(\"1\",\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be triggered by 'a'."
     pure ()
 
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
@@ -390,19 +390,20 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
               )
       (do
        liftIO $ putStrLn "generating instance"
+       start <- liftIO getPOSIXTime
        inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy sdConfig)
        r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
-       liftIO $ putStrLn ("instance " ++ show r ++ " selected")
+       liftIO $ putStrLn ("instance " ++ show r ++ " selected of " ++ show (length inst) ++ " instances")
        let chart = map (failWith id . parseInstance "this") inst !! r
-       let flatChart
-             = flattenAndEnumerate chart
+       stop <- liftIO getPOSIXTime
+       liftIO $ putStrLn ("instance generation took " ++ show (stop - start) ++ " seconds")
        return EnumArrowsInstance {
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
          , taskSolution
-             = correctEnumeration flatChart
+             = correctEnumeration (flatten chart)
          , flatAndEnumeratedSD
-             = flatChart
+             = flattenAndEnumerate chart
          , shufflePolicy
              = fromMaybe DoNotShuffle shuffle
          , renamingPolicy = renamingStrategy
@@ -445,17 +446,14 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig = SDConfig { chartLimits = Char
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsSyntax task answer
   = do
-    assertion (any (\(i,_) -> 1 < length (filter ((==) i . fst) answer)) answer) $ translate $ do
-      english "No enumeration was used more than once."
-    --assertion (any (\(i,_) -> i < 1) answer) $ translate $ do
-    --  english "Transition enumeration must be positive integers."
-    assertion ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
-                length answer > (length (enumArrowsSolution task) +
-               (length (enumArrowsSolution task) `div` 2))) $ translate $ do
-      english "Transitions enumerated must not exceed the number of transitions in the chart."
-    assertion (any (\(_,l) -> l == "") answer) $ translate $ do
-      english "Transition literals must not be empty."
-    assertion (null answer) $ translate $ do
+    assertion (not (any (\(i,_) -> 1 < length (filter ((==) i . fst) answer)) answer)) $ translate $ do
+      english ("No placeholder was used more than once. \n" ++ show answer)
+    assertion (not ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
+                length answer > length (enumArrowsSolution task))) $ translate $ do
+      english "The number of triggers matched to their placeholders must not exceed the number of transitions in the chart."
+    assertion (not (any (\(_,l) -> l == "") answer)) $ translate $ do
+      english "Transition triggers must not be empty."
+    assertion (not (null answer)) $ translate $ do
       english "No empty list of tuples was supplied."
     return ()
 

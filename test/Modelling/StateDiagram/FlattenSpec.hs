@@ -311,3 +311,5 @@ spec
         renderSVG "./temp/probeChartLiftedSDe.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten probeChart)))
         renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
         return ()
+      it "flatten multiple hierarchical regions" $ do
+        pendingWith "not implemented yet"

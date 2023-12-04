@@ -28,6 +28,7 @@ dependencies:
   - monad-loops
   - modelling-tasks
   - random-shuffle
+  - time
 default-extensions:
   - TupleSections
   - DuplicateRecordFields
