@@ -284,7 +284,7 @@ pred scenarioConfig #{oB}
                 -> (if p then id else \c -> "not (" ++ c ++ ")")
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
    preventMultiEdges}
-  #{if noNestedEndNodes then "EndNodes not in allContainedNodes" else ""}
+  #{if noNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
   #{bounded regions "Regions"}
   #{bounded regionsStates "RegionsStates"}
   #{bounded hierarchicalStates "HierarchicalStates"}
