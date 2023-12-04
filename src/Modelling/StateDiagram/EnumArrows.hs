@@ -223,9 +223,19 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
       , taskSolution
           = map (unzip .
                  map (\(placeholder,trigger)
-                         -> (,)
-                            (fromMaybe placeholder (lookup placeholder placeholderToPlaceholder'))
-                            (fromMaybe trigger (lookup trigger triggerToTrigger')) ). uncurry zip)
+                         -> case trigger of
+                              "" -> (,) placeholder trigger
+                              _ -> (,)
+                                   (fromMaybe
+                                   (error $ "no placeholder found for " ++
+                                      placeholder ++ " in " ++ show placeholderToPlaceholder')
+                                   (lookup placeholder placeholderToPlaceholder'))
+                                   (fromMaybe
+                                   (error $ "no trigger found for " ++
+                                      trigger ++ " in " ++ show triggerToTrigger')
+                                   (lookup trigger triggerToTrigger'))
+                     )
+                . uncurry zip)
             taskSolution
       }
   where
