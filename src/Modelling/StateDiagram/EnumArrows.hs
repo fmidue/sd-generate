@@ -221,16 +221,16 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
       task {
         hierarchicalSD
           = umlStateDiagram . fmap
-        (shuffleTrigger triggerToTrigger') . unUML' $ hierarchicalSD
+            (shuffleTrigger triggerToTrigger') . unUML' $ hierarchicalSD
       , flatAndEnumeratedSD
           = umlStateDiagram . fmap
-        (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
+            (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
       , taskSolution
           = map (unzip .
                  map (\(placeholder,trigger)
                          -> (,)
-                            (fromMaybe (error "no placeholder found for " ++ placeholder ++ " in " ++ show placeholderToPlaceholder') (lookup placeholder placeholderToPlaceholder'))
-                            (fromMaybe (error "no trigger found") (lookup trigger triggerToTrigger')) ). uncurry zip)
+                            (fromMaybe placeholder (lookup placeholder placeholderToPlaceholder'))
+                            (fromMaybe trigger (lookup trigger triggerToTrigger')) ). uncurry zip)
             taskSolution
       }
   where
@@ -492,9 +492,8 @@ correctEnumeration
                 zip (map show ([1..]::[Int])) connection
     )
 
-newtype Trigger = Trigger String deriving (Show, Eq, Ord)
-
-newtype Placeholder = Placeholder String deriving (Show, Eq, Ord)
+-- newtype Trigger = Trigger String deriving (Show, Eq, Ord)
+-- newtype Placeholder = Placeholder String deriving (Show, Eq, Ord)
 
 
 -- we must assert before calling this function that every label
