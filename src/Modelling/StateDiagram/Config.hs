@@ -197,38 +197,44 @@ checkSDConfig SDConfig { bitwidth
 
 checkLimits :: ChartLimits -> Maybe String
 checkLimits ChartLimits{..}
-  = checkPair (regionsStates, regionsStates) "RegionsStates"
-    <|> checkPair (hierarchicalStates, hierarchicalStates) "HierarchicalStates"
-    <|> checkPair (regions, regions) "Regions"
-    <|> checkPair (normalStates, normalStates) "NormalStates"
+  = checkSingle regionsStates "RegionsStates"
+    <|> checkSingle hierarchicalStates "HierarchicalStates"
+    <|> checkSingle regions "Regions"
+    <|> checkSingle normalStates "NormalStates"
     <|> checkPair startNodes "StartNodes"
-    <|> checkPair (endNodes, endNodes) "EndNodes"
+    <|> checkSingle endNodes "EndNodes"
     <|> checkPair forkNodes "ForkNodes"
     <|> checkPair joinNodes "JoinNodes"
     <|> checkPair shallowHistoryNodes "ShallowHistoryNodes"
     <|> checkPair deepHistoryNodes "DeepHistoryNodes"
-    <|> checkPair (flows, flows) "Flows"
+    <|> checkSingle flows "Flows"
     <|> checkPair protoFlows "ProtoFlows"
     <|> checkPair totalNodes "Nodes"
-    <|> checkPair (componentNames, componentNames) "ComponentNames"
+    <|> checkSingle componentNames "ComponentNames"
     <|> checkPair triggerNames "TriggerNames"
   where
-    checkPair pair name
-      | uncurry (>) pair = Just $ "minimum of " ++ name ++ " must be less than or equal to maximum of " ++ name
-      | fst pair < 0 = Just $ name ++ " must be greater than or equal to 0"
+    checkSingle element name
+      | element < 0 = Just $ name ++ " must be greater than or equal to 0"
       | otherwise = Nothing
+    checkPair (lower, upper) name
+      | lower > upper = Just $ "minimum of " ++ name ++ " must be less than or equal to maximum of " ++ name
+      | otherwise = checkSingle lower name
 
 checkAmounts :: ChartLimits -> Maybe String
 checkAmounts ChartLimits{..}
-  = sumNotExceededBy [(flows, flows)] triggerNames "trigger names, relatively to the number of flows"
-    <|> sumNotExceededBy [(normalStates, normalStates), (hierarchicalStates, hierarchicalStates), (regions, regions)] (componentNames, componentNames) "component names, relatively to entities to be potentially named"
-    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions), (1,1)] startNodes "start nodes, relatively to compound entities"
-    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions), (1,1)] (endNodes, endNodes) "end nodes, relatively to compound entities"
-    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions)] shallowHistoryNodes "shallow history nodes, relatively to compound entities"
-    <|> sumNotExceededBy [(hierarchicalStates, hierarchicalStates), (regions, regions)] deepHistoryNodes "deep history nodes, relatively to compound entities"
-    <|> sumNotExceededBy [protoFlows] (flows, flows) "flows, relatively to the proto flows"
+  = sumNotExceededByPairs [(flows, flows)] triggerNames "trigger names, relatively to the number of flows"
+    <|> sumNotExceededBySingles [normalStates, hierarchicalStates, regions] componentNames "component names, relatively to entities to be potentially named"
+    <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions), (1,1)] startNodes "start nodes, relatively to compound entities"
+    <|> sumNotExceededBySingles [hierarchicalStates, regions, 1] endNodes "end nodes, relatively to compound entities"
+    <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions)] shallowHistoryNodes "shallow history nodes, relatively to compound entities"
+    <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions)] deepHistoryNodes "deep history nodes, relatively to compound entities"
+    <|> sumNotExceededByPairs [protoFlows] (flows, flows) "flows, relatively to the proto flows"
   where
-    sumNotExceededBy these that ofIt
+    sumNotExceededBySingles these that ofIt
+      | sum these < that
+      = Just $ "You seem to be requesting too many " ++ ofIt ++ "."
+      | otherwise = Nothing
+    sumNotExceededByPairs these that ofIt
       | sum (map fst these) < fst that
       = Just $ "You seem to be requesting too many " ++ ofIt ++ " (lower bounds inconsistent)."
       | sum (map snd these) < snd that
@@ -293,19 +299,12 @@ pred scenarioConfig #{oB}
    preventMultiEdges}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
   #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
-  #{bounded (regions, regions) "Regions"}
-  #{bounded (regionsStates, regionsStates) "RegionsStates"}
-  #{bounded (hierarchicalStates, hierarchicalStates) "HierarchicalStates"}
   #{bounded startNodes "StartNodes"}
-  #{bounded (endNodes, endNodes) "EndNodes"}
   #{bounded shallowHistoryNodes "ShallowHistoryNodes"}
   #{bounded deepHistoryNodes "DeepHistoryNodes"}
-  #{bounded (normalStates, normalStates) "NormalStates"}
-  #{bounded (componentNames, componentNames) "ComponentNames"}
   #{bounded triggerNames "TriggerNames"}
   #{bounded forkNodes "ForkNodes"}
   #{bounded joinNodes "JoinNodes"}
-  #{bounded (flows, flows) "Flows"}
   #{bounded protoFlows "ProtoFlows"}
   #{bounded totalNodes "Nodes"}
 #{extraConstraint}
@@ -313,19 +312,19 @@ pred scenarioConfig #{oB}
 
 run scenarioConfig for #{bitwidth} Int,
 #{caseExact startNodes "StartNodes"},
-#{caseExact (endNodes, endNodes) "EndNodes"},
-#{caseExact (normalStates, normalStates) "NormalStates"},
+exactly #{endNodes} EndNodes,
+exactly #{normalStates} NormalStates,
 #{caseExact shallowHistoryNodes "ShallowHistoryNodes"},
 #{caseExact deepHistoryNodes "DeepHistoryNodes"},
-#{caseExact (hierarchicalStates, hierarchicalStates) "HierarchicalStates"},
-#{caseExact (flows, flows) "Flows"},
+exactly #{hierarchicalStates} HierarchicalStates,
+exactly #{flows} Flows,
 #{caseExact protoFlows "ProtoFlows"},
-#{caseExact (componentNames, componentNames) "ComponentNames"},
+exactly #{componentNames} ComponentNames,
 #{caseExact triggerNames "TriggerNames"},
-#{caseExact (regionsStates, regionsStates) "RegionsStates"},
+exactly #{regionsStates} RegionsStates,
 #{caseExact forkNodes "ForkNodes"},
 #{caseExact joinNodes "JoinNodes"},
-#{caseExact (regions, regions) "Regions"},
+exactly #{regions} Regions,
 #{caseExact totalNodes "Nodes"}
     |]
   where
