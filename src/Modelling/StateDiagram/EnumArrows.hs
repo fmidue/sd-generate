@@ -72,7 +72,7 @@ import Control.Monad.Output (
   printSolutionAndAssert
   )
 import Control.Monad.Random
-    ( MonadRandom,
+    ( MonadRandom (getRandom),
       RandT,
       RandomGen,
       evalRandT,
@@ -280,18 +280,24 @@ collectNames
     names _ = []
 
 instance RandomiseLayout EnumArrowsInstance where
-  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD }
+  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer }
     = do
-      let gen = mkStdGen 953421
-      return $
-        taskInstance {
-          hierarchicalSD
-            = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML'  $
-              overSubstates (\s -> shuffle' s (length s) gen) hierarchicalSD
-        , flatAndEnumeratedSD
-            = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML' $
-              overSubstates (\s -> shuffle' s (length s) gen) flatAndEnumeratedSD
-        }
+      case chartRenderer of
+        PlantUML
+          -> error "PlantUML is not impacted by this type of layout randomisation, aborting."
+        Diagrams
+          -> do
+             r <- getRandom
+             let gen = mkStdGen r
+             return $
+               taskInstance {
+                 hierarchicalSD
+                   = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML'  $
+                     overSubstates (\s -> shuffle' s (length s) gen) hierarchicalSD
+               , flatAndEnumeratedSD
+                   = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML' $
+                     overSubstates (\s -> shuffle' s (length s) gen) flatAndEnumeratedSD
+               }
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
 enumArrows config timestamp
