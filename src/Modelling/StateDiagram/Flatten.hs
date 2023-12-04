@@ -26,7 +26,7 @@ import Control.Lens (over
                     ,traverseOf)
 import Data.Set (fromList, toList, cartesianProduct)
 import Data.List.Extra (sortBy)
-import qualified Data.Maybe
+import Data.Maybe (fromMaybe)
 
 
 -- remove
@@ -62,13 +62,16 @@ instance TrifunctorW StateDiagram Connection where
               , historyType = historyType }
 
 flatten :: (Eq l, Enum l, Num l, Ord l, Ord n, Show l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
-flatten
- = -- localise' .
-   maybe (error "not defined") distinctLabels
-   . lift
-   . fmap Left
-   . globalise
-   . rename singleton
+flatten chart
+  = fromMaybe (error "flattening failed") $
+    until noStateDiagramsAtRoot
+          ((\c -> lift (Left <$> c) >>= (Just . distinctLabels)) =<<)
+          (Just (globalise $ rename singleton chart))
+  where
+    noStateDiagramsAtRoot (Just x) = unUML (\_ substates _ _ -> not (any isSD substates)) x
+    noStateDiagramsAtRoot Nothing = True
+    isSD StateDiagram{} = True
+    isSD _ = False
 
 flatten' :: (Eq l, Enum l, Num l, Ord l, Ord n, Show l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
 flatten'

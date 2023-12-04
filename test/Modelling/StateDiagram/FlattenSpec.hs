@@ -294,22 +294,23 @@ spec
         let result = map (($ renderable probeChart) . snd) allTheCheckers
         all (Nothing ==) result `shouldBe` True
       it "flatten - lift SD(E) of probeChart" $ do
-        let result = flatten probeChart
+        let result = flatten' $ rename singleton probeChart
         result `shouldBe` probeChartLiftedSDe
       it "flatten - lift SD(E) and then SD(G) of probeChart" $ do
-        let result = flatten' $ flatten probeChart
+        let result = flatten' $ flatten' (rename singleton probeChart)
         result `shouldBe` probeChartLiftedSDeAndSDg
       it "flatten - lift SD(E) of probeChart with initial state set to D instead of SD(E)" $ do
-        let result = flatten $ withInitialState [2] probeChart
+        let result = flatten' $ rename singleton $ withInitialState [2] probeChart
         result `shouldBe` withInitialState [4] probeChartLiftedSDe
       it "flatten - lift SD(E) and then SD(G) of probeChart with initial state set to D instead of SD(E)" $ do
-        let result = flatten' $ flatten $ withInitialState [2] probeChart
+        let result = flatten' $ flatten' $ rename singleton $ withInitialState [2] probeChart
         result `shouldBe` withInitialState [5] probeChartLiftedSDeAndSDg
+      it "flatten all hierarchical states" $ do
+        let result = flatten probeChart
+        result `shouldBe` probeChartLiftedSDeAndSDg
       it "print flat and non-flat probeChart to /temp/*.svg files using internal renderer" $ do
         createDirectoryIfMissing True "./temp"
         renderSVG "./temp/probeChart.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable probeChart)
         renderSVG "./temp/probeChartLiftedSDe.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten probeChart)))
         renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
         return ()
-      it "flatten multiple hierarchical regions" $ do
-        pendingWith "not implemented yet"
