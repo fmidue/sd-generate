@@ -220,34 +220,14 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
                , t == trigger
                , (t',p') <- zip allTriggers placeholders
                , trigger' == t']
-    -- this code will not work because its not aware of trigger unfold size
-    --let matchToPlaceholder triggerToPlaceholder (c:connections)
-    --      | transition c /= ""
-    --      = case find ((==) (transition c) . fst) (zip placeholders allTriggers) of
-    --          Just (_,t)
-    --            -> case find ((==) t . fst) triggerToTrigger' of
-    --                 Just (_,t')
-    --                   -> case find ((==) t' . fst) triggerToPlaceholder of
-    --                        Just match@(_,p')
-    --                          -> (:)
-    --                             c { transition = p' } $
-    --                             matchToPlaceholder (delete match triggerToPlaceholder) connections
-    --                        _ -> error $ "cant find trigger in triggerToPlaceholder " ++ t' ++ " " ++ show triggerToPlaceholder
-    --                 _ -> error $ "cant find trigger in triggerToTrigger' " ++ t ++ " " ++ show triggerToTrigger'
-    --          Nothing -> error $ "cant find transition in placeholders " ++ show (transition c) ++ " " ++ show placeholders
-    --     | transition c == ""
-    --     = error "empty transition" -- c : matchToPlaceholder triggerToPlaceholder connections
-    --    matchToPlaceholder [] [] = []
-    --    matchToPlaceholder _ _ = error "asymetrical reduction"
     return $
       task {
         hierarchicalSD
           = umlStateDiagram . fmap
             (shuffleTrigger triggerToTrigger') . unUML' $ hierarchicalSD
       , flatAndEnumeratedSD
-        -- = umlStateDiagram . fmap (matchToPlaceholder (zip allTriggers placeholders)) . unUML' $ flatAndEnumeratedSD
-         = umlStateDiagram . fmap
-           (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
+          = umlStateDiagram . fmap
+            (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
       , taskSolution
           = map (unzip .
                  map (\(placeholder,trigger)
@@ -449,9 +429,11 @@ enumerateTriggers chart
                               name = name
                             , substates = substates
                             , connections
-                                = zipWith (\c l
-                                               -> c {transition = show l})
-                                  connection ([1..]::[Int])
+                                = filter (null . transition) connection
+                                  ++
+                                  zipWith (\c l
+                                             -> c {transition = show l})
+                                  (filter (not . null . transition) connection) ([1..]::[Int])
                             , startState = startState
                             , label = 999
                             }
@@ -513,7 +495,9 @@ correctEnumeration
                           -> compare (pointFrom x, pointTo x)
                                      (pointFrom y, pointTo y))
                 $
-                zip (map show ([1..]::[Int])) connection
+                zip (map show ([1..]::[Int]))
+                $
+                filter (not . null . transition) connection
     )
 
 -- newtype Trigger = Trigger String deriving (Show, Eq, Ord)
