@@ -109,7 +109,7 @@ data EnumArrowsInstance
       , flatAndEnumeratedSD :: UMLStateDiagram [String] Int
       , taskSolution :: [([String], [String])]
       , chartRenderer :: Renderer
-      , shuffle :: ShufflePolicy
+      , shuffle :: Maybe ShufflePolicy
       , renaming :: RenamingPolicy
     } deriving Show
 
@@ -117,8 +117,7 @@ data ShufflePolicy
   = ShuffleNamesAndTriggers
   | ShuffleNames
   | ShuffleTriggers
-  | DoNotShuffle
-  deriving (Show)
+  deriving Show
 
 data RenamingPolicy
   = HierarchicalConcatenation
@@ -171,13 +170,13 @@ instance Randomise EnumArrowsInstance where
   randomise taskInstance@EnumArrowsInstance{ shuffle }
     = do
       case shuffle of
-        DoNotShuffle
+        Nothing
           -> return taskInstance
-        ShuffleNames
+        Just ShuffleNames
           -> shuffleNodeNames taskInstance
-        ShuffleTriggers
+        Just ShuffleTriggers
           -> shuffleTriggers taskInstance
-        ShuffleNamesAndTriggers
+        Just ShuffleNamesAndTriggers
           -> shuffleNodeNames taskInstance >>= shuffleTriggers
 
 
@@ -417,7 +416,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
          , flatAndEnumeratedSD
              = enumerateTriggers flattenedChart
          , shuffle
-             = fromMaybe DoNotShuffle shufflePolicy
+             = shufflePolicy
          , renaming = renamingPolicy
        }
       )
@@ -562,6 +561,6 @@ defaultEnumInstance
       = correctEnumeration
         (flatten flatCase1)
   , chartRenderer = PlantUML
-  , shuffle = DoNotShuffle
+  , shuffle = Nothing
   , renaming = JustTheInnermostName
   }
