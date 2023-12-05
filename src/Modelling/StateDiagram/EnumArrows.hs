@@ -48,6 +48,7 @@ import Modelling.StateDiagram.Datatype
       Connection(..),
       unUML,
       umlStateDiagram,
+      collectNames,
       rename )
 import Modelling.StateDiagram.Config(SDConfig(..)
                                     ,sdConfigToAlloy
@@ -184,8 +185,7 @@ shuffleNodeNames :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstanc
 shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
   = do
     let names'
-          = nubOrd $
-            filter notNull $
+          = filter notNull $
             collectNames hierarchicalSD
     shuffledNames <- shuffleM names'
     let nameToShuffledName = zip names' shuffledNames
@@ -276,19 +276,6 @@ overSubstates g
         , ..
         }
     recurseSubstates _ x = x
-
-collectNames :: UMLStateDiagram n a -> [n]
-collectNames
-  = unUML (\name substates _ _
-             -> name : concatMap names substates
-          )
-  where
-    names StateDiagram { name
-                       , substates = substates' }
-            = name : concatMap names substates'
-    names CombineDiagram { substates = substates' }
-            = concatMap names substates'
-    names _ = []
 
 instance RandomiseLayout EnumArrowsInstance where
   randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer }

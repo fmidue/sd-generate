@@ -23,6 +23,7 @@ module Modelling.StateDiagram.Datatype
   , localise
   , hoistOutwards
   , rename
+  , collectNames
   , pointFromL
   , pointToL
   ) where
@@ -34,6 +35,7 @@ import Data.Bifunctor.TH (
   deriveBifunctor,
   deriveBitraversable,
   )
+import Data.List.Extra (nubOrd)
 import Data.List                        (partition)
 
 import Control.Lens (Lens')
@@ -165,6 +167,18 @@ rename f = unUML $
     recurse Join{..} = Join{..}
     recurse History{..} = History{..}
     recurse InnerMostState{..} = InnerMostState{name = f name, ..}
+
+collectNames :: Ord n => UMLStateDiagram n a -> [n]
+collectNames = unUML $
+  \name substates _ _ ->
+    nubOrd (name : concatMap recurse substates)
+  where
+    -- recurse :: StateDiagram n a -> [n]
+    recurse StateDiagram { name, substates }
+            = name : concatMap recurse substates
+    recurse CombineDiagram { substates }
+            = concatMap recurse substates
+    recurse _ = []
 
 data StateDiagram n l a = StateDiagram { substates :: [StateDiagram n l a],
                                           label :: l,
