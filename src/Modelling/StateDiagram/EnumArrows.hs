@@ -12,6 +12,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Wno-deprecations #-}
 
+
 module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSolution
                                          ,correctEnumeration
@@ -103,7 +104,6 @@ import System.Random.Shuffle (shuffleM, shuffle')
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
 import Data.List.Extra (notNull, nubOrd
---, nubOrdBy
   )
 data EnumArrowsInstance
   = EnumArrowsInstance {
@@ -213,13 +213,9 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
     triggerToTrigger'
       <- shuffleM uniqueTriggers
          >>= \shuffledUnique -> return $ zip uniqueTriggers shuffledUnique
-    let placeholderToPlaceholder'
-          = [(p,p') |
-               (p,t) <- zip placeholders allTriggers
-               , (trigger,trigger') <- triggerToTrigger'
-               , t == trigger
-               , (t',p') <- zip allTriggers placeholders
-               , trigger' == t']
+    placeholderToPlaceholder'
+      <- shuffleM placeholders
+         >>= \shuffledPlaceholders -> return $ zip placeholders shuffledPlaceholders
     return $
       task {
         hierarchicalSD
@@ -229,22 +225,18 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
           = umlStateDiagram . fmap
             (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
       , taskSolution
-          = map (unzip .
-                 map (\(placeholder,trigger)
-                         -> case trigger of
-                              "" -> (,) placeholder trigger
-                              _ -> (,)
-                                   (fromMaybe
-                                   (error $ "no placeholder found for " ++
-                                      placeholder ++ " in " ++ show placeholderToPlaceholder')
-                                   (lookup placeholder placeholderToPlaceholder'))
-                                   (fromMaybe
-                                   (error $ "no trigger found for " ++
-                                      trigger ++ " in " ++ show triggerToTrigger')
-                                   (lookup trigger triggerToTrigger'))
-                     )
-                . uncurry zip)
-            taskSolution
+          = let
+            match group
+              = [(p', t') |
+                   (placeholder, trigger) <- group,
+                   (p, p') <- placeholderToPlaceholder',
+                   placeholder == p,
+                   (t, t') <- triggerToTrigger',
+                   trigger == t]
+            in
+            map (unzip . match . uncurry zip) taskSolution
+
+
       }
   where
     shuffleTrigger toShuffledTrigger
