@@ -299,42 +299,42 @@ pred scenarioConfig #{oB}
    preventMultiEdges}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
   #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
-  #{bounded startNodes "StartNodes"}
-  #{bounded shallowHistoryNodes "ShallowHistoryNodes"}
-  #{bounded deepHistoryNodes "DeepHistoryNodes"}
-  #{bounded triggerNames "TriggerNames"}
-  #{bounded forkNodes "ForkNodes"}
-  #{bounded joinNodes "JoinNodes"}
-  #{bounded protoFlows "ProtoFlows"}
-  #{bounded totalNodes "Nodes"}
+  #{lowerBound startNodes "StartNodes"}
+  #{lowerBound shallowHistoryNodes "ShallowHistoryNodes"}
+  #{lowerBound deepHistoryNodes "DeepHistoryNodes"}
+  #{lowerBound triggerNames "TriggerNames"}
+  #{lowerBound forkNodes "ForkNodes"}
+  #{lowerBound joinNodes "JoinNodes"}
+  #{lowerBound protoFlows "ProtoFlows"}
+  #{lowerBound totalNodes "Nodes"}
 #{extraConstraint}
 #{cB}
 
 run scenarioConfig for #{bitwidth} Int,
-#{caseExact startNodes "StartNodes"},
+#{upperBoundOrExact startNodes "StartNodes"},
 exactly #{endNodes} EndNodes,
 exactly #{normalStates} NormalStates,
-#{caseExact shallowHistoryNodes "ShallowHistoryNodes"},
-#{caseExact deepHistoryNodes "DeepHistoryNodes"},
+#{upperBoundOrExact shallowHistoryNodes "ShallowHistoryNodes"},
+#{upperBoundOrExact deepHistoryNodes "DeepHistoryNodes"},
 exactly #{hierarchicalStates} HierarchicalStates,
 exactly #{flows} Flows,
-#{caseExact protoFlows "ProtoFlows"},
+#{upperBoundOrExact protoFlows "ProtoFlows"},
 exactly #{componentNames} ComponentNames,
-#{caseExact triggerNames "TriggerNames"},
+#{upperBoundOrExact triggerNames "TriggerNames"},
 exactly #{regionsStates} RegionsStates,
-#{caseExact forkNodes "ForkNodes"},
-#{caseExact joinNodes "JoinNodes"},
+#{upperBoundOrExact forkNodes "ForkNodes"},
+#{upperBoundOrExact joinNodes "JoinNodes"},
 exactly #{regions} Regions,
-#{caseExact totalNodes "Nodes"}
+#{upperBoundOrExact totalNodes "Nodes"}
     |]
   where
   oB = "{"
   cB = "}"
-  bounded (a,b) entry
+  lowerBound (a,b) entry
                   | 0 < a && a /= b = "#" ++ entry ++ " >= " ++ show a
                   | otherwise = ""
-  caseExact (0,0) entry
+  upperBoundOrExact (0,0) entry
                     = "0 " ++ entry
-  caseExact (a,b) entry
+  upperBoundOrExact (a,b) entry
                     | a == b = "exactly " ++ show a ++ " " ++ entry
                     | otherwise = show b ++ " " ++ entry
