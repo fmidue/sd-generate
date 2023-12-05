@@ -178,6 +178,8 @@ collectNames = unUML $
             = name : concatMap recurse substates
     recurse CombineDiagram { substates }
             = concatMap recurse substates
+    recurse InnerMostState { name }
+            = [name]
     recurse _ = []
 
 data StateDiagram n l a = StateDiagram { substates :: [StateDiagram n l a],
