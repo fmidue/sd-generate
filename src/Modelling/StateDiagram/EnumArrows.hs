@@ -12,7 +12,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Wno-deprecations #-}
 
-
 module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSolution
                                          ,correctEnumeration
@@ -85,7 +84,9 @@ import Modelling.StateDiagram.Flatten (flatten)
 import Data.List (groupBy
                  ,singleton
                  ,sortBy
-                 ,find)
+                 ,find
+                 --, delete
+                 )
 import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
@@ -203,22 +204,50 @@ shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
 shuffleTriggers :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstance
 shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,taskSolution}
   = do
-    let triggers
-          = nubOrd . map snd . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
+    let allTriggers
+          = map snd . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
+    let uniqueTriggers
+          = nubOrd allTriggers
     let placeholders
           = nubOrd . map fst . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
-    trigger' <- shuffleM triggers
-    let triggerToTrigger' = zip triggers trigger'
+    triggerToTrigger'
+      <- shuffleM uniqueTriggers
+         >>= \shuffledUnique -> return $ zip uniqueTriggers shuffledUnique
     let placeholderToPlaceholder'
-          = [(fst x, snd y) | x <- zip placeholders trigger', y <- zip triggers placeholders, snd x == fst y]
+          = [(p,p') |
+               (p,t) <- zip placeholders allTriggers
+               , (trigger,trigger') <- triggerToTrigger'
+               , t == trigger
+               , (t',p') <- zip allTriggers placeholders
+               , trigger' == t']
+    -- this code will not work because its not aware of trigger unfold size
+    --let matchToPlaceholder triggerToPlaceholder (c:connections)
+    --      | transition c /= ""
+    --      = case find ((==) (transition c) . fst) (zip placeholders allTriggers) of
+    --          Just (_,t)
+    --            -> case find ((==) t . fst) triggerToTrigger' of
+    --                 Just (_,t')
+    --                   -> case find ((==) t' . fst) triggerToPlaceholder of
+    --                        Just match@(_,p')
+    --                          -> (:)
+    --                             c { transition = p' } $
+    --                             matchToPlaceholder (delete match triggerToPlaceholder) connections
+    --                        _ -> error $ "cant find trigger in triggerToPlaceholder " ++ t' ++ " " ++ show triggerToPlaceholder
+    --                 _ -> error $ "cant find trigger in triggerToTrigger' " ++ t ++ " " ++ show triggerToTrigger'
+    --          Nothing -> error $ "cant find transition in placeholders " ++ show (transition c) ++ " " ++ show placeholders
+    --     | transition c == ""
+    --     = error "empty transition" -- c : matchToPlaceholder triggerToPlaceholder connections
+    --    matchToPlaceholder [] [] = []
+    --    matchToPlaceholder _ _ = error "asymetrical reduction"
     return $
       task {
         hierarchicalSD
           = umlStateDiagram . fmap
             (shuffleTrigger triggerToTrigger') . unUML' $ hierarchicalSD
       , flatAndEnumeratedSD
-          = umlStateDiagram . fmap
-            (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
+        -- = umlStateDiagram . fmap (matchToPlaceholder (zip allTriggers placeholders)) . unUML' $ flatAndEnumeratedSD
+         = umlStateDiagram . fmap
+           (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
       , taskSolution
           = map (unzip .
                  map (\(placeholder,trigger)
@@ -244,7 +273,10 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
                -> c -- empty triggers are not shuffled
              c@Connection { transition = trigger }
                -> c { transition
-                        = fromMaybe (error $ "trigger to shuffle not found" ++ show trigger ++ "in " ++ show toShuffledTrigger)
+                        = fromMaybe
+                          (error $
+                          "trigger to shuffle not found" ++
+                            show trigger ++ "in " ++ show toShuffledTrigger)
                           (lookup trigger toShuffledTrigger)
                           -- triggers are shuffled uniformly
                     }
