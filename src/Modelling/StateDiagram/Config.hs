@@ -288,7 +288,7 @@ pred scenarioConfig #{oB}
   #{if enforceNormalStateNames then "no s : NormalStates | no s.name" else ""}
   #{maybe "" (\p -> if p
                     then "no c : (HierarchicalStates + Regions) | no c.name"
-                    else "ComponentNames in NormalStates.name")
+                    else "no (HierarchicalStates + Regions).name")
    compoundsHaveNames}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
   #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label" else ""}
