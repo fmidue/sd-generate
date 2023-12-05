@@ -109,9 +109,9 @@ data EnumArrowsInstance
       , flatAndEnumeratedSD :: UMLStateDiagram [String] Int
       , taskSolution :: [([String], [String])]
       , chartRenderer :: Renderer
-      , shufflePolicy :: ShufflePolicy
-      , renamingPolicy :: RenamingStrategy
-   } deriving (Show)
+      , shuffle :: ShufflePolicy
+      , renaming :: RenamingPolicy
+    } deriving Show
 
 data ShufflePolicy
   = ShuffleNamesAndTriggers
@@ -120,7 +120,7 @@ data ShufflePolicy
   | DoNotShuffle
   deriving (Show)
 
-data RenamingStrategy
+data RenamingPolicy
   = HierarchicalConcatenation
   | JustTheInnermostName
   deriving (Show)
@@ -147,9 +147,9 @@ data EnumArrowsConfig
     , maxInstances :: Maybe Integer
     , syntaxWarnTooManyArrows :: Bool
     , printExtendedFeedback :: Bool
-    , renamingStrategy :: RenamingStrategy
+    , renamingPolicy :: RenamingPolicy
     , renderPath :: RenderPath
-    , shuffle :: Maybe ShufflePolicy
+    , shufflePolicy :: Maybe ShufflePolicy
   } deriving (Show)
 
 defaultEnumArrowsConfig :: EnumArrowsConfig
@@ -159,18 +159,18 @@ defaultEnumArrowsConfig
     , maxInstances = Just 1000
     , printExtendedFeedback = False
     , syntaxWarnTooManyArrows = False
-    , renamingStrategy = JustTheInnermostName
+    , renamingPolicy = JustTheInnermostName
     , renderPath = RenderPath {
                      renderPolicy = RegenerateOnFailure
                    , renderer = PlantUML
                    }
-    , shuffle = Just ShuffleNamesAndTriggers
+    , shufflePolicy = Just ShuffleNamesAndTriggers
   }
 
 instance Randomise EnumArrowsInstance where
-  randomise taskInstance@EnumArrowsInstance{ shufflePolicy }
+  randomise taskInstance@EnumArrowsInstance{ shuffle }
     = do
-      case shufflePolicy of
+      case shuffle of
         DoNotShuffle
           -> return taskInstance
         ShuffleNames
@@ -332,7 +332,7 @@ enumArrowsTask path task
     paragraph $ translate $ do
       english "Which was flattened, but has all transition triggers disguised through placeholders."
     let flatAndEnumeratedSD' -- renaming policy is just a view on data
-          = case renamingPolicy task of
+          = case renaming task of
               HierarchicalConcatenation
                 -> rename concat (flatAndEnumeratedSD task)
               JustTheInnermostName
@@ -361,15 +361,15 @@ enumArrowsTask path task
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
 enumArrowsInstance EnumArrowsConfig { sdConfig
                                     , maxInstances = (Just maxInstances)
-                                    , renamingStrategy
+                                    , renamingPolicy
                                     , renderPath
-                                    , shuffle
+                                    , shufflePolicy
                                     }
   = do
     iterateUntil
       (\taskInstance
           -> let flatAndEnumeratedSD'
-                   = case renamingStrategy of
+                   = case renamingPolicy of
                        HierarchicalConcatenation
                          -> rename concat (flatAndEnumeratedSD taskInstance)
                        JustTheInnermostName
@@ -416,9 +416,9 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
              = correctEnumeration flattenedChart
          , flatAndEnumeratedSD
              = enumerateTriggers flattenedChart
-         , shufflePolicy
-             = fromMaybe DoNotShuffle shuffle
-         , renamingPolicy = renamingStrategy
+         , shuffle
+             = fromMaybe DoNotShuffle shufflePolicy
+         , renaming = renamingPolicy
        }
       )
 enumArrowsInstance _ = undefined
@@ -562,6 +562,6 @@ defaultEnumInstance
       = correctEnumeration
         (flatten flatCase1)
   , chartRenderer = PlantUML
-  , shufflePolicy = DoNotShuffle
-  , renamingPolicy = JustTheInnermostName
+  , shuffle = DoNotShuffle
+  , renaming = JustTheInnermostName
   }
