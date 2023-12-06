@@ -290,48 +290,9 @@ shuffleSubstates
             }
     recursivelyShuffleSubstates x = return x
 
--- workaround because it looks like list monad overrides random monad when using; fmap shuffleM substates
--- which returns [[]] instead of [] for applying shuffleM on the connections lists
--- might have something to do with pure [] == [[]] or could be something else
 shuffleConnections :: (MonadRandom m) => UMLStateDiagram a Int -> m (UMLStateDiagram a Int)
 shuffleConnections
-  = unUML (\name substates connections startState
-             -> do
-                connections' <- shuffleM connections
-                substates' <- sequence [recurseConnections shuffleM s|s <- substates]
-                return $
-                  umlStateDiagram $
-                  StateDiagram {
-                    name = name
-                  , substates = substates'
-                  , connections = connections'
-                  , startState = startState
-                  , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
-                  })
-    where
-      recurseConnections :: (MonadRandom m) => ([Connection Int] -> m [Connection Int]) -> StateDiagram a Int [Connection Int] -> m (StateDiagram a Int [Connection Int])
-      recurseConnections f StateDiagram { substates
-                                        , connections
-                                        , .. }
-        = do
-          substates' <- sequence [recurseConnections f s|s <- substates]
-          connections' <- f connections
-          return $
-            StateDiagram {
-              substates = substates'
-            , connections = connections'
-            , ..
-            }
-      recurseConnections f CombineDiagram { substates
-                                          , .. }
-        = do
-          substates' <- sequence [recurseConnections f s|s <- substates]
-          return $
-            CombineDiagram {
-                substates = substates'
-              , ..
-              }
-      recurseConnections _ x = return x
+  = fmap umlStateDiagram . traverse shuffleM . unUML'
 
 instance RandomiseLayout EnumArrowsInstance where
   randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer = Diagrams , randomization = True }
