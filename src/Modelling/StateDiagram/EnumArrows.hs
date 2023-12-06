@@ -112,6 +112,7 @@ data EnumArrowsInstance
       , chartRenderer :: Renderer
       , shuffle :: Maybe ShufflePolicy
       , renaming :: RenamingPolicy
+      , randomization :: Bool
     } deriving Show
 
 data ShufflePolicy
@@ -139,7 +140,7 @@ data RenderPolicy
 data Renderer
   = PlantUML
   | Diagrams
-  deriving (Show)
+  deriving (Eq, Show)
 
 data EnumArrowsConfig
   = EnumArrowsConfig {
@@ -150,6 +151,7 @@ data EnumArrowsConfig
     , renamingPolicy :: RenamingPolicy
     , renderPath :: RenderPath
     , shufflePolicy :: Maybe ShufflePolicy
+    , randomizeLayout :: Bool
   } deriving (Show)
 
 defaultEnumArrowsConfig :: EnumArrowsConfig
@@ -165,6 +167,7 @@ defaultEnumArrowsConfig
                    , renderer = Diagrams
                    }
     , shufflePolicy = Just ShuffleNamesAndTriggers
+    , randomizeLayout = True
   }
 
 instance Randomise EnumArrowsInstance where
@@ -332,19 +335,24 @@ shuffleConnections
       recurseConnections _ x = return x
 
 instance RandomiseLayout EnumArrowsInstance where
-  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD }
-    = do
-      hierarchicalSD'
-        <- shuffleConnections =<< shuffleSubstates hierarchicalSD
-      flatAndEnumeratedSD'
-        <- shuffleConnections =<< shuffleSubstates flatAndEnumeratedSD
-      return $
-        taskInstance {
-          hierarchicalSD
-            = hierarchicalSD'
-        , flatAndEnumeratedSD
-            = flatAndEnumeratedSD'
-        }
+  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer, randomization = True }
+    = case chartRenderer of
+        PlantUML
+          -> error "PlantUML renderer does not support layout randomization."
+        Diagrams
+          -> do
+             hierarchicalSD'
+               <- shuffleConnections =<< shuffleSubstates hierarchicalSD
+             flatAndEnumeratedSD'
+               <- shuffleConnections =<< shuffleSubstates flatAndEnumeratedSD
+             return $
+               taskInstance {
+                 hierarchicalSD
+                   = hierarchicalSD'
+               , flatAndEnumeratedSD
+                   = flatAndEnumeratedSD'
+             }
+  randomiseLayout taskInstance = return taskInstance
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
 enumArrows config timestamp
@@ -399,6 +407,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                     , renamingPolicy
                                     , renderPath
                                     , shufflePolicy
+                                    , randomizeLayout
                                     }
   = do
     iterateUntil
@@ -484,6 +493,8 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
              = shufflePolicy
          , renaming
              = renamingPolicy
+         , randomization
+             = randomizeLayout
        }
       )
   where
@@ -499,13 +510,18 @@ enumArrowsInstanceCheck _ task
   | otherwise = return Nothing
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
-checkEnumArrowsConfig EnumArrowsConfig{ sdConfig = SDConfig { chartLimits = ChartLimits { .. }, .. } }
+checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
+                                          = SDConfig { chartLimits = ChartLimits { .. }, .. }
+                                      , randomizeLayout
+                                      , renderPath }
   | not preventEmptyTriggersFromStates
   = Just "The chart may contain empty triggers from states, which are not allowed in this task setting."
   | hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
   | not distinctTriggerNames
   = Just "For this task type, triggers in the original diagram should be all made distinct."
+  | renderer renderPath == PlantUML && randomizeLayout
+  = Just "Chart layout randomization is not supported for PlantUML renderer, use Diagrams renderer instead."
   | otherwise = Nothing
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
@@ -641,4 +657,5 @@ defaultEnumInstance
   , chartRenderer = PlantUML
   , shuffle = Just ShuffleNamesAndTriggers
   , renaming = JustTheInnermostName
+  , randomization = False
   }
