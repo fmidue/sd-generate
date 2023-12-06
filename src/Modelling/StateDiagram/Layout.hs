@@ -118,7 +118,7 @@ drawWrapper _ a (Transition b c l rightType layouts) = appendEdges
   layouts # named (a ++ [b])
   where
     x = drawText c black
-drawWrapper style a s@AndDecomposition {} = appendEdges (roundedRect (width f) (height f) 0.1
+drawWrapper style a s@AndDecomposition {} = appendEdges (roundedRect (width f) (height f) 0.1 # lc (hashToColour style (head (dropWhile null (map strings (component s)) ++ [""])))
   <> f) (lengthXY s) (rightC s) (outerLayout s) # named (a ++
   [key s])
   where
@@ -144,7 +144,7 @@ drawWrapper' :: Styling -> [Int] -> Wrapper -> Diagram B
 drawWrapper' style d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
   (height draw + 0.9) 0.1 # lcA transparent <> alignedText 0 1 (strings s) #
   translate (r2 (-0.485 * (width draw + 0.9), 0.485 * (height draw + 0.9))) #
-  fontSize (local 0.2) <> draw # centerXY) (lengthXY s) (rightC s)
+  fontSize (local 0.2) # fc (hashToColour style (strings s)) <> draw # centerXY) (lengthXY s) (rightC s)
   (outerLayout s) # named (d ++ [key s]) # applyAll (fmap (`drawConnection`
   layout s) connectList)
   where
