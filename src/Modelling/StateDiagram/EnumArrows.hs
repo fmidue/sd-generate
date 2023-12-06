@@ -92,7 +92,7 @@ import Data.Either (rights
                    ,lefts)
 import Control.Monad.Loops (iterateUntil)
 import Modelling.StateDiagram.Checkers (checkDrawability)
-import Data.Maybe (isNothing, fromMaybe)
+import Data.Maybe (isNothing, fromMaybe, fromJust)
 import Modelling.StateDiagram.Layout (drawDiagram)
 import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Diagrams.Backend.SVG (renderSVG)
@@ -193,8 +193,9 @@ shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
             collectNames hierarchicalSD
             ++ concat (collectNames flatAndEnumeratedSD)
     shuffledNames <- shuffleM names'
-    let toShuffled name'
-          = fromMaybe name' (lookup name' (zip names' shuffledNames))
+    let toShuffled "" = ""
+        toShuffled name'
+          = fromJust (lookup name' (zip names' shuffledNames))
     return $
       task {
         hierarchicalSD
