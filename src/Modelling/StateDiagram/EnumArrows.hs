@@ -391,7 +391,7 @@ enumArrowsTask path task
                                  (combine path "flattenedDiagram.svg")
                                  (dims (V2 800 600))
                                  (drawDiagram Unstyled
-                                  renderable flatAndEnumeratedSD'))
+                                  flatAndEnumeratedSD'))
                           return (combine path "flattenedDiagram.svg")
     paragraph $ translate $ do
       english "Please supply a list of tuples, where the first element is the visible placeholder of a transition as string\n\
