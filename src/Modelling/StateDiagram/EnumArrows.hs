@@ -15,7 +15,6 @@
 
 module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,enumArrowsSolution
-                                         ,correctEnumeration
                                          ,enumArrowsInstance
                                          ,enumArrowsSyntax
                                          ,enumArrowsEvaluation
@@ -86,9 +85,7 @@ import Data.List (groupBy
                  ,singleton
                  ,sortBy
                  ,find
-                 --, delete
                  )
-import Modelling.StateDiagram.Example (flatCase1)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
                    ,lefts)
@@ -403,19 +400,26 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
          , taskSolution
-             = correctEnumeration flattenedChart
+             = unUML (\_ _ connection _
+                        -> map (\x
+                                  -> (,)
+                                     (concatMap (singleton . fst) x)
+                                     (concatMap (singleton . transition . snd) x))
+                           $
+                           groupBy (\(_,x) (_,y)
+                                       -> pointFrom x == pointFrom y &&
+                                          pointTo x == pointTo y)
+                           $
+                           sortBy (\(_,x) (_,y)
+                                     -> compare (pointFrom x, pointTo x)
+                                                (pointFrom y, pointTo y))
+                           $
+                           zip (map show ([1..]::[Int]))
+                           $
+                           filter (not . null . transition) connection
+                    ) flattenedChart
          , flatAndEnumeratedSD
-             = enumerateTriggers flattenedChart
-         , shuffle
-             = shufflePolicy
-         , renaming = renamingPolicy
-       }
-      )
-enumArrowsInstance _ = undefined
-
-enumerateTriggers :: UMLStateDiagram [String] Int -> UMLStateDiagram [String] Int
-enumerateTriggers chart
-  = umlStateDiagram $
+             = umlStateDiagram $
                unUML (\name substates connection startState
                          -> StateDiagram {
                               name = name
@@ -429,7 +433,14 @@ enumerateTriggers chart
                             , startState = startState
                             , label = 999
                             }
-                     ) chart
+                     ) flattenedChart
+         , shuffle
+             = shufflePolicy
+         , renaming
+             = renamingPolicy
+       }
+      )
+enumArrowsInstance _ = undefined
 
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
 enumArrowsInstanceCheck _ task
@@ -470,27 +481,6 @@ enumArrowsEvaluation task answer
 enumArrowsSolution :: EnumArrowsInstance -> [([String], [String])]
 enumArrowsSolution EnumArrowsInstance {taskSolution}
   = taskSolution
-
-correctEnumeration :: UMLStateDiagram [String] Int -> [([String], [String])]
-correctEnumeration
-  = unUML (\_ _ connection _
-             -> map (\x
-                       -> (,)
-                          (concatMap (singleton . fst) x)
-                          (concatMap (singleton . transition . snd) x))
-                $
-                groupBy (\(_,x) (_,y)
-                            -> pointFrom x == pointFrom y &&
-                               pointTo x == pointTo y)
-                $
-                sortBy (\(_,x) (_,y)
-                          -> compare (pointFrom x, pointTo x)
-                                     (pointFrom y, pointTo y))
-                $
-                zip (map show ([1..]::[Int]))
-                $
-                filter (not . null . transition) connection
-    )
 
 -- newtype Trigger = Trigger String deriving (Show, Eq, Ord)
 -- newtype Placeholder = Placeholder String deriving (Show, Eq, Ord)
@@ -546,15 +536,66 @@ enumArrowsFeedback task submission
                "missing: " ++ show missing ++ "\n")
     return ()
 
+
+{-
+  this instance has been inlined
+-}
 defaultEnumInstance :: EnumArrowsInstance
 defaultEnumInstance
   = EnumArrowsInstance {
-    hierarchicalSD = flatCase1
+    hierarchicalSD
+      = umlStateDiagram $
+        StateDiagram { substates = [ StateDiagram { substates = [ InnerMostState {label = 1, name = "G", operations = ""}
+                                                                , InnerMostState {label = 2, name = "H", operations = ""}
+                                                                , InnerMostState {label = 3, name = "C", operations = ""}
+                                                                , InnerMostState {label = 4, name = "B", operations = ""}]
+                                                  , label = 1, name = ""
+                                                  , connections = [ Connection {pointFrom = [1], pointTo = [2], transition = "f"}
+                                                                  , Connection {pointFrom = [3], pointTo = [1], transition = "c"}]
+                                                  , startState = []}
+                                   , InnerMostState {label = 2, name = "D", operations = ""}
+                                   , InnerMostState {label = 3, name = "F", operations = ""}
+                                   , InnerMostState {label = 4, name = "E", operations = ""}
+                                   , InnerMostState {label = 5, name = "A", operations = ""}]
+                      , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+                      , name = ""
+                      , connections = [ Connection {pointFrom = [1], pointTo = [5], transition = "g"}
+                                      , Connection {pointFrom = [1,2], pointTo = [5], transition = "b"}
+                                      , Connection {pointFrom = [1,4], pointTo = [5], transition = "d"}
+                                      , Connection {pointFrom = [2], pointTo = [3], transition = "h"}
+                                      , Connection {pointFrom = [3], pointTo = [1,3], transition = "i"}
+                                      , Connection {pointFrom = [4], pointTo = [2], transition = "e"}
+                                      , Connection {pointFrom = [5], pointTo = [1,4], transition = "a"} ]
+                      , startState = [4] }
   , flatAndEnumeratedSD
-      = enumerateTriggers (flatten flatCase1)
+      = umlStateDiagram $
+        StateDiagram { substates = [ InnerMostState {label = 1, name = ["","G"], operations = ""}
+                                   , InnerMostState {label = 2, name = ["","H"], operations = ""}
+                                   , InnerMostState {label = 3, name = ["","C"], operations = ""}
+                                   , InnerMostState {label = 4, name = ["","B"], operations = ""}
+                                   , InnerMostState {label = 5, name = ["D"], operations = ""}
+                                   , InnerMostState {label = 6, name = ["F"], operations = ""}
+                                   , InnerMostState {label = 7, name = ["E"], operations = ""}
+                                   , InnerMostState {label = 8, name = ["A"], operations = ""}]
+                    , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+                    , name = [""]
+                    , connections = [ Connection {pointFrom = [1], pointTo = [8], transition = "8"}
+                                    , Connection {pointFrom = [2], pointTo = [8], transition = "11"}
+                                    , Connection {pointFrom = [3], pointTo = [8], transition = "4"}
+                                    , Connection {pointFrom = [4], pointTo = [8], transition = "6"}
+                                    , Connection {pointFrom = [2], pointTo = [8], transition = "3"}
+                                    , Connection {pointFrom = [4], pointTo = [8], transition = "10"}
+                                    , Connection {pointFrom = [5], pointTo = [6], transition = "12"}
+                                    , Connection {pointFrom = [6], pointTo = [3], transition = "5"}
+                                    , Connection {pointFrom = [7], pointTo = [5], transition = "9"}
+                                    , Connection {pointFrom = [8], pointTo = [4], transition = "2"}
+                                    , Connection {pointFrom = [1], pointTo = [2], transition = "1"}
+                                    , Connection {pointFrom = [3], pointTo = [1], transition = "7"}]
+                    , startState = [7]}
   , taskSolution
-      = correctEnumeration
-        (flatten flatCase1)
+      = [(["1"],["f"]),(["8"],["g"]),(["11","3"],["g","b"]),(["7"],["c"])
+        ,(["4"],["g"]),(["6","10"],["g","d"]),(["12"],["h"]),(["5"],["i"])
+        ,(["9"],["e"]),(["2"],["a"])]
   , chartRenderer = PlantUML
   , shuffle = Nothing
   , renaming = JustTheInnermostName
