@@ -418,30 +418,32 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                          -> rename concat (flatAndEnumeratedSD taskInstance)
                        JustTheInnermostName
                          -> rename last (flatAndEnumeratedSD taskInstance)
+                 workingPlantUML =
+                   isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
+                   isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD')
+                 workingDiagrams =
+                   isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
+                   isNothing (checkDrawability flatAndEnumeratedSD')
              in
              case renderPath of
                 RenderPath { renderPolicy = FailOnFailure
                            , renderer = PlantUML
                            }
-                  -> (isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
-                      isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD'))
+                  -> workingPlantUML
                       || error "PlantUML renderer failed"
                 RenderPath { renderPolicy = RegenerateOnFailure
                            , renderer = PlantUML
                            }
-                  -> isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD')
+                  -> workingPlantUML
                 RenderPath { renderPolicy = FailOnFailure
                             , renderer = Diagrams
                             }
-                  -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawability flatAndEnumeratedSD')
+                  -> workingDiagrams
                      || error "Diagrams renderer failed"
                 RenderPath { renderPolicy = RegenerateOnFailure
                            , renderer = Diagrams
                            }
-                  -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawability flatAndEnumeratedSD')
+                  -> workingDiagrams
               )
       (do
        liftIO $ putStrLn "generating instance"
