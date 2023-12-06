@@ -188,16 +188,14 @@ shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
           = filter notNull $
             collectNames hierarchicalSD
     shuffledNames <- shuffleM names'
-    let nameToShuffledName = zip names' shuffledNames
     let toShuffled name'
-          = fromMaybe name' (lookup name' nameToShuffledName)
-    let toShuffled' = map (\n -> fromMaybe n (lookup n nameToShuffledName))
+          = fromMaybe name' (lookup name' (zip names' shuffledNames))
     return $
       task {
         hierarchicalSD
           = rename toShuffled hierarchicalSD
       , flatAndEnumeratedSD
-          = rename toShuffled' flatAndEnumeratedSD
+          = rename (map toShuffled) flatAndEnumeratedSD
       }
 
 shuffleTriggers :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstance
