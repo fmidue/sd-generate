@@ -335,23 +335,19 @@ shuffleConnections
       recurseConnections _ x = return x
 
 instance RandomiseLayout EnumArrowsInstance where
-  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer, randomization = True }
-    = case chartRenderer of
-        PlantUML
-          -> error "PlantUML renderer does not support layout randomization."
-        Diagrams
-          -> do
-             hierarchicalSD'
-               <- shuffleConnections =<< shuffleSubstates hierarchicalSD
-             flatAndEnumeratedSD'
-               <- shuffleConnections =<< shuffleSubstates flatAndEnumeratedSD
-             return $
-               taskInstance {
-                 hierarchicalSD
-                   = hierarchicalSD'
-               , flatAndEnumeratedSD
-                   = flatAndEnumeratedSD'
-             }
+  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer = Diagrams , randomization = True }
+    = do
+      hierarchicalSD'
+        <- shuffleConnections =<< shuffleSubstates hierarchicalSD
+      flatAndEnumeratedSD'
+        <- shuffleConnections =<< shuffleSubstates flatAndEnumeratedSD
+      return $
+        taskInstance {
+          hierarchicalSD
+            = hierarchicalSD'
+        , flatAndEnumeratedSD
+            = flatAndEnumeratedSD'
+      }
   randomiseLayout taskInstance = return taskInstance
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
