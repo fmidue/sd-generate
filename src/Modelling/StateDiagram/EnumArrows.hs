@@ -35,10 +35,11 @@ where
 {-
 brief task description:
 
-given a flattened state chart, where the transition literals have been replaced by integers,
-ask the user to supply a list of tuples, where the first element is the integer of the transition
-and the second element is the transition literal as string that is supposed to be at that place,
+given a flattened state chart, where the transition literals have been disguised through by placeholders,
+ask the user to supply a list of tuples, where the first element is the placeholder of the transition referenced as string
+and the second element is the transition trigger as string that is supposed to be at that place,
 for all enumerated arrows of the chart.
+when tasks instances are generated, the placeholders to disguise the triggers are an enumeration of these.
 -}
 
 import Modelling.StateDiagram.Datatype
@@ -72,7 +73,7 @@ import Control.Monad.Output (
   printSolutionAndAssert
   )
 import Control.Monad.Random
-    ( MonadRandom (getRandom),
+    ( MonadRandom,
       RandT,
       RandomGen,
       evalRandT,
@@ -96,12 +97,13 @@ import Modelling.StateDiagram.Layout (drawDiagram)
 import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Diagrams.Backend.SVG (renderSVG)
 import Diagrams (dims, V2 (V2))
-import System.Random.Shuffle (shuffleM, shuffle')
+import System.Random.Shuffle (shuffleM)
+--import Data.Functor((<&>))
 
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
-import Data.List.Extra (notNull, nubOrd
-  )
+import Data.List.Extra (notNull
+                       ,nubOrd)
 data EnumArrowsInstance
   = EnumArrowsInstance {
         hierarchicalSD :: UMLStateDiagram String Int
@@ -232,8 +234,6 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
                    trigger == t]
             in
             map (unzip . match . uncurry zip) taskSolution
-
-
       }
   where
     shuffleTrigger toShuffledTrigger
@@ -251,52 +251,100 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
                     }
             )
 
-overSubstates :: ([StateDiagram a Int [Connection Int]] -> [StateDiagram a Int [Connection Int]]) -> UMLStateDiagram a Int -> UMLStateDiagram a Int
-overSubstates g
+shuffleSubstates :: (MonadRandom m) => UMLStateDiagram a Int -> m (UMLStateDiagram a Int)
+shuffleSubstates
   = unUML (\name substates connections startState
-             -> umlStateDiagram $
-                StateDiagram {
-                  name = name
-                , substates = g (map (recurseSubstates g) substates)
-                , connections = connections
-                , startState = startState
-                , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
-                }
+             -> do
+                substates' <- shuffleM =<< mapM (recurseSubstates shuffleM) substates
+                return $
+                  umlStateDiagram $
+                  StateDiagram {
+                    name = name
+                  , substates = substates'
+                  , connections = connections
+                  , startState = startState
+                  , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
+                  }
           )
   where
+    recurseSubstates :: (MonadRandom m) => ([StateDiagram a Int [Connection Int]] -> m [StateDiagram a Int [Connection Int]]) -> StateDiagram a Int [Connection Int] -> m (StateDiagram a Int [Connection Int])
     recurseSubstates f StateDiagram { substates
                                     , .. }
-      = StateDiagram {
-          substates = f (map (recurseSubstates f) substates)
-        , ..
-        }
+      = do
+        substates' <- f =<< sequence [recurseSubstates f s|s <- substates]
+        return $
+          StateDiagram {
+            substates = substates'
+          , ..
+          }
     recurseSubstates f CombineDiagram { substates
                                       , .. }
-      = CombineDiagram {
-          substates = f (map (recurseSubstates f) substates)
-        , ..
-        }
-    recurseSubstates _ x = x
+      = do
+        substates' <- f =<< sequence [recurseSubstates f s|s <- substates]
+        return $
+          CombineDiagram {
+              substates = substates'
+            , ..
+            }
+    recurseSubstates _ x = return x
+
+-- workaround because it looks like list monad overrides random monad when using; fmap shuffleM substates
+-- which returns [[]] instead of [] for applying shuffleM on the connections lists
+-- might have something to do with pure [] == [[]] or could be something else
+shuffleConnections :: (MonadRandom m) => UMLStateDiagram a Int -> m (UMLStateDiagram a Int)
+shuffleConnections
+  = unUML (\name substates connections startState
+             -> do
+                connections' <- shuffleM connections
+                substates' <- sequence [recurseConnections shuffleM s|s <- substates]
+                return $
+                  umlStateDiagram $
+                  StateDiagram {
+                    name = name
+                  , substates = substates'
+                  , connections = connections'
+                  , startState = startState
+                  , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
+                  })
+    where
+      recurseConnections :: (MonadRandom m) => ([Connection Int] -> m [Connection Int]) -> StateDiagram a Int [Connection Int] -> m (StateDiagram a Int [Connection Int])
+      recurseConnections f StateDiagram { substates
+                                        , connections
+                                        , .. }
+        = do
+          substates' <- sequence [recurseConnections f s|s <- substates]
+          connections' <- f connections
+          return $
+            StateDiagram {
+              substates = substates'
+            , connections = connections'
+            , ..
+            }
+      recurseConnections f CombineDiagram { substates
+                                          , .. }
+        = do
+          substates' <- sequence [recurseConnections f s|s <- substates]
+          return $
+            CombineDiagram {
+                substates = substates'
+              , ..
+              }
+      recurseConnections _ x = return x
 
 instance RandomiseLayout EnumArrowsInstance where
-  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer }
+  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD }
     = do
-      case chartRenderer of
-        PlantUML
-          -> error "PlantUML is not impacted by this type of layout randomisation, aborting."
-        Diagrams
-          -> do
-             r <- getRandom
-             let gen = mkStdGen r
-             return $
-               taskInstance {
-                 hierarchicalSD
-                   = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML'  $
-                     overSubstates (\s -> shuffle' s (length s) gen) hierarchicalSD
-               , flatAndEnumeratedSD
-                   = umlStateDiagram . fmap (\c -> shuffle' c (length c) gen) . unUML' $
-                     overSubstates (\s -> shuffle' s (length s) gen) flatAndEnumeratedSD
-               }
+      hierarchicalSD'
+        <- shuffleConnections =<< shuffleSubstates hierarchicalSD
+      flatAndEnumeratedSD'
+        <- shuffleConnections =<< shuffleSubstates flatAndEnumeratedSD
+      return $
+        taskInstance {
+          hierarchicalSD
+            = hierarchicalSD'
+        , flatAndEnumeratedSD
+            = flatAndEnumeratedSD'
+        }
 
 enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
 enumArrows config timestamp
@@ -400,7 +448,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
          , taskSolution
-             = unUML (\_ _ connection _
+             = unUML (\_ _ connections _
                         -> map (\x
                                   -> (,)
                                      (concatMap (singleton . fst) x)
@@ -414,22 +462,20 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                      -> compare (pointFrom x, pointTo x)
                                                 (pointFrom y, pointTo y))
                            $
-                           zip (map show ([1..]::[Int]))
-                           $
-                           filter (not . null . transition) connection
+                           placeholderTo connections
                     ) flattenedChart
          , flatAndEnumeratedSD
              = umlStateDiagram $
-               unUML (\name substates connection startState
+               unUML (\name substates connections startState
                          -> StateDiagram {
                               name = name
                             , substates = substates
                             , connections
-                                = filter (null . transition) connection
+                                = filter (null . transition) connections
                                   ++
-                                  zipWith (\c l
-                                             -> c {transition = show l})
-                                  (filter (not . null . transition) connection) ([1..]::[Int])
+                                  map (\(placeholder,c)
+                                         -> c { transition = placeholder })
+                                  (placeholderTo connections)
                             , startState = startState
                             , label = 999
                             }
@@ -440,6 +486,10 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
              = renamingPolicy
        }
       )
+  where
+    placeholderTo connection
+      = zip (map show ([1..]::[Int]))
+          $ filter (not . null . transition) connection
 enumArrowsInstance _ = undefined
 
 enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
@@ -481,10 +531,6 @@ enumArrowsEvaluation task answer
 enumArrowsSolution :: EnumArrowsInstance -> [([String], [String])]
 enumArrowsSolution EnumArrowsInstance {taskSolution}
   = taskSolution
-
--- newtype Trigger = Trigger String deriving (Show, Eq, Ord)
--- newtype Placeholder = Placeholder String deriving (Show, Eq, Ord)
-
 
 -- we must assert before calling this function that every label
 -- is only used once in the submission; for all (i1,_) (i2,_) => i1 /= i2
@@ -536,10 +582,6 @@ enumArrowsFeedback task submission
                "missing: " ++ show missing ++ "\n")
     return ()
 
-
-{-
-  this instance has been inlined
--}
 defaultEnumInstance :: EnumArrowsInstance
 defaultEnumInstance
   = EnumArrowsInstance {
@@ -597,6 +639,6 @@ defaultEnumInstance
         ,(["4"],["g"]),(["6","10"],["g","d"]),(["12"],["h"]),(["5"],["i"])
         ,(["9"],["e"]),(["2"],["a"])]
   , chartRenderer = PlantUML
-  , shuffle = Nothing
+  , shuffle = Just ShuffleNamesAndTriggers
   , renaming = JustTheInnermostName
   }
