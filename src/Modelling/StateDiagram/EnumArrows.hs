@@ -255,11 +255,11 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
                     }
             )
 
-shuffleSubstates :: (MonadRandom m) => UMLStateDiagram a Int -> m (UMLStateDiagram a Int)
+shuffleSubstates :: (MonadRandom m) => UMLStateDiagram a b -> m (UMLStateDiagram a b)
 shuffleSubstates
   = unUML (\name substates connections startState
              -> do
-                substates' <- shuffleM =<< mapM (recurseSubstates shuffleM) substates
+                substates' <- shuffleM =<< mapM recursivelyShuffleSubstates substates
                 return $
                   umlStateDiagram $
                   StateDiagram {
@@ -271,26 +271,24 @@ shuffleSubstates
                   }
           )
   where
-    recurseSubstates :: (MonadRandom m) => ([StateDiagram a Int [Connection Int]] -> m [StateDiagram a Int [Connection Int]]) -> StateDiagram a Int [Connection Int] -> m (StateDiagram a Int [Connection Int])
-    recurseSubstates f StateDiagram { substates
-                                    , .. }
+    -- recursivelyShuffleSubstates :: (MonadRandom m) => StateDiagram a b [Connection b] -> m (StateDiagram a b [Connection b])
+    recursivelyShuffleSubstates StateDiagram { substates, .. }
       = do
-        substates' <- f =<< sequence [recurseSubstates f s|s <- substates]
+        substates' <- shuffleM =<< mapM recursivelyShuffleSubstates substates
         return $
           StateDiagram {
             substates = substates'
           , ..
           }
-    recurseSubstates f CombineDiagram { substates
-                                      , .. }
+    recursivelyShuffleSubstates CombineDiagram { substates, .. }
       = do
-        substates' <- f =<< sequence [recurseSubstates f s|s <- substates]
+        substates' <- shuffleM =<< mapM recursivelyShuffleSubstates substates
         return $
           CombineDiagram {
               substates = substates'
             , ..
             }
-    recurseSubstates _ x = return x
+    recursivelyShuffleSubstates x = return x
 
 -- workaround because it looks like list monad overrides random monad when using; fmap shuffleM substates
 -- which returns [[]] instead of [] for applying shuffleM on the connections lists
