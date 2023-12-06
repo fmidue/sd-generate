@@ -362,7 +362,7 @@ enumArrowsTask path task
          -> image $=<< do liftIO (renderSVG
                                  (combine path "plainDiagram.svg")
                                  (dims (V2 800 600))
-                                 (drawDiagram Unstyled $ renderable (hierarchicalSD task)))
+                                 (drawDiagram Unstyled (hierarchicalSD task)))
                           return (combine path "plainDiagram.svg")
     paragraph $ translate $ do
       english "Which was flattened, but has all transition triggers disguised through placeholders."
@@ -382,8 +382,8 @@ enumArrowsTask path task
          -> image $=<< do liftIO (renderSVG
                                  (combine path "flattenedDiagram.svg")
                                  (dims (V2 800 600))
-                                 (drawDiagram Unstyled $
-                                 renderable flatAndEnumeratedSD'))
+                                 (drawDiagram Unstyled
+                                  renderable flatAndEnumeratedSD'))
                           return (combine path "flattenedDiagram.svg")
     paragraph $ translate $ do
       english "Please supply a list of tuples, where the first element is the visible placeholder of a transition as string\n\
@@ -392,10 +392,6 @@ enumArrowsTask path task
       english "You may use the following syntax to denote the missing arrows:\n\
                \ [(\"1\",\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be triggered by 'a'."
     pure ()
-
-{- unsafe -}
-renderable :: UMLStateDiagram String Int -> UMLStateDiagram String Int
-renderable = umlStateDiagram . (\s -> s { label = 10101010 }) . unUML'
 
 enumArrowsInstance :: (RandomGen g, MonadIO m) => EnumArrowsConfig -> RandT g m EnumArrowsInstance
 enumArrowsInstance EnumArrowsConfig { sdConfig
@@ -429,14 +425,14 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                 RenderPath { renderPolicy = FailOnFailure
                             , renderer = Diagrams
                             }
-                  -> isNothing (checkDrawability $ renderable (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawability $ renderable flatAndEnumeratedSD')
+                  -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
+                     isNothing (checkDrawability flatAndEnumeratedSD')
                      || error "Diagrams renderer failed"
                 RenderPath { renderPolicy = RegenerateOnFailure
                            , renderer = Diagrams
                            }
-                  -> isNothing (checkDrawability $ renderable (hierarchicalSD taskInstance)) &&
-                     isNothing (checkDrawability $ renderable flatAndEnumeratedSD')
+                  -> isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
+                     isNothing (checkDrawability flatAndEnumeratedSD')
               )
       (do
        liftIO $ putStrLn "generating instance"

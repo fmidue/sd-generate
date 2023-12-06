@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-error=deprecations #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Modelling.StateDiagram.Layout
   ( drawDiagram
@@ -29,7 +29,8 @@ hashToColour StyledRainbow str =
 hashToColour _ _ = black
 
 drawDiagram :: Styling -> UMLStateDiagram String Int -> Diagram B
-drawDiagram style = drawWrapper' style [] . orderFunction . unUML'
+drawDiagram style = drawWrapper' style [] . orderFunction .
+                    unUML (\name substates connections startState -> StateDiagram{label = -1, ..})
 
 textBox :: String -> [String] -> [String]
 textBox a stringList
