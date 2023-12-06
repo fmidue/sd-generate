@@ -185,8 +185,10 @@ shuffleNodeNames :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstanc
 shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
   = do
     let names'
-          = filter notNull $
+          = nubOrd $
+            filter notNull $
             collectNames hierarchicalSD
+            ++ concat (collectNames flatAndEnumeratedSD)
     shuffledNames <- shuffleM names'
     let toShuffled name'
           = fromMaybe name' (lookup name' (zip names' shuffledNames))
