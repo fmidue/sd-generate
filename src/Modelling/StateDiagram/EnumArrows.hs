@@ -488,7 +488,7 @@ enumArrowsSyntax task answer
       english ("No placeholder was used more than once. \n" ++ show answer)
     assertion (not ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
                 length answer > length (enumArrowsSolution task))) $ translate $ do
-      english "The number of triggers matched to their placeholders must not exceed the number of transitions in the chart."
+      english "The number of triggers matched against placeholder elements for transitions must not exceed the number of transitions in the chart."
     assertion (not (any (\(_,l) -> l == "") answer)) $ translate $ do
       english "Transition triggers must not be empty."
     assertion (not (null answer)) $ translate $ do
