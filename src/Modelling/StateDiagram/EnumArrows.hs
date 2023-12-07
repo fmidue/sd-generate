@@ -164,11 +164,11 @@ defaultEnumArrowsConfig
     , syntaxWarnTooManyArrows = False
     , renamingPolicy = JustTheInnermostName
     , renderPath = RenderPath {
-                     renderPolicy = FailOnFailure
-                   , renderer = Diagrams
+                     renderPolicy = RegenerateOnFailure
+                   , renderer = PlantUML
                    }
     , shufflePolicy = Just ShuffleNamesAndTriggers
-    , randomizeLayout = True
+    , randomizeLayout = False
   }
 
 instance Randomise EnumArrowsInstance where
@@ -474,8 +474,6 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
                                                               , .. }
                                       , randomizeLayout
                                       , renderPath }
-  | not preventEmptyTriggersFromStates
-  = Just "The chart may contain empty triggers from states, which are not allowed in this task setting."
   | hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
   | not distinctTriggerNames
