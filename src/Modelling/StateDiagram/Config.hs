@@ -63,7 +63,10 @@ data SDConfig
 defaultSDConfig :: SDConfig
 defaultSDConfig
   = let SDConfig { .. } = defaultSDConfigScenario1
-    in SDConfig { distinctTriggerNames = True, .. }
+    in SDConfig { distinctTriggerNames = True
+                , compoundsHaveNames = Just True
+                , preventEmptyTriggersFromStates = False
+                , .. }
 
 defaultSDConfigScenario1 :: SDConfig
 defaultSDConfigScenario1
