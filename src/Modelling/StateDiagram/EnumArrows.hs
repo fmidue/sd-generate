@@ -482,8 +482,8 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "For this task type, triggers in the original diagram should be all made distinct."
   | renderer renderPath /= Diagrams && randomizeLayout
   = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
-  | not enforceNormalStateNames && not distinctNormalStateNames
-  = Just "The chart should have distinct normal state names."
+  | not distinctNormalStateNames
+  = Just "The chart should have distinct normal state names to be uniquely solvable."
   | regions > 0
   = Just "Flattening does not support regions currently."
   | snd shallowHistoryNodes > 0 || snd deepHistoryNodes > 0
