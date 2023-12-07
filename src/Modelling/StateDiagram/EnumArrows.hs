@@ -35,11 +35,10 @@ where
 {-
 brief task description:
 
-given a flattened state chart, where the transition literals have been disguised through by placeholder elements,
+given a flattened state chart, where the transition triggers have been disguised through placeholder elements,
 ask the user to supply a list of tuples, where the first element is the placeholder of the transition referenced as string
-and the second element is the transition trigger as string that is supposed to be at that place,
-for all enumerated arrows of the chart.
-when tasks instances are generated, the placeholder elements to disguise the triggers are an enumeration of these.
+and the second element is the transition trigger as string that is supposed to be at that place.
+When tasks instances are generated, the placeholder elements to disguise the triggers are an enumeration of these.
 -}
 
 import Modelling.StateDiagram.Datatype
