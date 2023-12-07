@@ -70,7 +70,7 @@ defaultSDConfigScenario1
   = SDConfig { bitwidth = 6
              , enforceNormalStateNames = True
              , distinctNormalStateNames = True
-             , preventEmptyTriggersFromStates = False
+             , preventEmptyTriggersFromStates = True
              , distinctTriggerNames = False
              , preventNestedEndNodes = False
              , preventMultiEdgesInOriginalDiagram = Nothing
