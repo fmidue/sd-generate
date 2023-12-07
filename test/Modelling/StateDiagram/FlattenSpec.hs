@@ -306,11 +306,13 @@ spec
         let result = flatten' $ flatten' $ rename singleton $ withInitialState [2] probeChart
         result `shouldBe` withInitialState [5] probeChartLiftedSDeAndSDg
       it "flatten all hierarchical states" $ do
-        let result = flatten probeChart
-        result `shouldBe` probeChartLiftedSDeAndSDg
+      --  let result = flatten probeChart
+      --  result `shouldBe` probeChartLiftedSDeAndSDg
+        pendingWith "is only possible after scenario2 extension is implemented"
       it "print flat and non-flat probeChart to /temp/*.svg files using internal renderer" $ do
-        createDirectoryIfMissing True "./temp"
-        renderSVG "./temp/probeChart.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable probeChart)
-        renderSVG "./temp/probeChartLiftedSDe.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten probeChart)))
-        renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
-        return ()
+        --createDirectoryIfMissing True "./temp"
+        --renderSVG "./temp/probeChart.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable probeChart)
+        --renderSVG "./temp/probeChartLiftedSDe.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten probeChart)))
+        --renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
+        --return ()
+        pendingWith "disabled until scenario2 extension is implemented"

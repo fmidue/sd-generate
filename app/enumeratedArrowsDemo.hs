@@ -12,7 +12,7 @@ import Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,checkEnumArrowsConfig
                                          ,EnumArrowsInstance(taskSolution)
                                          ,enumArrows
-                                         , randomise, enumArrowsFeedback
+                                         , randomise, randomiseLayout, enumArrowsFeedback
 
                                          )
 import Data.Foldable(forM_)
@@ -30,7 +30,7 @@ main
     -- initialize Alloy and instance selector
 
     -- and pick a concrete instance, and optionally randomise triggers and names
-    task <- enumArrows defaultEnumArrowsConfig timestamp >>= randomise
+    task <- enumArrows defaultEnumArrowsConfig timestamp >>= randomise >>= randomiseLayout
     -- visualize task
     enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
     print task

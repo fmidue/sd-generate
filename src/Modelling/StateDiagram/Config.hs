@@ -44,7 +44,7 @@ data ChartLimits
                 , protoFlows :: (Int,Int)
                 , totalNodes :: (Int,Int)
                 }
-  deriving (Show)
+  deriving (Show,Eq)
 
 data SDConfig
   = SDConfig { bitwidth :: Int
@@ -58,7 +58,7 @@ data SDConfig
              , enforceOutgoingEdgesFromNormalAndHierarchical :: Bool
              , chartLimits :: ChartLimits
              , extraConstraint :: String
-             } deriving (Show)
+             } deriving (Show,Eq)
 
 defaultSDConfig :: SDConfig
 defaultSDConfig

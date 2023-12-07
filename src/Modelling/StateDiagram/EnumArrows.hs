@@ -13,7 +13,8 @@
 {-# OPTIONS_GHC -Wno-deprecations #-}
 
 
-module Modelling.StateDiagram.EnumArrows (enumArrowsTask
+module Modelling.StateDiagram.EnumArrows (enumArrows
+                                         ,enumArrowsTask
                                          ,enumArrowsSolution
                                          ,enumArrowsInstance
                                          ,enumArrowsSyntax
@@ -22,11 +23,10 @@ module Modelling.StateDiagram.EnumArrows (enumArrowsTask
                                          ,EnumArrowsConfig(..)
                                          ,defaultEnumArrowsConfig
                                          ,defaultEnumInstance
-                                         ,enumArrows
-                                         ,enumArrowsInstanceCheck
                                          ,rate
                                          ,enumArrowsFeedback
                                          ,checkEnumArrowsConfig
+                                         ,checkEnumArrowsInstance
                                          ,randomise
                                          ,randomiseLayout
                                          ,ShufflePolicy(..))
@@ -98,7 +98,6 @@ import Modelling.StateDiagram.Style (Styling(Unstyled))
 import Diagrams.Backend.SVG (renderSVG)
 import Diagrams (dims, V2 (V2))
 import System.Random.Shuffle (shuffleM)
---import Data.Functor((<&>))
 
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
@@ -113,29 +112,29 @@ data EnumArrowsInstance
       , shuffle :: Maybe ShufflePolicy
       , renaming :: RenamingPolicy
       , randomization :: Bool
-    } deriving Show
+    } deriving (Show,Eq)
 
 data ShufflePolicy
   = ShuffleNamesAndTriggers
   | ShuffleNames
   | ShuffleTriggers
-  deriving Show
+  deriving (Show,Eq)
 
 data RenamingPolicy
   = HierarchicalConcatenation
   | JustTheInnermostName
-  deriving (Show)
+  deriving (Show,Eq)
 
 data RenderPath
   = RenderPath {
       renderPolicy :: RenderPolicy
     , renderer :: Renderer
-  } deriving (Show)
+  } deriving (Show,Eq)
 
 data RenderPolicy
   = RegenerateOnFailure
   | FailOnFailure
-  deriving (Show)
+  deriving (Show,Eq)
 
 data Renderer
   = PlantUML
@@ -152,7 +151,7 @@ data EnumArrowsConfig
     , renderPath :: RenderPath
     , shufflePolicy :: Maybe ShufflePolicy
     , randomizeLayout :: Bool
-  } deriving (Show)
+  } deriving (Show,Eq)
 
 defaultEnumArrowsConfig :: EnumArrowsConfig
 defaultEnumArrowsConfig
@@ -295,7 +294,7 @@ shuffleConnections
   = fmap umlStateDiagram . traverse shuffleM . unUML'
 
 instance RandomiseLayout EnumArrowsInstance where
-  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, chartRenderer = Diagrams , randomization = True }
+  randomiseLayout taskInstance@EnumArrowsInstance{ hierarchicalSD, flatAndEnumeratedSD, randomization = True }
     = do
       hierarchicalSD'
         <- shuffleConnections =<< shuffleSubstates hierarchicalSD
@@ -461,8 +460,8 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
           $ filter (not . null . transition) connection
 enumArrowsInstance _ = undefined
 
-enumArrowsInstanceCheck :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
-enumArrowsInstanceCheck _ task
+checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
+checkEnumArrowsInstance _ task
   | length (enumArrowsSolution task) > 30
     = return $ Just "The solution chart exceeds a reasonable amount of transitions, it would be tedious to enumerate them all."
   | otherwise = return Nothing
@@ -478,8 +477,8 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "The chart must have at least one hierarchical state."
   | not distinctTriggerNames
   = Just "For this task type, triggers in the original diagram should be all made distinct."
-  | renderer renderPath == PlantUML && randomizeLayout
-  = Just "Chart layout randomization is not supported for PlantUML renderer, use Diagrams renderer instead."
+  | renderer renderPath /= Diagrams && randomizeLayout
+  = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
   | otherwise = Nothing
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
