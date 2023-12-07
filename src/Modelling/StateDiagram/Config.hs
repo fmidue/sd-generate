@@ -53,7 +53,7 @@ data SDConfig
              , preventEmptyTriggersFromStates :: Bool
              , distinctTriggerNames :: Bool
              , preventNestedEndNodes :: Bool
-             , preventMultiEdges :: Maybe Bool
+             , preventMultiEdgesInOriginalDiagram :: Maybe Bool
              , compoundsHaveNames :: Maybe Bool
              , enforceOutgoingEdgesFromNormalAndHierarchical :: Bool
              , chartLimits :: ChartLimits
@@ -73,7 +73,7 @@ defaultSDConfigScenario1
              , preventEmptyTriggersFromStates = True
              , distinctTriggerNames = False
              , preventNestedEndNodes = False
-             , preventMultiEdges = Nothing
+             , preventMultiEdgesInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
@@ -108,7 +108,7 @@ defaultSDConfigScenario2
              , preventEmptyTriggersFromStates = True
              , distinctTriggerNames = False
              , preventNestedEndNodes = True
-             , preventMultiEdges = Nothing
+             , preventMultiEdgesInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
@@ -144,7 +144,7 @@ defaultSDConfigScenario3
              , preventEmptyTriggersFromStates = True
              , distinctTriggerNames = False
              , preventNestedEndNodes = False
-             , preventMultiEdges = Nothing
+             , preventMultiEdgesInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
              , chartLimits =
@@ -248,7 +248,7 @@ sdConfigToAlloy  SDConfig { bitwidth
                           , enforceNormalStateNames
                           , distinctNormalStateNames
                           , preventNestedEndNodes
-                          , preventMultiEdges
+                          , preventMultiEdgesInOriginalDiagram
                           , compoundsHaveNames
                           , enforceOutgoingEdgesFromNormalAndHierarchical
                           , chartLimits = ChartLimits { regionsStates
@@ -296,7 +296,7 @@ pred scenarioConfig #{oB}
   #{maybe "" (\p
                 -> (if p then id else \c -> "not (" ++ c ++ ")")
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
-   preventMultiEdges}
+   preventMultiEdgesInOriginalDiagram}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
   #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
   #{lowerBound startNodes "StartNodes"}
