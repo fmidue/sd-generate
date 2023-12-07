@@ -35,11 +35,11 @@ where
 {-
 brief task description:
 
-given a flattened state chart, where the transition literals have been disguised through by placeholders,
+given a flattened state chart, where the transition literals have been disguised through by placeholder elements,
 ask the user to supply a list of tuples, where the first element is the placeholder of the transition referenced as string
 and the second element is the transition trigger as string that is supposed to be at that place,
 for all enumerated arrows of the chart.
-when tasks instances are generated, the placeholders to disguise the triggers are an enumeration of these.
+when tasks instances are generated, the placeholder elements to disguise the triggers are an enumeration of these.
 -}
 
 import Modelling.StateDiagram.Datatype
@@ -210,14 +210,14 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
           = map snd . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
     let uniqueTriggers
           = nubOrd allTriggers
-    let placeholders
+    let placeholder
           = nubOrd . map fst . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
     triggerToTrigger'
       <- shuffleM uniqueTriggers
          >>= \shuffledUnique -> return $ zip uniqueTriggers shuffledUnique
     placeholderToPlaceholder'
-      <- shuffleM placeholders
-         >>= \shuffledPlaceholders -> return $ zip placeholders shuffledPlaceholders
+      <- shuffleM placeholder
+         >>= \shuffledPlaceholder -> return $ zip placeholder shuffledPlaceholder
     return $
       task {
         hierarchicalSD
@@ -230,9 +230,9 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
           = let
             match group
               = [(p', t') |
-                   (placeholder, trigger) <- group,
+                   (placeholder'', trigger) <- group,
                    (p, p') <- placeholderToPlaceholder',
-                   placeholder == p,
+                   placeholder'' == p,
                    (t, t') <- triggerToTrigger',
                    trigger == t]
             in
@@ -328,7 +328,7 @@ enumArrowsTask path task
                                  (drawDiagram Unstyled (hierarchicalSD task)))
                           return (combine path "plainDiagram.svg")
     paragraph $ translate $ do
-      english "Which was flattened, but has all transition triggers disguised through placeholders."
+      english "Which was flattened, but has all transition triggers disguised through placeholder elements."
     let flatAndEnumeratedSD' -- renaming policy is just a view on data
           = case renaming task of
               HierarchicalConcatenation
