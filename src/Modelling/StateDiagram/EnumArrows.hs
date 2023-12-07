@@ -484,6 +484,10 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
   | not enforceNormalStateNames && not distinctNormalStateNames
   = Just "The chart should have distinct normal state names."
+  | regions > 0
+  = Just "Flattening does not support regions currently."
+  | snd shallowHistoryNodes > 0 || snd deepHistoryNodes > 0
+  = Just "Flattening does not support history nodes."
   | otherwise = checkSDConfig sdConfig
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
