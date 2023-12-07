@@ -471,7 +471,8 @@ checkEnumArrowsInstance _ task
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
 checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
-                                          = sdConfig@SDConfig { chartLimits = ChartLimits { .. }, .. }
+                                          = sdConfig@SDConfig { chartLimits = ChartLimits { .. }
+                                                              , .. }
                                       , randomizeLayout
                                       , renderPath }
   | not preventEmptyTriggersFromStates
@@ -482,6 +483,8 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "For this task type, triggers in the original diagram should be all made distinct."
   | renderer renderPath /= Diagrams && randomizeLayout
   = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
+  | not enforceNormalStateNames && not distinctNormalStateNames
+  = Just "The chart should have distinct normal state names."
   | otherwise = checkSDConfig sdConfig
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
