@@ -291,7 +291,7 @@ shuffleSubstates
             }
     recursivelyShuffleSubstates x = return x
 
-shuffleConnections :: (MonadRandom m) => UMLStateDiagram a Int -> m (UMLStateDiagram a Int)
+shuffleConnections :: (MonadRandom m) => UMLStateDiagram a b -> m (UMLStateDiagram a b)
 shuffleConnections
   = fmap umlStateDiagram . traverse shuffleM . unUML'
 
