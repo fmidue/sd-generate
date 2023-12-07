@@ -62,8 +62,10 @@ data SDConfig
 
 defaultSDConfig :: SDConfig
 defaultSDConfig
-  = let SDConfig { .. } = defaultSDConfigScenario1
+  = let SDConfig { chartLimits = ChartLimits { .. }, .. }
+          = defaultSDConfigScenario1
     in SDConfig { distinctTriggerNames = True
+                , chartLimits = ChartLimits { componentNames = componentNames + 1, .. }
                 , compoundsHaveNames = Just True
                 , preventEmptyTriggersFromStates = False
                 , .. }
