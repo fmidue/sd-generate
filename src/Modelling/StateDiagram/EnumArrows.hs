@@ -55,7 +55,8 @@ import Modelling.StateDiagram.Config(SDConfig(..)
                                     ,defaultSDConfig
                                     ,preventEmptyTriggersFromStates
                                     ,hierarchicalStates
-                                    ,ChartLimits(..))
+                                    ,ChartLimits(..)
+                                    ,checkSDConfig)
 import Modelling.StateDiagram.Alloy()
 import Modelling.StateDiagram.PlantUMLDiagrams
   (drawSDToFile
@@ -103,6 +104,8 @@ import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
 import Data.List.Extra (notNull
                        ,nubOrd)
+
+
 data EnumArrowsInstance
   = EnumArrowsInstance {
         hierarchicalSD :: UMLStateDiagram String Int
@@ -468,7 +471,7 @@ checkEnumArrowsInstance _ task
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
 checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
-                                          = SDConfig { chartLimits = ChartLimits { .. }, .. }
+                                          = sdConfig@SDConfig { chartLimits = ChartLimits { .. }, .. }
                                       , randomizeLayout
                                       , renderPath }
   | not preventEmptyTriggersFromStates
@@ -479,7 +482,7 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "For this task type, triggers in the original diagram should be all made distinct."
   | renderer renderPath /= Diagrams && randomizeLayout
   = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
-  | otherwise = Nothing
+  | otherwise = checkSDConfig sdConfig
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsSyntax task answer
