@@ -268,7 +268,7 @@ shuffleSubstates
                   , substates = substates'
                   , connections = connections
                   , startState = startState
-                  , label = error "THIS LABEL IS HIDDEN AND SHOULD NOT BE USED"
+                  , label = undefined
                   }
           )
   where
@@ -445,7 +445,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                          -> c { transition = placeholder })
                                   (placeholderTo connections)
                             , startState = startState
-                            , label = 999
+                            , label = undefined
                             }
                      ) flattenedChart
          , shuffle
@@ -579,7 +579,7 @@ defaultEnumInstance
                                    , InnerMostState {label = 3, name = "F", operations = ""}
                                    , InnerMostState {label = 4, name = "E", operations = ""}
                                    , InnerMostState {label = 5, name = "A", operations = ""}]
-                      , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+                      , label = undefined
                       , name = ""
                       , connections = [ Connection {pointFrom = [1], pointTo = [5], transition = "g"}
                                       , Connection {pointFrom = [1,2], pointTo = [5], transition = "b"}
@@ -599,7 +599,7 @@ defaultEnumInstance
                                    , InnerMostState {label = 6, name = ["F"], operations = ""}
                                    , InnerMostState {label = 7, name = ["E"], operations = ""}
                                    , InnerMostState {label = 8, name = ["A"], operations = ""}]
-                    , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
+                    , label = undefined
                     , name = [""]
                     , connections = [ Connection {pointFrom = [1], pointTo = [8], transition = "8"}
                                     , Connection {pointFrom = [2], pointTo = [8], transition = "11"}
