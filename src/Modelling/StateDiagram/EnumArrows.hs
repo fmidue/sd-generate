@@ -83,7 +83,6 @@ import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
 import Modelling.StateDiagram.Flatten (flatten)
 import Data.List (groupBy
-                 ,singleton
                  ,sortBy
                  ,find
                  )
@@ -411,16 +410,16 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
        let chart = map (failWith id . parseInstance "this") inst !! r
        stop <- liftIO getPOSIXTime
        liftIO $ putStrLn ("instance generation took " ++ show (stop - start) ++ " seconds")
-       let flattenedChart = flatten chart
-       return EnumArrowsInstance {
+       return $
+        flip unUML (flatten chart) $
+        \name substates connections startState ->
+         EnumArrowsInstance {
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
-         , taskSolution
-             = unUML (\_ _ connections _
-                        -> map (\x
+         , taskSolution =  map (\x
                                   -> (,)
-                                     (concatMap (singleton . fst) x)
-                                     (concatMap (singleton . transition . snd) x))
+                                     (map fst x)
+                                     (map (transition . snd) x))
                            $
                            groupBy (\(_,x) (_,y)
                                        -> pointFrom x == pointFrom y &&
@@ -431,11 +430,9 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                                 (pointFrom y, pointTo y))
                            $
                            placeholderTo connections
-                    ) flattenedChart
-         , flatAndEnumeratedSD
-             = umlStateDiagram $
-               unUML (\name substates connections startState
-                         -> StateDiagram {
+         , flatAndEnumeratedSD =
+                            umlStateDiagram $
+                            StateDiagram {
                               name = name
                             , substates = substates
                             , connections
@@ -447,19 +444,18 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                             , startState = startState
                             , label = undefined
                             }
-                     ) flattenedChart
          , shuffle
              = shufflePolicy
          , renaming
              = renamingPolicy
          , randomization
              = randomizeLayout
-       }
+         }
       )
   where
-    placeholderTo connection
+    placeholderTo
       = zip (map show ([1..]::[Int]))
-          $ filter (not . null . transition) connection
+          . filter (not . null . transition)
 enumArrowsInstance _ = undefined
 
 checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
