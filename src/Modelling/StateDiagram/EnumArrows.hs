@@ -488,6 +488,8 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "Flattening does not support regions currently."
   | snd shallowHistoryNodes > 0 || snd deepHistoryNodes > 0
   = Just "Flattening does not support history nodes."
+  | not enforceOutgoingEdgesFromNormalAndHierarchical
+  = Just "There should always be outgoing edges from normal and hierarchical states."
   | otherwise = checkSDConfig sdConfig
 
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
