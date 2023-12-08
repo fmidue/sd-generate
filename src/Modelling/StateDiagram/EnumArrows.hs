@@ -414,7 +414,6 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                            $
                            groupSortOn (\(_,x)
                                              -> (pointFrom x, pointTo x))
-                           $
                            placeholdersWithNonEmptyConnections
          , flatAndEnumeratedSD =
                             umlStateDiagram $
