@@ -206,18 +206,14 @@ shuffleNodeNames task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD}
 shuffleTriggers :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstance
 shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,taskSolution}
   = do
-    let allTriggers
-          = filter notNull $ concatMap snd taskSolution
     let uniqueTriggers
-          = nubOrd allTriggers
+          = nubOrd $ concatMap snd taskSolution
     let placeholder
-          = nubOrd . map fst . filter ((/=) "" . snd) $ concatMap (uncurry zip) taskSolution
+          = nubOrd $ concatMap fst taskSolution
     triggerToTrigger'
-      <- shuffleM uniqueTriggers
-         >>= \shuffledUnique -> return $ zip uniqueTriggers shuffledUnique
+      <- zip uniqueTriggers <$> shuffleM uniqueTriggers
     placeholderToPlaceholder'
-      <- shuffleM placeholder
-         >>= \shuffledPlaceholder -> return $ zip placeholder shuffledPlaceholder
+      <- zip placeholder <$> shuffleM placeholder
     return $
       task {
         hierarchicalSD
