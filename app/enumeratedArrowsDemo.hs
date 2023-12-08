@@ -16,11 +16,13 @@ import Modelling.StateDiagram.EnumArrows (enumArrowsTask
 
                                          )
 import Data.Foldable(forM_)
+import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 
 -- run with: stack run enumeratedArrowsDemo --
 main :: IO ()
 main
   = do
+    hSetBuffering stdout NoBuffering
     -- check the task configuration
     forM_ (checkEnumArrowsConfig defaultEnumArrowsConfig) error
     putStrLn "configuration looking good"
@@ -57,4 +59,3 @@ main
     -- extended submission feedback
     enumArrowsFeedback task sub `withLang` English
     return ()
-
