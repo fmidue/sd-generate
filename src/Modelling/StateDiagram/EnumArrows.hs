@@ -403,6 +403,9 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
        return $
         flip unUML (flatten chart) $
         \name substates connections startState ->
+         let placeholdersWithNonEmptyConnections =
+               zip (map show ([1..] :: [Int])) $ filter (notNull . transition) connections
+         in
          EnumArrowsInstance {
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
@@ -419,7 +422,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                      -> compare (pointFrom x, pointTo x)
                                                 (pointFrom y, pointTo y))
                            $
-                           placeholderTo connections
+                           placeholdersWithNonEmptyConnections
          , flatAndEnumeratedSD =
                             umlStateDiagram $
                             StateDiagram {
@@ -430,7 +433,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                   ++
                                   map (\(placeholder,c)
                                          -> c { transition = placeholder })
-                                  (placeholderTo connections)
+                                  placeholdersWithNonEmptyConnections
                             , startState = startState
                             , label = undefined
                             }
@@ -442,10 +445,6 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
              = randomizeLayout
          }
       )
-  where
-    placeholderTo
-      = zip (map show ([1..]::[Int]))
-          . filter (not . null . transition)
 enumArrowsInstance _ = undefined
 
 checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
