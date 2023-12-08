@@ -80,7 +80,7 @@ import Language.Alloy.Call (getInstances)
 import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
 import Modelling.StateDiagram.Flatten (flatten)
-import Data.List (find)
+import Data.List ( delete )
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
                    ,lefts)
@@ -100,7 +100,7 @@ import Data.List.Extra (notNull
                        ,nubOrd)
 import Data.Bifunctor (bimap)
 import Data.Ratio ((%))
-import Data.List (delete)
+import Data.Either.Extra (fromLeft', fromRight')
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
@@ -502,33 +502,42 @@ missing solution submission
                         ) solution'
               ) solution submission
 
+
+rated :: (Eq b, Eq d) => [([b], [d])] -> [(b, d)] -> [Either (b, d) (b, d)]
+rated solution submission
+      = map (\case
+               r@(Right _,Right _) -> Right (bimap fromRight' fromRight' r)
+               l@(Left _,Left _) -> Left (bimap fromLeft' fromLeft' l)
+               _ -> error "rated: impossible")
+        $
+        concatMap (uncurry zip) $
+        foldl (\solution' (p,t)
+                 -> map (\(ps,ts)
+                           -> if p `elem` ps && t `elem` ts
+                              then (,) (Right (fromLeft' p):delete p ps)
+                                       (Right (fromLeft' t):delete t ts)
+                              else (ps,ts)
+                        ) solution'
+              )
+         (map (bimap (fmap Left) (fmap Left)) solution)
+         (map (bimap Left Left ) submission)
+
+
 rate :: [([String], [String])] -> [(String,String)] -> Rational
 rate solution submission
-  = let
-    total = sum $ map (length . snd) solution
-    in
-    (fromIntegral (total - length (missing solution submission)) % fromIntegral total)
-
-
+  = fromIntegral (length . rights $ rated solution submission)
+    %
+    fromIntegral (sum $ map (length . snd) solution)
 
 enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsFeedback task submission
   = let
     solution = taskSolution task
-    answers
-      = map (\(i,l)
-           -> maybe (Left $ (,) i l)
-                    (\(_,ls)
-                        -> if l `elem` ls
-                           then Right $ (,) i l
-                           else Left $ (,) i l)
-                    (find (elem i . fst) solution)
-           ) (nubOrd submission)
     in
     do
     paragraph $ translate $ do
-      english ("correct: " ++ show (rights answers) ++ "\n" ++
-               "wrong: " ++ show (lefts answers) ++ "\n" ++
+      english ("correct: " ++ show (rights (rated solution submission)) ++ "\n" ++
+               "wrong: " ++ show (lefts (rated solution submission)) ++ "\n" ++
                "missing: " ++ show (missing solution submission) ++ "\n")
     return ()
 
