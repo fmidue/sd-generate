@@ -474,7 +474,7 @@ enumArrowsSyntax task answer
     assertion (not (any (\(i,_) -> 1 < length (filter ((==) i . fst) answer)) answer)) $ translate $ do
       english ("No placeholder was used more than once. \n" ++ show answer)
     assertion (not ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
-                length answer > length (taskSolution task))) $ translate $ do
+                length answer > sum (map (length . fst) (taskSolution task)))) $ translate $ do
       english "The number of triggers matched against placeholder elements for transitions must not exceed the number of transitions in the chart."
     assertion (not (any (\(_,l) -> l == "") answer)) $ translate $ do
       english "Transition triggers must not be empty."
