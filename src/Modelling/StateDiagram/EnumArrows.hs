@@ -471,7 +471,7 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
 enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsSyntax task answer
   = do
-    assertion (not (any (\(i,_) -> 1 < length (filter ((==) i . fst) answer)) answer)) $ translate $ do
+    assertion (length (nubOrd $ map fst answer) == length answer) $ translate $ do
       english ("No placeholder was used more than once. \n" ++ show answer)
     assertion (not ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
                 length answer > sum (map (length . fst) (taskSolution task)))) $ translate $ do
