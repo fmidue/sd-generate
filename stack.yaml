@@ -9,7 +9,7 @@ extra-deps:
     subdirs:
       - output-monad
   - git: https://github.com/fmidue/modelling-tasks.git
-    commit: f047bce8f2d1641b4161d5f25ebb063821340efa
+    commit: 233281ae07b07f8679159218b087d6ba98dfd4d6
   - call-plantuml-0.0.1.3
   - latex-svg-image-0.2
   - hgal-2.0.0.3
