@@ -17,7 +17,6 @@ import Test.Hspec (shouldBe
                   ,Spec
                   ,context)
 import Modelling.StateDiagram.EnumArrows(defaultEnumInstance
-                                        ,enumArrowsSolution
                                         ,rate
                                         ,EnumArrowsInstance (taskSolution
                                                             ,randomization
@@ -111,13 +110,13 @@ spec
             task = defaultEnumInstance
             answer = concatMap (uncurry zip) $ taskSolution task
             in
-            rate (enumArrowsSolution task) answer `shouldBe` 1
+            rate (taskSolution task) answer `shouldBe` 1
         it "fail rating test by one point" $ do
           let
             task = defaultEnumInstance
             answer = concatMap (uncurry zip) $ taskSolution task
             in
-            rate (enumArrowsSolution task) (tail answer)
+            rate (taskSolution task) (tail answer)
             `shouldBe`
             toRational (length answer - 1) / toRational (length answer)
         it "ambiguous enum test variant 1" $ do
@@ -140,13 +139,13 @@ spec
         it "generate chart and solve it correctly" $ do
           (timestamp::Int) <- round <$> getPOSIXTime
           task <- enumArrows defaultEnumArrowsConfig timestamp
-          let sub = concatMap (uncurry zip) $ enumArrowsSolution task
+          let sub = concatMap (uncurry zip) $ taskSolution task
           rate (taskSolution task) sub `shouldBe` 1
 
         it "generate chart and solve it partially" $ do
           (timestamp::Int) <- round <$> getPOSIXTime
           task <- enumArrows defaultEnumArrowsConfig timestamp
-          let sub = concatMap (uncurry zip) $ enumArrowsSolution task
+          let sub = concatMap (uncurry zip) $ taskSolution task
           let sub'
                 = if even $ length sub
                   then drop (length sub `div` 2) sub
@@ -156,5 +155,5 @@ spec
         it "generate chart and solve it entirely wrong" $ do
           (timestamp::Int) <- round <$> getPOSIXTime
           task <- enumArrows defaultEnumArrowsConfig timestamp
-          let sub = map (\(x,y) -> (,) x $ map toUpper y) $ concatMap (uncurry zip) $ enumArrowsSolution task
+          let sub = map (\(x,y) -> (,) x $ map toUpper y) $ concatMap (uncurry zip) $ taskSolution task
           rate (taskSolution task) sub `shouldBe` 0

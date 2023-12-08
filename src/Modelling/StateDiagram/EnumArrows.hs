@@ -15,7 +15,6 @@
 
 module Modelling.StateDiagram.EnumArrows (enumArrows
                                          ,enumArrowsTask
-                                         ,enumArrowsSolution
                                          ,enumArrowsInstance
                                          ,enumArrowsSyntax
                                          ,enumArrowsEvaluation
@@ -460,7 +459,7 @@ enumArrowsInstance _ = undefined
 
 checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
 checkEnumArrowsInstance _ task
-  | length (enumArrowsSolution task) > 30
+  | length (taskSolution task) > 30
     = return $ Just "The solution chart exceeds a reasonable amount of transitions, it would be tedious to enumerate them all."
   | otherwise = return Nothing
 
@@ -490,7 +489,7 @@ enumArrowsSyntax task answer
     assertion (not (any (\(i,_) -> 1 < length (filter ((==) i . fst) answer)) answer)) $ translate $ do
       english ("No placeholder was used more than once. \n" ++ show answer)
     assertion (not ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
-                length answer > length (enumArrowsSolution task))) $ translate $ do
+                length answer > length (taskSolution task))) $ translate $ do
       english "The number of triggers matched against placeholder elements for transitions must not exceed the number of transitions in the chart."
     assertion (not (any (\(_,l) -> l == "") answer)) $ translate $ do
       english "Transition triggers must not be empty."
@@ -501,12 +500,8 @@ enumArrowsSyntax task answer
 enumArrowsEvaluation :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> Rated m
 enumArrowsEvaluation task answer
   = printSolutionAndAssert
-    (Just $ show (concatMap (uncurry zip) $ enumArrowsSolution task))
-    (rate (enumArrowsSolution task) answer)
-
-enumArrowsSolution :: EnumArrowsInstance -> [([String], [String])]
-enumArrowsSolution EnumArrowsInstance {taskSolution}
-  = taskSolution
+    (Just $ show (concatMap (uncurry zip) $ taskSolution task))
+    (rate (taskSolution task) answer)
 
 -- we must assert before calling this function that every label
 -- is only used once in the submission; for all (i1,_) (i2,_) => i1 /= i2
@@ -530,7 +525,7 @@ rate solution submission
 enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsFeedback task submission
   = let
-    solution = enumArrowsSolution task
+    solution = taskSolution task
     answers
       = map (\(i,l)
            -> maybe (Left $ (,) i l)
