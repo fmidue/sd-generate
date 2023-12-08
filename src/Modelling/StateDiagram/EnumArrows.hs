@@ -82,8 +82,7 @@ import Modelling.StateDiagram.Instance (parseInstance
 import Modelling.StateDiagram.Flatten (flatten)
 import Data.List ( delete )
 import Control.Monad.Random.Lazy (randomRIO)
-import Data.Either (rights
-                   ,lefts)
+import Data.Either (rights)
 import Control.Monad.Loops (iterateUntil)
 import Modelling.StateDiagram.Checkers (checkDrawability)
 import Data.Maybe (isNothing, fromMaybe, fromJust)
@@ -509,7 +508,7 @@ rated solution submission
                r@(Right _,Right _) -> Right (bimap fromRight' fromRight' r)
                l@(Left _,Left _) -> Left (bimap fromLeft' fromLeft' l)
                _ -> error "rated: impossible")
-        $
+        .
         concatMap (uncurry zip) $
         foldl (\solution' (p,t)
                  -> map (\(ps,ts)
@@ -533,11 +532,12 @@ enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)]
 enumArrowsFeedback task submission
   = let
     solution = taskSolution task
+    rated' = rights $ rated solution submission
     in
     do
     paragraph $ translate $ do
-      english ("correct: " ++ show (rights (rated solution submission)) ++ "\n" ++
-               "wrong: " ++ show (lefts (rated solution submission)) ++ "\n" ++
+      english ("correct: " ++ show rated' ++ "\n" ++
+               "wrong: " ++ show (filter (flip notElem (map fst rated') . fst) submission) ++ "\n" ++
                "missing: " ++ show (missing solution submission) ++ "\n")
     return ()
 
