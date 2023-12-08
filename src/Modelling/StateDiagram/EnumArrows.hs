@@ -207,9 +207,9 @@ shuffleTriggers :: (MonadRandom m) => EnumArrowsInstance -> m EnumArrowsInstance
 shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,taskSolution}
   = do
     let uniqueTriggers
-          = nubOrd $ concatMap snd taskSolution
+          = nubOrd . concatMap (map transition) . unUML' $ hierarchicalSD
     let placeholder
-          = concatMap fst taskSolution
+          = concatMap (map transition) . unUML' $ flatAndEnumeratedSD
     triggerToTrigger'
       <- zip uniqueTriggers <$> shuffleM uniqueTriggers
     placeholderToPlaceholder'
