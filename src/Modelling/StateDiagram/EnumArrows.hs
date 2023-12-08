@@ -341,7 +341,7 @@ enumArrowsTask path task
       english "Please supply a list of tuples, where the first element is the visible placeholder of a transition as string\n\
                \ and the second element is the transition trigger as string, that is supposed to be at that place."
     paragraph $ translate $ do
-      english "You may use the following syntax to denote the missing arrows:\n\
+      english "You may use the following syntax:\n\
                \ [(\"1\",\"a\")] is a list, referring to a single transition labelled (1) that is supposed to be triggered by 'a'."
     pure ()
 
