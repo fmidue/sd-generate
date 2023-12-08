@@ -101,7 +101,7 @@ import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
 import Data.List.Extra (notNull
                        ,nubOrd)
-
+import Data.Bifunctor (bimap)
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
@@ -223,9 +223,9 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
           = umlStateDiagram . fmap
             (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
       , taskSolution
-          = bimap
-            (map (replace placeholderToPlaceholder'))
-            (map (replace triggerToTrigger'))
+          = map (bimap
+                  (map (replace placeholderToPlaceholder'))
+                  (map (replace triggerToTrigger')))
             taskSolution
       }
   where
