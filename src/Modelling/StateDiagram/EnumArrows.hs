@@ -235,17 +235,18 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
             map (unzip . match . uncurry zip) taskSolution
       }
   where
+    replace toShuffledTrigger trigger = fromMaybe
+                          (error $
+                          "trigger to shuffle not found " ++
+                            show trigger ++ " in " ++ show toShuffledTrigger)
+                          (lookup trigger toShuffledTrigger)
     shuffleTrigger toShuffledTrigger
       = map (\case
              c@Connection { transition = ""}
                -> c -- empty triggers are not shuffled
              c@Connection { transition = trigger }
                -> c { transition
-                        = fromMaybe
-                          (error $
-                          "trigger to shuffle not found" ++
-                            show trigger ++ "in " ++ show toShuffledTrigger)
-                          (lookup trigger toShuffledTrigger)
+                        = replace toShuffledTrigger trigger
                           -- triggers are shuffled uniformly
                     }
             )
