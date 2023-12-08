@@ -24,8 +24,6 @@ module Modelling.StateDiagram.Datatype
   , hoistOutwards
   , rename
   , collectNames
-  , pointFromL
-  , pointToL
   ) where
 
 import GHC.Generics (Generic)
@@ -36,8 +34,6 @@ import Data.Bifunctor.TH (
   deriveBitraversable,
   )
 import Data.List                        (partition)
-
-import Control.Lens (Lens')
 
 data Wrapper =
   OrDecomposition { layered :: [[Wrapper]],
@@ -113,14 +109,6 @@ data Connection label =  Connection {
   transition :: String
   }
   deriving (Eq, Foldable, Functor, Ord, Read, Show, Traversable)
-
-pointFromL :: Lens' (Connection label) [label]
-pointFromL f connection =
-    fmap (\newFrom -> connection { pointFrom = newFrom }) (f (pointFrom connection))
-
-pointToL :: Lens' (Connection label) [label]
-pointToL f connection =
-    fmap (\newTo -> connection { pointTo = newTo }) (f (pointTo connection))
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |

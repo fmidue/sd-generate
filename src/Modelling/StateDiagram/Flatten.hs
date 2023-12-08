@@ -12,11 +12,10 @@ import Modelling.StateDiagram.Datatype (UMLStateDiagram
                 ,StateDiagram(..)
                 ,globalise
                 ,Connection(..)
-                ,pointFromL
-                ,pointToL
                 ,rename
                 )
 import Modelling.StateDiagram.Datatype.ClassInstances ()
+import Modelling.StateDiagram.Datatype.Lenses (pointFromL, pointToL, pointBothL)
 import Data.Either.Extra (fromLeft')
 import Data.List (find, singleton)
 import Data.Bifunctor (bimap)
@@ -196,8 +195,4 @@ mapHead f (x:xs) = f x : xs
 
 matchConnectionToRelation :: (Eq l, Show l) => [Connection (Either l l)] -> [(Either l l, l)] -> [Connection l]
 matchConnectionToRelation connections r
-  = [ c { pointFrom
-            = mapHeadTail (`matchToRelation` r) fromLeft' (pointFrom c)
-        , pointTo
-            = mapHeadTail (`matchToRelation` r) fromLeft' (pointTo c)
-        } | c <- connections ]
+  = map (fmap fromLeft' . over pointBothL (mapHead (Left . flip matchToRelation r))) connections
