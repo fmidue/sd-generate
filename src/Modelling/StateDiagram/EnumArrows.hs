@@ -156,15 +156,15 @@ defaultEnumArrowsConfig
   = EnumArrowsConfig {
       sdConfig = defaultSDConfig
     , maxInstances = Just 1000
-    , printExtendedFeedback = False
-    , syntaxWarnTooManyArrows = False
-    , renamingPolicy = JustTheInnermostName
+    , printExtendedFeedback = True
+    , syntaxWarnTooManyArrows = True
+    , renamingPolicy = HierarchicalConcatenation
     , renderPath = RenderPath {
-                     renderPolicy = RegenerateOnFailure
-                   , renderer = PlantUML
+                     renderPolicy = FailOnFailure
+                   , renderer = Diagrams
                    }
     , shufflePolicy = Just ShuffleNamesAndTriggers
-    , randomizeLayout = False
+    , randomizeLayout = True
   }
 
 instance Randomise EnumArrowsInstance where

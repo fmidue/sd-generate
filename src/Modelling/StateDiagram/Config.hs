@@ -67,7 +67,6 @@ defaultSDConfig
     in SDConfig { distinctTriggerNames = True
                 , chartLimits = ChartLimits { componentNames = componentNames + 1, .. }
                 , compoundsHaveNames = Just True
-                , preventEmptyTriggersFromStates = False
                 , .. }
 
 defaultSDConfigScenario1 :: SDConfig
