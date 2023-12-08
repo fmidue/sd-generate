@@ -11,7 +11,7 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Wno-deprecations #-}
-
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Modelling.StateDiagram.EnumArrows (enumArrows
                                          ,enumArrowsTask
@@ -100,6 +100,7 @@ import Data.List.Extra (notNull
                        ,groupSortOn
                        ,nubOrd)
 import Data.Bifunctor (bimap)
+import Data.Ratio ((%))
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
@@ -492,19 +493,20 @@ enumArrowsEvaluation task answer
 rate :: [([String], [String])] -> [(String,String)] -> Rational
 rate solution submission
   = let
-    answers
-      = map (\(i,l)
-           -> maybe (Left $ (,) i l)
-                    (\(_,ls)
-                        -> if l `elem` ls
-                           then Right $ (,) i l
-                           else Left $ (,) i l)
-                    (find (elem i . fst) solution)
-           ) (nubOrd submission)
-    correct = sum $ map (length . snd) (rights answers)
     total = sum $ map (length . snd) solution
+    missing
+      = concatMap (uncurry zip) $
+        filter (\(_,ls) -> ls /= []) $
+        foldl (\solution' (i,l)
+                 -> map (\(is,ls)
+                           -> if i `elem` is
+                              then (,) is (filter (/= l) ls)
+                              else (is,ls)
+                        ) solution'
+              ) solution submission
+    result' = (fromIntegral (total - length missing) % fromIntegral total)
     in
-    (toRational correct / toRational total)
+    max result' 0.5
 
 enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsFeedback task submission
