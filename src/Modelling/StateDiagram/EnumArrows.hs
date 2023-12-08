@@ -444,6 +444,8 @@ checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> Enu
 checkEnumArrowsInstance _ task
   | length (taskSolution task) > 30
     = return $ Just "The solution chart exceeds a reasonable amount of transitions, it would be tedious to enumerate them all."
+  | chartRenderer task /= Diagrams && randomization task
+    = return $ Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
   | otherwise = return Nothing
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
