@@ -223,7 +223,10 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
           = umlStateDiagram . fmap
             (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
       , taskSolution
-          = map (\(ps,ts) -> (map (replace placeholderToPlaceholder') ps, map (replace triggerToTrigger') ts)) taskSolution
+          = bimap
+            (map (replace placeholderToPlaceholder'))
+            (map (replace triggerToTrigger'))
+            taskSolution
       }
   where
     replace toShuffledTrigger trigger = fromMaybe
