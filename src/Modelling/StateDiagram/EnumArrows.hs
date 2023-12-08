@@ -11,7 +11,6 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Wno-deprecations #-}
-{-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Modelling.StateDiagram.EnumArrows (enumArrows
                                          ,enumArrowsTask
@@ -101,6 +100,7 @@ import Data.List.Extra (notNull
                        ,nubOrd)
 import Data.Bifunctor (bimap)
 import Data.Ratio ((%))
+import Data.List (delete)
 
 data EnumArrowsInstance
   = EnumArrowsInstance {
@@ -488,25 +488,28 @@ enumArrowsEvaluation task answer
     (Just $ show (concatMap (uncurry zip) $ taskSolution task))
     (rate (taskSolution task) answer)
 
--- we must assert before calling this function that every label
--- is only used once in the submission; for all (i1,_) (i2,_) => i1 /= i2
+missing :: (Eq a, Eq b) => [([a], [b])] -> [(a, b)] -> [(a, b)]
+missing solution submission
+      = concatMap (uncurry zip) $
+        filter (\case
+                  ([],[]) -> False
+                  _ -> True) $
+        foldl (\solution' (p,t)
+                 -> map (\(ps,ts)
+                           -> if p `elem` ps && t `elem` ts
+                              then (,) (delete p ps) (delete t ts)
+                              else (ps,ts)
+                        ) solution'
+              ) solution submission
+
 rate :: [([String], [String])] -> [(String,String)] -> Rational
 rate solution submission
   = let
     total = sum $ map (length . snd) solution
-    missing
-      = concatMap (uncurry zip) $
-        filter (\(_,ls) -> ls /= []) $
-        foldl (\solution' (i,l)
-                 -> map (\(is,ls)
-                           -> if i `elem` is
-                              then (,) is (filter (/= l) ls)
-                              else (is,ls)
-                        ) solution'
-              ) solution submission
-    result' = (fromIntegral (total - length missing) % fromIntegral total)
     in
-    max result' 0.5
+    (fromIntegral (total - length (missing solution submission)) % fromIntegral total)
+
+
 
 enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsFeedback task submission
@@ -521,22 +524,12 @@ enumArrowsFeedback task submission
                            else Left $ (,) i l)
                     (find (elem i . fst) solution)
            ) (nubOrd submission)
-    missing
-      = concatMap (uncurry zip) $
-        filter (\(_,ls) -> ls /= []) $
-        foldl (\solution' (i,l)
-                 -> map (\(is,ls)
-                           -> if i `elem` is
-                              then (,) is (filter (/= l) ls)
-                              else (is,ls)
-                        ) solution'
-              ) solution submission
     in
     do
     paragraph $ translate $ do
       english ("correct: " ++ show (rights answers) ++ "\n" ++
                "wrong: " ++ show (lefts answers) ++ "\n" ++
-               "missing: " ++ show missing ++ "\n")
+               "missing: " ++ show (missing solution submission) ++ "\n")
     return ()
 
 defaultEnumInstance :: EnumArrowsInstance

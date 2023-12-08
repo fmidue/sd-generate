@@ -119,7 +119,7 @@ spec
             rate (taskSolution task) (tail answer)
             `shouldBe`
             toRational (length answer - 1) / toRational (length answer)
-        it "ambiguous enum test variant 1" $ do
+        it "ambiguous placeholder test variant 1" $ do
           let
             solution
               = [(["5"],["c"]),(["6"],["e"]),(["7"],["f"]),(["8","9"],["a","b"])]
@@ -127,7 +127,7 @@ spec
               = [("5","c"),("6","e"),("8","b"),("9","a"),("7","f")]
             in
             rate solution submission1 `shouldBe` 1
-        it "ambiguous enum test variant 2" $ do
+        it "ambiguous placeholder test variant 2" $ do
           let
             solution
               = [(["5"],["c"]),(["6"],["e"]),(["7"],["f"]),(["8","9"],["a","b"])]
@@ -135,6 +135,27 @@ spec
               = [("5","c"),("6","e"),("8","a"),("9","b"),("7","f")]
             in
             rate solution submission2 `shouldBe` 1
+        it "ambiguous placeholder test variant 3" $ do
+          let
+            solution
+              = [(["1","2"],["a","b"])]
+            in
+             (rate solution [("1","a"),("2","b")] `shouldBe` 1)
+               *> (rate solution [("1","b"),("2","a")] `shouldBe` 1)
+               *> (rate solution [("1","a"),("2","a")] `shouldBe` (1 % 2))
+        it "ambiguous placeholder test variant 4" $ do
+          let
+            solution
+              = [(["1","2","3"],["a","b","b"])]
+           in
+            (rate solution [("1","a"),("2","b"),("3","b")] `shouldBe` 1)
+              *> (rate solution [("1","b"),("2","a"),("3","b")] `shouldBe` 1)
+              *> (rate solution [("1","b"),("2","b"),("3","a")] `shouldBe` 1)
+              *> (rate solution [("1","a"),("2","a"),("3","b")] `shouldBe` (2 % 3))
+              *> (rate solution [("1","a"),("2","b"),("3","a")] `shouldBe` (2 % 3))
+              *> (rate solution [("1","b"),("2","a"),("3","a")] `shouldBe` (2 % 3))
+              *> (rate solution [("1","a"),("2","a"),("3","a")] `shouldBe` (1 % 3))
+              *> (rate solution [("1","b"),("2","b"),("3","b")] `shouldBe` (2 % 3))
       context "generate and solve" $ do
         it "generate chart and solve it correctly" $ do
           (timestamp::Int) <- round <$> getPOSIXTime
