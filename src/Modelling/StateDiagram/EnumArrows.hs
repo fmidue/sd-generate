@@ -209,7 +209,7 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
     let uniqueTriggers
           = nubOrd $ concatMap snd taskSolution
     let placeholder
-          = nubOrd $ concatMap fst taskSolution
+          = concatMap fst taskSolution
     triggerToTrigger'
       <- zip uniqueTriggers <$> shuffleM uniqueTriggers
     placeholderToPlaceholder'
