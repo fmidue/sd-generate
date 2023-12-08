@@ -81,10 +81,7 @@ import Language.Alloy.Call (getInstances)
 import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
 import Modelling.StateDiagram.Flatten (flatten)
-import Data.List (groupBy
-                 ,sortBy
-                 ,find
-                 )
+import Data.List (find)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights
                    ,lefts)
@@ -100,6 +97,7 @@ import System.Random.Shuffle (shuffleM)
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import Modelling.Auxiliary.Common
 import Data.List.Extra (notNull
+                       ,groupSortOn
                        ,nubOrd)
 import Data.Bifunctor (bimap)
 
@@ -414,13 +412,8 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                      (map fst x)
                                      (map (transition . snd) x))
                            $
-                           groupBy (\(_,x) (_,y)
-                                       -> pointFrom x == pointFrom y &&
-                                          pointTo x == pointTo y)
-                           $
-                           sortBy (\(_,x) (_,y)
-                                     -> compare (pointFrom x, pointTo x)
-                                                (pointFrom y, pointTo y))
+                           groupSortOn (\(_,x)
+                                             -> (pointFrom x, pointTo x))
                            $
                            placeholdersWithNonEmptyConnections
          , flatAndEnumeratedSD =
