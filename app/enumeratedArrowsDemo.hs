@@ -1,6 +1,13 @@
-import Control.Monad.Output             (Language (English))
-
-import Common                           (withLang)
+{-# LANGUAGE FlexibleContexts #-}
+module Main (main) where
+import Control.Monad.Output (
+  LangM,
+  Language (English),
+  Rated,
+  ReportT,
+  )
+import Control.Monad.Output.Generic     (($>>=))
+import Control.Monad.Output.Debug       (testTask)
 
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import System.Directory(createDirectoryIfMissing
@@ -20,13 +27,18 @@ import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 
 -- run with: stack run enumeratedArrowsDemo --
 main :: IO ()
-main
-  = do
+main = do
+  t <- getSeed
+  testTask English (generate t) (describe t) partial full submission
+ where
+  getSeed :: IO Int
+  getSeed = round <$> getPOSIXTime
+  generate :: Int -> IO EnumArrowsInstance
+  generate timestamp = do
     hSetBuffering stdout NoBuffering
     -- check the task configuration
     forM_ (checkEnumArrowsConfig defaultEnumArrowsConfig) error
     putStrLn "configuration looking good"
-    (timestamp::Int) <- round <$> getPOSIXTime
     createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
     putStrLn $ "Seed: " ++ show timestamp
     -- initialize Alloy and instance selector
@@ -34,7 +46,11 @@ main
     -- and pick a concrete instance, and optionally randomise triggers and names
     task <- enumArrows defaultEnumArrowsConfig timestamp >>= randomise >>= randomiseLayout
     -- visualize task
-    enumArrowsTask ("./session_temp/enumArrows"::FilePath) task `withLang` English
+    pure task
+  describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)
+  describe timestamp task = do
+   enumArrowsTask ("./session_temp/enumArrows"::FilePath) task
+   $>>= \x -> (*> pure x) $ pure $ do
     print task
     putStrLn ("\n" ++ "cheat solution: " ++ show (concatMap (uncurry zip) $ taskSolution task))
     -- user response (task assignment -> solution submission)
@@ -47,15 +63,16 @@ main
                ("./session_temp/enumArrows/" ++ show timestamp ++ "_flattenedDiagram.svg")
     writeFile ("./session_temp/enumArrows/" ++ show timestamp ++ "_solution.txt") (show (taskSolution task))
     writeFile ("./session_temp/enumArrows/" ++ show timestamp ++ "_generatorConfig.txt") (show defaultEnumArrowsConfig)
-
+  submission = do
     -- user submission
     sub <- fmap read getLine
+    pure sub
+  partial task sub = do
     -- user submission syntax checking
-    enumArrowsSyntax task sub `withLang` English
+    enumArrowsSyntax task sub
+  full :: EnumArrowsInstance -> [(String, String)] -> Rated (ReportT (IO ()) IO)
+  full task sub =
     -- task submission evaluation function
-    points <- enumArrowsEvaluation task sub `withLang` English
-    -- submission rating
-    print points
+    enumArrowsEvaluation task sub
     -- extended submission feedback
-    enumArrowsFeedback task sub `withLang` English
-    return ()
+    $>>= \points -> enumArrowsFeedback task sub *> pure points

@@ -5,7 +5,7 @@ packages:
 extra-deps:
   - call-alloy-0.4.0.3
   - git: https://github.com/fmidue/output-monad.git
-    commit: 4ca058f25d2d377454df1b4ffb0dcda1753a2738
+    commit: d469ed0b22df718dde4d4d718a7f6fd54cfe2a0d
     subdirs:
       - output-monad
   - git: https://github.com/fmidue/modelling-tasks.git
