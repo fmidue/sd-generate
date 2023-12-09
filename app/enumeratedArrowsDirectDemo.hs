@@ -36,7 +36,7 @@ main = do
     generate timestamp = do
       hSetBuffering stdout NoBuffering
       -- check the task instance
-      mapM_ error =<< (checkEnumArrowsInstance defaultEnumArrowsInstance)
+      mapM_ error =<< checkEnumArrowsInstance defaultEnumArrowsInstance
       putStrLn "instance looking good"
       createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
       putStrLn $ "Seed: " ++ show timestamp
