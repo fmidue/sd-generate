@@ -16,7 +16,7 @@ import Test.Hspec (shouldBe
                   ,describe
                   ,Spec
                   ,context)
-import Modelling.StateDiagram.EnumArrows(defaultEnumInstance
+import Modelling.StateDiagram.EnumArrows(defaultEnumArrowsInstance
                                         ,rate
                                         ,EnumArrowsInstance (taskSolution
                                                             ,randomization
@@ -49,12 +49,12 @@ spec
       context "randomization tests" $ do
 
         it "randomize chart layout for default chart" $ do
-          let task = defaultEnumInstance { randomization = True }
+          let task = defaultEnumArrowsInstance { randomization = True }
           task' <- randomiseLayout task
           task `shouldNotBe` task'
 
         it "test shuffle transition labels" $ do
-          let task = defaultEnumInstance { shuffle = Just ShuffleTriggers }
+          let task = defaultEnumArrowsInstance { shuffle = Just ShuffleTriggers }
           task' <- randomise task
           let hsc = connections . unUML' . globalise $ hierarchicalSD task
           let hsc' = connections . unUML' . globalise $ hierarchicalSD task'
@@ -76,12 +76,12 @@ spec
            <* shouldNotBe [] hsc'
 
         it "shuffle state names" $ do
-          let task = defaultEnumInstance { shuffle = Just ShuffleNames }
+          let task = defaultEnumArrowsInstance { shuffle = Just ShuffleNames }
           task' <- randomise task
           (collectNames . hierarchicalSD $ task) `shouldNotBe` (collectNames . hierarchicalSD $ task')
 
         it "shuffle state names and transition labels" $ do
-          let task = defaultEnumInstance { shuffle = Just ShuffleNamesAndTriggers }
+          let task = defaultEnumArrowsInstance { shuffle = Just ShuffleNamesAndTriggers }
           task' <- randomise task
           (flatAndEnumeratedSD task `shouldNotBe` flatAndEnumeratedSD task')
             *> (hierarchicalSD task `shouldNotBe` hierarchicalSD task')
@@ -107,13 +107,13 @@ spec
            noDuplicates submission `shouldBe` True
         it "pass rating test" $ do
           let
-            task = defaultEnumInstance
+            task = defaultEnumArrowsInstance
             answer = concatMap (uncurry zip) $ taskSolution task
             in
             rate (taskSolution task) answer `shouldBe` 1
         it "fail rating test by one point" $ do
           let
-            task = defaultEnumInstance
+            task = defaultEnumArrowsInstance
             answer = concatMap (uncurry zip) $ taskSolution task
             in
             rate (taskSolution task) (tail answer)
