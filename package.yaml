@@ -60,19 +60,27 @@ library:
     - -Wall
     - -Werror
 executables:
-  enumeratedArrowsDemo:
-    main: enumeratedArrowsDemo.hs
+  enumeratedArrowsQuizDemo:
+    main: enumeratedArrowsQuizDemo.hs
     source-dirs:
       - app
-      - app/common
     dependencies:
       - ba-sergei-lestsenski
       - output-monad
-      - transformers
       - time
       - directory
-    other-modules:
-      - Common
+    ghc-options:
+      - -Wall
+      - -Werror
+  enumeratedArrowsDirectDemo:
+    main: enumeratedArrowsDirectDemo.hs
+    source-dirs:
+      - app
+    dependencies:
+      - ba-sergei-lestsenski
+      - output-monad
+      - time
+      - directory
     ghc-options:
       - -Wall
       - -Werror

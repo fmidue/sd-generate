@@ -20,7 +20,7 @@ module Modelling.StateDiagram.EnumArrows (enumArrows
                                          ,EnumArrowsInstance(..)
                                          ,EnumArrowsConfig(..)
                                          ,defaultEnumArrowsConfig
-                                         ,defaultEnumInstance
+                                         ,defaultEnumArrowsInstance
                                          ,rate
                                          ,enumArrowsFeedback
                                          ,checkEnumArrowsConfig
@@ -439,10 +439,8 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
       )
 enumArrowsInstance _ = undefined
 
-checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsConfig -> EnumArrowsInstance -> m (Maybe String)
-checkEnumArrowsInstance _ task
-  | length (taskSolution task) > 30
-    = return $ Just "The solution chart exceeds a reasonable amount of transitions, it would be tedious to enumerate them all."
+checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsInstance -> m (Maybe String)
+checkEnumArrowsInstance task
   | chartRenderer task /= Diagrams && randomization task
     = return $ Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
   | otherwise = return Nothing
@@ -541,8 +539,8 @@ enumArrowsFeedback task submission
                "missing: " ++ show (missing solution submission) ++ "\n")
     return ()
 
-defaultEnumInstance :: EnumArrowsInstance
-defaultEnumInstance
+defaultEnumArrowsInstance :: EnumArrowsInstance
+defaultEnumArrowsInstance
   = EnumArrowsInstance {
     hierarchicalSD
       = umlStateDiagram $

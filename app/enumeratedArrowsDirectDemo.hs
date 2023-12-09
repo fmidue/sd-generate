@@ -12,20 +12,19 @@ import Data.Functor                     (($>))
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import System.Directory(createDirectoryIfMissing
                        ,renameFile)
-import Modelling.StateDiagram.EnumArrows (enumArrowsTask
-                                         ,enumArrowsSyntax
-                                         ,enumArrowsEvaluation
-                                         ,defaultEnumArrowsConfig
-                                         ,checkEnumArrowsConfig
-                                         ,EnumArrowsInstance(taskSolution)
-                                         ,enumArrows
-                                         , randomise, randomiseLayout, enumArrowsFeedback
-
+import Modelling.StateDiagram.EnumArrows ( enumArrowsTask
+                                         , enumArrowsSyntax
+                                         , enumArrowsEvaluation
+                                         , defaultEnumArrowsInstance
+                                         , checkEnumArrowsInstance
+                                         , EnumArrowsInstance(taskSolution)
+                                         , randomise
+                                         , randomiseLayout
+                                         , enumArrowsFeedback
                                          )
-import Data.Foldable(forM_)
 import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 
--- run with: stack run enumeratedArrowsDemo --
+-- run with: stack run enumeratedArrowsDirectDemo --
 main :: IO ()
 main = do
   t <- getSeed
@@ -36,16 +35,15 @@ main = do
     generate :: Int -> IO EnumArrowsInstance
     generate timestamp = do
       hSetBuffering stdout NoBuffering
-      -- check the task configuration
-      forM_ (checkEnumArrowsConfig defaultEnumArrowsConfig) error
-      putStrLn "configuration looking good"
+      -- check the task instance
+      mapM_ error =<< (checkEnumArrowsInstance defaultEnumArrowsInstance)
+      putStrLn "instance looking good"
       createDirectoryIfMissing True ("./session_temp/enumArrows"::FilePath)
       putStrLn $ "Seed: " ++ show timestamp
       -- initialize Alloy and instance selector
 
-      -- and pick a concrete instance, and optionally randomise triggers and names
-      enumArrows defaultEnumArrowsConfig timestamp
-        >>= randomise
+      -- on the concrete instance, optionally randomise triggers and names
+      randomise defaultEnumArrowsInstance
         >>= randomiseLayout
       -- visualize task
     describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)
@@ -63,7 +61,7 @@ main = do
         renameFile ("./session_temp/enumArrows" ++ "/flattenedDiagram.svg")
                    ("./session_temp/enumArrows/" ++ show timestamp ++ "_flattenedDiagram.svg")
         writeFile ("./session_temp/enumArrows/" ++ show timestamp ++ "_solution.txt") (show (taskSolution task))
-        writeFile ("./session_temp/enumArrows/" ++ show timestamp ++ "_generatorConfig.txt") (show defaultEnumArrowsConfig)
+        writeFile ("./session_temp/enumArrows/" ++ show timestamp ++ "_usedInstance.txt") (show defaultEnumArrowsInstance)
     submission =
       -- user submission
       fmap read getLine
