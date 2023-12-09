@@ -80,7 +80,7 @@ import Language.Alloy.Call (getInstances)
 import Modelling.StateDiagram.Instance (parseInstance
                                        ,failWith)
 import Modelling.StateDiagram.Flatten (flatten)
-import Data.List ( delete )
+import Data.List (delete, sort)
 import Control.Monad.Random.Lazy (randomRIO)
 import Data.Either (rights)
 import Control.Monad.Loops (iterateUntil)
@@ -221,9 +221,10 @@ shuffleTriggers task@EnumArrowsInstance {hierarchicalSD,flatAndEnumeratedSD,task
           = umlStateDiagram . fmap
             (shuffleTrigger placeholderToPlaceholder') . unUML' $ flatAndEnumeratedSD
       , taskSolution
-          = map (bimap
-                  (map (replace placeholderToPlaceholder'))
-                  (map (replace triggerToTrigger')))
+          = sort $
+            map (bimap
+                  (sort . map (replace placeholderToPlaceholder'))
+                  (sort . map (replace triggerToTrigger')))
             taskSolution
       }
   where
@@ -407,10 +408,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
          EnumArrowsInstance {
            hierarchicalSD = chart
          , chartRenderer = renderer renderPath
-         , taskSolution =  map (\x
-                                  -> (,)
-                                     (map fst x)
-                                     (map (transition . snd) x))
+         , taskSolution = sort . map (bimap sort (sort . map transition) . unzip)
                            $
                            groupSortOn (\(_,x)
                                              -> (pointFrom x, pointTo x))
@@ -469,7 +467,7 @@ enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -
 enumArrowsSyntax task answer
   = do
     assertion (length (nubOrd $ map fst answer) == length answer) $ translate $ do
-      english ("No placeholder was used more than once. \n" ++ show answer)
+      english "No placeholder was used more than once."
     assertion (not ( syntaxWarnTooManyArrows defaultEnumArrowsConfig &&
                 length answer > sum (map (length . fst) (taskSolution task)))) $ translate $ do
       english "The number of triggers matched against placeholder elements for transitions must not exceed the number of transitions in the chart."
