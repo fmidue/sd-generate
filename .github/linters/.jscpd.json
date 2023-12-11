@@ -4,7 +4,7 @@
     "consoleFull"
   ],
   "ignore": [
-    "**/__snapshots__/**", "**/plantUML/**", "**/src/Modelling/StateDiagram/Example.hs", "**/src/Modelling/StateDiagram/EnumArrows.hs", "**/test/Modelling/StateDiagram/FlattenSpec.hs", "**/test/unit/**", "**/thesis/01-Background.tex"
+    "**/__snapshots__/**", "**/plantUML/**", "**/src/Modelling/StateDiagram/Example.hs", "**/test/unit/**"
   ],
   "minLines": 2,
   "max-lines": 2000,
