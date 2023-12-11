@@ -437,11 +437,11 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
       )
 enumArrowsInstance _ = undefined
 
-checkEnumArrowsInstance :: (MonadIO m, MonadRandom m) => EnumArrowsInstance -> m (Maybe String)
+checkEnumArrowsInstance :: EnumArrowsInstance -> Maybe String
 checkEnumArrowsInstance task
   | chartRenderer task /= Diagrams && randomization task
-    = return $ Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
-  | otherwise = return Nothing
+    = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
+  | otherwise = Nothing
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
 checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
