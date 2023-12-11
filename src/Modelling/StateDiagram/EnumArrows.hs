@@ -443,7 +443,7 @@ checkEnumArrowsInstance :: EnumArrowsInstance -> Maybe String
 checkEnumArrowsInstance EnumArrowsInstance{..}
   | chartRenderer /= Diagrams && randomization
     = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
-  | canBothBeDrawnVia RenderPath{renderer = chartRenderer, renderPolicy = RegenerateOnFailure} hierarchicalSD renaming flatAndEnumeratedSD
+  | not $ canBothBeDrawnVia RenderPath{renderer = chartRenderer, renderPolicy = RegenerateOnFailure} hierarchicalSD renaming flatAndEnumeratedSD
     = Just "The rendering settings lead to failure."
   | otherwise = Nothing
 
