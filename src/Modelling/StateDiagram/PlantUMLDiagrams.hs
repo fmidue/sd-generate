@@ -32,8 +32,8 @@ renderAll style sd = do
   colors <- generate (infiniteListOf (vectorOf 3 (vectorOf 2 (elements "0123456789abcdef")) `suchThat` (\[r,g,b] -> r /= g || g /= b)))
   let
     info = "/'name: #{show name} (irrelevant) label: #{show label}'/"
-    ctxt = []
-    (rendered, relevantNames) = renderUML style ctxt sd
+    context = []
+    (rendered, relevantNames) = renderUML style context sd
     theStyling =
       case style of
         Unstyled
@@ -56,41 +56,41 @@ renderAll style sd = do
 |]
 
 renderUML :: Styling -> [Int] -> UMLStateDiagram String Int -> (String, [String])
-renderUML style ctxt =
+renderUML style context =
   unUML $ \_ substates connections startState
-    -> let hn = getAllHistory substates ctxt
+    -> let hn = getAllHistory substates context
            (theSubstates, relevantNames)
-             = renderSubstates substates style ctxt
+             = renderSubstates substates style context
        in
-       ([i|#{"\n"}#{theSubstates}#{"\n"}#{renderStart startState ctxt}#{"\n"}#{renderConnections hn connections ctxt}|], relevantNames)
+       ([i|#{"\n"}#{theSubstates}#{"\n"}#{renderStart startState context}#{"\n"}#{renderConnections hn connections context}|], relevantNames)
 
 renderSubstates :: [StateDiagram String Int [Connection Int]] -> Styling -> [Int] -> (String, [String])
 renderSubstates [] _ _ = ("",[])
-renderSubstates (x:xs) style ctxt =
-  let (rest, restNames) = renderSubstates xs style ctxt in
+renderSubstates (x:xs) style context =
+  let (rest, restNames) = renderSubstates xs style context in
   case x of
 
     StateDiagram{ label, name } ->
-       ([i|state #{theName} as #{("N_" ++ (address "" (ctxt ++ [label])))}#{theStyle}|]
+       ([i|state #{theName} as #{("N_" ++ (address "" (context ++ [label])))}#{theStyle}|]
         ++ "{\n" ++ recursively ++ "}\n"
         ++ rest, name : namesRecursively ++ restNames)
         where
           theName = if null name then "\"" ++ "EmptyName" ++ "\"" else show name
           theStyle = if null name || style == Unstyled then "" else " <<" ++ name ++ ">>"
-          (recursively, namesRecursively) = renderUML style (ctxt ++ [label]) (umlStateDiagram x)
+          (recursively, namesRecursively) = renderUML style (context ++ [label]) (umlStateDiagram x)
 
     CombineDiagram{ substates, label } ->
-       ([i|state "RegionsState" as #{("N_" ++ (address "" (ctxt ++ [label])))}|] ++ "{\n"
+       ([i|state "RegionsState" as #{("N_" ++ (address "" (context ++ [label])))}|] ++ "{\n"
         ++ recursively ++ "}\n"
         ++ rest, namesRecursively ++ restNames)
         where
-          (recursively, namesRecursively) = renderRegions substates style (ctxt ++ [label])
+          (recursively, namesRecursively) = renderRegions substates style (context ++ [label])
 
     EndState { label } ->
-       ([i|state #{("N_" ++ (address "" (ctxt ++ [label])))} <<end>>|] ++ "\n" ++ rest, restNames)
+       ([i|state #{("N_" ++ (address "" (context ++ [label])))} <<end>>|] ++ "\n" ++ rest, restNames)
 
     InnerMostState{ label, name } ->
-       ([i|state #{theName} as #{("N_" ++ (address "" (ctxt ++ [label])))}#{theStyle}|] ++ "\n"
+       ([i|state #{theName} as #{("N_" ++ (address "" (context ++ [label])))}#{theStyle}|] ++ "\n"
         ++ rest, name : restNames)
         where
           theName = if null name then "\"" ++ "EmptyName" ++ "\"" else show name
@@ -99,52 +99,52 @@ renderSubstates (x:xs) style ctxt =
     History {} -> (rest, restNames)
 
     Fork { label }
-      -> let node = ("N_" ++ address "" (ctxt ++ [label])) in
+      -> let node = ("N_" ++ address "" (context ++ [label])) in
          ([i|state #{node} <<fork>>|] ++ "\n" ++ rest, restNames)
 
     Join { label }
-      -> let node = ("N_" ++ address "" (ctxt ++ [label])) in
+      -> let node = ("N_" ++ address "" (context ++ [label])) in
          ([i|state #{node} <<join>>|] ++ "\n" ++ rest, restNames)
 
 renderRegions :: [StateDiagram String Int [Connection Int]] -> Styling -> [Int] -> (String, [String])
 renderRegions [] _ _ = ("", [])
-renderRegions (r:rs) style ctxt =
-  let (rest, restNames) = renderRegions rs style ctxt in
+renderRegions (r:rs) style context =
+  let (rest, restNames) = renderRegions rs style context in
   case r of
     StateDiagram{ label } ->
         (recursively ++ if null rs then "" else "--\n" ++ rest, namesRecursively ++ restNames)
         where
-          (recursively, namesRecursively) = renderUML style (ctxt ++ [label]) (umlStateDiagram r)
+          (recursively, namesRecursively) = renderUML style (context ++ [label]) (umlStateDiagram r)
 
     _ -> error "impossible!"
 
 renderStart :: [Int] -> [Int] -> String
 renderStart [] _ = []
-renderStart target ctxt =
+renderStart target context =
   let
-    here_target = ctxt ++ target
+    here_target = context ++ target
   in
     [i|[*] -> N_#{address "" here_target}|] ++ "\n"
 
 renderConnections :: [(StateDiagram String Int [Connection Int], [Int])] -> [Connection Int] -> [Int] -> String
 renderConnections _ [] _ = []
-renderConnections [] (Connection{ pointFrom, pointTo, transition }:cs) ctxt =
+renderConnections [] (Connection{ pointFrom, pointTo, transition }:cs) context =
   let
-    here_pointFrom = ctxt ++ pointFrom
-    here_pointTo = ctxt ++ pointTo
+    here_pointFrom = context ++ pointFrom
+    here_pointTo = context ++ pointTo
   in
     [i|N_#{address "" here_pointFrom} --> N_#{address "" here_pointTo}#{if null transition then "\n" else " : " ++ transition ++ "\n"}|]
-    ++ renderConnections [] cs ctxt
-renderConnections hn@((History{ historyType },completeLabel):hs) cx@(Connection{ pointFrom, pointTo, transition }:cs) ctxt
-  | completeLabel == here_pointFrom    = from_hc ++ renderConnections hn cs ctxt
-  | completeLabel == here_pointTo      = to_hc ++ renderConnections hn cs ctxt
+    ++ renderConnections [] cs context
+renderConnections hn@((History{ historyType },completeLabel):hs) cx@(Connection{ pointFrom, pointTo, transition }:cs) context
+  | completeLabel == here_pointFrom    = from_hc ++ renderConnections hn cs context
+  | completeLabel == here_pointTo      = to_hc ++ renderConnections hn cs context
   | otherwise                          = let
-                                           str = if null hs then [] else renderConnections hs cx ctxt
+                                           str = if null hs then [] else renderConnections hs cx context
                                          in
-                                           if null str then oc ++ renderConnections hn cs ctxt else str
+                                           if null str then oc ++ renderConnections hn cs context else str
     where
-      here_pointFrom = ctxt ++ pointFrom
-      here_pointTo = ctxt ++ pointTo
+      here_pointFrom = context ++ pointFrom
+      here_pointTo = context ++ pointTo
       isNullTransition = {-if null transition then "->" else-} "-->"
       isHistoryType = if historyType == Shallow then "[H]" else "[H*]"
       transitionLabel = if null transition then "\n" else " : " ++ transition ++ "\n"
@@ -159,24 +159,24 @@ address h as = intercalate "_" (map show (init as)) ++ h
 
 getAllHistory :: [StateDiagram String Int a] -> [Int] -> [(StateDiagram String Int a, [Int])]
 getAllHistory [] _ = []
-getAllHistory (x:xs) ctxt =
+getAllHistory (x:xs) context =
   case x of
     StateDiagram{ substates, label } ->
       let
-        here = ctxt ++ [label]
+        here = context ++ [label]
       in
         getAllHistory substates here
 
     CombineDiagram{ substates, label } ->
       let
-        here = ctxt ++ [label]
+        here = context ++ [label]
       in
         getAllHistory substates here
 
-    History{label} -> [(x, ctxt ++ [label])]
+    History{label} -> [(x, context ++ [label])]
 
     _ -> []
-  ++ getAllHistory xs ctxt
+  ++ getAllHistory xs context
 
 drawSDToFile :: FilePath -> UMLStateDiagram String Int -> IO FilePath
 drawSDToFile path chart

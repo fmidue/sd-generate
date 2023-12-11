@@ -18,7 +18,7 @@ import Data.List.Extra (nubOrd, notNull)
 import Data.Maybe (isNothing, fromJust)
 
 data Inherited = Inherited
-  { ctxt :: [Int]
+  { context :: [Int]
   , nameMapping :: [(String,String)]
   }
 
@@ -42,7 +42,7 @@ render protoFlowScope =
   unUML (\name substates connection startState ->
   let Synthesized {alloy, names, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
         renderInner renderNode substates
-          Inherited {ctxt = [], nameMapping = nameMapping
+          Inherited {context = [], nameMapping = nameMapping
                     }
       nameMapping = zipWith (\name -> (name,) . ("Name" ++) . show) (nubOrd names) [1..]
       nameOutput = map (\(_,component) -> [i|one sig #{component} extends ComponentNames{}|])
@@ -115,14 +115,14 @@ renderInner recurse substates inherited =
       }
 
 renderComposite :: String -> (StateDiagram String Int a -> Inherited -> Synthesized) -> StateDiagram String Int a -> Inherited -> Synthesized
-renderComposite kind eachWith StateDiagram{ substates, label, name, startState } inherited@Inherited{ctxt, nameMapping} =
+renderComposite kind eachWith StateDiagram{ substates, label, name, startState } inherited@Inherited{context, nameMapping} =
   let
-    here = ctxt ++ [label]
+    here = context ++ [label]
     node = [i|#{if kind == "Regions" then "R" else "N"}_#{address here}|]
     start = if null startState then Nothing else Just ([i|S_#{address here}|], here ++ startState)
     Synthesized {alloy, names, rootNodes, innerStarts, endNodes, normalStates, hierarchicalStates, regionsStates, deepHistoryNodes, shallowHistoryNodes, forkNodes, joinNodes} =
       renderInner eachWith substates
-        inherited {ctxt = here}
+        inherited {context = here}
   in
   Synthesized
   { alloy = unlines $
@@ -172,9 +172,9 @@ renderNode CombineDiagram { substates, label } inherited =
     StateDiagram{ substates = substates, label = label, name = "", startState = [] }
     inherited
 
-renderNode InnerMostState { label, name } Inherited{ctxt, nameMapping} =
+renderNode InnerMostState { label, name } Inherited{context, nameMapping} =
   let
-    here = ctxt ++ [label]
+    here = context ++ [label]
     node = [i|N_#{address here}|]
   in
   defaultSynthesized
@@ -186,9 +186,9 @@ renderNode InnerMostState { label, name } Inherited{ctxt, nameMapping} =
   , normalStates = True
   }
 
-renderNode EndState { label } Inherited{ctxt} =
+renderNode EndState { label } Inherited{context} =
   let
-    here = ctxt ++ [label]
+    here = context ++ [label]
     node = [i|N_#{address here}|]
   in
   defaultSynthesized
@@ -197,9 +197,9 @@ renderNode EndState { label } Inherited{ctxt} =
   , endNodes = True
   }
 
-renderNode History { label, historyType } Inherited{ctxt} =
+renderNode History { label, historyType } Inherited{context} =
   let
-    here = ctxt ++ [label]
+    here = context ++ [label]
     node = [i|N_#{address here}|]
   in
   defaultSynthesized
@@ -209,9 +209,9 @@ renderNode History { label, historyType } Inherited{ctxt} =
   , shallowHistoryNodes = historyType == Shallow
   }
 
-renderNode Fork {label} Inherited {ctxt} =
+renderNode Fork {label} Inherited {context} =
   let
-    here = ctxt ++ [label]
+    here = context ++ [label]
     node = [i|N_#{address here}|]
   in
   defaultSynthesized
@@ -221,9 +221,9 @@ renderNode Fork {label} Inherited {ctxt} =
   , joinNodes = False
   }
 
-renderNode Join {label} Inherited {ctxt} =
+renderNode Join {label} Inherited {context} =
   let
-    here = ctxt ++ [label]
+    here = context ++ [label]
     node = [i|N_#{address here}|]
   in
   defaultSynthesized
