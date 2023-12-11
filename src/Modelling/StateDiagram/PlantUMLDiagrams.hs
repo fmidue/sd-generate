@@ -1,8 +1,6 @@
-{-# OPTIONS_GHC -Wno-error=deprecations #-}
-{-# OPTIONS_GHC -Wno-error=missing-fields -Wno-error=incomplete-patterns -Wno-error=incomplete-uni-patterns -Wno-error=missing-signatures -Wno-error=type-defaults -Wno-error=name-shadowing #-}
+{-# OPTIONS_GHC -Wno-error=incomplete-uni-patterns #-}
 {-# Language QuasiQuotes    #-}
 {-# Language NamedFieldPuns #-}
-{-# Language ViewPatterns   #-}
 
 module Modelling.StateDiagram.PlantUMLDiagrams
   (renderAll
