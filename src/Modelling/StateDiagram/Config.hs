@@ -65,7 +65,9 @@ defaultSDConfig
   = let SDConfig { chartLimits = ChartLimits { .. }, .. }
           = defaultSDConfigScenario1
     in SDConfig { distinctTriggerNames = True
-                , chartLimits = ChartLimits { componentNames = componentNames + 1, .. }
+                , chartLimits = ChartLimits { componentNames = componentNames + 1
+                                            , triggerNames = (normalStates + hierarchicalStates, flows - fst startNodes)
+                                            , .. }
                 , compoundsHaveNames = Just True
                 , .. }
 
@@ -182,6 +184,9 @@ checkSDConfig SDConfig
                        , enforceNormalStateNames
                        , distinctNormalStateNames
                        , compoundsHaveNames
+                       , enforceOutgoingEdgesFromNormalAndHierarchical
+                       , distinctTriggerNames
+                       , preventEmptyTriggersFromStates
                        , chartLimits = chartLimits@ChartLimits{..}
                        }
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
@@ -214,8 +219,16 @@ checkSDConfig SDConfig
   = Just "The minimum total number for Nodes is too small, compared to the other numbers (lower bounds inconsistent)."
   | snd totalNodes > normalStates + hierarchicalStates + regionsStates + snd startNodes + endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
   = Just "The maximum total number for Nodes is too big, compared to the other numbers (upper bounds inconsistent)."
-  | flows < snd triggerNames
-  = Just "Your upper bound for trigger names is too high, relatively to the number of flows."
+  | flows < fst startNodes + 2 * fst forkNodes + fst joinNodes + if enforceOutgoingEdgesFromNormalAndHierarchical then normalStates + hierarchicalStates else 0
+  = Just "Your number of flows is too low, relatively to the number of nodes that will definitely have leaving flows according to your settings."
+  | flows < fst startNodes + snd triggerNames + if preventEmptyTriggersFromStates then fst joinNodes else 0
+  = Just "Your upper bound for trigger names is too high, relatively to the number of possibly named flows."
+  | distinctTriggerNames && enforceOutgoingEdgesFromNormalAndHierarchical &&
+    fst triggerNames < hierarchicalStates + if preventEmptyTriggersFromStates then normalStates else 0
+  = Just "Your lower bound for trigger names is too low, relatively to the number of states to have distinctly named leaving flows according to your settings."
+  | distinctTriggerNames && preventEmptyTriggersFromStates &&
+    fst triggerNames < flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes - snd joinNodes - (regions - 2 * (regionsStates - 1)) * snd forkNodes
+  = Just "Your lower bound for trigger names is too low, relatively to the number of flows to be distinctly named according to your settings."
   | fst protoFlows < flows
   = Just "Your lower bound for proto flows is too low, relatively to the number of flows."
   | otherwise
