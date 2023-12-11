@@ -356,40 +356,9 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
                                     }
   = do
     iterateUntil
-      (\taskInstance
-          -> let flatAndEnumeratedSD'
-                   = case renamingPolicy of
-                       HierarchicalConcatenation
-                         -> rename concat (flatAndEnumeratedSD taskInstance)
-                       JustTheInnermostName
-                         -> rename last (flatAndEnumeratedSD taskInstance)
-                 workingPlantUML =
-                   isNothing (checkDrawabilityPlantUML (hierarchicalSD taskInstance)) &&
-                   isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD')
-                 workingDiagrams =
-                   isNothing (checkDrawability (hierarchicalSD taskInstance)) &&
-                   isNothing (checkDrawability flatAndEnumeratedSD')
-             in
-             case renderPath of
-                RenderPath { renderPolicy = FailOnFailure
-                           , renderer = PlantUML
-                           }
-                  -> workingPlantUML
-                      || error "PlantUML renderer failed"
-                RenderPath { renderPolicy = RegenerateOnFailure
-                           , renderer = PlantUML
-                           }
-                  -> workingPlantUML
-                RenderPath { renderPolicy = FailOnFailure
-                            , renderer = Diagrams
-                            }
-                  -> workingDiagrams
-                     || error "Diagrams renderer failed"
-                RenderPath { renderPolicy = RegenerateOnFailure
-                           , renderer = Diagrams
-                           }
-                  -> workingDiagrams
-              )
+      (\EnumArrowsInstance{hierarchicalSD, flatAndEnumeratedSD}
+        -> canBothBeDrawnVia renderPath hierarchicalSD renamingPolicy flatAndEnumeratedSD
+      )
       (do
        liftIO $ putStrLn "generating instance"
        start <- liftIO getPOSIXTime
@@ -437,10 +406,45 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
       )
 enumArrowsInstance _ = undefined
 
+canBothBeDrawnVia :: RenderPath -> UMLStateDiagram String Int -> RenamingPolicy -> UMLStateDiagram [String] Int -> Bool
+canBothBeDrawnVia renderPath hierarchicalSD renaming flatAndEnumeratedSD =
+  case renderPath of
+    RenderPath { renderPolicy = FailOnFailure
+               , renderer = PlantUML
+               }
+      -> workingPlantUML || error "PlantUML renderer failed"
+    RenderPath { renderPolicy = RegenerateOnFailure
+               , renderer = PlantUML
+               }
+      -> workingPlantUML
+    RenderPath { renderPolicy = FailOnFailure
+               , renderer = Diagrams
+               }
+      -> workingDiagrams || error "Diagrams renderer failed"
+    RenderPath { renderPolicy = RegenerateOnFailure
+               , renderer = Diagrams
+               }
+      -> workingDiagrams
+  where
+    flatAndEnumeratedSD'
+      = case renaming of
+          HierarchicalConcatenation
+            -> rename concat flatAndEnumeratedSD
+          JustTheInnermostName
+            -> rename last flatAndEnumeratedSD
+    workingPlantUML =
+      isNothing (checkDrawabilityPlantUML hierarchicalSD) &&
+      isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD')
+    workingDiagrams =
+      isNothing (checkDrawability hierarchicalSD) &&
+      isNothing (checkDrawability flatAndEnumeratedSD')
+
 checkEnumArrowsInstance :: EnumArrowsInstance -> Maybe String
-checkEnumArrowsInstance task
-  | chartRenderer task /= Diagrams && randomization task
+checkEnumArrowsInstance EnumArrowsInstance{..}
+  | chartRenderer /= Diagrams && randomization
     = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
+  | canBothBeDrawnVia RenderPath{renderer = chartRenderer, renderPolicy = RegenerateOnFailure} hierarchicalSD renaming flatAndEnumeratedSD
+    = Just "The rendering settings lead to failure."
   | otherwise = Nothing
 
 checkEnumArrowsConfig :: EnumArrowsConfig -> Maybe String
