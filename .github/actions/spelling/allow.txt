@@ -120,9 +120,6 @@ yaml
 yml
 refactor
 args
-manr
-matrikel
-vnr
 enum
 Htrans
 HVtrans
@@ -130,11 +127,7 @@ lsd
 Minit
 sde
 sdg
-Sigs
-trifunctor
-trimap
 uncons
 randomise
-hsc
 mul
 placeholders
