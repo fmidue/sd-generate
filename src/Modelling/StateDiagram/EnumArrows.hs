@@ -449,6 +449,8 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
                                                               , .. }
                                       , randomizeLayout
                                       , renderPath }
+  | fst startNodes < 1
+  = Just "Tasks predicated on reachability will have at least a start node on the outermost level."
   | hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
   | not distinctTriggerNames

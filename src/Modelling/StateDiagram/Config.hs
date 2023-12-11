@@ -87,7 +87,7 @@ defaultSDConfigScenario1
                              , normalStates = 8
                              , componentNames = 8
                              , triggerNames = (1,10)
-                             , startNodes = (0,2)
+                             , startNodes = (1,2)
                              , endNodes = 0
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
@@ -95,7 +95,7 @@ defaultSDConfigScenario1
                              , deepHistoryNodes = (0,0)
                              , flows = 10
                              , protoFlows = (10,20)
-                             , totalNodes = (9,11)
+                             , totalNodes = (10,11)
                              }
              , extraConstraint =
                "let hs = HierarchicalStates, inner = hs + hs.contains |\n\
@@ -120,7 +120,7 @@ defaultSDConfigScenario2
                              , hierarchicalStates = 0
                              , regions = 2
                              , normalStates = 10
-                             , startNodes = (0,3)
+                             , startNodes = (1,3)
                              , endNodes = 1
                              , componentNames = 10
                              , triggerNames = (1,11)
@@ -130,7 +130,7 @@ defaultSDConfigScenario2
                              , deepHistoryNodes = (0,0)
                              , flows = 12
                              , protoFlows = (12,24)
-                             , totalNodes = (13,16)
+                             , totalNodes = (14,16)
                              }
              , extraConstraint =
                "some (ForkNodes + JoinNodes)\n\
@@ -158,7 +158,7 @@ defaultSDConfigScenario3
                              , normalStates = 7
                              , componentNames = 7
                              , triggerNames = (2,9)
-                             , startNodes = (0,2)
+                             , startNodes = (1,2)
                              , endNodes = 0
                              , forkNodes = (0,0)
                              , joinNodes = (0,0)
@@ -166,7 +166,7 @@ defaultSDConfigScenario3
                              , deepHistoryNodes = (0,1)
                              , flows = 9
                              , protoFlows = (9,18)
-                             , totalNodes = (9,11)
+                             , totalNodes = (10,11)
                              }
              , extraConstraint =
                "one HistoryNodes\n\
