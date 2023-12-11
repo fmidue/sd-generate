@@ -177,7 +177,7 @@ defaultSDConfigScenario3
              }
 
 checkSDConfig :: SDConfig -> Maybe String
-checkSDConfig sdConfig@SDConfig
+checkSDConfig SDConfig
                        { bitwidth
                        , enforceNormalStateNames
                        , distinctNormalStateNames
@@ -196,14 +196,30 @@ checkSDConfig sdConfig@SDConfig
   = Just "Given that you want to enforce distinct normal state names, you are setting too few component names."
   | distinctNormalStateNames && compoundsHaveNames == Just True && hierarchicalStates + regions > 0 && normalStates == componentNames
   = Just "Given that you want to enforce distinct normal state names and enforce naming regions and hierarchical states, you are setting too few component names."
+  | normalStates + hierarchicalStates + regions < componentNames
+  = Just "You are setting too many component names, relatively to the number of entities to be potentially named."
+  | compoundsHaveNames == Just False && normalStates < componentNames
+  = Just "Given that you want to avoid naming regions or hierarchical states, you are setting too many component names."
   | distinctNormalStateNames && compoundsHaveNames == Just False && normalStates /= componentNames
   = Just "Given that you want to enforce distinct normal state names and avoid naming regions or hierarchical states, you are not setting the right number of component names."
+  | hierarchicalStates + regions + 1 < snd startNodes
+  = Just "Your upper bound for start nodes is too high, relatively to the number of compound entities (and the top-level)."
+  | hierarchicalStates + regions + 1 < endNodes
+  = Just "You are setting too many end nodes, relatively to the number of compound entities (and the top-level)."
+  | hierarchicalStates + regions < snd shallowHistoryNodes
+  = Just "Your upper bound for shallow history nodes is too high, relatively to the number of compound entities."
+  | hierarchicalStates + regions < snd deepHistoryNodes
+  = Just "Your upper bound for deep history nodes is too high, relatively to the number of compound entities."
   | fst totalNodes < normalStates + hierarchicalStates + regionsStates + fst startNodes + endNodes + fst forkNodes + fst joinNodes + fst shallowHistoryNodes + fst deepHistoryNodes
   = Just "The minimum total number for Nodes is too small, compared to the other numbers (lower bounds inconsistent)."
   | snd totalNodes > normalStates + hierarchicalStates + regionsStates + snd startNodes + endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
   = Just "The maximum total number for Nodes is too big, compared to the other numbers (upper bounds inconsistent)."
+  | flows < snd triggerNames
+  = Just "Your upper bound for trigger names is too high, relatively to the number of flows."
+  | fst protoFlows < flows
+  = Just "Your lower bound for proto flows is too low, relatively to the number of flows."
   | otherwise
-  = checkLimits chartLimits <|> checkAmounts sdConfig
+  = checkLimits chartLimits
 
 checkLimits :: ChartLimits -> Maybe String
 checkLimits ChartLimits{..}
@@ -229,27 +245,6 @@ checkLimits ChartLimits{..}
     checkPair (lower, upper) name
       | lower > upper = Just $ "minimum of " ++ name ++ " must be less than or equal to maximum of " ++ name
       | otherwise = checkSingle lower name
-
-checkAmounts :: SDConfig -> Maybe String
-checkAmounts SDConfig { chartLimits = ChartLimits{..}, compoundsHaveNames }
-  | flows < snd triggerNames
-  = Just "Your upper bound for trigger names is too high, relatively to the number of flows."
-  | normalStates + hierarchicalStates + regions < componentNames
-  = Just "You are setting too many component names, relatively to the number of entities to be potentially named."
-  | compoundsHaveNames == Just False && normalStates < componentNames
-  = Just "Given that you want to avoid naming regions or hierarchical states, you are setting too many component names."
-  | hierarchicalStates + regions + 1 < snd startNodes
-  = Just "Your upper bound for start nodes is too high, relatively to the number of compound entities (and the top-level)."
-  | hierarchicalStates + regions + 1 < endNodes
-  = Just "You are setting too many end nodes, relatively to the number of compound entities (and the top-level)."
-  | hierarchicalStates + regions < snd shallowHistoryNodes
-  = Just "Your upper bound for shallow history nodes is too high, relatively to the number of compound entities."
-  | hierarchicalStates + regions < snd deepHistoryNodes
-  = Just "Your upper bound for deep history nodes is too high, relatively to the number of compound entities."
-  | fst protoFlows < flows
-  = Just "Your lower bound for proto flows is too low, relatively to the number of flows."
-  | otherwise
-  = Nothing
 
 sdConfigToAlloy :: SDConfig -> String
 sdConfigToAlloy  SDConfig { bitwidth
