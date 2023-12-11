@@ -128,8 +128,8 @@ defaultSDConfigScenario2
                              , joinNodes = (0,1)
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
-                             , flows = 12
-                             , protoFlows = (12,24)
+                             , flows = 15
+                             , protoFlows = (15,30)
                              , totalNodes = (14,16)
                              }
              , extraConstraint =
@@ -164,8 +164,8 @@ defaultSDConfigScenario3
                              , joinNodes = (0,0)
                              , shallowHistoryNodes = (0,1)
                              , deepHistoryNodes = (0,1)
-                             , flows = 9
-                             , protoFlows = (9,18)
+                             , flows = 10
+                             , protoFlows = (10,20)
                              , totalNodes = (10,11)
                              }
              , extraConstraint =
