@@ -154,7 +154,7 @@ defaultEnumArrowsConfig :: EnumArrowsConfig
 defaultEnumArrowsConfig
   = EnumArrowsConfig {
       sdConfig = defaultSDConfig
-    , maxInstances = Just 1000
+    , maxInstances = Just 20
     , printExtendedFeedback = True
     , syntaxWarnTooManyArrows = True
     , renamingPolicy = HierarchicalConcatenation
