@@ -232,24 +232,24 @@ checkLimits ChartLimits{..}
 
 checkAmounts :: SDConfig -> Maybe String
 checkAmounts SDConfig { chartLimits = ChartLimits{..}, compoundsHaveNames }
-  = sumNotExceededByPairs [(flows, flows)] triggerNames "trigger names, relatively to the number of flows"
-    <|> sumNotExceededBySingles (normalStates : if compoundsHaveNames == Just False then [] else [hierarchicalStates, regions]) componentNames "component names, relatively to entities to be potentially named"
-    <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions), (1,1)] startNodes "start nodes, relatively to compound entities"
-    <|> sumNotExceededBySingles [hierarchicalStates, regions, 1] endNodes "end nodes, relatively to compound entities"
-    <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions)] shallowHistoryNodes "shallow history nodes, relatively to compound entities"
-    <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions)] deepHistoryNodes "deep history nodes, relatively to compound entities"
-    <|> sumNotExceededByPairs [protoFlows] (flows, flows) "flows, relatively to the proto flows"
-  where
-    sumNotExceededBySingles these that ofIt
-      | sum these < that
-      = Just $ "You seem to be requesting too many " ++ ofIt ++ "."
-      | otherwise = Nothing
-    sumNotExceededByPairs these that ofIt
-      | sum (map fst these) < fst that
-      = Just $ "You seem to be requesting too many " ++ ofIt ++ " (lower bounds inconsistent)."
-      | sum (map snd these) < snd that
-      = Just $ "You seem to be requesting too many " ++ ofIt ++ " (upper bounds inconsistent)."
-      | otherwise = Nothing
+  | flows < snd triggerNames
+  = Just "Your upper bound for trigger names is too high, relatively to the number of flows."
+  | normalStates + hierarchicalStates + regions < componentNames
+  = Just "You are setting too many component names, relatively to the number of entities to be potentially named."
+  | compoundsHaveNames == Just False && normalStates < componentNames
+  = Just "Given that you want to avoid naming regions or hierarchical states, you are setting too many component names."
+  | hierarchicalStates + regions + 1 < snd startNodes
+  = Just "Your upper bound for start nodes is too high, relatively to the number of compound entities (and the top-level)."
+  | hierarchicalStates + regions + 1 < endNodes
+  = Just "You are setting too many end nodes, relatively to the number of compound entities (and the top-level)."
+  | hierarchicalStates + regions < snd shallowHistoryNodes
+  = Just "Your upper bound for shallow history nodes is too high, relatively to the number of compound entities."
+  | hierarchicalStates + regions < snd deepHistoryNodes
+  = Just "Your upper bound for deep history nodes is too high, relatively to the number of compound entities."
+  | fst protoFlows < flows
+  = Just "Your lower bound for proto flows is too low, relatively to the number of flows."
+  | otherwise
+  = Nothing
 
 sdConfigToAlloy :: SDConfig -> String
 sdConfigToAlloy  SDConfig { bitwidth
