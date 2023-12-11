@@ -177,9 +177,11 @@ defaultSDConfigScenario3
              }
 
 checkSDConfig :: SDConfig -> Maybe String
-checkSDConfig SDConfig { bitwidth
+checkSDConfig sdConfig@SDConfig
+                       { bitwidth
                        , enforceNormalStateNames
                        , distinctNormalStateNames
+                       , compoundsHaveNames
                        , chartLimits = chartLimits@ChartLimits{..}
                        }
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
@@ -192,12 +194,16 @@ checkSDConfig SDConfig { bitwidth
   | distinctNormalStateNames && not enforceNormalStateNames = Just "you cannot enforce distinct normal state names without enforcing normal state names"
   | distinctNormalStateNames && normalStates > componentNames
   = Just "Given that you want to enforce distinct normal state names, you are setting too few component names."
+  | distinctNormalStateNames && compoundsHaveNames == Just True && hierarchicalStates + regions > 0 && normalStates == componentNames
+  = Just "Given that you want to enforce distinct normal state names and enforce naming regions and hierarchical states, you are setting too few component names."
+  | distinctNormalStateNames && compoundsHaveNames == Just False && normalStates /= componentNames
+  = Just "Given that you want to enforce distinct normal state names and avoid naming regions or hierarchical states, you are not setting the right number of component names."
   | fst totalNodes < normalStates + hierarchicalStates + regionsStates + fst startNodes + endNodes + fst forkNodes + fst joinNodes + fst shallowHistoryNodes + fst deepHistoryNodes
   = Just "The minimum total number for Nodes is too small, compared to the other numbers (lower bounds inconsistent)."
   | snd totalNodes > normalStates + hierarchicalStates + regionsStates + snd startNodes + endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
   = Just "The maximum total number for Nodes is too big, compared to the other numbers (upper bounds inconsistent)."
   | otherwise
-  = checkLimits chartLimits <|> checkAmounts chartLimits
+  = checkLimits chartLimits <|> checkAmounts sdConfig
 
 checkLimits :: ChartLimits -> Maybe String
 checkLimits ChartLimits{..}
@@ -224,10 +230,10 @@ checkLimits ChartLimits{..}
       | lower > upper = Just $ "minimum of " ++ name ++ " must be less than or equal to maximum of " ++ name
       | otherwise = checkSingle lower name
 
-checkAmounts :: ChartLimits -> Maybe String
-checkAmounts ChartLimits{..}
+checkAmounts :: SDConfig -> Maybe String
+checkAmounts SDConfig { chartLimits = ChartLimits{..}, compoundsHaveNames }
   = sumNotExceededByPairs [(flows, flows)] triggerNames "trigger names, relatively to the number of flows"
-    <|> sumNotExceededBySingles [normalStates, hierarchicalStates, regions] componentNames "component names, relatively to entities to be potentially named"
+    <|> sumNotExceededBySingles (normalStates : if compoundsHaveNames == Just False then [] else [hierarchicalStates, regions]) componentNames "component names, relatively to entities to be potentially named"
     <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions), (1,1)] startNodes "start nodes, relatively to compound entities"
     <|> sumNotExceededBySingles [hierarchicalStates, regions, 1] endNodes "end nodes, relatively to compound entities"
     <|> sumNotExceededByPairs [(hierarchicalStates, hierarchicalStates), (regions, regions)] shallowHistoryNodes "shallow history nodes, relatively to compound entities"
