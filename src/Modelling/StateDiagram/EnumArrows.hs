@@ -519,7 +519,7 @@ rated solution submission
                               else (ps,ts)
                         ) solution'
               )
-         (map (bimap (fmap Left) (fmap Left)) solution)
+         (map (bimap (map Left) (map Left)) solution)
          (map (bimap Left Left ) submission)
 
 
