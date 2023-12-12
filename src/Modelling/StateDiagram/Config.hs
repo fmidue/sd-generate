@@ -67,8 +67,15 @@ defaultSDConfig
     in SDConfig { distinctTriggerNames = True
                 , chartLimits = ChartLimits { componentNames = componentNames + 1
                                             , triggerNames = (normalStates + hierarchicalStates, flows - fst startNodes)
+                                            , protoFlows = (12,17)
                                             , .. }
                 , compoundsHaveNames = Just True
+                , extraConstraint = extraConstraint ++
+                  "  and mul[3,#inner] =< mul[2,#Nodes]\n\
+                  \  and one (Flows <: from).hs\n\
+                  \  and lone (Flows <: to).hs\n\
+                  \  and hs not in (Flows <: from).(hs.contains).to\n\
+                  \"
                 , .. }
 
 defaultSDConfigScenario1 :: SDConfig
@@ -96,7 +103,7 @@ defaultSDConfigScenario1
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
                              , flows = 11
-                             , protoFlows = (11,20)
+                             , protoFlows = (12,25)
                              , totalNodes = (10,11)
                              }
              , extraConstraint =
