@@ -84,9 +84,11 @@ drawWrapper :: Styling -> [Int] -> Wrapper -> Diagram B
 drawWrapper _ a (StartS _ l rightType layouts) = appendEdges (circle 0.1 # fc
   black) l rightType layouts # named (a ++ [-1])
 drawWrapper _ a (CrossStateDummy b _) = square 0.005 # fc black # named (a ++ [b])
-drawWrapper _ a (EndS k l rightType layouts) =
-  appendEdges (circle 0.16 # lw ultraThin `atop` circle 0.1 # fc black) l rightType layouts
+drawWrapper style a (EndS k l rightType layouts) =
+  appendEdges (circle 0.16 # lw ultraThin # lc theColour `atop` circle 0.1 # fc black) l rightType layouts
   # named (a ++ [k])
+  where
+    theColour = hashToColour style (show k)
 drawWrapper style a (Leaf b c d l rightType layouts) = if d == "" then appendEdges
   (text' <> roundedRect (width text' + 0.3) (height text' + 0.3) 0.1 # lc theColour) l
   rightType layouts # named (a ++ [b]) else appendEdges drawing'
@@ -97,7 +99,7 @@ drawWrapper style a (Leaf b c d l rightType layouts) = if d == "" then appendEdg
     text'' = drawText d black
     drawing = drawSwimlane' [text' <> roundedRect (width text' + 0.3) (height text' + 0.3) 0.1
       # lcA transparent, text'' <> roundedRect (width text'' + 0.3) (height text'' + 0.3) 0.1 ] # centerXY
-    drawing' = (roundedRect (width drawing) (height drawing) 0.1 <> drawing) #
+    drawing' = (roundedRect (width drawing) (height drawing) 0.1 # lc theColour <> drawing) #
       centerXY
     theColour = hashToColour style c
 drawWrapper _ a (Hist b histType l rightType layouts) = appendEdges ((if
