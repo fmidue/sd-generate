@@ -25,6 +25,7 @@ import Modelling.StateDiagram.Alloy(componentsSigRules
                                    ,transitionRules
                                    ,trueReachability)
 import Data.String.Interpolate(i)
+import Data.Bifunctor (bimap)
 import Control.Applicative (Alternative ((<|>)))
 
 data ChartLimits
@@ -41,7 +42,7 @@ data ChartLimits
                 , shallowHistoryNodes :: (Int,Int)
                 , deepHistoryNodes :: (Int,Int)
                 , flows :: Int
-                , protoFlows :: (Int,Int)
+                , derivedFlowsNew :: (Int,Int)
                 , totalNodes :: (Int,Int)
                 }
   deriving (Show,Eq)
@@ -67,7 +68,7 @@ defaultSDConfig
     in SDConfig { distinctTriggerNames = True
                 , chartLimits = ChartLimits { componentNames = componentNames + 1
                                             , triggerNames = (normalStates + hierarchicalStates, flows - fst startNodes)
-                                            , protoFlows = (12,17)
+                                            , derivedFlowsNew = (1,6)
                                             , .. }
                 , compoundsHaveNames = Just True
                 , extraConstraint = extraConstraint ++
@@ -103,7 +104,7 @@ defaultSDConfigScenario1
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
                              , flows = 11
-                             , protoFlows = (12,25)
+                             , derivedFlowsNew = (1,14)
                              , totalNodes = (10,11)
                              }
              , extraConstraint =
@@ -138,7 +139,7 @@ defaultSDConfigScenario2
                              , shallowHistoryNodes = (0,0)
                              , deepHistoryNodes = (0,0)
                              , flows = 15
-                             , protoFlows = (15,30)
+                             , derivedFlowsNew = (0,15)
                              , totalNodes = (14,16)
                              }
              , extraConstraint =
@@ -174,7 +175,7 @@ defaultSDConfigScenario3
                              , shallowHistoryNodes = (0,1)
                              , deepHistoryNodes = (0,1)
                              , flows = 10
-                             , protoFlows = (10,20)
+                             , derivedFlowsNew = (0,10)
                              , totalNodes = (10,11)
                              }
              , extraConstraint =
@@ -236,8 +237,6 @@ checkSDConfig SDConfig
   | distinctTriggerNames && preventEmptyTriggersFromStates &&
     fst triggerNames < flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes - snd joinNodes - (regions - 2 * (regionsStates - 1)) * snd forkNodes
   = Just "Your lower bound for trigger names is too low, relatively to the number of flows to be distinctly named according to your settings."
-  | fst protoFlows < flows
-  = Just "Your lower bound for proto flows is too low, relatively to the number of flows."
   | otherwise
   = checkLimits chartLimits
 
@@ -254,7 +253,7 @@ checkLimits ChartLimits{..}
     <|> checkPair shallowHistoryNodes "ShallowHistoryNodes"
     <|> checkPair deepHistoryNodes "DeepHistoryNodes"
     <|> checkSingle flows "Flows"
-    <|> checkPair protoFlows "ProtoFlows"
+    <|> checkPair derivedFlowsNew "derivedFlowsNew (ProtoFlows - Flows)"
     <|> checkPair totalNodes "Nodes"
     <|> checkSingle componentNames "ComponentNames"
     <|> checkPair triggerNames "TriggerNames"
@@ -289,12 +288,14 @@ sdConfigToAlloy  SDConfig { bitwidth
                                                       , shallowHistoryNodes
                                                       , deepHistoryNodes
                                                       , flows
-                                                      , protoFlows
+                                                      , derivedFlowsNew
                                                       , totalNodes
                                                       }
                           , extraConstraint
                           }
-  = [i|module GenUMLStateDiagram
+  = let protoFlows = bimap (flows +) (flows +) derivedFlowsNew
+    in
+    [i|module GenUMLStateDiagram
       #{componentsSigRules}
       #{trueReachability}
       #{if snd startNodes > 0 then startstateRules else ""}
