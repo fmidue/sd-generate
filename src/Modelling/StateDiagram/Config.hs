@@ -26,6 +26,7 @@ import Modelling.StateDiagram.Alloy(componentsSigRules
                                    ,trueReachability)
 import Data.String.Interpolate(i)
 import Data.Bifunctor (bimap)
+import Data.List (intercalate)
 import Control.Applicative (Alternative ((<|>)))
 
 data ChartLimits
@@ -43,6 +44,7 @@ data ChartLimits
                 , deepHistoryNodes :: (Int,Int)
                 , flows :: Int
                 , derivedFlowsNew :: (Int,Int)
+                , derivedFlowsReused :: (Int,Int)
                 , totalNodes :: (Int,Int)
                 }
   deriving (Show,Eq)
@@ -105,6 +107,7 @@ defaultSDConfigScenario1
                              , deepHistoryNodes = (0,0)
                              , flows = 11
                              , derivedFlowsNew = (1,14)
+                             , derivedFlowsReused = (0,11)
                              , totalNodes = (10,11)
                              }
              , extraConstraint =
@@ -140,6 +143,7 @@ defaultSDConfigScenario2
                              , deepHistoryNodes = (0,0)
                              , flows = 15
                              , derivedFlowsNew = (0,15)
+                             , derivedFlowsReused = (0,15)
                              , totalNodes = (14,16)
                              }
              , extraConstraint =
@@ -176,6 +180,7 @@ defaultSDConfigScenario3
                              , deepHistoryNodes = (0,1)
                              , flows = 10
                              , derivedFlowsNew = (0,10)
+                             , derivedFlowsReused = (0,10)
                              , totalNodes = (10,11)
                              }
              , extraConstraint =
@@ -237,6 +242,8 @@ checkSDConfig SDConfig
   | distinctTriggerNames && preventEmptyTriggersFromStates &&
     fst triggerNames < flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes - snd joinNodes - (regions - 2 * (regionsStates - 1)) * snd forkNodes
   = Just "Your lower bound for trigger names is too low, relatively to the number of flows to be distinctly named according to your settings."
+  | snd derivedFlowsReused > flows
+  = Just "You cannot reuse more flows than there are."
   | otherwise
   = checkLimits chartLimits
 
@@ -254,6 +261,7 @@ checkLimits ChartLimits{..}
     <|> checkPair deepHistoryNodes "DeepHistoryNodes"
     <|> checkSingle flows "Flows"
     <|> checkPair derivedFlowsNew "derivedFlowsNew (ProtoFlows - Flows)"
+    <|> checkPair derivedFlowsReused "derivedFlowsReused"
     <|> checkPair totalNodes "Nodes"
     <|> checkSingle componentNames "ComponentNames"
     <|> checkPair triggerNames "TriggerNames"
@@ -289,6 +297,7 @@ sdConfigToAlloy  SDConfig { bitwidth
                                                       , deepHistoryNodes
                                                       , flows
                                                       , derivedFlowsNew
+                                                      , derivedFlowsReused
                                                       , totalNodes
                                                       }
                           , extraConstraint
@@ -333,6 +342,7 @@ pred scenarioConfig #{oB}
   #{lowerBound joinNodes "JoinNodes"}
   #{lowerBound protoFlows "ProtoFlows"}
   #{lowerBound totalNodes "Nodes"}
+  #{derivedFlowsReusedBounds}
 #{extraConstraint}
 #{cB}
 
@@ -364,3 +374,18 @@ exactly #{regions} Regions,
   upperBoundOrExact (a,b) entry
                     | a == b = "exactly " ++ show a ++ " " ++ entry
                     | otherwise = show b ++ " " ++ entry
+  derivedFlowsReusedBounds
+    | derivedFlowsReused == (0, flows)
+    = ""
+    | otherwise
+    = let (low, high) = derivedFlowsReused
+      in
+        "let reused = ProtoFlows.derived & Flows | " ++
+        if low == high
+        then
+          "#reused = " ++ show low
+        else
+          intercalate " and " $
+          [ "#reused >= " ++ show low | low > 0 ]
+          ++
+          [ "#reused =< " ++ show high | high < flows ]
