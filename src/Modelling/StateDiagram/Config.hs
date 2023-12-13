@@ -244,6 +244,18 @@ checkSDConfig SDConfig
   = Just "Your lower bound for trigger names is too low, relatively to the number of flows to be distinctly named according to your settings."
   | snd derivedFlowsReused > flows
   = Just "You cannot reuse more flows than there are."
+  | maximum ([ flows + snd derivedFlowsNew | uncurry (/=) derivedFlowsNew ]
+             ++ [ snd derivedFlowsReused | derivedFlowsReused /= (0, flows) ]
+             ++ [ b | (a,b) <- [ startNodes
+                               , shallowHistoryNodes
+                               , deepHistoryNodes
+                               , triggerNames
+                               , forkNodes
+                               , joinNodes
+                               , totalNodes ]
+                    , 0 < a && a /= b ])
+    > 2 ^ (bitwidth - 1) - 1
+  = Just "Your bitwidth setting is too small, given the other settings."
   | otherwise
   = checkLimits chartLimits
 
