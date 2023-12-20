@@ -54,7 +54,6 @@ library:
     - Modelling.StateDiagram.AlloyDiagrams
     - Modelling.StateDiagram.PlantUMLDiagrams
     - Modelling.StateDiagram.Style
-    - Modelling.StateDiagram.Simulate
     - Modelling.StateDiagram.EnumArrows
   ghc-options:
     - -Wall
