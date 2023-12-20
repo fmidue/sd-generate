@@ -1,5 +1,5 @@
 ---
-name: ba-sergei-lestsenski
+name: sd-generate
 extra-source-files: [ ]
 dependencies:
   - base
@@ -64,7 +64,7 @@ executables:
     source-dirs:
       - app
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
       - output-monad
       - time
       - directory
@@ -76,7 +76,7 @@ executables:
     source-dirs:
       - app
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
       - output-monad
       - time
       - directory
@@ -87,7 +87,7 @@ executables:
     main: sampling.hs
     source-dirs: app
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
       - pretty-simple
     ghc-options:
       - -Wall
@@ -96,7 +96,7 @@ executables:
     main: draw.hs
     source-dirs: app
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
     ghc-options:
       - -Wall
       - -Werror
@@ -104,7 +104,7 @@ executables:
     main: drawing.hs
     source-dirs: app
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
     ghc-options:
       - -Wall
       - -Werror
@@ -112,7 +112,7 @@ executables:
     main: transformAlloy.hs
     source-dirs: app
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
     ghc-options:
       - -Wall
       - -Werror
@@ -120,12 +120,12 @@ executables:
     main: transformPlantUML.hs
     source-dirs: app
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
     ghc-options:
       - -Wall
       - -Werror
 tests:
-  ba-sergei-lestsenski-test:
+  sd-generate-test:
     main: Spec.hs
     source-dirs:
       - test
@@ -136,7 +136,7 @@ tests:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - ba-sergei-lestsenski
+      - sd-generate
       - file-embed
       - call-alloy
       - directory
