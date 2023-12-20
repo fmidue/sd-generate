@@ -14,11 +14,8 @@ Ginit
 Graphviz
 HASKELL
 HUnit
-HVtrans
 Hspec
-Htrans
 Leftrightarrow
-Minit
 Modellierung
 PCDATA
 Programmierparadigmen
@@ -31,7 +28,6 @@ VHtrans
 Vtrans
 XML
 abcdef
-args
 asc
 bigskip
 bigvee
@@ -51,7 +47,6 @@ disj
 endif
 endstate
 enduml
-enum
 executability
 firstline
 fmap
@@ -69,7 +64,6 @@ lastline
 layouted
 ldots
 localise
-lsd
 lstinputlisting
 lstlisting
 lstset
@@ -97,8 +91,6 @@ refactoring
 reinventions
 ruleset
 scanl
-sde
-sdg
 snd
 sourced
 src
