@@ -15,12 +15,13 @@ import Modelling.StateDiagram.Datatype (UMLStateDiagram
 import Modelling.StateDiagram.Datatype.ClassInstances ()
 import Modelling.StateDiagram.Datatype.Lenses (pointFromL, pointToL, pointBothL)
 import Data.Either.Extra (fromLeft')
+import Data.Maybe (fromJust)
 import Data.List (find, singleton)
 import Data.Bifunctor (bimap)
 import Control.Lens (over
                     ,traverseOf)
 
-flatten :: (Eq l, Enum l, Num l, Show l) => UMLStateDiagram n l -> UMLStateDiagram [n] l
+flatten :: UMLStateDiagram n Int -> UMLStateDiagram [n] Int
 flatten chart
   = go (globalise $ rename singleton chart)
   where
@@ -102,7 +103,7 @@ rewireExiting liftedNodeAddress elevatedSubstates from
 rewireExiting liftedNodeAddress _ from
   = [ rewireAny liftedNodeAddress from ]
 
-distinctLabels :: (Eq l, Enum l, Num l, Show l) => UMLStateDiagram n (Either l l) -> UMLStateDiagram n l
+distinctLabels :: Eq l => UMLStateDiagram n (Either Int l) -> UMLStateDiagram n Int
 distinctLabels
   = umlStateDiagram . unUML
     (\name substates connections startState ->
@@ -114,23 +115,18 @@ distinctLabels
        StateDiagram { substates
                         = map (matchNodeToRelation r) substates
                     , connections
-                        = matchConnectionToRelation connections r
+                        = map (fmap fromLeft' . over pointBothL (mapHead (Left . lookup' r))) connections
                     , name = name
                     , startState
-                        = mapHeadTail (`matchToRelation` r) fromLeft' startState
+                        = mapHeadTail (lookup' r) fromLeft' startState
                     , label = error "not relevant"
                     }
     )
 
-matchToRelation :: (Eq a, Show a, Show b) => a -> [(a, b)] -> b
-matchToRelation x r
-  = case lookup x r of
-     Just u
-       -> u
-     Nothing
-       -> error ("no matching label can be found for " ++ show x ++ " in " ++ show r)
+lookup' :: Eq a => [(a, b)] -> a -> b
+lookup' r x = fromJust (lookup x r)
 
-matchNodeToRelation :: (Eq l, Show l) => [(Either l l, l)] -> StateDiagram n (Either l l) [Connection (Either b b)] -> StateDiagram n l [Connection b]
+matchNodeToRelation :: (Eq l, Eq c) => [(Either l c, l)] -> StateDiagram n (Either l c) [Connection (Either b d)] -> StateDiagram n l [Connection b]
 matchNodeToRelation r
       = \case
            StateDiagram { label
@@ -139,7 +135,7 @@ matchNodeToRelation r
                         , ..
                         }
              -> StateDiagram { label
-                                 = matchToRelation label r
+                                 = lookup' r label
                              , substates
                                  = map (bimap fromLeft' (const [])) substates
                              , connections
@@ -151,22 +147,22 @@ matchNodeToRelation r
                           , substates
                           }
              -> CombineDiagram { label
-                                   = matchToRelation label r
+                                   = lookup' r label
                                 , substates
                                     = map (bimap fromLeft' (const [])) substates
                                 }
            InnerMostState { label, .. }
-             -> InnerMostState { label = matchToRelation label r
+             -> InnerMostState { label = lookup' r label
                                , .. }
            EndState { label }
-             -> EndState { label = matchToRelation label r }
+             -> EndState { label = lookup' r label }
            Fork { label }
-             -> Fork { label = matchToRelation label r }
+             -> Fork { label = lookup' r label }
            Join { label }
-             -> Join { label = matchToRelation label r}
+             -> Join { label = lookup' r label }
            History { label
                    , .. }
-              -> History { label = matchToRelation label r
+              -> History { label = lookup' r label
                          , .. }
 
 mapHeadTail :: (a -> b) -> (a -> b) -> [a] -> [b]
@@ -176,7 +172,3 @@ mapHeadTail _ _ _      = error "impossible!"
 mapHead :: (a -> a) -> [a] -> [a]
 mapHead _ []     = error "impossible!"
 mapHead f (x:xs) = f x : xs
-
-matchConnectionToRelation :: (Eq l, Show l) => [Connection (Either l l)] -> [(Either l l, l)] -> [Connection l]
-matchConnectionToRelation connections r
-  = map (fmap fromLeft' . over pointBothL (mapHead (Left . flip matchToRelation r))) connections
