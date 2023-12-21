@@ -1,6 +1,3 @@
-{-# OPTIONS_GHC -Wno-deprecations   #-}
-{-# OPTIONS_GHC -Wno-unused-imports #-}
-{-# OPTIONS_GHC -Wno-unused-binds   #-}
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 
@@ -11,23 +8,19 @@ module Modelling.StateDiagram.FlattenSpec (
 import Test.Hspec
 import Modelling.StateDiagram.Datatype (StateDiagram(..)
                 ,Connection (..)
-                ,UMLStateDiagram (unUML')
+                ,UMLStateDiagram
                 ,umlStateDiagram
                 ,unUML
-                ,rename
-                ,unUML'
+                -- ,rename
                 )
-import Modelling.StateDiagram.Flatten (flatten
-                                      ,flatten'
-                                      ,lift)
+import Modelling.StateDiagram.Flatten (flatten)
 import Modelling.StateDiagram.ExampleSpec (allTheCheckers)
-import System.Directory(createDirectoryIfMissing)
-import Diagrams.Backend.SVG (renderSVG)
-import Modelling.StateDiagram.Style (Styling(Unstyled))
-import Modelling.StateDiagram.Layout (drawDiagram)
-import Diagrams (dims)
-import Diagrams.Prelude (V2(V2))
-import Data.List (singleton)
+-- import System.Directory(createDirectoryIfMissing)
+-- import Diagrams.Backend.SVG (renderSVG)
+-- import Modelling.StateDiagram.Style (Styling(Unstyled))
+-- import Modelling.StateDiagram.Layout (drawDiagram)
+-- import Diagrams (dims)
+-- import Diagrams.Prelude (V2(V2))
 
 -- this chart should cover most cases within one instance
 -- to avoid cluttering up the test suite with many overly
@@ -114,81 +107,6 @@ probeChart
                        , label = 3, name = "E"
                        , connections = []
                        , startState = [1] }
-
-probeChartLiftedSDe :: UMLStateDiagram [String] Int
-probeChartLiftedSDe
-  = umlStateDiagram $
-    StateDiagram { substates = [ StateDiagram { substates = [ InnerMostState { label = 1
-                                                                             , name = ["J"]
-                                                                             , operations = "" }
-                                                            , InnerMostState { label = 2
-                                                                             , name = ["K"]
-                                                                             , operations = "" }
-                                                            ]
-                                              , label = 1
-                                              , name = ["E","G"]
-                                              , connections = []
-                                              , startState = [1] }
-                               , InnerMostState { label = 2
-                                                , name = ["E","F"]
-                                                , operations = "" }
-                               , EndState { label = 3 }
-                               , InnerMostState { label = 4
-                                                , name = ["D"]
-                                                , operations = "" }
-                               , CombineDiagram { substates = [ StateDiagram { substates = [ InnerMostState { label = 1
-                                                                                                            , name = ["B"]
-                                                                                                            , operations = ""}
-                                                                                           , InnerMostState { label = 2
-                                                                                                            , name = ["C"]
-                                                                                                            , operations = "" }
-                                                                                           ]
-                                                                             , label = 1
-                                                                             , name = [""]
-                                                                             , connections = []
-                                                                             , startState = [1] }
-                                                              , StateDiagram { substates = [ InnerMostState { label = 1
-                                                                                                            , name = ["M"]
-                                                                                                            , operations = "" }
-                                                                                           , InnerMostState { label = 2
-                                                                                                            , name = ["L"]
-                                                                                                            , operations = ""}
-                                                                                           ]
-                                                                             , label = 2
-                                                                             , name = [""]
-                                                                             , connections = []
-                                                                             , startState = [1] }
-                                                             ]
-                                                 , label = 5 }
-                               , Fork {label = 6}
-                               , Join {label = 7}]
-                               , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!"
-                               , name = [""]
-                               , connections = [ Connection {pointFrom = [4], pointTo = [3], transition = "dt"}
-                                               , Connection {pointFrom = [1], pointTo = [4], transition = "gd"}
-                                               , Connection {pointFrom = [4], pointTo = [1], transition = "de"}
-                                               , Connection {pointFrom = [1,1], pointTo = [4], transition = "jd"}
-                                               , Connection {pointFrom = [1,2], pointTo = [1,1], transition = "kj"}
-                                               , Connection {pointFrom = [1], pointTo = [1], transition = "lst"}
-                                               , Connection {pointFrom = [2], pointTo = [1], transition = "lst"}
-                                               , Connection {pointFrom = [1], pointTo = [2], transition = "gf"}
-                                               , Connection {pointFrom = [2], pointTo = [2], transition = "est"}
-                                               , Connection {pointFrom = [2], pointTo = [6], transition = "enter"}
-                                               , Connection {pointFrom = [6], pointTo = [5,1,2], transition = ""}
-                                               , Connection {pointFrom = [6], pointTo = [5,2,2], transition = ""}
-                                               , Connection {pointFrom = [2], pointTo = [3], transition = "ft"}
-                                               , Connection {pointFrom = [7], pointTo = [1,2], transition = ""}
-                                               , Connection {pointFrom = [5,1,1], pointTo = [7], transition = "exit"}
-                                               , Connection {pointFrom = [5,2,2], pointTo = [7], transition = "exit"}
-                                               , Connection {pointFrom = [5,1,1], pointTo = [5,1,2], transition = "cb"}
-                                               , Connection {pointFrom = [5,1,2], pointTo = [5,1,1], transition = "bc"}
-                                               , Connection {pointFrom = [5,2,1], pointTo = [5,2,2], transition = "ml"}
-                                               , Connection {pointFrom = [5,2,2], pointTo = [5,2,1], transition = "lm"}
-                                               , Connection {pointFrom = [1], pointTo = [5], transition = "eCD"}
-                                               , Connection {pointFrom = [2], pointTo = [5], transition = "eCD"}
-                                               , Connection {pointFrom = [1,2], pointTo = [5,2,2], transition = "kl"}
-                                               , Connection {pointFrom = [5,2,1], pointTo = [5,2,1], transition = "cst"}]
-                                , startState = [1] }
 
 probeChartLiftedSDeAndSDg :: UMLStateDiagram [String] Int
 probeChartLiftedSDeAndSDg
@@ -282,37 +200,26 @@ withInitialState initial chart
                      , label = error "THIS LABEL IS IRRELEVANT AND THUS HIDDEN!" } )
     chart
 
- -- magic numbers for the renderer test that is part of allTheCheckers (or it would fail)
-renderable :: Num a => UMLStateDiagram n a -> UMLStateDiagram n a
-renderable x = umlStateDiagram . (\s -> s { label = 999 }) $ unUML' x
-
 spec :: Spec
 spec
   = do
     describe "flatten tests" $ do
       it "probe chart satisfies Haskell chart checkers" $ do
-        let result = map (($ renderable probeChart) . snd) allTheCheckers
+        let result = map (($ probeChart) . snd) allTheCheckers
         all (Nothing ==) result `shouldBe` True
-      it "flatten - lift SD(E) of probeChart" $ do
-        let result = flatten' $ rename singleton probeChart
-        result `shouldBe` probeChartLiftedSDe
       it "flatten - lift SD(E) and then SD(G) of probeChart" $ do
-        let result = flatten' $ flatten' (rename singleton probeChart)
+        let result = flatten probeChart
         result `shouldBe` probeChartLiftedSDeAndSDg
-      it "flatten - lift SD(E) of probeChart with initial state set to D instead of SD(E)" $ do
-        let result = flatten' $ rename singleton $ withInitialState [2] probeChart
-        result `shouldBe` withInitialState [4] probeChartLiftedSDe
       it "flatten - lift SD(E) and then SD(G) of probeChart with initial state set to D instead of SD(E)" $ do
-        let result = flatten' $ flatten' $ rename singleton $ withInitialState [2] probeChart
+        let result = flatten $ withInitialState [2] probeChart
         result `shouldBe` withInitialState [5] probeChartLiftedSDeAndSDg
       it "flatten all hierarchical states" $ do
       --  let result = flatten probeChart
-      --  result `shouldBe` probeChartLiftedSDeAndSDg
+      --  result `shouldBe` ...
         pendingWith "is only possible after scenario2 extension is implemented"
       it "print flat and non-flat probeChart to /temp/*.svg files using internal renderer" $ do
         --createDirectoryIfMissing True "./temp"
-        --renderSVG "./temp/probeChart.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable probeChart)
-        --renderSVG "./temp/probeChartLiftedSDe.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten probeChart)))
-        --renderSVG "./temp/probeChartLiftedSDeAndSDg.svg" (dims (V2 800 600)) (drawDiagram Unstyled $ renderable (rename concat (flatten' $ flatten probeChart)))
+        --renderSVG "./temp/probeChart.svg" (dims (V2 800 600)) (drawDiagram Unstyled probeChart)
+        --renderSVG "./temp/....svg" (dims (V2 800 600)) (drawDiagram Unstyled $ rename concat (flatten probeChart))
         --return ()
         pendingWith "disabled until scenario2 extension is implemented"

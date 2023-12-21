@@ -2,9 +2,7 @@
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE RecordWildCards           #-}
 
-module Modelling.StateDiagram.Flatten(flatten
-                                     ,flatten'
-                                     ,lift) where
+module Modelling.StateDiagram.Flatten (flatten) where
 
 import Modelling.StateDiagram.Datatype (UMLStateDiagram
                 ,umlStateDiagram
@@ -27,23 +25,9 @@ flatten chart
   = go (globalise $ rename singleton chart)
   where
     go c =
-      maybe (checkOutcome c) (go . distinctLabels) (lift (Left <$> c))
-    checkOutcome c =
-      unUML (\_ substates _ _ -> if all isFlatState substates
-                                 then c
-                                 else error "flattening failed") c
-    isFlatState InnerMostState{} = True
-    isFlatState EndState{} = True
-    isFlatState _ = False
+      maybe c (go . distinctLabels) (lift (Left <$> c))
 
-flatten' :: (Eq l, Enum l, Num l, Show l) => UMLStateDiagram [n] l -> UMLStateDiagram [n] l
-flatten'
- = maybe (error "not defined") distinctLabels
-   . lift
-   . fmap Left
-   . globalise
-
-lift :: (Eq l) => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
+lift :: Eq l => UMLStateDiagram [n] (Either l l) -> Maybe (UMLStateDiagram [n] (Either l l))
 lift
   = fmap umlStateDiagram . unUML
     (\globalName rootNodes globalConnections globalStartState ->
@@ -78,7 +62,7 @@ lift
                }
            )
       Just CombineDiagram {}
-        -> error "This is where interesting stuff for scenario2 would have to happen."
+        -> Nothing
       Just _
         -> error "we don't expect to find anything else here"
       Nothing
