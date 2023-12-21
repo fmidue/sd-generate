@@ -200,6 +200,7 @@ checkSDConfig SDConfig
                        , enforceOutgoingEdgesFromNormalAndHierarchical
                        , distinctTriggerNames
                        , preventEmptyTriggersFromStates
+                       , preventNestedEndNodes
                        , chartLimits = chartLimits@ChartLimits{..}
                        }
   | bitwidth < 1 = Just "bitwidth must be greater than 0"
@@ -256,6 +257,8 @@ checkSDConfig SDConfig
                     , 0 < a && a /= b ])
     > 2 ^ (bitwidth - 1) - 1
   = Just "Your bitwidth setting is too small, given the other settings."
+  | preventNestedEndNodes && endNodes == 0
+  = Just "Setting preventNestedEndNodes is meaningless if there anyway are no EndNodes."
   | otherwise
   = checkLimits chartLimits
 
