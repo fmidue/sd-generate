@@ -14,7 +14,7 @@ max_line_length = 200
 [**.als]
 max_line_length = 300
 
-[**.{yml,yaml,txt,tex,md}]
+[**.{yml,yaml,txt,md}]
 max_line_length = unset
 
 [alloy/sd/examples_based_on_version_4/*.{als,hs}]

@@ -23,10 +23,5 @@ stack.yaml.lock
 *.out.ps
 *.exe
 *.o
-thesis/references/
 *.bkp
 *.tix
-thesis/Abschlussarbeit.run.xml
-thesis/Abschlussarbeit.bcf
-temp/sd.als
-session_temp/
