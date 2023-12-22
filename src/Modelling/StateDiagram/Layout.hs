@@ -85,7 +85,7 @@ drawWrapper _ a (StartS _ l rightType layouts) = appendEdges (circle 0.1 # fc
   black) l rightType layouts # named (a ++ [-1])
 drawWrapper _ a (CrossStateDummy b _) = square 0.005 # fc black # named (a ++ [b])
 drawWrapper style a (EndS k l rightType layouts) =
-  appendEdges (circle 0.16 # lw ultraThin # lc theColour `atop` circle 0.1 # fc black) l rightType layouts
+  appendEdges (circle 0.16 # lw ultraThin # lc theColour `atop` circle 0.1 # fc theColour) l rightType layouts
   # named (a ++ [k])
   where
     theColour = hashToColour style (show k)
