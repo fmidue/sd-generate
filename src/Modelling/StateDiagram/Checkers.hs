@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
+
 module Modelling.StateDiagram.Checkers
   ( module Modelling.StateDiagram.Checkers.Representation
   , module Modelling.StateDiagram.Checkers.Structure
@@ -9,6 +11,7 @@ module Modelling.StateDiagram.Checkers
   , module Modelling.StateDiagram.Checkers.ForkOrJoin
   , module Modelling.StateDiagram.Checkers.History
   , module Modelling.StateDiagram.Checkers.Semantics
+  , allTheCheckers
   ) where
 
 import Modelling.StateDiagram.Checkers.Representation
@@ -21,3 +24,21 @@ import Modelling.StateDiagram.Checkers.EndState
 import Modelling.StateDiagram.Checkers.ForkOrJoin
 import Modelling.StateDiagram.Checkers.History
 import Modelling.StateDiagram.Checkers.Semantics
+
+import Modelling.StateDiagram.Datatype (UMLStateDiagram(unUML'))
+import Modelling.StateDiagram.Layout (checkWrapper)
+
+allTheCheckers :: [(String, UMLStateDiagram String Int -> Maybe String)]
+allTheCheckers =
+  [ ("checkRepresentation", checkRepresentation)
+  , ("checkStructure", checkStructure)
+  , ("checkCrossings", checkCrossings)
+  , ("checkDrawability", checkDrawability)
+  , ("checkNameUniqueness", checkNameUniqueness)
+  , ("checkUniqueness", checkUniqueness)
+  , ("checkEndState", checkEndState)
+  , ("checkForkAndJoin", checkForkAndJoin)
+  , ("checkHistory", checkHistory)
+  , ("checkSemantics", checkSemantics)
+  , ("checkWrapper", checkWrapper . unUML')
+  ]

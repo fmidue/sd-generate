@@ -5,7 +5,7 @@ module Modelling.StateDiagram.GenerateSpec (spec) where
 import Modelling.StateDiagram.Generate
 import Modelling.StateDiagram.Datatype (localise, globalise, UMLStateDiagram(unUML'), umlStateDiagram)
 import Modelling.StateDiagram.Datatype.ClassInstances ()
-import Modelling.StateDiagram.ExampleSpec (allTheCheckers)
+import Modelling.StateDiagram.Checkers (allTheCheckers)
 
 import Test.QuickCheck
 import Data.List.Extra

@@ -14,7 +14,7 @@ import Modelling.StateDiagram.Datatype (StateDiagram(..)
                 -- ,rename
                 )
 import Modelling.StateDiagram.Flatten (flatten)
-import Modelling.StateDiagram.ExampleSpec (allTheCheckers)
+import Modelling.StateDiagram.Checkers (allTheCheckers)
 -- import System.Directory(createDirectoryIfMissing)
 -- import Diagrams.Backend.SVG (renderSVG)
 -- import Modelling.StateDiagram.Style (Styling(Unstyled))

@@ -25,7 +25,7 @@ import Modelling.StateDiagram.Config(defaultSDConfig
 import Modelling.StateDiagram.Instance(parseInstance)
 import Modelling.StateDiagram.Datatype(UMLStateDiagram)
 import Data.Maybe(isNothing)
-import Modelling.StateDiagram.ExampleSpec(allTheCheckers)
+import Modelling.StateDiagram.Checkers (allTheCheckers)
 
 spec :: Spec
 spec

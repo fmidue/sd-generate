@@ -1,11 +1,8 @@
-{-# OPTIONS_GHC -Wno-error=deprecations #-}
-
-module Modelling.StateDiagram.ExampleSpec (spec, allTheCheckers) where
+module Modelling.StateDiagram.ExampleSpec (spec) where
 
 import Modelling.StateDiagram.Example (positiveExamples)
-import Modelling.StateDiagram.Checkers
-import Modelling.StateDiagram.Datatype (UMLStateDiagram(unUML'), globalise)
-import Modelling.StateDiagram.Layout (checkWrapper)
+import Modelling.StateDiagram.Checkers (allTheCheckers)
+import Modelling.StateDiagram.Datatype (globalise)
 
 import Test.Hspec (Spec, describe, it, shouldBe)
 import Control.Monad (forM_)
@@ -20,18 +17,3 @@ spec =
           positiveExamples
           ++ map (("'globalise' of " ++) *** globalise) positiveExamples
       ]
-
-allTheCheckers :: [(String, UMLStateDiagram String Int -> Maybe String)]
-allTheCheckers =
-  [ ("checkRepresentation", checkRepresentation)
-  , ("checkStructure", checkStructure)
-  , ("checkCrossings", checkCrossings)
-  , ("checkNameUniqueness", checkNameUniqueness)
-  , ("checkUniqueness", checkUniqueness)
-  , ("checkEndState", checkEndState)
-  , ("checkForkAndJoin", checkForkAndJoin)
-  , ("checkHistory", checkHistory)
-  , ("checkSemantics", checkSemantics)
-  , ("checkWrapper", checkWrapper . unUML')
-  , ("checkDrawability", checkDrawability)
-  ]
