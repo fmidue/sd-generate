@@ -1,5 +1,4 @@
 .DS_Store
-*.cabal
 .vscode/
 .stack-work/
 stack.yaml.lock

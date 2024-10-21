@@ -1,0 +1,465 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           sd-generate
+version:        0.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      Modelling.StateDiagram.Alloy
+      Modelling.StateDiagram.Config
+      Modelling.StateDiagram.Datatype
+      Modelling.StateDiagram.Datatype.ClassInstances
+      Modelling.StateDiagram.Example
+      Modelling.StateDiagram.CounterExample
+      Modelling.StateDiagram.Checkers
+      Modelling.StateDiagram.Instance
+      Modelling.StateDiagram.Layout
+      Modelling.StateDiagram.Generate
+      Modelling.StateDiagram.Flatten
+      Modelling.StateDiagram.AlloyDiagrams
+      Modelling.StateDiagram.PlantUMLDiagrams
+      Modelling.StateDiagram.Style
+      Modelling.StateDiagram.EnumArrows
+  other-modules:
+      Modelling.StateDiagram.Arrows
+      Modelling.StateDiagram.Checkers.Crossings
+      Modelling.StateDiagram.Checkers.Drawability
+      Modelling.StateDiagram.Checkers.EndState
+      Modelling.StateDiagram.Checkers.ForkOrJoin
+      Modelling.StateDiagram.Checkers.Helpers
+      Modelling.StateDiagram.Checkers.History
+      Modelling.StateDiagram.Checkers.NameUniqueness
+      Modelling.StateDiagram.Checkers.Representation
+      Modelling.StateDiagram.Checkers.Semantics
+      Modelling.StateDiagram.Checkers.Structure
+      Modelling.StateDiagram.Checkers.Uniqueness
+      Modelling.StateDiagram.Datatype.Lenses
+      Modelling.StateDiagram.Support
+      Paths_sd_generate
+  hs-source-dirs:
+      src
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+executable draw
+  main-is: draw.hs
+  other-modules:
+      Paths_sd_generate
+  hs-source-dirs:
+      app
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+executable drawing
+  main-is: drawing.hs
+  other-modules:
+      Paths_sd_generate
+  hs-source-dirs:
+      app
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+executable enumeratedArrowsDirectDemo
+  main-is: enumeratedArrowsDirectDemo.hs
+  other-modules:
+      Paths_sd_generate
+  hs-source-dirs:
+      app
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , directory
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+executable enumeratedArrowsQuizDemo
+  main-is: enumeratedArrowsQuizDemo.hs
+  other-modules:
+      Paths_sd_generate
+  hs-source-dirs:
+      app
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , directory
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+executable sampling
+  main-is: sampling.hs
+  other-modules:
+      Paths_sd_generate
+  hs-source-dirs:
+      app
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+executable transformAlloy
+  main-is: transformAlloy.hs
+  other-modules:
+      Paths_sd_generate
+  hs-source-dirs:
+      app
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+executable transformPlantUML
+  main-is: transformPlantUML.hs
+  other-modules:
+      Paths_sd_generate
+  hs-source-dirs:
+      app
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
+
+test-suite sd-generate-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Modelling.StateDiagram.AlloySpec
+      Modelling.StateDiagram.Common
+      Modelling.StateDiagram.CounterExampleSpec
+      Modelling.StateDiagram.DatatypeSpec
+      Modelling.StateDiagram.EnumArrowsSpec
+      Modelling.StateDiagram.ExampleSpec
+      Modelling.StateDiagram.FlattenSpec
+      Modelling.StateDiagram.GenerateSpec
+      Modelling.StateDiagram.PlantUMLDiagramsSpec
+      Paths_sd_generate
+  hs-source-dirs:
+      test
+  default-extensions:
+      TupleSections
+      DuplicateRecordFields
+      OverloadedLabels
+      MultiParamTypeClasses
+      FlexibleInstances
+      TypeApplications
+      ScopedTypeVariables
+  ghc-options: -Wall -Werror -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , SVGFonts
+    , base
+    , bifunctors
+    , bytestring
+    , call-alloy
+    , call-plantuml
+    , containers
+    , diagrams-lib
+    , diagrams-svg
+    , directory
+    , extra
+    , file-embed
+    , filepath
+    , generic-functor
+    , hashable
+    , hspec
+    , ilist
+    , lens
+    , modelling-tasks
+    , monad-loops
+    , mtl
+    , output-monad
+    , pretty-simple
+    , random-shuffle
+    , sd-generate
+    , string-interpolate
+    , svg-builder
+    , time
+  default-language: Haskell2010
