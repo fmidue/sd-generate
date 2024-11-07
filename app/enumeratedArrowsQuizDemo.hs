@@ -1,13 +1,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 module Main (main) where
-import Control.Monad.Output (
+import Control.OutputCapable.Blocks (
   LangM,
   Language (English),
   Rated,
   ReportT,
   )
-import Control.Monad.Output.Generic     (($>>=))
-import Control.Monad.Output.Debug       (testTask)
+import Control.OutputCapable.Blocks.Generic     (($>>=))
+import Control.OutputCapable.Blocks.Debug       (testTask)
 import Data.Functor                     (($>))
 import Data.Time.Clock.POSIX(getPOSIXTime)
 import System.Directory(createDirectoryIfMissing
@@ -29,7 +29,7 @@ import System.IO (hSetBuffering, stdout, BufferMode(NoBuffering))
 main :: IO ()
 main = do
   t <- getSeed
-  testTask English (generate t) (describe t) partial full submission
+  testTask Nothing English (generate t) (describe t) partial full submission
   where
     getSeed :: IO Int
     getSeed = round <$> getPOSIXTime

@@ -40,7 +40,7 @@ spec
       it "parsing an Alloy chart instance yields some result" $
         do
         inst <- getInstances (Just 500) (sdConfigToAlloy defaultSDConfig)
-        let chart = map (failWith id . parseInstance "this") inst !! 499
+        let chart = map (failWith show . parseInstance "this") inst !! 499
         show chart `shouldNotBe` ""
       it "default Alloy sd config wont return empty chart instances (as checkers might still pass on [])" $
         do
@@ -49,7 +49,7 @@ spec
       it "retrieving default Alloy SD chart instances does satisfy the Haskell chart checkers" $
         do
         inst <- getInstances (Just 500) (sdConfigToAlloy defaultSDConfig)
-        and (concatMap (zipWith (\ checker chart' -> isNothing (checker chart')) (map snd checkers) . repeat . failWith id . parseInstance "this") inst) `shouldBe` True
+        and (concatMap (zipWith (\ checker chart' -> isNothing (checker chart')) (map snd checkers) . repeat . failWith show . parseInstance "this") inst) `shouldBe` True
       -- it "config checker denies unreasonable requests" $
 
 instance IsString a => MonadFail (Either a) where

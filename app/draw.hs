@@ -20,7 +20,7 @@ main = do
     scope:f:xs' -> do
       inst <- B.readFile f
       alloyInstance <- runExceptT $ AD.parseInstance inst
-      let sd = failWith id . parseInstance scope . failWith show $ alloyInstance
+      let sd = failWith show . parseInstance scope . failWith id $ alloyInstance
       withArgs xs' $ mainWith (drawDiagram Unstyled sd)
     _ -> error "usage: two parameters required: String (scope) FilePath (Alloy instance)"
 

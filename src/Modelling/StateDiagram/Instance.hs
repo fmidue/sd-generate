@@ -18,7 +18,7 @@ import Modelling.StateDiagram.Datatype (
   )
 
 import Control.Monad                    (join)
-import Control.Monad.Error.Class        (MonadError (throwError))
+import Control.Monad.Catch              (MonadThrow (throwM), Exception)
 import Data.Bifunctor                   (Bifunctor (first))
 import Data.List                        (partition)
 import Data.List.Extra                  (nubOrd)
@@ -30,7 +30,6 @@ import Data.Maybe (
   catMaybes,
   )
 import Data.Set                         (Set)
-import Data.String                      (IsString (fromString))
 import Data.Tree                        (Forest, Tree(..))
 import Data.Tuple.Extra                 (uncurry3)
 import Language.Alloy.Call (
@@ -101,7 +100,7 @@ toSet ns = S.unions [
   ]
 
 parseInstance
-  :: (MonadError s m, IsString s)
+  :: MonadThrow m
   => String
   -> AlloyInstance
   -> m (UMLStateDiagram String Int)
@@ -148,7 +147,7 @@ parseInstance scope insta = do
         _ -> error "not defined"
   where
     getAs
-      :: (IsString s, MonadError s m, Ord a)
+      :: (MonadThrow m, Ord a)
       => String
       -> (String -> a)
       -> m (Set a)
@@ -284,7 +283,7 @@ returnX :: Monad m => (String -> a) -> String -> Int -> m a
 returnX x y = return . toX x y
 
 getX
-  :: (MonadError s m, IsString s, Ord a)
+  :: (MonadThrow m, Ord a)
   => String
   -> AlloyInstance
   -> String
@@ -295,7 +294,7 @@ getX scope insta n f =
   >>= getSingleAs "" (returnX f)
 
 getNames
-  :: (MonadError s m, IsString s, Ord a)
+  :: (MonadThrow m, Ord a)
   => String
   -> AlloyInstance
   -> Nodes
@@ -307,7 +306,7 @@ getNames scope insta ns n f = do
   getDoubleAs "name" (toNode ns) (returnX f) named
 
 getConnections
-  :: (MonadError s m, IsString s)
+  :: MonadThrow m
   => String
   -> AlloyInstance
   -> Nodes
@@ -343,7 +342,7 @@ getConnections scope insta ns = do
       )
 
 getContains
-  :: (MonadError s m, Ord a, IsString s)
+  :: (MonadThrow m, Ord a)
   => String
   -> AlloyInstance
   -> Nodes
@@ -354,8 +353,14 @@ getContains scope insta ns n f = do
   container <- lookupSig (scoped scope n) insta
   getDoubleAs "contains" (returnX f) (toNode ns) container
 
+newtype ParsingStateDiagramException
+  = NodeHasUnknownNodeType String
+  deriving Show
+
+instance Exception ParsingStateDiagramException
+
 toNode
-  :: (MonadError s m, IsString s)
+  :: MonadThrow m
   => Nodes
   -> String
   -> Int
@@ -369,7 +374,7 @@ toNode ns x i = ifX CNode CompositeState cNodes
   $ ifX SNode State sNodes
   $ ifX HNode (HistoryNode Shallow) hNodes
   $ ifX HNode (HistoryNode Deep) hNodes
-  $ throwError $ fromString $ "unknown node x$" ++ show i
+  $ throwM $ NodeHasUnknownNodeType $ "x$" ++ show i
   where
     ifX f g which h =
       let node = toX g x i

@@ -3,13 +3,13 @@ resolver: lts-20.18
 packages:
   - .
 extra-deps:
-  - call-alloy-0.4.0.3
-  - git: https://github.com/fmidue/output-monad.git
-    commit: d469ed0b22df718dde4d4d718a7f6fd54cfe2a0d
+  - call-alloy-0.5.0.1
+  - git: https://github.com/fmidue/output-blocks.git
+    commit: f14dca13e3fa06858ee6299333764b9b89d820c9
     subdirs:
-      - output-monad
+      - output-blocks
   - git: https://github.com/fmidue/modelling-tasks.git
-    commit: 233281ae07b07f8679159218b087d6ba98dfd4d6
+    commit: 8285b863dfe817d94334ae82ea525da15dd66540
   - call-plantuml-0.0.1.3
   - latex-svg-image-0.2
   - hgal-2.0.0.3
