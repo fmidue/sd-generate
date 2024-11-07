@@ -59,15 +59,15 @@ import Modelling.StateDiagram.PlantUMLDiagrams
   ,checkDrawabilityPlantUML)
 import System.FilePath(combine)
 import Control.Monad.IO.Class (MonadIO (liftIO))
-import Control.Monad.Output (
-  GenericOutputMonad (..),
+import Control.OutputCapable.Blocks (
+  GenericOutputCapable (..),
   LangM,
-  OutputMonad,
+  OutputCapable,
   Rated,
   ($=<<),
   english,
   translate,
-  printSolutionAndAssert
+  printSolutionAndAssert, ArticleToUse (DefiniteArticle)
   )
 import Control.Monad.Random
     ( MonadRandom,
@@ -302,7 +302,7 @@ enumArrows :: MonadIO m => EnumArrowsConfig -> Int -> m EnumArrowsInstance
 enumArrows config timestamp
   = evalRandT (enumArrowsInstance config) (mkStdGen timestamp)
 
-enumArrowsTask :: (OutputMonad m, MonadIO m) => FilePath -> EnumArrowsInstance -> LangM m
+enumArrowsTask :: (OutputCapable m, MonadIO m) => FilePath -> EnumArrowsInstance -> LangM m
 enumArrowsTask path task
   = do
     paragraph $ translate $ do
@@ -364,7 +364,7 @@ enumArrowsInstance EnumArrowsConfig { sdConfig
        inst <- liftIO $ getInstances (Just maxInstances) (sdConfigToAlloy sdConfig)
        r <- liftIO (randomRIO (0, fromIntegral maxInstances - 1) :: IO Int)
        liftIO $ putStrLn ("instance " ++ show r ++ " selected of " ++ show (length inst) ++ " instances")
-       let chart = map (failWith id . parseInstance "this") inst !! r
+       let chart = map (failWith show . parseInstance "this") inst !! r
        stop <- liftIO getPOSIXTime
        liftIO $ putStrLn ("instance generation took " ++ show (stop - start) ++ " seconds")
        return $
@@ -468,7 +468,7 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "Flattening does not support history nodes."
   | otherwise = checkSDConfig sdConfig
 
-enumArrowsSyntax :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
+enumArrowsSyntax :: (OutputCapable m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsSyntax task answer
   = do
     assertion (length (nubOrd $ map fst answer) == length answer) $ translate $ do
@@ -482,9 +482,10 @@ enumArrowsSyntax task answer
       english "No empty list of tuples was supplied."
     return ()
 
-enumArrowsEvaluation :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> Rated m
+enumArrowsEvaluation :: (OutputCapable m) => EnumArrowsInstance -> [(String,String)] -> Rated m
 enumArrowsEvaluation task answer
   = printSolutionAndAssert
+    DefiniteArticle
     (Just $ show (concatMap (uncurry zip) $ taskSolution task))
     (rate (taskSolution task) answer)
 
@@ -529,7 +530,7 @@ rate solution submission
     %
     fromIntegral (sum $ map (length . snd) solution)
 
-enumArrowsFeedback :: (OutputMonad m) => EnumArrowsInstance -> [(String,String)] -> LangM m
+enumArrowsFeedback :: (OutputCapable m) => EnumArrowsInstance -> [(String,String)] -> LangM m
 enumArrowsFeedback task submission
   = let
     solution = taskSolution task

@@ -64,6 +64,7 @@ library
     , containers
     , diagrams-lib
     , diagrams-svg
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -74,7 +75,7 @@ library
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , string-interpolate
@@ -109,6 +110,7 @@ executable draw
     , containers
     , diagrams-lib
     , diagrams-svg
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -119,7 +121,7 @@ executable draw
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -155,6 +157,7 @@ executable drawing
     , containers
     , diagrams-lib
     , diagrams-svg
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -165,7 +168,7 @@ executable drawing
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -202,6 +205,7 @@ executable enumeratedArrowsDirectDemo
     , diagrams-lib
     , diagrams-svg
     , directory
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -212,7 +216,7 @@ executable enumeratedArrowsDirectDemo
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -249,6 +253,7 @@ executable enumeratedArrowsQuizDemo
     , diagrams-lib
     , diagrams-svg
     , directory
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -259,7 +264,7 @@ executable enumeratedArrowsQuizDemo
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -295,6 +300,7 @@ executable sampling
     , containers
     , diagrams-lib
     , diagrams-svg
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -305,7 +311,7 @@ executable sampling
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -341,6 +347,7 @@ executable transformAlloy
     , containers
     , diagrams-lib
     , diagrams-svg
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -351,7 +358,7 @@ executable transformAlloy
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -387,6 +394,7 @@ executable transformPlantUML
     , containers
     , diagrams-lib
     , diagrams-svg
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -397,7 +405,7 @@ executable transformPlantUML
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -444,6 +452,7 @@ test-suite sd-generate-test
     , diagrams-lib
     , diagrams-svg
     , directory
+    , exceptions
     , extra
     , file-embed
     , filepath
@@ -455,7 +464,7 @@ test-suite sd-generate-test
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-monad
+    , output-blocks >=0.2
     , pretty-simple
     , random-shuffle
     , sd-generate
