@@ -4,7 +4,12 @@
     "consoleFull"
   ],
   "ignore": [
-    "**/__snapshots__/**", "**/plantUML/**", "**/src/Modelling/StateDiagram/Example.hs", "**/test/unit/**"
+    "**/__snapshots__/**",
+    "**/plantUML/**",
+    "**/src/Modelling/StateDiagram/Example.hs",
+    "**/test/unit/**",
+    "**/app/**",
+    "**/test/**"
   ],
   "minLines": 2,
   "max-lines": 2000,
