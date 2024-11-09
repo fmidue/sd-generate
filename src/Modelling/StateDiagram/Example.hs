@@ -121,7 +121,7 @@ slide253 :: UMLStateDiagram String Int
 slide253
   = umlStateDiagram $
     StateDiagram
-    [ CombineDiagram [a, b] 1 ] 86 "" [] []
+    [ CombineDiagram [a, b] 1 ] 86 "" [] [1]
   where
     a = StateDiagram c 1 "Stunden"
         (map (\x -> Connection [x] [x+1] "h") [1..23]

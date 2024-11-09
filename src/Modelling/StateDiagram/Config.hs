@@ -80,7 +80,7 @@ defaultSDConfig
                   \  and hs not in (Flows <: from).(hs.contains).to\n\
                   \"
                 , .. }
-
+-- jscpd:ignore-start
 defaultSDConfigScenario1 :: SDConfig
 defaultSDConfigScenario1
   = SDConfig { bitwidth = 6
@@ -116,6 +116,7 @@ defaultSDConfigScenario1
                \  and mul[2,#inner] >= #Nodes\n\
                \"
              }
+-- jscpd:ignore-end
 
 defaultSDConfigScenario2 :: SDConfig
 defaultSDConfigScenario2

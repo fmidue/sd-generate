@@ -80,6 +80,7 @@ appendEdges a l rightType layouts = case layouts of
     w1 = width a
     h1 = height a
 
+-- jscpd:ignore-start
 drawWrapper :: Styling -> [Int] -> Wrapper -> Diagram B
 drawWrapper _ a (StartS _ l rightType layouts) = appendEdges (circle 0.1 # fc
   black) l rightType layouts # named (a ++ [-1])
@@ -141,6 +142,7 @@ drawWrapper style d s@OrDecomposition {} = appendEdges (roundedRect (width draw 
     draw = drawLayers style (layout s == Vertical) (d ++ [key s]) (layered s)
     connectList = getConnection (d ++ [key s]) (typedConnections s)
     theColour = hashToColour style (strings s)
+-- jscpd:ignore-end
 
 drawWrapper' :: Styling -> [Int] -> Wrapper -> Diagram B
 drawWrapper' style d s@OrDecomposition {} = appendEdges (roundedRect (width draw + 0.9)
@@ -586,7 +588,7 @@ addCrossSuperStateDummy a b = case (pointFrom $ connecting b, pointTo $
     pointFromLabel = getDeeperConnection (pointFrom $ connecting b) a
     pointToLabel = getDeeperConnection (pointTo $ connecting b) a
 
-
+-- jscpd:ignore-start
 -- cType = original connectType -- connectWT = between, therefore always without head
 addDummyLeft' :: ConnectionType -> [Int] -> [ConnectWithType]  -> Wrapper ->
   Wrapper
@@ -596,6 +598,7 @@ addDummyLeft' cType (x:xs) connectWT a = OrDecomposition loop (key a) (strings a
   where
     loop = fmap (fmap (addDummyLeft cType xs x)) (layered a)
 addDummyLeft' _ _ _ _ = StartS (-1) 0 NoConnection Unspecified
+-- jscpd:ignore-end
 
 -- cType = original connectType -- connectWT = between, therefore always without head
 addDummyRight' :: ConnectionType -> [Int] -> [ConnectWithType]  -> Wrapper ->

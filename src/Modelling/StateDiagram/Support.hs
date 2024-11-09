@@ -135,6 +135,7 @@ getDeeperState a@AndDecomposition {} (x:xs) = getDeeperState (returnState (compo
 getDeeperState a (x:xs) = getDeeperState (returnState (concat $ layered a) x) xs
 getDeeperState _ [] = StartS (-1) 0 NoConnection Unspecified
 
+-- jscpd:ignore-start
 getDeeperLevelL :: ([Int], [Int]) -> Int -> [Wrapper] -> Int
 getDeeperLevelL ([a], [b]) commonValue layersBef = higherIndex (a, b) (fmap key
   newLayerBef)
@@ -149,6 +150,7 @@ getDeeperLevelL ([a, as], [b, bs]) commonValue layersBef = if a /= b then
     newState' = returnState (component newState) a
     newAndLayerBef = fmap key (last (layered newState'))
 getDeeperLevelL _ _ _ = 0
+-- jscpd:ignore-end
 
 getDeeperLevelR :: ([Int], [Int]) -> Int -> [Wrapper] -> Int
 getDeeperLevelR ([a], [b]) commonValue layersBef = higherIndex (a, b) (fmap key
