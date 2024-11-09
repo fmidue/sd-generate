@@ -3,8 +3,7 @@
 module Modelling.StateDiagram.CounterExampleSpec (spec) where
 
 import Modelling.StateDiagram.CounterExample
-import Modelling.StateDiagram.Checkers (checkStructure, checkCrossings, checkUniqueness, checkDrawability)
-import Modelling.StateDiagram.Checkers (allTheCheckers)
+import Modelling.StateDiagram.Checkers (checkStructure, checkCrossings, checkUniqueness, checkDrawability, allTheCheckers)
 import Modelling.StateDiagram.Datatype (globalise, localise, UMLStateDiagram(unUML'), umlStateDiagram)
 
 import Test.Hspec (Spec, describe, it, shouldBe,shouldSatisfy)
