@@ -307,7 +307,7 @@ enumArrowsTask path task
       english "Consider the following state chart."
     case chartRenderer task of
        PlantUML
-         -> image $=<< liftIO $ PlantUML.drawSDToFile (combine path "plain/Diagram.svg") (hierarchicalSD task)
+         -> image $=<< liftIO $ PlantUML.drawSDToFile (combine path "plainDiagram.svg") (hierarchicalSD task)
        Diagrams
          -> image $=<< liftIO (NativeRenderer.drawSDToFile
                                  (combine path "plainDiagram.svg")
@@ -326,7 +326,7 @@ enumArrowsTask path task
        PlantUML
          -> image $=<< liftIO $
                         PlantUML.drawSDToFile
-                        (combine path "flattened/Diagram.svg")
+                        (combine path "flattenedDiagram.svg")
                         flatAndEnumeratedSD'
        Diagrams
          -> image $=<< liftIO (NativeRenderer.drawSDToFile
