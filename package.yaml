@@ -56,6 +56,7 @@ library:
     - Modelling.StateDiagram.PlantUMLDiagrams
     - Modelling.StateDiagram.Style
     - Modelling.StateDiagram.EnumArrows
+    - Modelling.StateDiagram.Render
   ghc-options:
     - -Wall
     - -Werror

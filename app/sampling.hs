@@ -1,18 +1,16 @@
-import Diagrams.Prelude
-import Diagrams.Backend.SVG
-import Modelling.StateDiagram.Layout (drawDiagram)
-
 import Modelling.StateDiagram.Generate
 import Modelling.StateDiagram.Checkers (checkDrawability)
 
 import Test.QuickCheck
 import Control.Monad
 import Data.Maybe
+import Data.Functor (($>))
 
 import Text.Pretty.Simple (pPrint)
 
 import Modelling.StateDiagram.Datatype.ClassInstances ()
 import Modelling.StateDiagram.Style (Styling (Unstyled))
+import Modelling.StateDiagram.Render (drawSDToFile)
 
 main :: IO ()
 main = do
@@ -24,4 +22,4 @@ main = do
         putStrLn $ "\nDiscarded " ++ show n ++ " attempts, then got " ++ file ++ ":"
         pPrint sd
         when (isNothing $ checkDrawability sd)
-          $ renderSVG file (mkWidth 250) (drawDiagram Unstyled sd)
+          (drawSDToFile file (Just 250, Nothing) Unstyled sd $> ())
