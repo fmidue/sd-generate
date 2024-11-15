@@ -25,6 +25,7 @@ library
       Modelling.StateDiagram.PlantUMLDiagrams
       Modelling.StateDiagram.Style
       Modelling.StateDiagram.EnumArrows
+      Modelling.StateDiagram.Render
   other-modules:
       Modelling.StateDiagram.Arrows
       Modelling.StateDiagram.Checkers.Crossings

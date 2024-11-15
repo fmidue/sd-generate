@@ -54,7 +54,7 @@ import Modelling.StateDiagram.Config(SDConfig(..)
                                     ,ChartLimits(..)
                                     ,checkSDConfig)
 import Modelling.StateDiagram.Alloy()
-import Modelling.StateDiagram.PlantUMLDiagrams
+import qualified Modelling.StateDiagram.PlantUMLDiagrams as PlantUML
   (drawSDToFile
   ,checkDrawabilityPlantUML)
 import System.FilePath(combine)
@@ -85,10 +85,8 @@ import Data.Either (rights)
 import Control.Monad.Loops (iterateUntil)
 import Modelling.StateDiagram.Checkers (checkDrawability)
 import Data.Maybe (isNothing, fromMaybe, fromJust)
-import Modelling.StateDiagram.Layout (drawDiagram)
 import Modelling.StateDiagram.Style (Styling(Unstyled))
-import Diagrams.Backend.SVG (renderSVG)
-import Diagrams (dims, V2 (V2))
+import qualified Modelling.StateDiagram.Render as NativeRenderer (drawSDToFile)
 import System.Random.Shuffle (shuffleM)
 
 import Data.Time.Clock.POSIX(getPOSIXTime)
@@ -309,13 +307,13 @@ enumArrowsTask path task
       english "Consider the following state chart."
     case chartRenderer task of
        PlantUML
-         -> image $=<< liftIO $ drawSDToFile (combine path "plain") (hierarchicalSD task)
+         -> image $=<< liftIO $ PlantUML.drawSDToFile (combine path "plainDiagram.svg") (hierarchicalSD task)
        Diagrams
-         -> image $=<< do liftIO (renderSVG
+         -> image $=<< liftIO (NativeRenderer.drawSDToFile
                                  (combine path "plainDiagram.svg")
-                                 (dims (V2 800 600))
-                                 (drawDiagram Unstyled (hierarchicalSD task)))
-                          return (combine path "plainDiagram.svg")
+                                 (Just 800, Just 600)
+                                 Unstyled
+                                 (hierarchicalSD task))
     paragraph $ translate $ do
       english "Which was flattened, but has all transition triggers disguised through placeholder elements."
     let flatAndEnumeratedSD' -- renaming policy is just a view on data
@@ -327,16 +325,15 @@ enumArrowsTask path task
     case chartRenderer task of
        PlantUML
          -> image $=<< liftIO $
-                        drawSDToFile
-                        (combine path "flattened")
+                        PlantUML.drawSDToFile
+                        (combine path "flattenedDiagram.svg")
                         flatAndEnumeratedSD'
        Diagrams
-         -> image $=<< do liftIO (renderSVG
+         -> image $=<< liftIO (NativeRenderer.drawSDToFile
                                  (combine path "flattenedDiagram.svg")
-                                 (dims (V2 800 600))
-                                 (drawDiagram Unstyled
-                                  flatAndEnumeratedSD'))
-                          return (combine path "flattenedDiagram.svg")
+                                 (Just 800, Just 600)
+                                 Unstyled
+                                 flatAndEnumeratedSD')
     paragraph $ translate $ do
       english "Please supply a list of tuples, where the first element is the visible placeholder of a transition as string\n\
                \ and the second element is the transition trigger as string, that is supposed to be at that place."
@@ -432,8 +429,8 @@ canBothBeDrawnVia renderPath hierarchicalSD renaming flatAndEnumeratedSD =
           JustTheInnermostName
             -> rename last flatAndEnumeratedSD
     workingPlantUML =
-      isNothing (checkDrawabilityPlantUML hierarchicalSD) &&
-      isNothing (checkDrawabilityPlantUML flatAndEnumeratedSD')
+      isNothing (PlantUML.checkDrawabilityPlantUML hierarchicalSD) &&
+      isNothing (PlantUML.checkDrawabilityPlantUML flatAndEnumeratedSD')
     workingDiagrams =
       isNothing (checkDrawability hierarchicalSD) &&
       isNothing (checkDrawability flatAndEnumeratedSD')
