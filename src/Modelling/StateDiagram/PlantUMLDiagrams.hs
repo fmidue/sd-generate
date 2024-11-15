@@ -177,13 +177,13 @@ getAllHistory (x:xs) context =
   ++ getAllHistory xs context
 
 drawSDToFile :: FilePath -> UMLStateDiagram String Int -> IO FilePath
-drawSDToFile path chart
+drawSDToFile file chart
   = do
     rendered <- renderAll Unstyled chart
     let plantUML = pack rendered
     picture <- drawPlantUMLDiagram SVG plantUML
-    writeFile (path ++ "Diagram.svg") (unpack picture)
-    return (path ++ "Diagram.svg")
+    writeFile file (unpack picture)
+    return file
 
 -- TODO: i'm a stub, please update me once the reasons
 --       why PlantUML crashes on certain chart instances are known better
