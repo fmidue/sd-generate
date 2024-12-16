@@ -242,7 +242,11 @@ checkSDConfig SDConfig
     fst triggerNames < hierarchicalStates + if preventEmptyTriggersFromStates then normalStates - (if snd joinNodes > 0 then regions - regionsStates else 0) else 0
   = Just "Your lower bound for trigger names is too low, relatively to the number of states to have distinctly named leaving flows according to your settings."
   | distinctTriggerNames && preventEmptyTriggersFromStates &&
-    fst triggerNames < flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes - snd joinNodes - (if snd joinNodes > 0 then regions - regionsStates else 0) - (regions - 2 * (regionsStates - 1)) * snd forkNodes
+    fst triggerNames <
+    flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes
+    - snd joinNodes
+    - (if snd joinNodes > 0 then regions - regionsStates else 0)
+    - (regions - 2 * (regionsStates - 1)) * snd forkNodes
   = Just "Your lower bound for trigger names is too low, relatively to the number of flows to be distinctly named according to your settings."
   | snd derivedFlowsReused > flows
   = Just "You cannot reuse more flows than there are."
