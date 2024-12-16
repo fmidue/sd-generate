@@ -239,10 +239,10 @@ checkSDConfig SDConfig
   | flows < fst startNodes + snd triggerNames + if preventEmptyTriggersFromStates then fst joinNodes else 0
   = Just "Your upper bound for trigger names is too high, relatively to the number of possibly named flows."
   | distinctTriggerNames && enforceOutgoingEdgesFromNormalAndHierarchical &&
-    fst triggerNames < hierarchicalStates + if preventEmptyTriggersFromStates then normalStates else 0
+    fst triggerNames < hierarchicalStates + if preventEmptyTriggersFromStates then normalStates - (if snd joinNodes > 0 then regions - regionsStates else 0) else 0
   = Just "Your lower bound for trigger names is too low, relatively to the number of states to have distinctly named leaving flows according to your settings."
   | distinctTriggerNames && preventEmptyTriggersFromStates &&
-    fst triggerNames < flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes - snd joinNodes - (regions - 2 * (regionsStates - 1)) * snd forkNodes
+    fst triggerNames < flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes - snd joinNodes - (if snd joinNodes > 0 then regions - regionsStates else 0) - (regions - 2 * (regionsStates - 1)) * snd forkNodes
   = Just "Your lower bound for trigger names is too low, relatively to the number of flows to be distinctly named according to your settings."
   | snd derivedFlowsReused > flows
   = Just "You cannot reuse more flows than there are."
@@ -342,8 +342,8 @@ pred scenarioConfig #{oB}
                     else "no HierarchicalStates.name and no Regions.name")
    compoundsHaveNames}
   #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
-  #{if distinctTriggerNames then "no disj f1,f2 : label.TriggerNames | f1.label = f2.label" else ""}
-  #{if preventEmptyTriggersFromStates then "EmptyTrigger not in from.States.label" else ""}
+  #{if distinctTriggerNames then "all disj f1,f2 : label.TriggerNames | f1.label = f2.label implies (one (f1.to & f2.to & JoinNodes) or one (f1.from & f2.from & ForkNodes))" else ""}
+  #{if preventEmptyTriggersFromStates then "all f : from.States | f.label = EmptyTrigger implies f.to in (ForkNodes + JoinNodes) & label.TriggerNames.from" else ""}
   #{maybe "" (\p
                 -> (if p then id else \c -> "not (" ++ c ++ ")")
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
