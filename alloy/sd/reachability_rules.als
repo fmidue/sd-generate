@@ -48,13 +48,13 @@ pred trueReachability{
 fact{
         setStartNodesFlag
         trueReachability
-        // If there are history entries without default leaving transition, there must be a start state, because history nodes have neither record and a default leaving transition at the first entry
-        all h1: HierarchicalStates, h2: HistoryNodes | let n1 = h1.contains |
-                no (Flows <: from).h2 and h2 in (Flows <: from).(Nodes - n1).to
-                        implies one (StartNodes & h1.contains)
-        all r1: Regions, h1: HistoryNodes | let n1 = r1.contains |
-                no (Flows <: from).h1 and h1 in (Flows <: from).(Nodes - n1).to
-                        implies one (StartNodes & r1.contains)
+        // If there are history entries without default leaving transition, there must be a start state, because history nodes have neither record nor a default leaving transition at the first entry
+        all h1 : HierarchicalStates | let n1 = h1.contains | all h2 : HistoryNodes & n1 |
+                no (Flows <: from).h2 and h2 in (Flows <: from).(Nodes - h1 - n1).to
+                        implies one (StartNodes & n1)
+        all r1 : Regions | let n1 = r1.contains | all h1 : HistoryNodes & n1 |
+                no (Flows <: from).h1 and h1 in (Flows <: from).(Nodes - r1.~contains - n1).to
+                        implies one (StartNodes & n1)
         // If a composite state has regions and there are direct entries to one of the regions(except fork nodes), other regions must have start states
         all rs1: RegionsStates, disj r1, r2: rs1.contains |
                 let n1 = nodesInThisAndDeeper[r1] |
