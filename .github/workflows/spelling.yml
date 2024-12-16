@@ -54,7 +54,8 @@ jobs:
           spell_check_this: check-spelling/spell-check-this@prerelease
           post_comment: 0
           experimental_apply_changes_via_bot: 1
-          extra_dictionaries: '' # it seems to be quite good figuring out the dictionaries needed by itself
+          extra_dictionaries:
+            cspell:filetypes/filetypes.txt
   comment:
     name: Report
     runs-on: ubuntu-latest
