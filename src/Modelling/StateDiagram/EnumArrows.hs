@@ -453,11 +453,11 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   = Just "Tasks predicated on reachability will have at least a start node on the outermost level."
   | hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
-  | not distinctTriggerNames
+  | not preventTriggerNamesDuplication
   = Just "For this task type, triggers in the original diagram should be all made distinct."
   | renderer renderPath /= Diagrams && randomizeLayout
   = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
-  | not distinctNormalStateNames
+  | not preventNormalStateNamesDuplication
   = Just "The chart should have distinct normal state names to be uniquely solvable."
   | regions > 0
   = Just "Flattening does not support regions currently."
