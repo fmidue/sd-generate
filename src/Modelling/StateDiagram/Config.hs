@@ -211,17 +211,18 @@ checkSDConfig SDConfig
   = Just "you cannot have Regions, ForkNodes of JoinNodes when you have no RegionsStates (upper bounds inconsistent)"
   | regions < 2 * regionsStates
   = Just "each RegionsState needs at least two Regions"
-  | preventNormalStateNamesDuplication && not preventAnonymousNormalStates = Just "you cannot enforce distinct normal state names without enforcing normal state names"
+  | preventNormalStateNamesDuplication && not preventAnonymousNormalStates
+  = Just "you cannot prevent normal state names duplication while not preventing anonymous normal states."
   | preventNormalStateNamesDuplication && normalStates > componentNames
-  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names."
+  = Just "Given that you want to prevent normal state names duplication, you are setting too few component names."
   | preventNormalStateNamesDuplication && compoundsHaveNames == Just True && hierarchicalStates + regions > 0 && normalStates == componentNames
-  = Just "Given that you want to enforce distinct normal state names and enforce naming regions and hierarchical states, you are setting too few component names."
+  = Just "Given that you want to prevent normal state names duplication and enforce naming regions and hierarchical states, you are setting too few component names."
   | normalStates + hierarchicalStates + regions < componentNames
   = Just "You are setting too many component names, relatively to the number of entities to be potentially named."
   | compoundsHaveNames == Just False && normalStates < componentNames
   = Just "Given that you want to avoid naming regions or hierarchical states, you are setting too many component names."
   | preventNormalStateNamesDuplication && compoundsHaveNames == Just False && normalStates /= componentNames
-  = Just "Given that you want to enforce distinct normal state names and avoid naming regions or hierarchical states, you are not setting the right number of component names."
+  = Just "Given that you want to prevent normal state names duplication and avoid naming regions or hierarchical states, you are not setting the right number of component names."
   | hierarchicalStates + regions + 1 < snd startNodes
   = Just "Your upper bound for start nodes is too high, relatively to the number of compound entities (and the top-level)."
   | hierarchicalStates + regions + 1 < endNodes
