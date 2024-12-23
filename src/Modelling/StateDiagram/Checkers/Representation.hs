@@ -85,4 +85,4 @@ checkStartToRegion _ = True
 checkNegativeLabels :: StateDiagram n Int [Connection Int] -> Bool
 checkNegativeLabels StateDiagram{label,substates} = label >= 0 && all checkNegativeLabels substates
 checkNegativeLabels CombineDiagram{label,substates} = label >= 0 && all checkNegativeLabels substates
-checkNegativeLabels sd = label sd >= 0 && all checkNegativeLabels (substates sd)
+checkNegativeLabels sd = label sd >= 0
