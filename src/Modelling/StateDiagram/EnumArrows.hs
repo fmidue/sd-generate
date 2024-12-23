@@ -454,7 +454,7 @@ checkEnumArrowsConfig EnumArrowsConfig{ sdConfig
   | hierarchicalStates < 1
   = Just "The chart must have at least one hierarchical state."
   | not preventTriggerNamesDuplication
-  = Just "For this task type, triggers in the original diagram should be all made distinct."
+  = Just "For this task type, trigger names duplication should be prevented."
   | renderer renderPath /= Diagrams && randomizeLayout
   = Just "Chart layout randomization is not supported for other renderers than Diagrams when enabled."
   | not preventNormalStateNamesDuplication
