@@ -6,14 +6,14 @@ module Modelling.StateDiagram.Checkers.Representation ( checkRepresentation ) wh
 import Modelling.StateDiagram.Datatype (
   Connection(..),
   StateDiagram(..),
-  UMLStateDiagram(unUML'),
+  UMLStateDiagram(unUML'), unUML,
   )
 
 import Modelling.StateDiagram.Checkers.Helpers (getSubstates, lastSecNotCD)
 
 checkRepresentation :: UMLStateDiagram n Int -> Maybe String
 checkRepresentation a
-  | not (checkNegativeLabels $ unUML' a) =
+  | not (flip unUML a $ \_ substates _ _ -> all checkNegativeLabels substates) =
       Just "Negative numbers are not allowed in labels."
   | not (checkSubstatesCD $ unUML' a) =
       Just "Error: CombineDiagram constructor must contain at least 2 StateDiagram and no other type of constructor"
