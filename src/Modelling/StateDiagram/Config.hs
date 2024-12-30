@@ -58,6 +58,7 @@ data SDConfig
              , preventNestedEndNodes :: Bool
              , multiEdgesPresentInOriginalDiagram :: Maybe Bool
              , compoundsHaveNames :: Maybe Bool
+             , preventSelfLoops :: Bool
              , preventNormalAndHierarchicalStatesWithoutOutgoingEdges :: Bool
              , chartLimits :: ChartLimits
              , extraConstraint :: String
@@ -91,6 +92,7 @@ defaultSDConfigScenario1
              , preventNestedEndNodes = False
              , multiEdgesPresentInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
+             , preventSelfLoops = False
              , preventNormalAndHierarchicalStatesWithoutOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = 0
@@ -128,6 +130,7 @@ defaultSDConfigScenario2
              , preventNestedEndNodes = True
              , multiEdgesPresentInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
+             , preventSelfLoops = False
              , preventNormalAndHierarchicalStatesWithoutOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = 1
@@ -165,6 +168,7 @@ defaultSDConfigScenario3
              , preventNestedEndNodes = False
              , multiEdgesPresentInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
+             , preventSelfLoops = False
              , preventNormalAndHierarchicalStatesWithoutOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = 0
@@ -303,6 +307,7 @@ sdConfigToAlloy  SDConfig { bitwidth
                           , preventNestedEndNodes
                           , multiEdgesPresentInOriginalDiagram
                           , compoundsHaveNames
+                          , preventSelfLoops
                           , preventNormalAndHierarchicalStatesWithoutOutgoingEdges
                           , chartLimits = ChartLimits { regionsStates
                                                       , hierarchicalStates
@@ -354,6 +359,7 @@ pred scenarioConfig #{oB}
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
    multiEdgesPresentInOriginalDiagram}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
+  #{if preventSelfLoops then "no s : States | s in (Flows <: from).s.to" else ""}
   #{if preventNormalAndHierarchicalStatesWithoutOutgoingEdges then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
   #{lowerBound startNodes "StartNodes"}
   #{lowerBound shallowHistoryNodes "ShallowHistoryNodes"}
