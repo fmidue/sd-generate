@@ -59,7 +59,7 @@ data SDConfig
              , preventMultiEdgesInOriginalDiagram :: Maybe Bool
              , compoundsHaveNames :: Maybe Bool
              , enforceOutgoingEdgesFromNormalAndHierarchical :: Bool
-             , preventTransitionsToItself :: Bool
+             , preventSelfLoops :: Bool
              , chartLimits :: ChartLimits
              , extraConstraint :: String
              } deriving (Show,Eq)
@@ -93,7 +93,7 @@ defaultSDConfigScenario1
              , preventMultiEdgesInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
-             , preventTransitionsToItself = False
+             , preventSelfLoops = False
              , chartLimits =
                  ChartLimits { regionsStates = 0
                              , hierarchicalStates = 1
@@ -131,7 +131,7 @@ defaultSDConfigScenario2
              , preventMultiEdgesInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
-             , preventTransitionsToItself = False
+             , preventSelfLoops = False
              , chartLimits =
                  ChartLimits { regionsStates = 1
                              , hierarchicalStates = 0
@@ -169,7 +169,7 @@ defaultSDConfigScenario3
              , preventMultiEdgesInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
              , enforceOutgoingEdgesFromNormalAndHierarchical = True
-             , preventTransitionsToItself = False
+             , preventSelfLoops = False
              , chartLimits =
                  ChartLimits { regionsStates = 0
                              , hierarchicalStates = 1
@@ -307,7 +307,7 @@ sdConfigToAlloy  SDConfig { bitwidth
                           , preventMultiEdgesInOriginalDiagram
                           , compoundsHaveNames
                           , enforceOutgoingEdgesFromNormalAndHierarchical
-                          , preventTransitionsToItself
+                          , preventSelfLoops
                           , chartLimits = ChartLimits { regionsStates
                                                       , hierarchicalStates
                                                       , regions
@@ -359,7 +359,7 @@ pred scenarioConfig #{oB}
    preventMultiEdgesInOriginalDiagram}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
   #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
-  #{if preventTransitionsToItself then "no s : States | s in (Flows <: from).s.to" else ""}
+  #{if preventSelfLoops then "no s : States | s in (Flows <: from).s.to" else ""}
   #{lowerBound startNodes "StartNodes"}
   #{lowerBound shallowHistoryNodes "ShallowHistoryNodes"}
   #{lowerBound deepHistoryNodes "DeepHistoryNodes"}
