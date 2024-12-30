@@ -51,14 +51,14 @@ data ChartLimits
 
 data SDConfig
   = SDConfig { bitwidth :: Int
-             , enforceNormalStateNames :: Bool
-             , distinctNormalStateNames :: Bool
+             , preventAnonymousNormalStates :: Bool
+             , preventNormalStateNamesDuplication :: Bool
              , preventEmptyTriggersFromStates :: Bool
-             , distinctTriggerNames :: Bool
+             , preventTriggerNamesDuplication :: Bool
              , preventNestedEndNodes :: Bool
-             , preventMultiEdgesInOriginalDiagram :: Maybe Bool
+             , multiEdgesPresentInOriginalDiagram :: Maybe Bool
              , compoundsHaveNames :: Maybe Bool
-             , enforceOutgoingEdgesFromNormalAndHierarchical :: Bool
+             , preventNormalAndHierarchicalStatesWithoutOutgoingEdges :: Bool
              , chartLimits :: ChartLimits
              , extraConstraint :: String
              } deriving (Show,Eq)
@@ -67,7 +67,7 @@ defaultSDConfig :: SDConfig
 defaultSDConfig
   = let SDConfig { chartLimits = ChartLimits { .. }, .. }
           = defaultSDConfigScenario1
-    in SDConfig { distinctTriggerNames = True
+    in SDConfig { preventTriggerNamesDuplication = True
                 , chartLimits = ChartLimits { componentNames = componentNames + 1
                                             , triggerNames = (normalStates + hierarchicalStates, flows - fst startNodes)
                                             , derivedFlowsNew = (1,6)
@@ -84,14 +84,14 @@ defaultSDConfig
 defaultSDConfigScenario1 :: SDConfig
 defaultSDConfigScenario1
   = SDConfig { bitwidth = 6
-             , enforceNormalStateNames = True
-             , distinctNormalStateNames = True
+             , preventAnonymousNormalStates = True
+             , preventNormalStateNamesDuplication = True
              , preventEmptyTriggersFromStates = True
-             , distinctTriggerNames = False
+             , preventTriggerNamesDuplication = False
              , preventNestedEndNodes = False
-             , preventMultiEdgesInOriginalDiagram = Nothing
+             , multiEdgesPresentInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
-             , enforceOutgoingEdgesFromNormalAndHierarchical = True
+             , preventNormalAndHierarchicalStatesWithoutOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = 0
                              , hierarchicalStates = 1
@@ -121,14 +121,14 @@ defaultSDConfigScenario1
 defaultSDConfigScenario2 :: SDConfig
 defaultSDConfigScenario2
   = SDConfig { bitwidth = 6
-             , enforceNormalStateNames = True
-             , distinctNormalStateNames = True
+             , preventAnonymousNormalStates = True
+             , preventNormalStateNamesDuplication = True
              , preventEmptyTriggersFromStates = True
-             , distinctTriggerNames = False
+             , preventTriggerNamesDuplication = False
              , preventNestedEndNodes = True
-             , preventMultiEdgesInOriginalDiagram = Nothing
+             , multiEdgesPresentInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
-             , enforceOutgoingEdgesFromNormalAndHierarchical = True
+             , preventNormalAndHierarchicalStatesWithoutOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = 1
                              , hierarchicalStates = 0
@@ -158,14 +158,14 @@ defaultSDConfigScenario2
 defaultSDConfigScenario3 :: SDConfig
 defaultSDConfigScenario3
   = SDConfig { bitwidth = 6
-             , enforceNormalStateNames = True
-             , distinctNormalStateNames = True
+             , preventAnonymousNormalStates = True
+             , preventNormalStateNamesDuplication = True
              , preventEmptyTriggersFromStates = True
-             , distinctTriggerNames = False
+             , preventTriggerNamesDuplication = False
              , preventNestedEndNodes = False
-             , preventMultiEdgesInOriginalDiagram = Nothing
+             , multiEdgesPresentInOriginalDiagram = Nothing
              , compoundsHaveNames = Just False
-             , enforceOutgoingEdgesFromNormalAndHierarchical = True
+             , preventNormalAndHierarchicalStatesWithoutOutgoingEdges = True
              , chartLimits =
                  ChartLimits { regionsStates = 0
                              , hierarchicalStates = 1
@@ -195,11 +195,11 @@ defaultSDConfigScenario3
 checkSDConfig :: SDConfig -> Maybe String
 checkSDConfig SDConfig
                        { bitwidth
-                       , enforceNormalStateNames
-                       , distinctNormalStateNames
+                       , preventAnonymousNormalStates
+                       , preventNormalStateNamesDuplication
                        , compoundsHaveNames
-                       , enforceOutgoingEdgesFromNormalAndHierarchical
-                       , distinctTriggerNames
+                       , preventNormalAndHierarchicalStatesWithoutOutgoingEdges
+                       , preventTriggerNamesDuplication
                        , preventEmptyTriggersFromStates
                        , preventNestedEndNodes
                        , chartLimits = chartLimits@ChartLimits{..}
@@ -211,17 +211,18 @@ checkSDConfig SDConfig
   = Just "you cannot have Regions, ForkNodes of JoinNodes when you have no RegionsStates (upper bounds inconsistent)"
   | regions < 2 * regionsStates
   = Just "each RegionsState needs at least two Regions"
-  | distinctNormalStateNames && not enforceNormalStateNames = Just "you cannot enforce distinct normal state names without enforcing normal state names"
-  | distinctNormalStateNames && normalStates > componentNames
-  = Just "Given that you want to enforce distinct normal state names, you are setting too few component names."
-  | distinctNormalStateNames && compoundsHaveNames == Just True && hierarchicalStates + regions > 0 && normalStates == componentNames
-  = Just "Given that you want to enforce distinct normal state names and enforce naming regions and hierarchical states, you are setting too few component names."
+  | preventNormalStateNamesDuplication && not preventAnonymousNormalStates
+  = Just "you cannot prevent normal state names duplication while not preventing anonymous normal states."
+  | preventNormalStateNamesDuplication && normalStates > componentNames
+  = Just "Given that you want to prevent normal state names duplication, you are setting too few component names."
+  | preventNormalStateNamesDuplication && compoundsHaveNames == Just True && hierarchicalStates + regions > 0 && normalStates == componentNames
+  = Just "Given that you want to prevent normal state names duplication and enforce naming regions and hierarchical states, you are setting too few component names."
   | normalStates + hierarchicalStates + regions < componentNames
   = Just "You are setting too many component names, relatively to the number of entities to be potentially named."
   | compoundsHaveNames == Just False && normalStates < componentNames
   = Just "Given that you want to avoid naming regions or hierarchical states, you are setting too many component names."
-  | distinctNormalStateNames && compoundsHaveNames == Just False && normalStates /= componentNames
-  = Just "Given that you want to enforce distinct normal state names and avoid naming regions or hierarchical states, you are not setting the right number of component names."
+  | preventNormalStateNamesDuplication && compoundsHaveNames == Just False && normalStates /= componentNames
+  = Just "Given that you want to prevent normal state names duplication and avoid naming regions or hierarchical states, you are not setting the right number of component names."
   | hierarchicalStates + regions + 1 < snd startNodes
   = Just "Your upper bound for start nodes is too high, relatively to the number of compound entities (and the top-level)."
   | hierarchicalStates + regions + 1 < endNodes
@@ -234,14 +235,14 @@ checkSDConfig SDConfig
   = Just "The minimum total number for Nodes is too small, compared to the other numbers (lower bounds inconsistent)."
   | snd totalNodes > normalStates + hierarchicalStates + regionsStates + snd startNodes + endNodes + snd forkNodes + snd joinNodes + snd shallowHistoryNodes + snd deepHistoryNodes
   = Just "The maximum total number for Nodes is too big, compared to the other numbers (upper bounds inconsistent)."
-  | flows < fst startNodes + 2 * fst forkNodes + fst joinNodes + if enforceOutgoingEdgesFromNormalAndHierarchical then normalStates + hierarchicalStates else 0
+  | flows < fst startNodes + 2 * fst forkNodes + fst joinNodes + if preventNormalAndHierarchicalStatesWithoutOutgoingEdges then normalStates + hierarchicalStates else 0
   = Just "Your number of flows is too low, relatively to the number of nodes that will definitely have leaving flows according to your settings."
   | flows < fst startNodes + snd triggerNames + if preventEmptyTriggersFromStates then fst joinNodes else 0
   = Just "Your upper bound for trigger names is too high, relatively to the number of possibly named flows."
-  | distinctTriggerNames && enforceOutgoingEdgesFromNormalAndHierarchical &&
+  | preventTriggerNamesDuplication && preventNormalAndHierarchicalStatesWithoutOutgoingEdges &&
     fst triggerNames < hierarchicalStates + if preventEmptyTriggersFromStates then normalStates - (if snd joinNodes > 0 then regions - regionsStates else 0) else 0
   = Just "Your lower bound for trigger names is too low, relatively to the number of states to have distinctly named leaving flows according to your settings."
-  | distinctTriggerNames && preventEmptyTriggersFromStates &&
+  | preventTriggerNamesDuplication && preventEmptyTriggersFromStates &&
     fst triggerNames <
     flows - snd startNodes - snd shallowHistoryNodes - snd deepHistoryNodes
     - snd joinNodes
@@ -296,13 +297,13 @@ checkLimits ChartLimits{..}
 sdConfigToAlloy :: SDConfig -> String
 sdConfigToAlloy  SDConfig { bitwidth
                           , preventEmptyTriggersFromStates
-                          , distinctTriggerNames
-                          , enforceNormalStateNames
-                          , distinctNormalStateNames
+                          , preventTriggerNamesDuplication
+                          , preventAnonymousNormalStates
+                          , preventNormalStateNamesDuplication
                           , preventNestedEndNodes
-                          , preventMultiEdgesInOriginalDiagram
+                          , multiEdgesPresentInOriginalDiagram
                           , compoundsHaveNames
-                          , enforceOutgoingEdgesFromNormalAndHierarchical
+                          , preventNormalAndHierarchicalStatesWithoutOutgoingEdges
                           , chartLimits = ChartLimits { regionsStates
                                                       , hierarchicalStates
                                                       , regions
@@ -340,20 +341,20 @@ sdConfigToAlloy  SDConfig { bitwidth
 // This predicate is automatically generated from the configuration settings within Haskell.
 // Please consider that setting a non-exact value to a parameter can cause very slow Alloy execution times.
 pred scenarioConfig #{oB}
-  #{if enforceNormalStateNames then "no s : NormalStates | no s.name" else ""}
+  #{if preventAnonymousNormalStates then "no s : NormalStates | no s.name" else ""}
   #{maybe "" (\p -> if p
                     then "(no c : HierarchicalStates | no c.name) and (no c : Regions | no c.name)"
                     else "no HierarchicalStates.name and no Regions.name")
    compoundsHaveNames}
-  #{if distinctNormalStateNames then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
-  #{if distinctTriggerNames then "all disj f1,f2 : label.TriggerNames | f1.label = f2.label implies (one (f1.to & f2.to & JoinNodes) or one (f1.from & f2.from & ForkNodes))" else ""}
+  #{if preventNormalStateNamesDuplication then "no disj s1,s2 : NormalStates | s1.name = s2.name" else ""}
+  #{if preventTriggerNamesDuplication then "all disj f1,f2 : label.TriggerNames | f1.label = f2.label implies (one (f1.to & f2.to & JoinNodes) or one (f1.from & f2.from & ForkNodes))" else ""}
   #{if preventEmptyTriggersFromStates then "all f : from.States | f.label = EmptyTrigger implies f.to in (ForkNodes + JoinNodes) & label.TriggerNames.from" else ""}
   #{maybe "" (\p
-                -> (if p then id else \c -> "not (" ++ c ++ ")")
+                -> (if not p then id else \c -> "not (" ++ c ++ ")")
                    "all n1, n2 : Nodes | lone (Flows & from.n1 & to.n2)")
-   preventMultiEdgesInOriginalDiagram}
+   multiEdgesPresentInOriginalDiagram}
   #{if preventNestedEndNodes then "disj[EndNodes, allContainedNodes]" else ""}
-  #{if enforceOutgoingEdgesFromNormalAndHierarchical then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
+  #{if preventNormalAndHierarchicalStatesWithoutOutgoingEdges then "all s : (NormalStates + HierarchicalStates) | some (Flows <: from).s" else ""}
   #{lowerBound startNodes "StartNodes"}
   #{lowerBound shallowHistoryNodes "ShallowHistoryNodes"}
   #{lowerBound deepHistoryNodes "DeepHistoryNodes"}
