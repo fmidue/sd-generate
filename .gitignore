@@ -1,6 +1,7 @@
 .DS_Store
 .vscode/
 .stack-work/
+session_temp/
 stack.yaml.lock
 *.aux
 *.blg

@@ -50,6 +50,7 @@ endif
 endstate
 enduml
 executability
+executables
 firstline
 fmap
 foldl
@@ -62,6 +63,8 @@ hspec
 https
 includegraphics
 ispell
+JDK
+JRE
 lastline
 layouted
 ldots
