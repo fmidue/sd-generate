@@ -27,3 +27,4 @@ It currently contains the following functionalities:
 ```bash
 stack build
 stack exec <app name e.g. transformAlloy>
+```

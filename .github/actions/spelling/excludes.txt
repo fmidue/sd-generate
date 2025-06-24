@@ -52,4 +52,4 @@ ignore$
 ^\Qsrc/Modelling/StateDiagram/CounterExample.hs\E$
 ^src/Modelling/StateDiagram/Checkers/
 ^.+\.drawio$
-^assets/models/.*\.bin$
+
