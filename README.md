@@ -1,7 +1,8 @@
 # sd-generate
-This repository currently contains the following functions:
+This repository aims to implement the formalization and automatic generation of UML state diagrams.
+It currently contains the following functions:
  - Under the folder ./alloy, it provides the formalization of UML state diagrams in Alloy. User can use `uml_state_diagram.als` to generate different sd instances and play around. 
- - Under the folder ./app, it provides 8 functions:
+ - Under the folder ./app, it provides the following functions:
 	- `draw.hs`: draws Alloy sd instances with our Haskell visualization tool.
 	- `drawing.hs`: draws Haskell sd instances.
 	- `enumeratedArrowsDirectDemo.hs`: generates a demo of sd "flatten" programs, but currently not support concurrent states and history nodes.
