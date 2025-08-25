@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wwarn=incomplete-patterns #-}
+{-# OPTIONS_GHC -Wno-error=x-partial -Wwarn=incomplete-patterns #-}
 module Modelling.StateDiagram.Instance (
   parseInstance,
   failWith

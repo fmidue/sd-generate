@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-error=x-partial #-}
+
 module Modelling.StateDiagram.Support where
 import Modelling.StateDiagram.Datatype
 import Data.Graph

@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-error=deprecations #-}
+{-# OPTIONS_GHC -Wno-error=x-partial -Wno-error=deprecations #-}
 {-# LANGUAGE LambdaCase, RecordWildCards #-}
 
 module Modelling.StateDiagram.Generate (randomSD) where

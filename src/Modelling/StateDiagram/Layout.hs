@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-error=x-partial #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Modelling.StateDiagram.Layout
