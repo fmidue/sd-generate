@@ -482,8 +482,8 @@ enumArrowsSyntax task answer
 enumArrowsEvaluation :: (OutputCapable m) => EnumArrowsInstance -> [(String,String)] -> Rated m
 enumArrowsEvaluation task answer
   = printSolutionAndAssert
-    DefiniteArticle
-    (Just $ show (concatMap (uncurry zip) $ taskSolution task))
+    True
+    (Just . (DefiniteArticle, ) $ show (concatMap (uncurry zip) $ taskSolution task))
     (rate (taskSolution task) answer)
 
 missing :: (Eq a, Eq b) => [([a], [b])] -> [(a, b)] -> [(a, b)]

@@ -3,13 +3,27 @@ resolver: lts-23.28
 packages:
   - .
 extra-deps:
-  - call-alloy-0.5.0.1
+  - call-alloy-0.6.0.2
   - git: https://github.com/fmidue/output-blocks.git
-    commit: f14dca13e3fa06858ee6299333764b9b89d820c9
+    commit: d67590cb2e1a72ed72437a8cfe2972b680405569
     subdirs:
       - output-blocks
   - git: https://github.com/fmidue/modelling-tasks.git
-    commit: 8285b863dfe817d94334ae82ea525da15dd66540
+    commit: 5e762cfd0b76f10c79f2199d974b17750b919823
+  - git: https://github.com/fmidue/autotool-capabilities.git
+    commit: 9001e5040f2a48337359c6d93f600420d17b3dcc
+    subdirs:
+      - autotool-capabilities
+      - autotool-capabilities-io-instances
+  - git: https://git.uni-due.de/fmi/autotool-dev
+    commit: 56e75cd74d44f81ae52baa3b886025bd4d158bbb
+    subdirs:
+      - base
+      - data
+      - reader
+      - todoc
+      - transport
+      - util
   - call-plantuml-0.0.1.3
   - latex-svg-image-0.2
   - hgal-2.0.0.3
