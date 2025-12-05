@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-error=x-partial -Wwarn=incomplete-patterns #-}
+{-# OPTIONS_GHC -Wwarn=incomplete-patterns #-}
 module Modelling.StateDiagram.Instance (
   parseInstance,
   failWith
@@ -158,7 +158,10 @@ Get path to element in the forest. Assumes there is just one such element.
 Fails if the element does not exist within the forest.
 -}
 getPathTo :: Eq a => Forest (a, b) -> a -> b
-getPathTo x = head . catMaybes . getPathsTo x
+getPathTo x y =
+  case catMaybes (getPathsTo x y) of
+    (p:_) -> p
+    []    -> error "getPathTo: element not found in forest"
 
 getPathsTo :: Eq a => Forest (a, b) -> a -> [Maybe b]
 getPathsTo []        _ = []
@@ -208,7 +211,7 @@ Like 'tail', but never trying to shorten the empty list.
 -}
 stail :: [a] -> [a]
 stail [] = []
-stail xs = tail xs
+stail (_:xs) = xs
 
 treeToStateDiagram
   :: (Node -> String)

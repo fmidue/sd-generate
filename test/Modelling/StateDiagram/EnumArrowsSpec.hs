@@ -115,8 +115,11 @@ spec
           let
             task = defaultEnumArrowsInstance
             answer = concatMap (uncurry zip) $ taskSolution task
+            answerTail = case answer of
+              []     -> []
+              (_:xs) -> xs
             in
-            rate (taskSolution task) (tail answer)
+            rate (taskSolution task) answerTail
             `shouldBe`
             toRational (length answer - 1) / toRational (length answer)
         it "ambiguous placeholder test variant 1" $ do
