@@ -1,6 +1,7 @@
 module Modelling.StateDiagram.Support where
 import Modelling.StateDiagram.Datatype
 import Data.Graph
+import Data.Maybe
 import qualified Data.Map as Map
 import Data.List
 
@@ -203,9 +204,7 @@ getUMLStateDiagram vertex graphFE = getFirstFromTuple3 (getSecondFromTuple3
 
 higherIndex :: (Int, Int) -> [Int] -> Int
 higherIndex (fstValue, sndValue) list
-  | Just i1 <- elemIndex fstValue list
-  , Just i2 <- elemIndex sndValue list
-  , i1 > i2 = 1
+  | fromJust (elemIndex fstValue list) > fromJust (elemIndex sndValue list) = 1
   | otherwise = 0
 
 higherIndex2 :: ([Int], [Int]) -> [Wrapper] -> Bool -> Int

@@ -318,7 +318,7 @@ addD a maxKey (_:x1:xs) withDummy c@ConnectWithType {} [] =
   addD a (maxKey + 1) (x1:xs) (modifyAt x1 (\ x -> x ++ [Dummy (maxKey + 1)
   Unspecified 0.1]) withDummy) c [ConnectWithType (Connection (pointFrom
   $ connecting c) [maxKey + 1] "") (betweenConnection a)]
-addD _ maxKey [_] withDummy _ withConnect = (withDummy, maxKey, withConnect)
+addD _ _ [_] _ _ _ = error "addD: single element list - insufficient layers"
 addD a maxKey (_:x1:xs) withDummy c@ConnectWithType {} withConnect =
   addD a (maxKey + 1) (x1:xs) (modifyAt x1 (\ x -> x ++ [Dummy (maxKey + 1)
   Unspecified 0.1]) withDummy) c (withConnect ++ [ConnectWithType (
@@ -941,12 +941,9 @@ edgeRedLayers layersBefore (x:xs) layersAfter connectionList crossingBef
   modifiedLayer]) connectionList  crossingBef (crossingAfter + snd
   modifiedLayer) loop
   where
-    (wrapperToInt, currentConns) =
-      case (reverse layersAfter, reverse connectionList) of
-        (w:_, c:_) -> (w, c)
-        (w:_, [])  -> (w, [])
-        _          -> error "edgeRedLayers: empty layersAfter/connectionList"
-    modifiedLayer = edgeRedLayer wrapperToInt x currentConns [] loop
+    wrapperToInt = last layersAfter
+    modifiedLayer = edgeRedLayer wrapperToInt x (connectionList !! (length
+      layersAfter - 1)) [] loop
 
 countCrossStateCrossing :: [Int] -> [[Int]] -> [ConnectWithType] -> Int -> Int
 countCrossStateCrossing _ [_] _ totalCrossing = totalCrossing
