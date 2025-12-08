@@ -57,6 +57,9 @@ library
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -103,6 +106,9 @@ executable draw
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -150,6 +156,9 @@ executable drawing
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -197,6 +206,9 @@ executable enumeratedArrowsDirectDemo
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -245,6 +257,9 @@ executable enumeratedArrowsQuizDemo
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -293,6 +308,9 @@ executable sampling
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -340,6 +358,9 @@ executable transformAlloy
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -387,6 +408,9 @@ executable transformPlantUML
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
@@ -444,6 +468,9 @@ test-suite sd-generate-test
       MonadRandom
     , QuickCheck
     , SVGFonts
+    , autolib-reader
+    , autolib-todoc
+    , autolib-util
     , base
     , bifunctors
     , bytestring
