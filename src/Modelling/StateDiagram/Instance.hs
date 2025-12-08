@@ -200,18 +200,11 @@ forestToStateDiagram
   -> StateDiagram String Int ()
 forestToStateDiagram getName getStart ts = StateDiagram {
   label = 1,
-  substates = treeToStateDiagram getName (stail . getStart) <$> ts,
+  substates = treeToStateDiagram getName (drop 1 . getStart) <$> ts,
   name = "",
   connections = (), -- TODO
   startState = getStart Nothing
   }
-
-{-|
-Like 'tail', but never trying to shorten the empty list.
--}
-stail :: [a] -> [a]
-stail [] = []
-stail (_:xs) = xs
 
 treeToStateDiagram
   :: (Node -> String)
@@ -246,7 +239,7 @@ treeToStateDiagram getName getStart n = case node of
     l = last $ snd root
     root = rootLabel n
     node = fst root
-    fromTree = treeToStateDiagram getName (stail . getStart)
+    fromTree = treeToStateDiagram getName (drop 1 . getStart)
 
 {-|
 Transforms a mapping of containments into a tree structure.
