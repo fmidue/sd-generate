@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE DeriveGeneric             #-}
 {-# LANGUAGE DeriveTraversable         #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
@@ -28,6 +29,9 @@ module Modelling.StateDiagram.Datatype
 
 import GHC.Generics (Generic)
 
+import Autolib.Hash (Hashable)
+import Autolib.Reader (Reader)
+import Autolib.ToDoc (ToDoc)
 import Data.Bifunctor.TH (
   deriveBifoldable,
   deriveBifunctor,
@@ -108,7 +112,7 @@ data Connection label =  Connection {
   pointTo :: [label],
   transition :: String
   }
-  deriving (Eq, Foldable, Functor, Ord, Read, Show, Traversable)
+  deriving (Eq, Generic, Foldable, Functor, Hashable, Ord, Read, Reader, Show, ToDoc, Traversable)
 
 -- ForwardH = forwardArrowWithHead | SelfCL = selfConnectLeft
 data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
@@ -116,7 +120,7 @@ data ConnectionType = ForwardH | ForwardWH | BackwardH | BackwardWH | SelfCL |
   deriving (Eq, Read, Show)
 
 data HistoryType = Shallow | Deep
-  deriving (Eq, Ord, Read, Show)
+  deriving (Eq, Generic, Hashable, Ord, Read, Reader, Show, ToDoc)
 
 {-# DEPRECATED unUML' "Use unUML instead" #-}
 newtype UMLStateDiagram n l = UMLStateDiagram {unUML' :: StateDiagram n l [Connection l]}
@@ -186,7 +190,7 @@ data StateDiagram n l a = StateDiagram { substates :: [StateDiagram n l a],
                      | InnerMostState { label :: l
                                       , name :: n
                                       , operations :: String }
-  deriving (Eq, Foldable, Functor, Read, Show, Traversable)
+  deriving (Eq, Generic, Foldable, Functor, Hashable, Read, Reader, Show, ToDoc, Traversable)
 
 data Layout = Vertical | Horizontal | Unspecified
   deriving (Eq, Read, Show)
