@@ -2,6 +2,9 @@
 name: sd-generate
 extra-source-files: [ ]
 dependencies:
+  - autolib-reader
+  - autolib-todoc
+  - autolib-util
   - base
   - bifunctors
   - generic-functor
