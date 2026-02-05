@@ -46,7 +46,7 @@ main = do
       -- initialize Alloy and instance selector
 
       -- on the concrete instance, optionally randomise triggers and names
-      evalRandTIO $
+      evalRandTIO $ -- no-spell-check
         randomise defaultEnumArrowsInstance >>= randomiseLayout
       -- visualize task
     describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)

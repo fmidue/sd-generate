@@ -10,7 +10,7 @@
 module Modelling.StateDiagram.EnumArrowsSpec (spec)
 where
 
-import Control.Monad.Random (evalRandTIO)
+import Control.Monad.Random (evalRandTIO) -- no-spell-check
 import Test.Hspec (shouldBe
                   ,shouldNotBe
                   ,it
@@ -51,12 +51,12 @@ spec
 
         it "randomize chart layout for default chart" $ do
           let task = defaultEnumArrowsInstance { randomization = True }
-          task' <- evalRandTIO $ randomiseLayout task
+          task' <- evalRandTIO $ randomiseLayout task -- no-spell-check
           task `shouldNotBe` task'
 
         it "test shuffle transition labels" $ do
           let task = defaultEnumArrowsInstance { shuffle = Just ShuffleTriggers }
-          task' <- evalRandTIO $ randomise task
+          task' <- evalRandTIO $ randomise task -- no-spell-check
           let hsc = connections . unUML' . globalise $ hierarchicalSD task
           let hsc' = connections . unUML' . globalise $ hierarchicalSD task'
           let transitions x y
@@ -78,12 +78,12 @@ spec
 
         it "shuffle state names" $ do
           let task = defaultEnumArrowsInstance { shuffle = Just ShuffleNames }
-          task' <- evalRandTIO $ randomise task
+          task' <- evalRandTIO $ randomise task -- no-spell-check
           (collectNames . hierarchicalSD $ task) `shouldNotBe` (collectNames . hierarchicalSD $ task')
 
         it "shuffle state names and transition labels" $ do
           let task = defaultEnumArrowsInstance { shuffle = Just ShuffleNamesAndTriggers }
-          task' <- evalRandTIO $ randomise task
+          task' <- evalRandTIO $ randomise task -- no-spell-check
           (flatAndEnumeratedSD task `shouldNotBe` flatAndEnumeratedSD task')
             *> (hierarchicalSD task `shouldNotBe` hierarchicalSD task')
             *> (taskSolution task `shouldNotBe` taskSolution task')
