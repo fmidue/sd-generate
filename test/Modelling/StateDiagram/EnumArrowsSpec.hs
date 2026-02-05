@@ -10,6 +10,7 @@
 module Modelling.StateDiagram.EnumArrowsSpec (spec)
 where
 
+import Control.Monad.Random (evalRandT, mkStdGen)
 import Test.Hspec (shouldBe
                   ,shouldNotBe
                   ,it
@@ -50,12 +51,12 @@ spec
 
         it "randomize chart layout for default chart" $ do
           let task = defaultEnumArrowsInstance { randomization = True }
-          task' <- randomiseLayout task
+          task' <- evalRandT (randomiseLayout task) (mkStdGen 42)
           task `shouldNotBe` task'
 
         it "test shuffle transition labels" $ do
           let task = defaultEnumArrowsInstance { shuffle = Just ShuffleTriggers }
-          task' <- randomise task
+          task' <- evalRandT (randomise task) (mkStdGen 42)
           let hsc = connections . unUML' . globalise $ hierarchicalSD task
           let hsc' = connections . unUML' . globalise $ hierarchicalSD task'
           let transitions x y
@@ -77,12 +78,12 @@ spec
 
         it "shuffle state names" $ do
           let task = defaultEnumArrowsInstance { shuffle = Just ShuffleNames }
-          task' <- randomise task
+          task' <- evalRandT (randomise task) (mkStdGen 42)
           (collectNames . hierarchicalSD $ task) `shouldNotBe` (collectNames . hierarchicalSD $ task')
 
         it "shuffle state names and transition labels" $ do
           let task = defaultEnumArrowsInstance { shuffle = Just ShuffleNamesAndTriggers }
-          task' <- randomise task
+          task' <- evalRandT (randomise task) (mkStdGen 42)
           (flatAndEnumeratedSD task `shouldNotBe` flatAndEnumeratedSD task')
             *> (hierarchicalSD task `shouldNotBe` hierarchicalSD task')
             *> (taskSolution task `shouldNotBe` taskSolution task')
