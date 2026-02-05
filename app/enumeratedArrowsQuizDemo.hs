@@ -1,5 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+
 module Main (main) where
+
+import Control.Monad.Random (evalRandT, mkStdGen)
 import Control.OutputCapable.Blocks (
   LangM,
   Language (English),
@@ -44,9 +47,8 @@ main = do
       -- initialize Alloy and instance selector
 
       -- and pick a concrete instance, and optionally randomise triggers and names
-      enumArrows defaultEnumArrowsConfig timestamp
-        >>= randomise
-        >>= randomiseLayout
+      instance_ <- enumArrows defaultEnumArrowsConfig timestamp
+      evalRandT (randomise instance_ >>= randomiseLayout) (mkStdGen timestamp)
       -- visualize task
     describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)
     describe timestamp task =
