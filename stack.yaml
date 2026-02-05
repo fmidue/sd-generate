@@ -9,14 +9,14 @@ extra-deps:
     subdirs:
       - output-blocks
   - git: https://github.com/fmidue/modelling-tasks.git
-    commit: 5e762cfd0b76f10c79f2199d974b17750b919823
+    commit: 2d0f8a84f7bbcfb980e33e01ec355135839e88de
   - git: https://github.com/fmidue/autotool-capabilities.git
-    commit: 9001e5040f2a48337359c6d93f600420d17b3dcc
+    commit: 8ea4feae0cd9c184ae4127e59233f5e8f1b22717
     subdirs:
       - autotool-capabilities
       - autotool-capabilities-io-instances
   - git: https://git.uni-due.de/fmi/autotool-dev
-    commit: 56e75cd74d44f81ae52baa3b886025bd4d158bbb
+    commit: bdd8e54b6c0480bb12bbc34f72c6f1247469f3b7
     subdirs:
       - base
       - data

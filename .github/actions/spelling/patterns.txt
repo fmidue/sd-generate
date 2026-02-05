@@ -24,3 +24,6 @@ https?://[-+0-9a-zA-Z?&=_\/%.]*
 
 # ignore lines starting with 'german' (german task descriptions and warnings)
 ^\s*german.*$
+
+# ignore lines with the following comment
+^.*-- no-spell-check$

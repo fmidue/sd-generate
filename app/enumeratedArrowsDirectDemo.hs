@@ -1,5 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+
 module Main (main) where
+
+import Control.Monad.Random (evalRandTIO) -- no-spell-check
 import Control.OutputCapable.Blocks (
   LangM,
   Language (English),
@@ -43,7 +46,8 @@ main = do
       -- initialize Alloy and instance selector
 
       -- on the concrete instance, optionally randomise triggers and names
-      randomise defaultEnumArrowsInstance
+      evalRandTIO $ -- no-spell-check
+        randomise defaultEnumArrowsInstance
         >>= randomiseLayout
       -- visualize task
     describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)
