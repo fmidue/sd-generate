@@ -2,7 +2,7 @@
 
 module Main (main) where
 
-import Control.Monad.Random (evalRandT, mkStdGen)
+import Control.Monad.Random (evalRandTIO)
 import Control.OutputCapable.Blocks (
   LangM,
   Language (English),
@@ -48,7 +48,7 @@ main = do
 
       -- and pick a concrete instance, and optionally randomise triggers and names
       instance_ <- enumArrows defaultEnumArrowsConfig timestamp
-      evalRandT (randomise instance_ >>= randomiseLayout) (mkStdGen timestamp)
+      evalRandTIO $ randomise instance_ >>= randomiseLayout
       -- visualize task
     describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)
     describe timestamp task =
