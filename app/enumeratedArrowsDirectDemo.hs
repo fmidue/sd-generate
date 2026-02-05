@@ -47,7 +47,8 @@ main = do
 
       -- on the concrete instance, optionally randomise triggers and names
       evalRandTIO $ -- no-spell-check
-        randomise defaultEnumArrowsInstance >>= randomiseLayout
+        randomise defaultEnumArrowsInstance
+        >>= randomiseLayout
       -- visualize task
     describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)
     describe timestamp task =

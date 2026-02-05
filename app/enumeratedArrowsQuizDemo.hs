@@ -47,9 +47,10 @@ main = do
       -- initialize Alloy and instance selector
 
       -- and pick a concrete instance, and optionally randomise triggers and names
-      instance_ <- enumArrows defaultEnumArrowsConfig timestamp
       evalRandTIO $ -- no-spell-check
-        randomise instance_ >>= randomiseLayout
+        enumArrows defaultEnumArrowsConfig timestamp
+        >>= randomise
+        >>= randomiseLayout
       -- visualize task
     describe :: Int -> EnumArrowsInstance -> LangM (ReportT (IO ()) IO)
     describe timestamp task =
