@@ -2,7 +2,7 @@
 
 module Main (main) where
 
-import Control.Monad.Random (evalRandTIO)
+import Control.Monad.Random (evalRandTIO) -- no-spell-check
 import Control.OutputCapable.Blocks (
   LangM,
   Language (English),
