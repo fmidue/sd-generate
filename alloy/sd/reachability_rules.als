@@ -35,14 +35,28 @@ pred setStartNodesFlag{
         }) implies s1.flag = 1 else s1.flag = 0
 }
 
+// Starting from an outermost start node (root), all nodes can be reachable, in which Join nodes require AND edges.
+pred allNodesReachable {
+    let seed   = StartNodes - allContainedNodes,
+        must   = Nodes - StartNodes - CompositeStates,
+        edge = (~from.to) |
+            some justify: Nodes -> Nodes {
+                no n: Nodes | n in n.^justify                     // No cycle in the justification
+                no justify[seed]                                  // The seed is the root
+                Nodes.justify in seed + justify.Nodes             // The reason must be grounded
+                all n: must - JoinNodes |                         // OR nodes (excluding Join nodes)
+                one justify[n] and (justify[n] -> n) in edge
+                all jn: must & JoinNodes |                         // AND (Join) nodes
+                justify[jn] = (Flows <: to).jn.from
+            }
+}
 
 pred trueReachability{
         atLeastOneEntryToCompositeStates // It is a necessary condition for "true reachability"
 
         theFlatteningStrategy
 
-        (Nodes - StartNodes - CompositeStates) in
-                (StartNodes - allContainedNodes).^(~from.to) // Starting from a outermost start node except start nodes and composite states, all nodes except start nodes and composite states can be reachable
+        allNodesReachable
 }
 
 fact{

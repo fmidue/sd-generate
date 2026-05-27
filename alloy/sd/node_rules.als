@@ -17,9 +17,22 @@ pred joinNodesComeFromDistinctParallelRegions{
                         (f1 + f2).from in nodesInThisAndDeeper[r]
 }
 
+// Approximation: Join sources are non-interfering to avoid obvious unreachability
+pred joinSourcesNonInterfering {
+    all jn: JoinNodes |
+        let arms = (Flows <: to).jn.from,
+            rs = { c: RegionsStates | arms in nodesInThisAndDeeper[c]
+                        and no r: c.contains | arms in nodesInThisAndDeeper[r] } |
+        all s: arms |
+            let sib = nodesInThisAndDeeper[rs]
+                        - nodesInThisAndDeeper[{ r: rs.contains | s in nodesInThisAndDeeper[r] }] |
+                no ( (((Flows & from.s) - to.jn).label - EmptyTrigger) & ((Flows & from.sib).label - EmptyTrigger) )
+}
+
 fact{
         forkNodesGoToDistinctParallelRegions
         joinNodesComeFromDistinctParallelRegions
+        joinSourcesNonInterfering
         disj [EndNodes, (Flows <: from).ForkNodes.to] // No transitions between end nodes and fork nodes (see example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample3.svg")
         disj [StartNodes + HistoryNodes, (Flows <: to).JoinNodes.from] // No transitions between start/history nodes and join nodes (It excludes the example "https://github.com/fmidue/ba-zixin-wu/blob/master/examples/MyExample2.svg")
         disj [ForkNodes + JoinNodes, (Flows <: from).(ForkNodes + JoinNodes).to] // No consecutive fork/join nodes

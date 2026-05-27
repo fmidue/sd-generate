@@ -20,7 +20,7 @@ pred theFlatteningStrategy{
                                 no newFrom implies no pf.derived
                                    else flattenNonEmpty[newFrom, pf.derived, pf.to])
                         else
-                (pf.from in (sn + States) and pf.to in CompositeStates)
+                (pf.from in (sn + States + JoinNodes) and pf.to in CompositeStates)
                         implies
                                (let newTo = from.(StartNodes & nodesInThis[pf.to]).to |
                                 no newTo implies no pf.derived
@@ -38,11 +38,6 @@ pred theFlatteningStrategy{
                 (pf.from in (sn + States) and pf.to in ForkNodes)
                         implies
                                 flattenNonEmpty[pf.from, pf.derived, from.(pf.to).to + from.(nodesInOtherParallelRegions[(Regions <: contains).(from.(pf.to).to)] & StartNodes).to]
-                        else
-                // It flattens flows from states in regions to join nodes
-                (pf.from in States & Regions.contains and pf.to in JoinNodes)
-                        implies
-                                flattenNonEmpty[pf.from, pf.derived, from.(pf.to).to]
                         else
                 // The following 4 predicates flatten flows from states and the outermost start node to history nodes
                 // When a history node is in a region and has no default flow (states + the outermost start state -> history nodes in regions and without a default flow)
