@@ -79,7 +79,7 @@ library
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , string-interpolate
@@ -128,7 +128,7 @@ executable draw
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -178,7 +178,7 @@ executable drawing
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -229,7 +229,7 @@ executable enumeratedArrowsDirectDemo
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -280,7 +280,7 @@ executable enumeratedArrowsQuizDemo
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -330,7 +330,7 @@ executable sampling
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -380,7 +380,7 @@ executable transformAlloy
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -430,7 +430,7 @@ executable transformPlantUML
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
@@ -492,7 +492,7 @@ test-suite sd-generate-test
     , modelling-tasks
     , monad-loops
     , mtl
-    , output-blocks >=0.5.0.1
+    , output-blocks >=0.6.0.0 && <0.7
     , pretty-simple
     , random-shuffle
     , sd-generate
