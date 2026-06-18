@@ -24,7 +24,7 @@ dependencies:
   - hashable
   - pretty-simple
   - lens
-  - output-blocks >= 0.5.0.1
+  - output-blocks >= 0.6.0.0 && < 0.7
   - file-embed
   - filepath
   - MonadRandom
@@ -70,7 +70,6 @@ executables:
       - app
     dependencies:
       - sd-generate
-      - output-blocks >= 0.5.0.1
       - time
       - directory
     ghc-options:
@@ -82,7 +81,6 @@ executables:
       - app
     dependencies:
       - sd-generate
-      - output-blocks >= 0.5.0.1
       - time
       - directory
     ghc-options:

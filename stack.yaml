@@ -5,11 +5,11 @@ packages:
 extra-deps:
   - call-alloy-0.6.0.2
   - git: https://github.com/fmidue/output-blocks.git
-    commit: d67590cb2e1a72ed72437a8cfe2972b680405569
+    commit: be840655231dd5118ee66e28de3343628882dce3
     subdirs:
       - output-blocks
   - git: https://github.com/fmidue/modelling-tasks.git
-    commit: 2d0f8a84f7bbcfb980e33e01ec355135839e88de
+    commit: 9eac7889fbc436158cf39f4f962eda6263055264
   - git: https://github.com/fmidue/autotool-capabilities.git
     commit: 8ea4feae0cd9c184ae4127e59233f5e8f1b22717
     subdirs:
