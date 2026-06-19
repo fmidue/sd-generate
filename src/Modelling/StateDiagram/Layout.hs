@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -Wno-error=x-partial #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Modelling.StateDiagram.Layout
@@ -12,7 +11,9 @@ import Diagrams.Backend.SVG.CmdLine
 import qualified Data.Map as Map
 import Data.Graph
 import Data.Tree
+import Data.List (find)
 import Data.List.Index
+import Data.Maybe (fromMaybe)
 import Modelling.StateDiagram.Arrows
 import Modelling.StateDiagram.Support
 import Modelling.StateDiagram.Style (Styling(..))
@@ -122,12 +123,19 @@ drawWrapper _ a (Transition b c l rightType layouts) = appendEdges
   layouts # named (a ++ [b])
   where
     x = drawText c black
-drawWrapper style a s@AndDecomposition {} = appendEdges (roundedRect (width f) (height f) 0.1 # lc (hashToColour style (head (dropWhile null (map strings (component s)) ++ [""])))
-  <> f) (lengthXY s) (rightC s) (outerLayout s) # named (a ++
-  [key s])
+drawWrapper style a s@AndDecomposition {} =
+  appendEdges
+    (roundedRect (width f) (height f) 0.1
+      # lc (hashToColour style (fromMaybe "" (find (not . null) (map strings (component s)))))
+      <> f)
+    (lengthXY s) (rightC s) (outerLayout s) # named (a ++ [key s])
   where
-    w = maximum (fmap (width . drawWrapper style (a ++ [key s])) (component s))
-    h = maximum (fmap (height . drawWrapper style (a ++ [key s])) (component s))
+    w = case fmap (width . drawWrapper style (a ++ [key s])) (component s) of
+          [] -> error "drawWrapper AndDecomposition: empty component"
+          xs -> maximum xs
+    h = case fmap (height . drawWrapper style (a ++ [key s])) (component s) of
+          [] -> error "drawWrapper AndDecomposition: empty component"
+          xs -> maximum xs
     d = (vcat . fmap alignL) (drawSwimlane False (fmap (drawWrapper' style (a ++ [key
       s])) (component s)) w) # centerXY
     e = (hcat . fmap alignT) (drawSwimlane True (fmap (drawWrapper' style (a ++ [key
@@ -230,7 +238,9 @@ toWrapper s@StateDiagram {} = OrDecomposition toWrapper' (label s) (name s)
     newConnection = if null (startState s) then connections s
       else Connection [-1] (startState s) "" : connections s
     convertedConnection = changeConnectionType newConnection toWrapper' []
-    maxKey = maximum (Map.keys $ mapWithLabel $ substates s)
+    maxKey = case Map.keys (mapWithLabel $ substates s) of
+      [] -> error "toWrapper: empty substates"
+      ks -> maximum ks
 
 createGraph :: Map.Map Int [Int] -> [StateDiagram String Int [Connection Int]] -> [(StateDiagram String Int [Connection Int],
   Int, [Int])] -> (Graph, Vertex -> (StateDiagram String Int [Connection Int], Int, [Int]), Int -> Maybe
@@ -265,7 +275,9 @@ placeStartState [[a]] _ = [StartS (-1) 0 NoConnection Unspecified] : [[a]]
 placeStartState originalW ss =  modifyAt layerToInsert (++ [StartS (-1) 0
   NoConnection Unspecified]) originalW
   where
-    ssLayer = findLayer (head ss) originalW 0
+    ssLayer = case ss of
+      h:_ -> findLayer h originalW 0
+      []  -> error "placeStartState: empty startState list"
     layerToInsert = if ssLayer == (length originalW -1) then ssLayer - 1 else
       ssLayer + 1
 
@@ -302,12 +314,13 @@ addD :: ConnectionType -> Int -> [Int] -> [[Wrapper]] -> ConnectWithType ->
 addD a maxKey [_, _] withDummy c@ConnectWithType {} withConnect = (withDummy,
   maxKey, withConnect ++ [ConnectWithType (Connection [maxKey] (pointTo $
   connecting c) (transition $ connecting c)) a])
-addD a maxKey (_:xs) withDummy c@ConnectWithType {} [] =
-  addD a (maxKey + 1) xs (modifyAt (head xs) (\ x -> x ++ [Dummy (maxKey + 1)
+addD a maxKey (_:x1:xs) withDummy c@ConnectWithType {} [] =
+  addD a (maxKey + 1) (x1:xs) (modifyAt x1 (\ x -> x ++ [Dummy (maxKey + 1)
   Unspecified 0.1]) withDummy) c [ConnectWithType (Connection (pointFrom
   $ connecting c) [maxKey + 1] "") (betweenConnection a)]
-addD a maxKey (_:xs) withDummy c@ConnectWithType {} withConnect =
-  addD a (maxKey + 1) xs (modifyAt (head xs) (\ x -> x ++ [Dummy (maxKey + 1)
+addD _ _ [_] _ _ _ = error "addD: single element list - insufficient layers"
+addD a maxKey (_:x1:xs) withDummy c@ConnectWithType {} withConnect =
+  addD a (maxKey + 1) (x1:xs) (modifyAt x1 (\ x -> x ++ [Dummy (maxKey + 1)
   Unspecified 0.1]) withDummy) c (withConnect ++ [ConnectWithType (
   Connection [maxKey] [maxKey + 1] "") (betweenConnection a)])
 addD _ _ _ _ _ _ = ([], 0, [])
@@ -380,8 +393,12 @@ addTransitionStates maxKey transitionLayer originalLayer (x:xs) newConnection =
           addTransitionStates k (modifyAt endLayer addState transitionLayer)
           originalLayer xs (newConnection ++ type2)
   where
-    startLayer = findLayer (head $ pointFrom $ connecting x) originalLayer 0
-    endLayer = findLayer (head $ pointTo $ connecting x) originalLayer 0
+    startLayer = case pointFrom (connecting x) of
+      h:_ -> findLayer h originalLayer 0
+      []  -> error "addTransitionStates: empty pointFrom"
+    endLayer = case pointTo (connecting x) of
+      h:_ -> findLayer h originalLayer 0
+      []  -> error "addTransitionStates: empty pointTo"
     startLabel = pointFrom $ connecting x
     endLabel = pointTo $ connecting x
     connectName = transition (connecting x)
@@ -417,16 +434,18 @@ connectionsByLayers (x:xs) layers connectionLayers =
 startStateFirst :: StateDiagram String Int [Connection Int] -> [Int] -> StateDiagram String Int [Connection Int]
 startStateFirst a [] = a
 startStateFirst a@StateDiagram {} (x:xs) =
-  StateDiagram (loopOrder : tail newOrder) (label a) (name a) (connections a)
-  (startState a)
-  where
-    newOrder = moveToFirst (substates a) x []
-    loopOrder = startStateFirst (head newOrder) xs
+  case moveToFirst (substates a) x [] of
+    h:ts ->
+      let loopOrder = startStateFirst h xs
+      in StateDiagram (loopOrder : ts) (label a) (name a) (connections a)
+        (startState a)
+    [] -> error "startStateFirst: target startState not found"
 startStateFirst a@CombineDiagram {} (x:xs) =
-  CombineDiagram (loopOrder : tail newOrder) (label a)
-  where
-    newOrder = moveToFirst (substates a) x []
-    loopOrder = startStateFirst (head newOrder) xs
+  case moveToFirst (substates a) x [] of
+    h:ts ->
+      let loopOrder = startStateFirst h xs
+      in CombineDiagram (loopOrder : ts) (label a)
+    [] -> error "startStateFirst: target startState not found"
 startStateFirst a _ = a
 
 rearrangeSubstates :: StateDiagram String Int [Connection Int] -> StateDiagram String Int [Connection Int]
@@ -581,8 +600,12 @@ addCrossSuperStateDummy a b = case (pointFrom $ connecting b, pointTo $
          ForwardWH startPoint [ConnectWithType (Connection pointFromLabel
          pointToLabel connectionName) SelfCL] a)
   where
-    startLayer = findLayer (head $ pointFrom $ connecting b) (layered a) 0
-    endLayer = findLayer (head $ pointTo $ connecting b) (layered a) 0
+    startLayer = case pointFrom (connecting b) of
+      h:_ -> findLayer h (layered a) 0
+      []  -> error "addCrossSuperStateDummy: empty pointFrom"
+    endLayer = case pointTo (connecting b) of
+      h:_ -> findLayer h (layered a) 0
+      []  -> error "addCrossSuperStateDummy: empty pointTo"
     startPoint = pointFrom $ connecting b
     endPoint = pointTo $ connecting b
     connectionName = transition $ connecting b
@@ -678,14 +701,22 @@ csdWidth :: Double
 csdWidth = 0.05
 
 insertDummyLeft :: Wrapper  -> [[Wrapper]]
-insertDummyLeft a = if all checkWrapperLayer (head $ layered a) then
-  (CrossStateDummy (maxLabel a + 1) csdWidth : head (layered a)) : tail (layered a)
-  else [CrossStateDummy (maxLabel a + 1) csdWidth] : layered a
+insertDummyLeft a = case layered a of
+  first:rest ->
+    if all checkWrapperLayer first
+    then (CrossStateDummy (maxLabel a + 1) csdWidth : first) : rest
+    else [CrossStateDummy (maxLabel a + 1) csdWidth] : layered a
+  [] -> error "insertDummyLeft: layered is empty"
 
 insertDummyRight :: Wrapper -> [[Wrapper]]
-insertDummyRight a = if all checkWrapperLayer (last $ layered a) then init (
-  layered a) ++ [last (layered a) ++ [CrossStateDummy (maxLabel a + 1) csdWidth]] else
-  layered a ++ [[CrossStateDummy (maxLabel a + 1) csdWidth]]
+insertDummyRight a = case reverse (layered a) of
+  lastPart:restRev ->
+    let initPart = reverse restRev
+        dummy = CrossStateDummy (maxLabel a + 1) csdWidth
+    in if all checkWrapperLayer lastPart
+         then initPart ++ [lastPart ++ [dummy]]
+         else reverse (lastPart:restRev) ++ [[dummy]]
+  [] -> error "insertDummyRight: layered is empty"
 
 changeConnectionType :: [Connection Int] -> [[Wrapper]] -> [ConnectWithType]
   -> [ConnectWithType]
@@ -693,8 +724,12 @@ changeConnectionType [] _ withType = withType
 changeConnectionType (x:xs) layers withType = changeConnectionType xs layers
   (withType ++ [ConnectWithType x decideType])
   where
-    startLayer = findLayer (head $ pointFrom x) layers 0
-    endLayer = findLayer (head $ pointTo x) layers 0
+    startLayer = case pointFrom x of
+      h:_ -> findLayer h layers 0
+      []  -> error "changeConnectionType: empty pointFrom"
+    endLayer = case pointTo x of
+      h:_ -> findLayer h layers 0
+      []  -> error "changeConnectionType: empty pointTo"
     decideType = decideConnectionType startLayer endLayer
 
 changeRightConnection :: Wrapper -> RightConnect -> Wrapper
@@ -744,8 +779,12 @@ markRightConnection a b = OrDecomposition (layered afterChange) (key a) (strings
   (typedConnections a ++ [ConnectWithType (connecting b) decideConnectType]) (layout
   a) (maxLabel a) (lengthXY a) (rightC a) (outerLayout a)
   where
-    startLayer = findLayer (head (pointFrom $ connecting b)) (layered a) 0
-    endLayer = findLayer (head (pointTo $ connecting b)) (layered a) 0
+    startLayer = case pointFrom (connecting b) of
+      h:_ -> findLayer h (layered a) 0
+      []  -> error "markRightConnection: empty pointFrom"
+    endLayer = case pointTo (connecting b) of
+      h:_ -> findLayer h (layered a) 0
+      []  -> error "markRightConnection: empty pointTo"
     stateToModify = if startLayer < endLayer then pointFrom $ connecting b else
       pointTo $ connecting b
     afterChange = changeRightConnections stateToModify (key a) (if connectType

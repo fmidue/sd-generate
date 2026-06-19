@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -Wno-error=x-partial -Wno-error=deprecations #-}
+{-# OPTIONS_GHC -Wno-error=deprecations #-}
 {-# LANGUAGE LambdaCase, RecordWildCards #-}
 
 module Modelling.StateDiagram.Generate (randomSD) where
@@ -70,10 +70,10 @@ checkParallelRegion [_] _ _ = True
 checkParallelRegion _ [_] _ = True
 checkParallelRegion [_,_] _ _ = True
 checkParallelRegion _ [_,_] _ = True
-checkParallelRegion (x:xs) (y:ys) subs
-  = case (x == y, all (isNotCD x) subs) of
-     (True, True) -> checkParallelRegion xs ys (getSubstates x subs)
-     (True, False) -> head xs == head ys && checkParallelRegion xs ys (getSubstates x subs)
+checkParallelRegion (x1:x2:xs) (y1:y2:ys) subs
+  = case (x1 == y1, all (isNotCD x1) subs) of
+     (True, True) -> checkParallelRegion (x2:xs) (y2:ys) (getSubstates x1 subs)
+     (True, False) -> x2 == y2 && checkParallelRegion (x2:xs) (y2:ys) (getSubstates x1 subs)
      (False, _) -> True
 
 --haveForkOrJoin:: StateDiagram n Int [Connection Int] -> Bool
@@ -239,8 +239,8 @@ randomSD' outermost c cdMaxNum leastTwoLevels ns alphabet (l,nm,mustCD) exclude 
     start
 
 randomInnerSD :: Int -> Int -> [Int] -> [String] -> (Int,NodeType,[String],Bool) -> [String]-> Gen (StateDiagram String Int [Connection Int])
-randomInnerSD counter cdMaxNum ns alphabet (l,t,s,mustCD) exclude = do
-  let nm = head s
+randomInnerSD _ _ _ _ (_,_,[],_) _ = error "randomInnerSD: empty name list"
+randomInnerSD counter cdMaxNum ns alphabet (l,t,s@(nm:_),mustCD) exclude = do
   case t of
        Hist  -> frequency [(1,return (History l Shallow)),(1,return (History l Deep))]
        End   -> return (EndState l)

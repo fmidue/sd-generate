@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -Wno-error=x-partial #-}
-
 module Modelling.StateDiagram.Support where
 import Modelling.StateDiagram.Datatype
 import Data.Graph
@@ -16,14 +14,14 @@ betweenConnection _ = ForwardH
 
 buildEmptyWrapperByLayer :: [[Wrapper]] -> [[Wrapper]] -> [[Wrapper]]
 buildEmptyWrapperByLayer [_, _] list = list ++ [[]]
-buildEmptyWrapperByLayer xs list = buildEmptyWrapperByLayer (tail xs)
-  (list ++ [[]])
+buildEmptyWrapperByLayer (_:xs) list = buildEmptyWrapperByLayer xs (list ++ [[]])
+buildEmptyWrapperByLayer [] _ = error "buildEmptyWrapperByLayer: insufficient layers"
 
 buildEmptyConnectionByLayer :: [[Wrapper]] -> [[ConnectWithType]] ->
   [[ConnectWithType]]
 buildEmptyConnectionByLayer [_, _] list = list ++ [[]]
-buildEmptyConnectionByLayer xs list = buildEmptyConnectionByLayer (tail xs)
-  (list ++ [[]])
+buildEmptyConnectionByLayer (_:xs) list = buildEmptyConnectionByLayer xs (list ++ [[]])
+buildEmptyConnectionByLayer [] _ = error "buildEmptyConnectionByLayer: insufficient layers"
 
 checkWrapperLayer :: Wrapper -> Bool
 checkWrapperLayer StartS {} = True
@@ -88,9 +86,11 @@ findLayer num (x:xs) layer
 
 getCompareList :: Bool -> Wrapper -> [[Int]]
 getCompareList checkType wrapper = case wrapper of
-  OrDecomposition {} -> if checkType then fmap ((\ a -> key wrapper : [a]) . key)
-    (head $ layered wrapper) else fmap ((\ a -> key wrapper : [a]) . key)
-    (last $ layered wrapper)
+  OrDecomposition {} -> case layered wrapper of
+    [] -> error "getCompareList: empty layered"
+    layers@(l:_) ->
+      let pick = if checkType then l else last layers
+      in fmap ((\ a -> key wrapper : [a]) . key) pick
   AndDecomposition {} -> fmap (key wrapper :) (concatMap (getCompareList checkType)
     (component wrapper))
   _ -> []
@@ -103,13 +103,16 @@ getConnection a = fmap (\ (ConnectWithType x y) -> ((a ++ pointFrom x, a ++
 getConnectionWithLayerBefore2 :: Wrapper -> [ConnectWithType] -> [[Int]] -> [[Int]]
 getConnectionWithLayerBefore2 _ [] connected = connected
 getConnectionWithLayerBefore2 wrapper (x:xs) connected
-  | head (pointFrom y) == key wrapper = getConnectionWithLayerBefore2 wrapper xs
+  | startsWithWrapper (pointFrom y) = getConnectionWithLayerBefore2 wrapper xs
       (connected ++ [pointTo y])
-  | head (pointTo y) == key wrapper = getConnectionWithLayerBefore2 wrapper xs
+  | startsWithWrapper (pointTo y) = getConnectionWithLayerBefore2 wrapper xs
       (connected ++ [pointFrom y])
   | otherwise = getConnectionWithLayerBefore2 wrapper xs connected
   where
     y = connecting x
+    startsWithWrapper z = case z of
+      h:_ -> h == key wrapper
+      []  -> error "getConnectionWithLayerBefore2: empty point list"
 
 getConnectionWithLayerBefore3 :: [Int] -> [ConnectWithType] -> [[Int]] -> [[Int]]
 getConnectionWithLayerBefore3 _ [] connected = connected
@@ -143,14 +146,18 @@ getDeeperLevelL ([a], [b]) commonValue layersBef = higherIndex (a, b) (fmap key
   newLayerBef)
   where
       newState = returnState layersBef commonValue
-      newLayerBef = last $ layered newState
+      newLayerBef = case layered newState of
+        [] -> error "getDeeperLevelL: empty layered"
+        xs -> last xs
 getDeeperLevelL ([a, as], [b, bs]) commonValue layersBef = if a /= b then
   higherIndex (a, b) (fmap key (component newState)) else higherIndex (as, bs)
   newAndLayerBef
   where
     newState = returnState layersBef commonValue
     newState' = returnState (component newState) a
-    newAndLayerBef = fmap key (last (layered newState'))
+    newAndLayerBef = case layered newState' of
+      [] -> error "getDeeperLevelL: empty layered (nested)"
+      xs -> fmap key (last xs)
 getDeeperLevelL _ _ _ = 0
 -- jscpd:ignore-end
 
@@ -159,14 +166,18 @@ getDeeperLevelR ([a], [b]) commonValue layersBef = higherIndex (a, b) (fmap key
   newLayerBef)
   where
       newState = returnState layersBef commonValue
-      newLayerBef = head $ layered newState
+      newLayerBef = case layered newState of
+        [] -> error "getDeeperLevelR: empty layered"
+        (x:_) -> x
 getDeeperLevelR ([a, as], [b, bs]) commonValue layersBef = if a /= b then
   higherIndex (a, b) (fmap key (component newState)) else higherIndex (as, bs)
   newAndLayerBef
   where
     newState = returnState layersBef commonValue
     newState' = returnState (component newState) a
-    newAndLayerBef = fmap key (head (layered newState'))
+    newAndLayerBef = case layered newState' of
+      [] -> error "getDeeperLevelR: empty layered (nested)"
+      (x:_) -> fmap key x
 getDeeperLevelR _ _ _ = 0
 
 getFirstFromTuple3 :: (a, b, c) -> a
@@ -213,8 +224,9 @@ mapWithLabel a = Map.fromList (fmap (\ x -> (label x, x)) a)
 
 mapWithConnection :: Ord a => [Connection a] -> Map.Map a [a]
 mapWithConnection
-  = foldl (\ a x -> Map.insertWith (++) (head (pointFrom x)) (pointTo x) a)
-    Map.empty
+  = foldl (\ a x -> case pointFrom x of
+                      h:_ -> Map.insertWith (++) h (pointTo x) a
+                      []  -> error "mapWithConnection: empty pointFrom") Map.empty
 
 mapWithConnection' :: [StateDiagram n Int [Connection Int]] -> Map.Map Int [Int] -> Map.Map Int
   [Int]
