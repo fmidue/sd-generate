@@ -3,7 +3,7 @@ resolver: lts-23.28
 packages:
   - .
 extra-deps:
-  - call-alloy-0.6.0.2
+  - call-alloy-0.6.0.3
   - git: https://github.com/fmidue/output-blocks.git
     commit: be840655231dd5118ee66e28de3343628882dce3
     subdirs:

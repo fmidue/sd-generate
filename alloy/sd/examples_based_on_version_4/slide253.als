@@ -1,6 +1,11 @@
-module diagram // name: "", (irrelevant) label: 86
+module diagram // name: "", (irrelevant) label: 89
 open uml_state_diagram
-
+one sig S extends StartNodes{}
+one sig SFlow extends Flows{}{
+  from = S
+  label = EmptyTrigger
+  to = N_1
+}
 one sig N_1 extends RegionsStates{}{
   contains = R_1_1 + R_1_2
 }
@@ -777,4 +782,4 @@ run {} for
   0 ShallowHistoryNodes,
   0 ForkNodes,
   0 JoinNodes,
-  86 ProtoFlows, exactly 86 Flows // concerning ProtoFlows, a temporary hack for manual scope setting
+  89 ProtoFlows, exactly 87 Flows // concerning ProtoFlows, a temporary hack for manual scope setting

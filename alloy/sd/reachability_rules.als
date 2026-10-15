@@ -35,14 +35,37 @@ pred setStartNodesFlag{
         }) implies s1.flag = 1 else s1.flag = 0
 }
 
+// Starting from an outermost start node (root), all nodes can be reachable, in which Join nodes require AND edges.
+pred allNodesReachable {
+    let seed   = StartNodes - allContainedNodes,
+        must   = Nodes - StartNodes - CompositeStates,
+        edge = (~from.to) |
+            some justify: Nodes -> Nodes {
+                no n: Nodes | n in n.^justify                     // No cycle in the justification
+                no justify[seed]                                  // The seed is the root
+                Nodes.justify in seed + justify.Nodes             // The reason must be grounded
+                all n: must - JoinNodes |                         // OR nodes (excluding Join nodes)
+                one justify[n] and (justify[n] -> n) in edge
+                all jn: must & JoinNodes |                         // AND (Join) nodes
+                justify[jn] = (Flows <: to).jn.from
+                all c: CompositeStates |                          // c becomes active by any entry (standard, direct, fork or history) whose source lies outside c
+                justify[c] in edge.(c + nodesInThisAndDeeper[c]) - (c + nodesInThisAndDeeper[c])
+                all h: HierarchicalStates, s: StartNodes & h.contains | // an inner start node fires on a standard entry to h, or on entering a history node of h without default flow
+                justify[s] in edge.(h + (HistoryNodes & h.contains - Flows.from))
+                all rs: RegionsStates, r: rs.contains, s: StartNodes & r.contains | // a start node in region r fires unless r itself is entered directly
+                let inRs = rs + nodesInThisAndDeeper[rs], inR = nodesInThisAndDeeper[r] |
+                justify[s] in (Flows <: to).rs.from                                                       // standard entry to rs
+                        + ((Flows <: to).(inRs - inR).from - nodesInThisAndDeeper[rs] - (ForkNodes & (Flows <: to).inR.from)) // entering another region from outside rs or from rs itself, forks also entering r excluded
+                        + (Flows <: to).(HistoryNodes & r.contains - Flows.from).from                     // entry to a history node of r without default flow
+            }
+}
 
 pred trueReachability{
         atLeastOneEntryToCompositeStates // It is a necessary condition for "true reachability"
 
         theFlatteningStrategy
 
-        (Nodes - StartNodes - CompositeStates) in
-                (StartNodes - allContainedNodes).^(~from.to) // Starting from a outermost start node except start nodes and composite states, all nodes except start nodes and composite states can be reachable
+        allNodesReachable
 }
 
 fact{
@@ -63,7 +86,7 @@ fact{
         // If a composite state with regions has a fork entry, those parallel regions without the entry from the fork node will contain a start node.
         all rs1: RegionsStates, r1: rs1.contains, f1: ForkNodes |
                 some ((Flows <: from).f1.to & nodesInThisAndDeeper[rs1])
-                and f1 not in rs1.contains.contains
+                and f1 not in nodesInThisAndDeeper[rs1] // a fork inside rs1 (at any depth) does not enter rs1
                 and no ((Flows <: from).f1.to & nodesInThisAndDeeper[r1])
                         implies one (StartNodes & r1.contains)
         // If a composite without regions has a standard entry, there must be a start state in it.
