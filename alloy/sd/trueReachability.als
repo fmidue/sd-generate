@@ -37,7 +37,7 @@ pred theFlatteningStrategy{
                 // It flattens flows from all states and the outermost start node to fork nodes
                 (pf.from in (sn + States) and pf.to in ForkNodes)
                         implies
-                                flattenNonEmpty[pf.from, pf.derived, from.(pf.to).to + from.(nodesInOtherParallelRegions[(Regions <: contains).(from.(pf.to).to)] & StartNodes).to]
+                                flattenNonEmpty[pf.from, pf.derived, from.(pf.to).to + from.(nodesInOtherParallelRegions[{r: Regions | some (from.(pf.to).to & nodesInThisAndDeeper[r])}] & StartNodes).to] // regions entered by the fork at any depth
                         else
                 // The following 4 predicates flatten flows from states and the outermost start node to history nodes
                 // When a history node is in a region and has no default flow (states + the outermost start state -> history nodes in regions and without a default flow)
